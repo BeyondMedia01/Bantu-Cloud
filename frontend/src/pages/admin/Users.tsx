@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Shield } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import SkeletonTable from '../../components/common/SkeletonTable';
 import { AdminAPI } from '../../api/client';
 

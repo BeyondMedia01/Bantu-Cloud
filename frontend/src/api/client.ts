@@ -240,6 +240,8 @@ export const PayrollAPI = {
     api.post<{ sent: number; skipped: number; failed: number; errors: string[] }>(`/payroll/${runId}/send-all`),
   preview: (data: { inputs: any[]; currency?: string; period?: string }) =>
     api.post<any[]>('/payroll/preview', data),
+  getPayslipPdfUrl: (runId: string, id: string) =>
+    `${api.defaults.baseURL}/payroll/${runId}/payslips/${id}/pdf`,
 };
 
 export const StatutoryExportAPI = {
@@ -592,7 +594,7 @@ export const DeviceAPI = {
   create: (data: any) => api.post('/devices', data),
   update: (id: string, data: any) => api.put(`/devices/${id}`, data),
   delete: (id: string) => api.delete(`/devices/${id}`),
-  sync: (id: string) => api.post(`/devices/${id}/sync`),
+  sync: (id: string, data?: any) => api.post(`/devices/${id}/sync`, data),
   test: (id: string) => api.post(`/devices/${id}/test`),
 };
 
@@ -603,6 +605,62 @@ export const PublicHolidaysAPI = {
   create: (data: { name: string; date: string }) => api.post<PublicHoliday>('/public-holidays', data),
   seed: (year: number) => api.post('/public-holidays/seed', { year }),
   delete: (id: string) => api.delete(`/public-holidays/${id}`),
+};
+
+export const AuditLogAPI = {
+  getAll: (params?: Record<string, string>) => api.get<PaginatedResponse<AuditLog>>('/admin/logs', { params }),
+};
+
+export const NSSAContributionAPI = {
+  getAll: (params?: Record<string, string>) => api.get<any[]>('/nssa-contributions', { params }),
+  getById: (id: string) => api.get<any>(`/nssa-contributions/${id}`),
+  create: (data: any) => api.post('/nssa-contributions', data),
+  update: (id: string, data: any) => api.put(`/nssa-contributions/${id}`, data),
+  delete: (id: string) => api.delete(`/nssa-contributions/${id}`),
+};
+
+export const PayrollLogAPI = {
+  getAll: (params?: Record<string, string>) => api.get<any[]>('/payroll-logs', { params }),
+  getById: (id: string) => api.get<any>(`/payroll-logs/${id}`),
+};
+
+export const PayrollUserAPI = {
+  getAll: (params?: Record<string, string>) => api.get<any[]>('/payroll-users', { params }),
+  getById: (id: string) => api.get<any>(`/payroll-users/${id}`),
+  create: (data: any) => api.post('/payroll-users', data),
+  update: (id: string, data: any) => api.put(`/payroll-users/${id}`, data),
+  delete: (id: string) => api.delete(`/payroll-users/${id}`),
+};
+
+export const PayslipExportAPI = {
+  getAll: (params?: Record<string, string>) => api.get<any[]>('/payslip-exports', { params }),
+  getById: (id: string) => api.get<any>(`/payslip-exports/${id}`),
+  create: (data: any) => api.post('/payslip-exports', data),
+  delete: (id: string) => api.delete(`/payslip-exports/${id}`),
+};
+
+export const PayslipSummaryAPI = {
+  getAll: (params?: Record<string, string>) => api.get<any[]>('/payslip-summaries', { params }),
+  getById: (id: string) => api.get<any>(`/payslip-summaries/${id}`),
+  create: (data: any) => api.post('/payslip-summaries', data),
+  update: (id: string, data: any) => api.put(`/payslip-summaries/${id}`, data),
+  delete: (id: string) => api.delete(`/payslip-summaries/${id}`),
+};
+
+export const PayslipTransactionAPI = {
+  getAll: (params?: Record<string, string>) => api.get<any[]>('/payslip-transactions', { params }),
+  getById: (id: string) => api.get<any>(`/payslip-transactions/${id}`),
+  create: (data: any) => api.post('/payslip-transactions', data),
+  update: (id: string, data: any) => api.put(`/payslip-transactions/${id}`, data),
+  delete: (id: string) => api.delete(`/payslip-transactions/${id}`),
+};
+
+export const TaxBandAPI = {
+  getAll: (params?: Record<string, string>) => api.get<any[]>('/tax-bands', { params }),
+  getById: (id: string) => api.get<any>(`/tax-bands/${id}`),
+  create: (data: any) => api.post('/tax-bands', data),
+  update: (id: string, data: any) => api.put(`/tax-bands/${id}`, data),
+  delete: (id: string) => api.delete(`/tax-bands/${id}`),
 };
 
 export default api;

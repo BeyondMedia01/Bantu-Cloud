@@ -32,7 +32,6 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
   const [error, setError] = useState('');
   const [showInactive, setShowInactive] = useState(false);
 
-  const today = new Date().toISOString().slice(0, 10);
 
   const load = async () => {
     setLoading(true);

@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash, History, TrendingUp, Anchor, Calendar, Info, Globe, X, Check } from 'lucide-react';
 import { CurrencyRateAPI } from '../api/client';
 
-const CurrencyRates: React.FC = () => {
+interface Props {
+  activeCompanyId?: string | null;
+}
+
+const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) => {
   const [rates, setRates]       = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm]         = useState({ toCurrency: 'ZiG', rate: '', effectiveDate: new Date().toISOString().slice(0, 10), source: 'RBZ', notes: '' });

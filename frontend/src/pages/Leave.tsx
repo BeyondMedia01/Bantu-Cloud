@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, CalendarDays, Shield, BarChart2, Banknote } from 'lucide-react';
+import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
 

@@ -9,7 +9,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
   const fetchLogs = async () => {
     try {
       const response = await AuditLogAPI.getAll();
-      setLogs(response.data);
+      setLogs((response.data as unknown) as any[]);
     } catch (error) {
       console.error('Failed to fetch audit logs');
     }

@@ -152,7 +152,7 @@ const Attendance: React.FC = () => {
   const loadRecords = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await AttendanceAPI.getAll({ ...filters, page, limit: LIMIT });
+      const res = await AttendanceAPI.getAll({ ...filters, page: String(page), limit: String(LIMIT) });
       setRecords(res.data.data || res.data || []);
       setTotal(res.data.total || 0);
     } catch { /* silent */ }
@@ -162,7 +162,7 @@ const Attendance: React.FC = () => {
   const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await AttendanceAPI.getLogs({ ...filters, page, limit: LIMIT });
+      const res = await AttendanceAPI.getLogs({ ...filters, page: String(page), limit: String(LIMIT) });
       setLogs(res.data.data || res.data || []);
       setTotal(res.data.total || 0);
     } catch { /* silent */ }
@@ -205,7 +205,7 @@ const Attendance: React.FC = () => {
     if (!confirm('Convert processed attendance records into payroll inputs? This will add records to PayrollInputs for the selected period.')) return;
     setError('');
     try {
-      const res = await AttendanceAPI.generateInputs({ startDate: filters.startDate, endDate: filters.endDate });
+      const res = await AttendanceAPI.generateInputs({ startDate: filters.startDate, endDate: filters.endDate, period: 'MONTHLY' });
       flash(`Generated ${res.data.created} payroll input rows.`);
     } catch (e: any) {
       setError(e.response?.data?.message || 'Failed to generate inputs.');

@@ -55,8 +55,8 @@ const ClientAdminStructure: React.FC = () => {
     setSaving(true);
     setError('');
     try {
-      if (tab === 'branches') await BranchAPI.create({ ...formData, companyId });
-      else if (tab === 'departments') await DepartmentAPI.create({ ...formData, companyId });
+      if (tab === 'branches') await BranchAPI.create({ ...formData, companyId: companyId ?? undefined });
+      else if (tab === 'departments') await DepartmentAPI.create({ ...formData, companyId: companyId ?? undefined });
       else await SubCompanyAPI.create(formData);
       setShowForm(false);
       setFormData({});

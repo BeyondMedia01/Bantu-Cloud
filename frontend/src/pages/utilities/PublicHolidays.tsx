@@ -70,9 +70,6 @@ const PublicHolidays: React.FC = () => {
     }
   };
 
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
   return (
     <div>
       {/* Header */}

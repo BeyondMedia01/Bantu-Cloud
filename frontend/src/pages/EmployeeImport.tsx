@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Upload, CheckCircle2, XCircle, FileSpreadsheet, FileText } from 'lucide-react';
+import { ArrowLeft, Upload, CheckCircle2, XCircle, FileSpreadsheet, FileText } from 'lucide-react';
 import { EmployeeAPI } from '../api/client';
 
 interface FailedRow {

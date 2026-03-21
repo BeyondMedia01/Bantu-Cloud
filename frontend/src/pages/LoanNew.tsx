@@ -103,7 +103,7 @@ const LoanNew: React.FC = () => {
   );
 };
 
-const Field: React.FC<{ label: string; children: React.ReactElement }> = ({ label, children }) => {
+const Field: React.FC<{ label: string; children: React.ReactElement<any> }> = ({ label, children }) => {
   const child = React.cloneElement(children, {
     className: `w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm ${children.props.className || ''}`,
   });

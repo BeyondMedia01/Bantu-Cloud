@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Clock, Users } from 'lucide-react';
 import { ShiftAPI } from '../../api/client';
-import { getActiveCompanyId } from '../../lib/companyContext';
 
 const BLANK = {
   name: '', code: '', startTime: '08:00', endTime: '17:00',
