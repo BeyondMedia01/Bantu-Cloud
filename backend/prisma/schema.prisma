@@ -1,0 +1,1027 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  PLATFORM_ADMIN
+  CLIENT_ADMIN
+  EMPLOYEE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum EmploymentType {
+  PERMANENT
+  CONTRACT
+  TEMPORARY
+  PART_TIME
+}
+
+enum PaymentMethod {
+  BANK
+  CASH
+}
+
+enum PaymentBasis {
+  MONTHLY
+  DAILY
+  HOURLY
+}
+
+enum RateSource {
+  NEC_GRADE
+  MANUAL
+}
+
+enum TaxMethod {
+  FDS_AVERAGE
+  FDS_FORECASTING
+  NON_FDS
+}
+
+enum PayrollStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PROCESSING
+  COMPLETED
+  ERROR
+}
+
+enum TransactionType {
+  EARNING
+  DEDUCTION
+  BENEFIT
+}
+
+// IT7 income classification — set on each TransactionCode so the IT7/P16
+// can group income into ZIMRA-defined categories without relying on code strings.
+enum IncomeCategory {
+  BASIC_SALARY
+  BONUS
+  GRATUITY
+  ALLOWANCE
+  OVERTIME
+  COMMISSION
+  BENEFIT
+  PENSION
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LoanStatus {
+  ACTIVE
+  PAID_OFF
+  DEFAULTED
+}
+
+enum RepaymentStatus {
+  UNPAID
+  PAID
+  OVERDUE
+}
+
+enum PlanType {
+  BASIC
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum DataType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  DATE
+}
+
+// ─── Auth & Tenancy ───────────────────────────────────────────────────────────
+
+model User {
+  id                  String      @id @default(uuid())
+  name                String?
+  email               String      @unique
+  password            String
+  role                UserRole    @default(EMPLOYEE)
+  emailVerified       DateTime?
+  image               String?
+  passwordResetToken  String?     @unique
+  passwordResetExpiry DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  clientAdmin         ClientAdmin?
+  employee            Employee?
+  sessions            Session[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Client {
+  id              String        @id @default(uuid())
+  name            String
+  taxId           String?
+  isActive        Boolean       @default(true)
+  defaultCurrency String        @default("USD")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  clientAdmins    ClientAdmin[]
+  companies       Company[]
+  subCompanies    SubCompany[]
+  employees       Employee[]
+  payrollCalendars PayrollCalendar[]
+  taxTables       TaxTable[]
+  transactionCodes TransactionCode[]
+  license         LicenseToken?
+  subscription    Subscription?
+  grades          Grade[]
+  necTables       NecTable[]
+}
+
+model ClientAdmin {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  clientId  String
+  createdAt DateTime @default(now())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+// ─── Org Structure ────────────────────────────────────────────────────────────
+
+model Company {
+  id                 String       @id @default(uuid())
+  clientId           String
+  name               String
+  registrationNumber String?
+  taxId              String?
+  address            String?
+  contactEmail       String?
+  contactPhone       String?
+  // Industry-specific statutory rates — override global SystemSettings when set
+  wcifRate           Float?       // Workers Compensation Insurance Fund rate for this company's industry
+  sdfRate            Float?       // Standard Development Fund / Manpower Training Levy rate
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  client             Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  branches           Branch[]
+  departments        Department[]
+  employees          Employee[]
+  payrollRuns        PayrollRun[]
+  payrollCores       PayrollCore[]
+  leavePolicies      LeavePolicy[]
+  leaveBalances      LeaveBalance[]
+  leaveEncashments   LeaveEncashment[]
+  shifts             Shift[]
+  shiftAssignments   ShiftAssignment[]
+  biometricDevices   BiometricDevice[]
+  attendanceLogs     AttendanceLog[]
+  attendanceRecords  AttendanceRecord[]
+  currencyRates      CurrencyRate[]
+}
+
+model SubCompany {
+  id        String   @id @default(uuid())
+  clientId  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  branches  Branch[]
+}
+
+model Branch {
+  id           String      @id @default(uuid())
+  companyId    String
+  subCompanyId String?
+  name         String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  company      Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  subCompany   SubCompany? @relation(fields: [subCompanyId], references: [id])
+  departments  Department[]
+  employees    Employee[]
+}
+
+model Department {
+  id        String     @id @default(uuid())
+  companyId String
+  branchId  String?
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  employees Employee[]
+}
+
+// ─── Employees ────────────────────────────────────────────────────────────────
+
+model Employee {
+  id             String         @id @default(uuid())
+  clientId       String
+  companyId      String
+  branchId       String?
+  departmentId   String?
+  userId         String?        @unique
+  employeeCode   String?
+  // Personal
+  firstName        String
+  lastName         String
+  maidenName       String?
+  dateOfBirth      DateTime?
+  gender           Gender?
+  maritalStatus    MaritalStatus?
+  nationality      String?
+  idPassport       String?
+  socialSecurityNum String?
+  pensionNumber     String?
+  homeAddress      String?
+  postalAddress    String?
+  nextOfKin        String?
+  nextOfKinName    String?
+  nextOfKinContact String?
+  // Work
+  title            String?
+  occupation       String?
+  position         String
+  employmentType   EmploymentType @default(PERMANENT)
+  startDate        DateTime
+  costCenter       String?
+  leaveEntitlement Float?
+  dischargeDate    DateTime?
+  dischargeReason  String?
+  // Pay
+  baseRate         Float
+  currency         String         @default("USD")
+  paymentMethod    PaymentMethod  @default(BANK)
+  paymentBasis     PaymentBasis   @default(MONTHLY)
+  hoursPerPeriod   Float?
+  daysPerPeriod    Float?
+  bankName         String?
+  bankBranch       String?
+  accountNumber    String?
+  rateSource       RateSource     @default(MANUAL)
+  gradeId          String?
+  // Tax
+  taxMethod        TaxMethod      @default(NON_FDS)
+  taxTable         String?
+  taxDirective          String?
+  taxDirectivePerc      Float?
+  taxDirectiveAmt       Float?
+  // Audit trail for ZIMRA tax directives
+  taxDirectiveRef       String?    // ZIMRA directive certificate / reference number
+  taxDirectiveEffective DateTime?  // Date from which the directive is valid
+  taxDirectiveExpiry    DateTime?  // Date on which the directive lapses (null = no expiry)
+  accumulativeSetting String?
+  taxCredits       Float?
+  tin              String?
+  motorVehicleBenefit Float       @default(0)
+  motorVehicleType String?
+  // Split currency (e.g. 60 = receive 60% of net pay in USD, remainder in ZiG)
+  splitUsdPercent  Float?
+  // NEC grade linkage (used when rateSource = NEC_GRADE)
+  necGradeId       String?
+  // Balances
+  leaveBalance     Float          @default(0)
+  leaveTaken       Float          @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  client             Client              @relation(fields: [clientId], references: [id])
+  company            Company             @relation(fields: [companyId], references: [id])
+  branch             Branch?             @relation(fields: [branchId], references: [id])
+  department         Department?         @relation(fields: [departmentId], references: [id])
+  user               User?               @relation(fields: [userId], references: [id])
+  grade              Grade?              @relation(fields: [gradeId], references: [id])
+  necGrade           NecGrade?           @relation(fields: [necGradeId], references: [id])
+  bankAccounts     EmployeeBankAccount[]
+  payrollTransactions  PayrollTransaction[]
+  payslips             Payslip[]
+  leaveRecords         LeaveRecord[]
+  leaveRequests        LeaveRequest[]
+  leaveBalances        LeaveBalance[]
+  leaveEncashments     LeaveEncashment[]
+  loans                Loan[]
+  payrollInputs        PayrollInput[]
+  payrollCores         PayrollCore[]
+  salaryStructure      EmployeeTransaction[]
+  shiftAssignments     ShiftAssignment[]
+  attendanceLogs       AttendanceLog[]
+  attendanceRecords    AttendanceRecord[]
+  documents            EmployeeDocument[]
+
+  @@unique([clientId, employeeCode])
+}
+
+model EmployeeBankAccount {
+  id            String   @id @default(uuid())
+  employeeId    String
+  accountName   String?
+  accountNumber String
+  bankName      String
+  bankBranch    String?
+  branchCode    String?
+  currency      String   @default("USD")
+  splitType     String   @default("REMAINDER") // "FIXED" | "PERCENTAGE" | "REMAINDER"
+  splitValue    Float    @default(0)
+  priority      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeDocument {
+  id          String   @id @default(uuid())
+  employeeId  String
+  name        String
+  fileUrl     String
+  type        String   // "ID", "CONTRACT", "MEDICAL", "OTHER"
+  size        Int?
+  mimeType    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+// ─── Payroll Core (point-in-time snapshots for bank exports / currency config) ─
+
+model PayrollCore {
+  id                     String   @id @default(uuid())
+  companyId              String
+  employeeId             String
+  // Snapshot fields (denormalised at time of creation for historical accuracy)
+  fullName               String
+  employeeCode           String
+  jobTitle               String?
+  basicSalaryZiG         Float    @default(0)
+  basicSalaryUSD         Float    @default(0)
+  // JSON: { USD: 0.6, ZiG: 0.4 }
+  preferredCurrencySplit Json?
+  paymentFrequency       String   @default("MONTHLY")
+  // Bank export fields
+  bankName               String?
+  bankBranch             String?
+  accountNumber          String?
+  startDate              DateTime
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee               Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+// ─── Payroll ──────────────────────────────────────────────────────────────────
+
+model PayrollCalendar {
+  id          String     @id @default(uuid())
+  clientId    String
+  periodType  String     @default("MONTHLY")
+  year        Int
+  month       Int?
+  payDay      Int
+  startDate   DateTime
+  endDate     DateTime
+  isClosed    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  client      Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, year, month])
+  payrollRuns PayrollRun[]
+}
+
+model PayrollRun {
+  id                String         @id @default(uuid())
+  payrollCalendarId String?
+  companyId         String
+  runDate           DateTime       @default(now())
+  startDate         DateTime
+  endDate           DateTime
+  currency          String         @default("USD")
+  exchangeRate      Float          @default(1)
+  dualCurrency      Boolean        @default(false)
+  status            PayrollStatus  @default(DRAFT)
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  payrollCalendar   PayrollCalendar? @relation(fields: [payrollCalendarId], references: [id])
+  company           Company        @relation(fields: [companyId], references: [id])
+  transactions      PayrollTransaction[]
+  payslips          Payslip[]
+  payrollInputs     PayrollInput[]
+}
+
+model PayrollTransaction {
+  id                String          @id @default(uuid())
+  employeeId        String
+  payrollRunId      String
+  transactionCodeId String
+  amount            Float
+  currency          String          @default("USD")
+  description       String?
+  createdAt         DateTime        @default(now())
+  employee          Employee        @relation(fields: [employeeId], references: [id])
+  payrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  transactionCode   TransactionCode @relation(fields: [transactionCodeId], references: [id])
+}
+
+model PayrollInput {
+  id                String          @id @default(uuid())
+  employeeId        String
+  payrollRunId      String?
+  transactionCodeId String
+
+  // Multi-currency split amounts
+  employeeUSD       Float           @default(0)
+  employeeZiG       Float           @default(0)
+  employerUSD       Float           @default(0)
+  employerZiG       Float           @default(0)
+
+  // Work units (e.g. 150 hrs, 22 days)
+  units             Float?
+  unitsType         String?         // "hrs" | "days" | "pcs" | ""
+
+  // Scheduling
+  duration          String          @default("Indefinite")
+  balance           Float           @default(0)
+
+  period            String
+  notes             String?
+  processed         Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  employee          Employee        @relation(fields: [employeeId], references: [id])
+  payrollRun        PayrollRun?     @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  transactionCode   TransactionCode @relation(fields: [transactionCodeId], references: [id])
+}
+
+model Payslip {
+  id              String     @id @default(uuid())
+  employeeId      String
+  payrollRunId    String
+  gross           Float
+  paye            Float
+  aidsLevy        Float      @default(0)
+  nssaEmployee    Float      @default(0)
+  nssaEmployer    Float      @default(0)
+  nssaBasis          Float      @default(0)
+  pensionApplied     Float      @default(0)
+  basicSalaryApplied Float      @default(0)
+  wcifEmployer    Float      @default(0)
+  sdfContribution Float      @default(0)
+  necLevy         Float      @default(0)
+  necEmployer     Float      @default(0)
+  zimdefEmployer  Float      @default(0)
+  loanDeductions  Float      @default(0)
+  netPay          Float
+  // Split currency — populated when employee has splitUsdPercent set
+  netPayUSD       Float?
+  netPayZIG       Float?
+  // Dual currency breakdown — populated when payrollRun.dualCurrency = true
+  grossUSD        Float?
+  grossZIG        Float?
+  payeUSD         Float?
+  payeZIG         Float?
+  aidsLevyUSD     Float?
+  aidsLevyZIG     Float?
+  nssaUSD         Float?
+  nssaZIG         Float?
+  // Tax state tracking for annual cumulative thresholds (ZIMRA)
+  exemptBonus         Float?     @default(0)
+  exemptBonusUSD      Float?     @default(0)
+  exemptBonusZIG      Float?     @default(0)
+  exemptSeverance     Float?     @default(0)
+  medicalAidCredit    Float?     @default(0)
+  taxCreditsApplied   Float?     @default(0)
+  pdfUrl          String?
+  createdAt       DateTime   @default(now())
+  employee        Employee   @relation(fields: [employeeId], references: [id])
+  payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+}
+
+// ─── Transaction Codes ────────────────────────────────────────────────────────
+
+model TransactionCode {
+  id               String              @id @default(uuid())
+  clientId         String
+  code             String
+  name             String
+  description      String?
+  type             TransactionType     @default(EARNING)
+  taxable          Boolean             @default(true)
+  pensionable      Boolean             @default(true)
+  preTax           Boolean             @default(false)
+  // Calculation behaviour
+  calculationType  String              @default("fixed")   // "fixed" | "percentage" | "formula"
+  defaultValue     Float?                                   // used when calculationType = "fixed" or "percentage"
+  formula          String?                                  // JS-safe expression string, e.g. "baseSalary * 0.1"
+  // PAYE/statutory flags (granular control beyond `taxable`)
+  affectsPaye      Boolean             @default(true)
+  affectsNssa      Boolean             @default(true)
+  affectsAidsLevy  Boolean             @default(true)
+  // ZIMRA IT7 income category — drives grouping on the tax certificate
+  incomeCategory   IncomeCategory?
+  isActive         Boolean             @default(true)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  client           Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  transactions     PayrollTransaction[]
+  inputs           PayrollInput[]
+  rules            TransactionCodeRule[]
+  employeeDefaults EmployeeTransaction[]
+
+  @@unique([clientId, code])
+}
+
+// Conditional override rules — e.g. "cap NSSA at $700", "OT rate ×1.5 for grade A"
+model TransactionCodeRule {
+  id                  String          @id @default(uuid())
+  transactionCodeId   String
+  conditionType       String          // "salary_above" | "grade" | "hours_above" | "always"
+  conditionValue      String?         // JSON-encoded value, e.g. "700" or "A"
+  calculationOverride String?         // overrides parent calculationType, e.g. "percentage"
+  valueOverride       Float?          // override amount or rate
+  formulaOverride     String?         // override formula expression
+  capAmount           Float?          // hard cap applied after calculation
+  priority            Int             @default(0)
+  description         String?
+  isActive            Boolean         @default(true)
+  createdAt           DateTime        @default(now())
+  transactionCode     TransactionCode @relation(fields: [transactionCodeId], references: [id], onDelete: Cascade)
+}
+
+// ─── Employee Salary Structure (recurring defaults with effective dating) ──────
+
+model EmployeeTransaction {
+  id                String          @id @default(uuid())
+  employeeId        String
+  transactionCodeId String
+  value             Float           // amount or rate in the given currency
+  currency          String          @default("USD")
+  effectiveFrom     DateTime        // when this component activates
+  effectiveTo       DateTime?       // null = indefinite / open-ended
+  isRecurring       Boolean         @default(true)
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  employee          Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  transactionCode   TransactionCode @relation(fields: [transactionCodeId], references: [id])
+
+  @@index([employeeId])
+  @@index([transactionCodeId])
+  @@index([effectiveFrom, effectiveTo])
+}
+
+// ─── Tax Tables ───────────────────────────────────────────────────────────────
+
+model TaxTable {
+  id            String       @id @default(uuid())
+  clientId      String
+  name          String
+  currency      String       @default("USD")
+  effectiveDate DateTime
+  expiryDate    DateTime?
+  isAnnual      Boolean      @default(true)
+  isActive      Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  brackets      TaxBracket[]
+}
+
+model TaxBracket {
+  id          String   @id @default(uuid())
+  taxTableId  String
+  lowerBound  Float
+  upperBound  Float?
+  rate        Float
+  fixedAmount Float    @default(0)
+  createdAt   DateTime @default(now())
+  taxTable    TaxTable @relation(fields: [taxTableId], references: [id], onDelete: Cascade)
+}
+
+// ─── Grades ───────────────────────────────────────────────────────────────────
+
+model Grade {
+  id        String     @id @default(uuid())
+  clientId  String
+  name      String
+  minRate   Float
+  maxRate   Float
+  currency  String     @default("USD")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  client    Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  employees Employee[]
+}
+
+// ─── NEC Tables ───────────────────────────────────────────────────────────────
+
+model NecTable {
+  id            String     @id @default(uuid())
+  clientId      String
+  name          String
+  sector        String     // e.g. "BANKING", "AGRICULTURE", "ENGINEERING"
+  currency      String     @default("USD")
+  effectiveDate DateTime
+  expiryDate    DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  client        Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  grades        NecGrade[]
+}
+
+model NecGrade {
+  id          String    @id @default(uuid())
+  necTableId  String
+  gradeCode   String    // e.g. "A", "B", "1", "2", "Grade 3"
+  description String?   // e.g. "General Hand", "Skilled Operator"
+  minRate     Float     // minimum monthly rate
+  necLevyRate Float     @default(0) // NEC levy as a fraction of earnings (employer contribution)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  necTable    NecTable  @relation(fields: [necTableId], references: [id], onDelete: Cascade)
+  employees   Employee[]
+}
+
+// ─── Shift & Roster ───────────────────────────────────────────────────────────
+
+model Shift {
+  id            String           @id @default(uuid())
+  companyId     String
+  name          String           // e.g. "Day Shift"
+  code          String?          // e.g. "DS"
+  startTime     String           // HH:MM (24-hour), e.g. "08:00"
+  endTime       String           // HH:MM, e.g. "17:00"
+  breakMinutes  Int              @default(60)
+  normalHours   Float            @default(8)   // hours of normal-rate work per day
+  ot1Threshold  Float            @default(2)   // OT hours at ×1.5 before ×2.0 kicks in
+  isOvernight   Boolean          @default(false)
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  company       Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  assignments   ShiftAssignment[]
+  attendanceRecords AttendanceRecord[]
+}
+
+// Roster — which employees work which shift on which days
+model ShiftAssignment {
+  id          String    @id @default(uuid())
+  employeeId  String
+  shiftId     String
+  companyId   String
+  startDate   DateTime
+  endDate     DateTime?           // null = ongoing
+  daysOfWeek  String              // JSON: [1,2,3,4,5] — 0=Sun…6=Sat
+  isActive    Boolean   @default(true)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift       Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, startDate])
+  @@index([companyId, startDate])
+}
+
+// Biometric device configuration
+model BiometricDevice {
+  id           String         @id @default(uuid())
+  companyId    String
+  name         String         // "Main Gate Reader"
+  vendor       String         // "ZKTECO" | "HIKVISION" | "OTHER"
+  model        String?
+  ipAddress    String?
+  port         Int?           @default(4370)
+  serialNumber String?
+  location     String?
+  username     String?        // for Hikvision digest auth
+  password     String?
+  webhookKey   String?        // secret used to validate ADMS pushes
+  isActive     Boolean        @default(true)
+  lastSyncAt   DateTime?
+  lastSyncStatus String?      // "OK" | "ERROR" | message
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  logs         AttendanceLog[]
+}
+
+// Raw punch events received from devices or manual entry
+model AttendanceLog {
+  id           String           @id @default(uuid())
+  companyId    String
+  employeeId   String?          // null if device user not matched
+  deviceId     String?
+  deviceUserId String?          // the PIN/user ID stored on the device
+  punchTime    DateTime
+  punchType    String           // "IN" | "OUT" | "BREAK_IN" | "BREAK_OUT"
+  source       String           @default("DEVICE") // "DEVICE" | "MANUAL" | "IMPORT" | "HIKVISION"
+  rawPayload   Json?            // original data packet from device
+  processed    Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  employee     Employee?        @relation(fields: [employeeId], references: [id])
+  device       BiometricDevice? @relation(fields: [deviceId], references: [id])
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, punchTime])
+  @@index([employeeId, punchTime])
+}
+
+// Calculated daily attendance record (derived from AttendanceLogs)
+model AttendanceRecord {
+  id               String    @id @default(uuid())
+  employeeId       String
+  companyId        String
+  date             DateTime  // midnight of the work day
+  shiftId          String?
+  clockIn          DateTime?
+  clockOut         DateTime?
+  breakMinutes     Int       @default(0)
+  totalMinutes     Int       @default(0) // gross work minutes (excl. break)
+  normalMinutes    Int       @default(0) // minutes @ ×1.0
+  ot1Minutes       Int       @default(0) // minutes @ ×1.5
+  ot2Minutes       Int       @default(0) // minutes @ ×2.0
+  status           String    @default("PRESENT") // PRESENT | ABSENT | HALF_DAY | HOLIDAY | LEAVE
+  isPublicHoliday  Boolean   @default(false)
+  isManualOverride Boolean   @default(false)
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  employee         Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shift            Shift?    @relation(fields: [shiftId], references: [id])
+
+  @@unique([employeeId, date])
+  @@index([companyId, date])
+}
+
+// ─── Leave ────────────────────────────────────────────────────────────────────
+
+// ─── Leave Policies (accrual rules per leave type per company) ───────────────
+
+model LeavePolicy {
+  id              String    @id @default(uuid())
+  companyId       String
+  leaveType       String    // ANNUAL | SICK | MATERNITY | PATERNITY | UNPAID | etc.
+  accrualRate     Float     @default(2.5)   // days accrued per month
+  maxAccumulation Float     @default(90)    // maximum days an employee can hold
+  carryOverLimit  Float     @default(30)    // max days to roll into next year (0 = forfeit all)
+  encashable      Boolean   @default(true)  // whether unused days can be encashed
+  encashCap       Float     @default(0)     // max days encashable per year (0 = unlimited)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  leaveBalances   LeaveBalance[]
+
+  @@unique([companyId, leaveType])
+}
+
+// ─── Leave Balances (per employee, per type, per year) ───────────────────────
+
+model LeaveBalance {
+  id              String      @id @default(uuid())
+  employeeId      String
+  companyId       String
+  leavePolicyId   String?
+  leaveType       String
+  year            Int
+  openingBalance  Float       @default(0)  // carried in from prior year
+  accrued         Float       @default(0)  // accumulated so far this year
+  taken           Float       @default(0)  // approved leave taken this year
+  encashed        Float       @default(0)  // days converted to cash this year
+  forfeited       Float       @default(0)  // days forfeited at year-end
+  balance         Float       @default(0)  // live = openingBalance + accrued - taken - encashed
+  lastAccrualDate DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  employee        Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  leavePolicy     LeavePolicy? @relation(fields: [leavePolicyId], references: [id])
+  encashments     LeaveEncashment[]
+
+  @@unique([employeeId, leaveType, year])
+}
+
+// ─── Leave Encashments (convert leave days → payable earning) ────────────────
+
+model LeaveEncashment {
+  id             String   @id @default(uuid())
+  employeeId     String
+  leaveBalanceId String
+  companyId      String
+  leaveType      String
+  days           Float
+  ratePerDay     Float    @default(0)
+  totalAmount    Float    @default(0)
+  currency       String   @default("USD")
+  status         String   @default("PENDING")  // PENDING | APPROVED | PROCESSED | REJECTED
+  payrollInputId String?
+  requestedBy    String?
+  approvedBy     String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveBalance   LeaveBalance @relation(fields: [leaveBalanceId], references: [id])
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model LeaveRecord {
+  id         String      @id @default(uuid())
+  employeeId String
+  type       String
+  startDate  DateTime
+  endDate    DateTime
+  totalDays  Float
+  reason     String?
+  status     LeaveStatus @default(PENDING)
+  approvedBy String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  employee   Employee    @relation(fields: [employeeId], references: [id])
+}
+
+model LeaveRequest {
+  id         String      @id @default(uuid())
+  employeeId String
+  type       String      @default("ANNUAL")
+  startDate  DateTime
+  endDate    DateTime
+  days       Float
+  status     LeaveStatus @default(PENDING)
+  reason     String?
+  reviewedBy String?
+  reviewNote String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  employee   Employee    @relation(fields: [employeeId], references: [id])
+}
+
+// ─── Loans ────────────────────────────────────────────────────────────────────
+
+model Loan {
+  id               String      @id @default(uuid())
+  employeeId       String
+  amount           Float
+  interestRate     Float       @default(0)
+  termMonths       Int
+  startDate        DateTime
+  repaymentMethod  String      @default("SALARY_DEDUCTION")
+  status           LoanStatus  @default(ACTIVE)
+  notes            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  employee         Employee    @relation(fields: [employeeId], references: [id])
+  repayments       LoanRepayment[]
+}
+
+model LoanRepayment {
+  id        String          @id @default(uuid())
+  loanId    String
+  amount    Float
+  dueDate   DateTime
+  paidDate  DateTime?
+  status    RepaymentStatus @default(UNPAID)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  loan      Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+}
+
+// ─── License & Subscription ───────────────────────────────────────────────────
+
+model LicenseToken {
+  id          String   @id @default(uuid())
+  clientId    String   @unique
+  token       String   @unique
+  expiresAt   DateTime
+  employeeCap Int      @default(10)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id            String       @id @default(uuid())
+  clientId      String       @unique
+  stripeSubId   String?      @unique
+  stripeCustomerId String?
+  plan          PlanType     @default(BASIC)
+  pricePerEmp   Float        @default(0)
+  billingCycle  BillingCycle @default(MONTHLY)
+  employeeCap   Int          @default(10)
+  isActive      Boolean      @default(true)
+  startDate     DateTime     @default(now())
+  endDate       DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+// ─── System Settings (Global) ─────────────────────────────────────────────────
+
+model SystemSetting {
+  id            String   @id @default(uuid())
+  settingName   String
+  settingValue  String
+  dataType      DataType @default(TEXT)
+  effectiveFrom DateTime @default(now())
+  isActive      Boolean  @default(true)
+  description   String?
+  lastUpdatedBy String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([settingName, effectiveFrom])
+  @@index([settingName, isActive])
+}
+
+// ─── Currency Rates (RBZ daily USD/ZiG rates) ─────────────────────────────────
+
+model CurrencyRate {
+  id            String   @id @default(uuid())
+  companyId     String
+  fromCurrency  String   @default("USD")
+  toCurrency    String   @default("ZiG")
+  rate          Float                        // units of toCurrency per 1 fromCurrency
+  effectiveDate DateTime
+  source        String   @default("MANUAL")  // "RBZ" | "MANUAL" | "IMPORT"
+  notes         String?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, effectiveDate])
+}
+
+// ─── Public Holidays ──────────────────────────────────────────────────────────
+
+model PublicHoliday {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime
+  year        Int
+  country     String   @default("ZW")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([date, country])
+  @@index([year, country])
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  userEmail  String?
+  action     String   // e.g. PAYROLL_CREATED, EMPLOYEE_DELETED, LEAVE_APPROVED
+  resource   String   // e.g. payroll_run, employee, leave_request
+  resourceId String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([resource, resourceId])
+  @@index([userId])
+  @@index([createdAt])
+}

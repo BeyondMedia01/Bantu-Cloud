@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #FFFFFF;
+  --color-primary: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-accent-blue: #3B82F6;
+  --color-accent-green: #10B981;
+  --color-navy: #0F172A;
+  --color-btn-primary: #b2db64;
+  
+  --font-inter: "Inter", sans-serif;
+  
+  --radius-xl: 16px;
+  --radius-2xl: 16px;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: #0F172A;
+  background-color: #FFFFFF;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-navy;
+  }
+}
+
+/* Custom Styles for Glassmorphism and Charts */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.stat-value-large {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.stat-value-small {
+  font-size: 20px;
+  font-weight: 500;
+  opacity: 0.7;
+}

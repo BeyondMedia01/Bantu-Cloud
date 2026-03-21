@@ -1,0 +1,273 @@
+import React, { useEffect, useState } from 'react';
+import { Plus, Trash, History, TrendingUp, Anchor, Calendar, Info, Globe, X, Check } from 'lucide-react';
+import { CurrencyRateAPI } from '../api/client';
+
+const CurrencyRates: React.FC = () => {
+  const [rates, setRates]       = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form, setForm]         = useState({ toCurrency: 'ZiG', rate: '', effectiveDate: new Date().toISOString().slice(0, 10), source: 'RBZ', notes: '' });
+  const [saving, setSaving]     = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const fetchRates = async () => {
+    try {
+      const response = await CurrencyRateAPI.getAll();
+      setRates(response.data);
+    } catch (error) {
+      console.error('Failed to fetch currency rates');
+    }
+  };
+
+  useEffect(() => { fetchRates(); }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.rate || !form.effectiveDate) { setFormError('Rate and effective date are required.'); return; }
+    setSaving(true);
+    setFormError('');
+    try {
+      await CurrencyRateAPI.create({
+        fromCurrency: 'USD',
+        toCurrency: form.toCurrency,
+        rate: parseFloat(form.rate),
+        effectiveDate: form.effectiveDate,
+        source: form.source || 'MANUAL',
+        notes: form.notes || undefined,
+      });
+      setIsModalOpen(false);
+      setForm({ toCurrency: 'ZiG', rate: '', effectiveDate: new Date().toISOString().slice(0, 10), source: 'RBZ', notes: '' });
+      fetchRates();
+    } catch (err: any) {
+      setFormError(err.response?.data?.message || 'Failed to save rate.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Delete this exchange rate record?')) return;
+    try {
+      await CurrencyRateAPI.delete(id);
+      fetchRates();
+    } catch (error) {
+      alert('Failed to delete rate');
+    }
+  };
+
+  const latestZig = rates.find((r) => r.toCurrency === 'ZiG');
+
+  return (
+    <div className="flex flex-col gap-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-navy mb-1">Exchange Rates</h2>
+          <p className="text-slate-500 font-medium text-sm">Manage USD to ZiG conversion rates for payroll ledgers.</p>
+        </div>
+        <button
+          onClick={() => { setIsModalOpen(true); setFormError(''); }}
+          className="bg-btn-primary text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 transition-opacity flex items-center gap-2"
+        >
+          <Plus size={20} /> New Rate
+        </button>
+      </header>
+
+      {/* Hero Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-primary rounded-2xl p-6 border border-border shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-blue-50 text-accent-blue rounded-xl"><Anchor size={20} /></div>
+            <span className="font-bold text-slate-400 text-xs uppercase tracking-wider">Base Currency</span>
+          </div>
+          <p className="text-2xl font-black text-navy">USD ($)</p>
+          <p className="text-xs text-slate-400 font-medium mt-1">All tax logic anchors to USD.</p>
+        </div>
+        <div className="bg-primary rounded-2xl p-6 border border-border shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><TrendingUp size={20} /></div>
+            <span className="font-bold text-slate-400 text-xs uppercase tracking-wider">Current ZiG Rate</span>
+          </div>
+          <p className="text-2xl font-black text-navy">
+            {latestZig ? Number(latestZig.rate).toFixed(4) : 'N/A'}
+          </p>
+          <p className="text-xs text-slate-400 font-medium mt-1">ZiG per 1 USD.</p>
+        </div>
+        <div className="bg-primary rounded-2xl p-6 border border-border shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-xl"><History size={20} /></div>
+            <span className="font-bold text-slate-400 text-xs uppercase tracking-wider">Historical Records</span>
+          </div>
+          <p className="text-2xl font-black text-navy">{rates.length}</p>
+          <p className="text-xs text-slate-400 font-medium mt-1">Versioned rate entries.</p>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex gap-4 items-start">
+        <div className="p-2 bg-white rounded-xl text-amber-500 shadow-sm shrink-0"><Info size={20} /></div>
+        <div>
+          <h3 className="font-bold text-navy mb-0.5">Precision Notice</h3>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Ensure rates are verified against official <strong>RBZ</strong> or approved market sources before committing. Rates affect all ZiG payroll calculations.
+          </p>
+        </div>
+      </div>
+
+      {/* Rates Table */}
+      <div className="bg-primary rounded-2xl border border-border overflow-hidden shadow-sm">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-slate-50 border-b border-border">
+              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Pair</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Rate</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Effective From</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Source</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rates.length > 0 ? rates.map((rate) => (
+              <tr key={rate.id} className="hover:bg-slate-50/50 transition-colors group">
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-navy font-bold text-xs">
+                      {rate.toCurrency?.slice(0, 3)}
+                    </div>
+                    <span className="text-sm font-bold">{rate.fromCurrency} → {rate.toCurrency}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <p className="text-sm font-bold text-navy font-mono">
+                    {Number(rate.rate).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 10 })}
+                  </p>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Calendar size={14} />
+                    <span className="text-sm">{new Date(rate.effectiveDate).toLocaleDateString()}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <span className="px-2 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 uppercase">{rate.source || 'Manual'}</span>
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <button
+                    onClick={() => handleDelete(rate.id)}
+                    className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash size={16} />
+                  </button>
+                </td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-20 text-center">
+                  <Globe size={48} className="mx-auto mb-4 text-slate-200" />
+                  <p className="text-slate-400 font-medium text-sm">No exchange rates configured.</p>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Create Rate Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-navy">New Exchange Rate</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
+                <X size={18} className="text-slate-400" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreate} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1.5">To Currency</label>
+                <input
+                  type="text"
+                  value={form.toCurrency}
+                  onChange={(e) => setForm((p) => ({ ...p, toCurrency: e.target.value.toUpperCase() }))}
+                  placeholder="ZiG"
+                  maxLength={6}
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  required
+                />
+                <p className="text-xs text-slate-400 font-medium mt-1">From currency is always USD.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1.5">Rate *</label>
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={form.rate}
+                  onChange={(e) => setForm((p) => ({ ...p, rate: e.target.value }))}
+                  placeholder="e.g. 13.5"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium font-mono focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  required
+                />
+                <p className="text-xs text-slate-400 font-medium mt-1">How many {form.toCurrency || 'units'} equal 1 USD.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1.5">Effective Date *</label>
+                <input
+                  type="date"
+                  value={form.effectiveDate}
+                  onChange={(e) => setForm((p) => ({ ...p, effectiveDate: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1.5">Source</label>
+                <select
+                  value={form.source}
+                  onChange={(e) => setForm((p) => ({ ...p, source: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                >
+                  <option value="RBZ">RBZ (Official)</option>
+                  <option value="MANUAL">Manual</option>
+                  <option value="IMPORT">Import</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1.5">Notes</label>
+                <input
+                  type="text"
+                  value={form.notes}
+                  onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
+                  placeholder="Optional note…"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                />
+              </div>
+
+              {formError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{formError}</div>
+              )}
+
+              <div className="flex gap-3 mt-1">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2 flex-1 justify-center bg-btn-primary text-navy py-2.5 rounded-full font-bold hover:opacity-90 disabled:opacity-60 text-sm"
+                >
+                  <Check size={15} /> {saving ? 'Saving…' : 'Save Rate'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CurrencyRates;

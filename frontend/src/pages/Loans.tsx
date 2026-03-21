@@ -1,0 +1,102 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, ChevronRight } from 'lucide-react';
+import SkeletonTable from '../components/common/SkeletonTable';
+import { LoanAPI } from '../api/client';
+
+const statusColor: Record<string, string> = {
+  ACTIVE: 'bg-blue-50 text-blue-700',
+  PAID_OFF: 'bg-emerald-50 text-emerald-700',
+  DEFAULTED: 'bg-red-50 text-red-700',
+  CANCELLED: 'bg-slate-100 text-slate-600',
+};
+
+const Loans: React.FC = () => {
+  const navigate = useNavigate();
+  const [loans, setLoans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    LoanAPI.getAll().then((r) => setLoans(r.data)).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const filtered = filter
+    ? loans.filter((l) => l.status === filter)
+    : loans;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Loans</h1>
+          <p className="text-slate-500 text-sm font-medium">Track employee loans and repayment schedules</p>
+        </div>
+        <button
+          onClick={() => navigate('/loans/new')}
+          className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+        >
+          <Plus size={16} /> New Loan
+        </button>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 mb-6">
+        {['', 'ACTIVE', 'PAID_OFF', 'DEFAULTED'].map((s) => (
+          <button
+            key={s}
+            onClick={() => setFilter(s)}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${filter === s ? 'bg-btn-primary text-navy border-navy' : 'border-border text-slate-500 hover:bg-slate-50'}`}
+          >
+            {s || 'All'}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <SkeletonTable headers={['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', '']} />
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-slate-400 bg-primary rounded-2xl border border-border">
+          <p className="font-medium">No loans found</p>
+        </div>
+      ) : (
+        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border bg-slate-50">
+                {['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', ''].map((h) => (
+                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filtered.map((loan: any) => (
+                <tr key={loan.id} className="hover:bg-slate-50/50 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
+                  <td className="px-4 py-3">
+                    <p className="font-bold text-sm">{loan.employee?.firstName} {loan.employee?.lastName}</p>
+                    <p className="text-xs text-slate-400">{loan.employee?.employeeCode}</p>
+                  </td>
+                  <td className="px-4 py-3 text-sm font-bold">{loan.amount?.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm">{loan.interestRate}%</td>
+                  <td className="px-4 py-3 text-sm">{loan.termMonths}mo</td>
+                  <td className="px-4 py-3 text-sm font-medium">{loan.monthlyInstalment?.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm">{new Date(loan.startDate).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[loan.status] || 'bg-slate-100 text-slate-600'}`}>
+                      {loan.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-400">
+                    <ChevronRight size={16} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Loans;

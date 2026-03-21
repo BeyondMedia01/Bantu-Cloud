@@ -1,0 +1,132 @@
+import React, { useState } from 'react';
+import { X, Save, Loader, AlertCircle } from 'lucide-react';
+import { TaxTableAPI } from '../../api/client';
+
+interface NewTaxTableModalProps {
+  onClose: () => void;
+  onSuccess: (newTable: any) => void;
+}
+
+const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess }) => {
+  const [name, setName] = useState('');
+  const [currency, setCurrency] = useState('USD');
+  const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isAnnual, setIsAnnual] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await TaxTableAPI.create({
+        name,
+        currency,
+        effectiveDate,
+        isAnnual,
+      });
+      onSuccess(response.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create tax table');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-navy/20 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in duration-200">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-navy">New Tax Table</h3>
+          <p className="text-slate-500 text-sm font-medium">Define a new tax structure</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Table Name</label>
+            <input 
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. 2024 USD Standard"
+              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Currency</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all appearance-none"
+              >
+                <option value="USD">USD</option>
+                <option value="ZiG">ZiG</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Effective Date</label>
+              <input
+                type="date"
+                required
+                value={effectiveDate}
+                onChange={(e) => setEffectiveDate(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Bracket Type</label>
+            <div className="flex rounded-2xl overflow-hidden border border-border bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setIsAnnual(true)}
+                className={`flex-1 py-3 text-sm font-bold transition-all ${isAnnual ? 'bg-accent-blue text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+              >
+                Annual (FDS)
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAnnual(false)}
+                className={`flex-1 py-3 text-sm font-bold transition-all ${!isAnnual ? 'bg-accent-blue text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+              >
+                Monthly
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+              {isAnnual ? 'Brackets use annual income (ZIMRA FDS standard)' : 'Brackets use monthly income directly'}
+            </p>
+          </div>
+
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex gap-3 items-start text-red-600 animate-in slide-in-from-top-1">
+              <AlertCircle size={18} className="shrink-0" />
+              <p className="text-xs font-medium">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-btn-primary text-navy py-4 rounded-2xl font-bold shadow-lg shadow-navy/10 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-4"
+          >
+            {loading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
+            {loading ? 'Creating...' : 'Create Table'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default NewTaxTableModal;
