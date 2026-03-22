@@ -19,69 +19,78 @@ const PDFDocument = require('pdfkit');
 function _drawPayslip(doc, data) {
   const ccy = data.currency || 'USD';
   const fmt = (n) => Number(n || 0).toFixed(2);
-  const LEFT = 60;
-  const RIGHT_LABEL_END = 360;
+  const LEFT = 50;
+  const RIGHT_LABEL_END = 345;
   const PAGE_RIGHT = 545;
-  const ROW_H = 18;
+  const ROW_H = 13;
+  // A4 = 842pt; reserve 40pt bottom margin → stop at 802
+  const PAGE_BOTTOM = 802;
+  // Bottom quarter starts at 3/4 of usable height (top margin 40)
+  const FOOTER_START = 40 + Math.round((PAGE_BOTTOM - 40) * 0.75); // ≈ 622
 
-  // Draws a label + right-aligned value on the current doc.y
+  // Draws a label + right-aligned value on the current doc.y.
+  // Silently skips if the cursor has already passed PAGE_BOTTOM.
   const row = (label, value, opts = {}) => {
+    if (doc.y > PAGE_BOTTOM) return;
     const y = doc.y;
     const font = opts.bold ? 'Helvetica-Bold' : 'Helvetica';
-    const size = opts.size || 11;
+    const size = opts.size || 9;
     doc.font(font).fontSize(size);
-    doc.text(label, LEFT, y, { width: RIGHT_LABEL_END - LEFT });
-    doc.text(value, RIGHT_LABEL_END, y, { width: PAGE_RIGHT - RIGHT_LABEL_END, align: 'right' });
-    doc.moveDown(opts.gap || 0.25);
+    doc.text(label, LEFT, y, { width: RIGHT_LABEL_END - LEFT, lineBreak: false });
+    doc.text(value, RIGHT_LABEL_END, y, { width: PAGE_RIGHT - RIGHT_LABEL_END, align: 'right', lineBreak: false });
+    doc.moveDown(opts.gap ?? 0.12);
   };
 
   const note = (text) => {
-    doc.font('Helvetica').fontSize(8).fillColor('#777777')
-      .text(text, LEFT + 12, doc.y, { width: PAGE_RIGHT - LEFT - 12 });
+    if (doc.y > PAGE_BOTTOM) return;
+    doc.font('Helvetica').fontSize(7).fillColor('#777777')
+      .text(text, LEFT + 10, doc.y, { width: PAGE_RIGHT - LEFT - 10 });
     doc.fillColor('black');
-    doc.moveDown(0.2);
+    doc.moveDown(0.1);
   };
 
   const sectionTitle = (title) => {
-    doc.moveDown(0.3);
-    doc.font('Helvetica-Bold').fontSize(12).fillColor('#1a2e4a').text(title, LEFT);
+    if (doc.y > PAGE_BOTTOM) return;
+    doc.moveDown(0.18);
+    doc.font('Helvetica-Bold').fontSize(9.5).fillColor('#1a2e4a').text(title, LEFT);
     doc.fillColor('black');
-    doc.moveDown(0.3);
+    doc.moveDown(0.12);
     doc.moveTo(LEFT, doc.y).lineTo(PAGE_RIGHT, doc.y).lineWidth(0.5).stroke('#dddddd');
-    doc.moveDown(0.4);
+    doc.moveDown(0.2);
   };
 
   const divider = (heavy = false) => {
+    if (doc.y > PAGE_BOTTOM) return;
     doc.moveTo(LEFT, doc.y)
       .lineTo(PAGE_RIGHT, doc.y)
       .lineWidth(heavy ? 1 : 0.5)
       .stroke(heavy ? '#1a2e4a' : '#dddddd');
-    doc.moveDown(0.5);
+    doc.moveDown(0.28);
   };
 
   // ── Header ────────────────────────────────────────────────────────────────
-  doc.font('Helvetica-Bold').fontSize(22).fillColor('#1a2e4a')
-    .text('PAYSLIP', LEFT, 50, { align: 'center', width: PAGE_RIGHT - LEFT });
+  doc.font('Helvetica-Bold').fontSize(18).fillColor('#1a2e4a')
+    .text('PAYSLIP', LEFT, 40, { align: 'center', width: PAGE_RIGHT - LEFT });
   doc.fillColor('black');
-  doc.font('Helvetica').fontSize(10).moveDown(0.4);
+  doc.font('Helvetica').fontSize(9).moveDown(0.25);
   doc.text(data.companyName, LEFT, doc.y, { align: 'center', width: PAGE_RIGHT - LEFT });
   doc.text(`Pay Period: ${data.period}`, LEFT, doc.y, { align: 'center', width: PAGE_RIGHT - LEFT });
-  doc.moveDown(0.6);
+  doc.moveDown(0.35);
   divider(true);
 
   // ── Employee Details ───────────────────────────────────────────────────────
   const detailY = doc.y;
-  doc.font('Helvetica-Bold').fontSize(10).text('Employee Name', LEFT, detailY);
-  doc.font('Helvetica').fontSize(10).text(data.employeeName, LEFT, detailY + ROW_H);
+  doc.font('Helvetica-Bold').fontSize(8).text('Employee Name', LEFT, detailY);
+  doc.font('Helvetica').fontSize(9).text(data.employeeName, LEFT, detailY + 11);
 
-  doc.font('Helvetica-Bold').fontSize(10).text('National ID', 220, detailY);
-  doc.font('Helvetica').fontSize(10).text(data.nationalId || '—', 220, detailY + ROW_H);
+  doc.font('Helvetica-Bold').fontSize(8).text('National ID', 218, detailY);
+  doc.font('Helvetica').fontSize(9).text(data.nationalId || '—', 218, detailY + 11);
 
-  doc.font('Helvetica-Bold').fontSize(10).text('Job Title', 380, detailY);
-  doc.font('Helvetica').fontSize(10).text(data.jobTitle || '—', 380, detailY + ROW_H);
+  doc.font('Helvetica-Bold').fontSize(8).text('Job Title', 380, detailY);
+  doc.font('Helvetica').fontSize(9).text(data.jobTitle || '—', 380, detailY + 11);
 
-  doc.y = detailY + ROW_H * 2 + 6;
-  doc.moveDown(0.5);
+  doc.y = detailY + 11 + 12;
+  doc.moveDown(0.25);
   divider();
 
   // ── Earnings ──────────────────────────────────────────────────────────────
@@ -96,9 +105,9 @@ function _drawPayslip(doc, data) {
     row(`${e.name}`, `${lineCcy} ${fmt(e.amount)}`);
   }
 
-  doc.moveDown(0.2);
+  doc.moveDown(0.12);
   divider();
-  row('GROSS PAY', `${ccy} ${fmt(data.grossPay ?? data.baseSalary)}`, { bold: true, size: 12, gap: 0.4 });
+  row('GROSS PAY', `${ccy} ${fmt(data.grossPay ?? data.baseSalary)}`, { bold: true, size: 11, gap: 0.28 });
   divider();
 
   // ── Employee Deductions ───────────────────────────────────────────────────
@@ -120,10 +129,17 @@ function _drawPayslip(doc, data) {
     (data.otherDeductions || []).reduce((s, d) => s + (d.amount || 0), 0) +
     (data.loanDeductions || 0);
 
-  doc.moveDown(0.2);
+  doc.moveDown(0.12);
   divider();
-  row('TOTAL DEDUCTIONS', `${ccy} ${fmt(totalDeductions)}`, { bold: true, size: 12, gap: 0.4 });
+  row('TOTAL DEDUCTIONS', `${ccy} ${fmt(totalDeductions)}`, { bold: true, size: 11, gap: 0.28 });
   divider();
+
+  // ── Footer section — pushed to bottom quarter of the page ─────────────────
+  // If the main content ended above the 3/4 mark, jump down to it so the
+  // footer is always anchored in the lower quarter of the A4 sheet.
+  if (doc.y < FOOTER_START) {
+    doc.y = FOOTER_START;
+  }
 
   // ── Employer Contributions (informational) ────────────────────────────────
   const hasEmployerItems = data.nssaEmployer || data.wcifEmployer || data.sdfContribution || data.necLevy;
@@ -136,7 +152,7 @@ function _drawPayslip(doc, data) {
     if (data.sdfContribution != null) row('SDF / Training Levy', `${ccy} ${fmt(data.sdfContribution)}`);
     if (data.necEmployer != null) row('NEC Employer Match', `${ccy} ${fmt(data.necEmployer)}`);
     if (data.necLevy != null && !data.necEmployer) row('NEC Levy', `${ccy} ${fmt(data.necLevy)}`);
-    doc.moveDown(0.3);
+    doc.moveDown(0.2);
     divider();
   }
 
@@ -146,44 +162,44 @@ function _drawPayslip(doc, data) {
   if (data.netPayUSD != null && data.netPayZIG != null) {
     // ── Split-currency layout ──────────────────────────────────────────────
     const boxY = doc.y;
-    const boxH = ROW_H * 2 + 20;
+    const boxH = ROW_H * 2 + 16;
     doc.rect(LEFT, boxY, PAGE_RIGHT - LEFT, boxH)
       .fillAndStroke('#f0f6ff', '#3b82f6');
 
-    doc.font('Helvetica-Bold').fontSize(12).fillColor('#1a2e4a');
-    doc.text('Net Pay (USD)', LEFT + 10, boxY + 8, { width: 200 });
-    doc.text(`USD ${fmt(data.netPayUSD)}`, RIGHT_LABEL_END, boxY + 8,
-      { width: PAGE_RIGHT - RIGHT_LABEL_END - 10, align: 'right' });
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#1a2e4a');
+    doc.text('Net Pay (USD)', LEFT + 8, boxY + 6, { width: 200 });
+    doc.text(`USD ${fmt(data.netPayUSD)}`, RIGHT_LABEL_END, boxY + 6,
+      { width: PAGE_RIGHT - RIGHT_LABEL_END - 8, align: 'right' });
 
-    doc.text('Net Pay (ZiG)', LEFT + 10, boxY + 8 + ROW_H, { width: 200 });
-    doc.text(`ZiG ${fmt(data.netPayZIG)}`, RIGHT_LABEL_END, boxY + 8 + ROW_H,
-      { width: PAGE_RIGHT - RIGHT_LABEL_END - 10, align: 'right' });
+    doc.text('Net Pay (ZiG)', LEFT + 8, boxY + 6 + ROW_H, { width: 200 });
+    doc.text(`ZiG ${fmt(data.netPayZIG)}`, RIGHT_LABEL_END, boxY + 6 + ROW_H,
+      { width: PAGE_RIGHT - RIGHT_LABEL_END - 8, align: 'right' });
 
     doc.fillColor('black');
-    doc.y = boxY + boxH + 6;
+    doc.y = boxY + boxH + 4;
 
-    doc.font('Helvetica').fontSize(8).fillColor('#555555')
+    doc.font('Helvetica').fontSize(7).fillColor('#555555')
       .text(`Equivalent total: ${ccy} ${fmt(data.netSalary)}`, LEFT, doc.y);
     doc.fillColor('black');
   } else {
     // ── Single-currency layout ─────────────────────────────────────────────
     const boxY = doc.y;
-    const boxH = ROW_H + 16;
+    const boxH = ROW_H + 14;
     doc.rect(LEFT, boxY, PAGE_RIGHT - LEFT, boxH)
       .fillAndStroke('#f0f9f4', '#22c55e');
 
-    doc.font('Helvetica-Bold').fontSize(13).fillColor('#14532d');
-    doc.text(`Net Pay (${ccy})`, LEFT + 10, boxY + 8, { width: 200 });
-    doc.text(`${ccy} ${fmt(data.netSalary)}`, RIGHT_LABEL_END, boxY + 8,
-      { width: PAGE_RIGHT - RIGHT_LABEL_END - 10, align: 'right' });
+    doc.font('Helvetica-Bold').fontSize(12).fillColor('#14532d');
+    doc.text(`Net Pay (${ccy})`, LEFT + 8, boxY + 6, { width: 200 });
+    doc.text(`${ccy} ${fmt(data.netSalary)}`, RIGHT_LABEL_END, boxY + 6,
+      { width: PAGE_RIGHT - RIGHT_LABEL_END - 8, align: 'right' });
 
     doc.fillColor('black');
-    doc.y = boxY + boxH + 6;
+    doc.y = boxY + boxH + 4;
   }
 }
 
 const generatePayslipPDF = (data, stream) => {
-  const doc = new PDFDocument({ margin: 50, size: 'A4' });
+  const doc = new PDFDocument({ margin: 40, size: 'A4' });
   doc.pipe(stream);
   _drawPayslip(doc, data);
   doc.end();
@@ -196,7 +212,7 @@ const generatePayslipPDF = (data, stream) => {
  */
 function generatePayslipBuffer(data) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
     const chunks = [];
     doc.on('data', (chunk) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
