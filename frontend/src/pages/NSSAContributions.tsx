@@ -6,7 +6,12 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
   const [contributions, setContributions] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState<NSSASettings>({ employeeRate: 4.5, employerRate: 4.5, ceilingUSD: 700 });
+  const [settings, setSettings] = useState<NSSASettings>({ 
+    employeeRate: 3.5, 
+    employerRate: 3.5, 
+    ceilingUSD: 700,
+    wcifRate: 0.01 
+  });
   const [savingSettings, setSavingSettings] = useState(false);
 
   const fetchSettings = async () => {
@@ -260,6 +265,15 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                     className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-accent-blue text-lg outline-none focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue transition-all"
                     value={settings.ceilingUSD}
                     onChange={e => setSettings({...settings, ceilingUSD: parseFloat(e.target.value)})}
+                  />
+                </div>
+                <div className="flex flex-col gap-2 col-span-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">WCIF Rate (%)</label>
+                  <input 
+                    type="number" step="0.01" required
+                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy outline-none focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue transition-all"
+                    value={settings.wcifRate}
+                    onChange={e => setSettings({...settings, wcifRate: parseFloat(e.target.value)})}
                   />
                 </div>
               </div>

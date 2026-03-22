@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash, Building2, MapPin, Hash, Pencil, X, Check, Percent } from 'lucide-react';
+import { Plus, Trash, Building2, MapPin, Hash, Pencil, X, Check } from 'lucide-react';
 import { CompanyAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 
