@@ -717,7 +717,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         const tcCode = tc.code || '';
         const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
                              (/medical\s*aid|med\s*aid/i.test(tcName) ||
-                              /MED_AID|MEDICAL_AID/i.test(tcCode));
+                              /MED_AID|MEDICAL_AID/i.test(tcCode) ||
+                              (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
 
         if (run.dualCurrency) {
           if (isEarning) {
@@ -1638,7 +1639,7 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
     for (const t of deductionTxs) {
       const tcn = t.transactionCode.name?.toLowerCase() || '';
       const tcc = t.transactionCode.code?.toUpperCase() || '';
-      const isMed = /medical\s*aid|med\s*aid/i.test(tcn) || /MED_AID|MEDICAL_AID/i.test(tcc);
+      const isMed = /medical\s*aid|med\s*aid/i.test(tcn) || /MED_AID|MEDICAL_AID/i.test(tcc) || (tcn.includes('medical') && /^\d+$/.test(tcc));
       const isPen = t.transactionCode.preTax === true;
 
       if (isMed) {

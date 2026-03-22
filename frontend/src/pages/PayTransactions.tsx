@@ -238,6 +238,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                     disabled={modal.mode === 'edit'}
                     placeholder="e.g. TRANS"
                   />
+                  <p className="text-[10px] text-slate-400 font-medium">For ZIMRA compliance, medical aid codes should be numerical (e.g. 5401)</p>
                 </div>
                 {/* Type */}
                 <div className="flex flex-col gap-1">
