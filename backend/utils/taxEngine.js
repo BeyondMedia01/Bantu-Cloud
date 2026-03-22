@@ -162,6 +162,12 @@ function calculatePaye({
   // FDS: annualise monthly taxable income, apply annual brackets, then divide by 12
   const taxBase = annualBrackets ? payeBase * 12 : payeBase;
 
+  // NOTE: band.fixed (fixedAmount) is intentionally NOT added here.
+  // ZIMRA tax tables print a pre-accumulated "cumulative tax to lower bound" as a
+  // look-up shortcut, e.g. the $1,201 band shows fixed=$240 so an operator can
+  // quickly compute: tax = $240 + (income − $1,200) × 20%.
+  // This marginal accumulator re-derives those exact cumulative amounts band-by-band
+  // and produces identical results without ever reading band.fixed.
   let annualPaye = 0;
   for (const band of bands) {
     if (taxBase <= band.lower) break;
