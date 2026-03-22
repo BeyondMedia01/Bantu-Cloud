@@ -276,9 +276,10 @@ const Dashboard: React.FC = () => {
               selectedDay={selectedDay}
               onDateSelect={setSelectedDay}
             />
-            <div className="border-t border-border">
-              <RemindersCard reminders={reminders} loading={loading} selectedDay={selectedDay} />
-            </div>
+          </div>
+          
+          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+            <RemindersCard reminders={reminders} loading={loading} selectedDay={selectedDay} />
           </div>
         </div>
 
