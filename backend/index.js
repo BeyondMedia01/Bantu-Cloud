@@ -166,9 +166,11 @@ const startServer = async () => {
     await autoSeedHolidays();
     console.log('Auto-boot actions complete.');
 
-    app.listen(PORT, '0.0.0.0', () => {
+    const portStr = process.env.PORT || '5005';
+    const parsedPort = parseInt(portStr, 10);
+    app.listen(parsedPort, () => {
       console.log('-------------------------------------------');
-      console.log(`🚀 Server ready at http://0.0.0.0:${PORT}`);
+      console.log(`🚀 Server ready on port ${parsedPort}`);
       console.log('-------------------------------------------');
     });
   } catch (err) {
