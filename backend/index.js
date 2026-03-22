@@ -118,6 +118,7 @@ app.use('/api/bank-files', require('./routes/bankFiles'));
 app.use('/api/subscription', require('./routes/subscriptions'));
 
 // Utilities
+app.use('/api/backup', require('./routes/backup'));
 app.use('/api/public-holidays', require('./routes/publicHolidays'));
 app.use('/api/payincrease', require('./routes/payIncrease'));
 app.use('/api/backpay', require('./routes/backPay'));

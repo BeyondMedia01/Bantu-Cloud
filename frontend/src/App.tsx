@@ -74,6 +74,7 @@ import PeriodEnd from './pages/utilities/PeriodEnd';
 import NSSASettings from './pages/utilities/NSSASettings';
 import PayrollCalendar from './pages/utilities/PayrollCalendar';
 import PublicHolidays from './pages/utilities/PublicHolidays';
+import BackupRestore from './pages/utilities/BackupRestore';
 
 // Shifts, Roster & Attendance
 import Shifts from './pages/shifts/Shifts';
@@ -190,6 +191,7 @@ const App: React.FC = () => {
           <Route path="/utilities/nssa" element={<NSSASettings />} />
           <Route path="/utilities/payroll-calendar" element={<PayrollCalendar />} />
           <Route path="/utilities/public-holidays" element={<PublicHolidays />} />
+          <Route path="/utilities/backup" element={<BackupRestore />} />
 
           {/* Shifts, Roster & Attendance */}
           <Route path="/shifts" element={<Shifts />} />

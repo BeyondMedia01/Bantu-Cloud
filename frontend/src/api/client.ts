@@ -617,6 +617,11 @@ export const PublicHolidaysAPI = {
   delete: (id: string) => api.delete(`/public-holidays/${id}`),
 };
 
+export const BackupAPI = {
+  export: () => api.get('/backup/export'),
+  restore: (backupData: any) => api.post('/backup/restore', { backupData }),
+};
+
 export const AuditLogAPI = {
   getAll: (params?: Record<string, string>) => api.get<PaginatedResponse<AuditLog>>('/admin/logs', { params }),
 };

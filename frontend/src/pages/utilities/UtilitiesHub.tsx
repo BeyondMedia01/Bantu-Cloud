@@ -91,6 +91,14 @@ const UTILITIES = [
     color: 'text-purple-500',
     bg: 'bg-purple-50',
   },
+  {
+    path: '/utilities/backup',
+    icon: <div className="p-1 border-2 border-current rounded-md">💾</div>,
+    title: 'Backup & Restore',
+    description: 'Export your entire company data to a JSON file or restore from a previous backup',
+    color: 'text-rose-600',
+    bg: 'bg-rose-50',
+  },
 ];
 
 const UtilitiesHub: React.FC = () => {
