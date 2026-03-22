@@ -44,6 +44,8 @@ router.get('/', async (req, res) => {
     };
     if (req.companyId) {
       where.employee = { companyId: req.companyId };
+    } else if (req.clientId) {
+      where.employee = { clientId: req.clientId };
     }
     const inputs = await prisma.payrollInput.findMany({
       where,
@@ -151,6 +153,8 @@ router.delete('/processed', requirePermission('process_payroll'), async (req, re
     const where = { processed: true };
     if (req.companyId) {
       where.employee = { companyId: req.companyId };
+    } else if (req.clientId) {
+      where.employee = { clientId: req.clientId };
     }
     const { count } = await prisma.payrollInput.deleteMany({ where });
     res.json({ deleted: count });

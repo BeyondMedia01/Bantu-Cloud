@@ -137,6 +137,7 @@ router.get('/leave', requirePermission('view_reports'), async (req, res) => {
   const { startDate, endDate, format = 'json' } = req.query;
   try {
     const where = {
+      ...(req.clientId && { employee: { clientId: req.clientId } }),
       ...(req.companyId && { employee: { companyId: req.companyId } }),
       ...(startDate && { startDate: { gte: new Date(startDate) } }),
       ...(endDate && { endDate: { lte: new Date(endDate) } }),
@@ -182,6 +183,7 @@ router.get('/loans', requirePermission('view_reports'), async (req, res) => {
   const { status, format = 'json' } = req.query;
   try {
     const where = {
+      ...(req.clientId && { employee: { clientId: req.clientId } }),
       ...(req.companyId && { employee: { companyId: req.companyId } }),
       ...(status && { status }),
     };
@@ -225,7 +227,7 @@ router.get('/loans', requirePermission('view_reports'), async (req, res) => {
 // GET /api/reports/departments
 router.get('/departments', requirePermission('view_reports'), async (req, res) => {
   try {
-    const where = req.companyId ? { companyId: req.companyId } : {};
+    const where = req.companyId ? { companyId: req.companyId } : (req.clientId ? { company: { clientId: req.clientId } } : {});
 
     const departments = await prisma.department.findMany({
       where,
@@ -291,14 +293,14 @@ router.get('/journals', requirePermission('view_reports'), async (req, res) => {
 // GET /api/reports/summary — high-level dashboard stats
 router.get('/summary', requirePermission('view_reports'), async (req, res) => {
   try {
-    const companyWhere = req.companyId ? { companyId: req.companyId } : {};
-    const runWhere = req.companyId ? { companyId: req.companyId } : {};
+    const companyWhere = req.companyId ? { companyId: req.companyId } : (req.clientId ? { clientId: req.clientId } : {});
+    const runWhere = req.companyId ? { companyId: req.companyId } : (req.clientId ? { company: { clientId: req.clientId } } : {});
 
     const [employeeCount, lastRun, pendingLeave, activeLoans, currentRun, noTinCount, noBankCount] = await Promise.all([
       prisma.employee.count({ where: companyWhere }),
       prisma.payrollRun.findFirst({ where: { ...runWhere, status: 'COMPLETED' }, orderBy: { runDate: 'desc' } }),
-      prisma.leaveRequest.count({ where: { status: 'PENDING', ...(req.companyId && { employee: { companyId: req.companyId } }) } }),
-      prisma.loan.count({ where: { status: 'ACTIVE', ...(req.companyId && { employee: { companyId: req.companyId } }) } }),
+      prisma.leaveRequest.count({ where: { status: 'PENDING', ...(req.companyId ? { employee: { companyId: req.companyId } } : (req.clientId ? { employee: { clientId: req.clientId } } : {})) } }),
+      prisma.loan.count({ where: { status: 'ACTIVE', ...(req.companyId ? { employee: { companyId: req.companyId } } : (req.clientId ? { employee: { clientId: req.clientId } } : {})) } }),
       prisma.payrollRun.findFirst({
         where: { ...runWhere, status: { notIn: ['COMPLETED', 'ERROR'] } },
         orderBy: { runDate: 'desc' },
@@ -326,7 +328,7 @@ router.get('/payroll-trend', requirePermission('view_reports'), async (req, res)
   try {
     const runs = await prisma.payrollRun.findMany({
       where: {
-        ...(req.companyId && { companyId: req.companyId }),
+        ...(req.companyId ? { companyId: req.companyId } : (req.clientId ? { company: { clientId: req.clientId } } : {})),
         status: 'COMPLETED',
       },
       orderBy: { runDate: 'asc' },

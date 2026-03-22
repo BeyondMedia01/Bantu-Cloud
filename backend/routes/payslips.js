@@ -12,6 +12,8 @@ router.get('/', async (req, res) => {
       where.employeeId = req.employeeId;
     } else if (req.companyId) {
       where.payrollRun = { companyId: req.companyId };
+    } else if (req.clientId) {
+      where.payrollRun = { company: { clientId: req.clientId } };
     }
 
     const { page = 1, limit = 20 } = req.query;

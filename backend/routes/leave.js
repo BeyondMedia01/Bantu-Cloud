@@ -10,6 +10,7 @@ router.get('/', async (req, res) => {
   const { employeeId, status, type } = req.query;
   try {
     const where = {
+      ...(req.clientId && { employee: { clientId: req.clientId } }),
       ...(req.companyId && { employee: { companyId: req.companyId } }),
       ...(employeeId && { employeeId }),
       ...(status && { status }),
