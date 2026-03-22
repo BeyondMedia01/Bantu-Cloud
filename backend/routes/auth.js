@@ -10,19 +10,18 @@ const router = express.Router();
 
 // POST /api/auth/register — CLIENT_ADMIN registration with license token
 router.post('/register', async (req, res) => {
-  const { name, email, password, licenseToken } = req.body;
+  const { firstName, lastName, phone, email, password, licenseToken } = req.body;
 
-  if (!name || !email || !password || !licenseToken) {
-    return res.status(400).json({ message: 'name, email, password, and licenseToken are required' });
+  if (!firstName || !lastName || !email || !password || !licenseToken) {
+    return res.status(400).json({ message: 'firstName, lastName, email, password, and licenseToken are required' });
   }
 
-  // Point #11: Add email format validation
+  // Email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ message: 'Invalid email format' });
   }
 
-  // Point #2: Add password length/complexity check
   if (password.length < 8) {
     return res.status(400).json({ message: 'Password must be at least 8 characters' });
   }
@@ -30,16 +29,19 @@ router.post('/register', async (req, res) => {
   const { valid, license, reason } = await validateLicense(licenseToken);
   if (!valid) return res.status(400).json({ message: `Invalid license: ${reason}` });
 
-  // Point #6: Prevent license token reuse for multiple registrations
   const existingAdmin = await prisma.clientAdmin.findFirst({ where: { clientId: license.clientId } });
   if (existingAdmin) return res.status(403).json({ message: 'A client admin already exists for this license' });
 
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
 
     const user = await prisma.user.create({
       data: {
-        name,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        name: fullName,
+        phone: phone?.trim() || null,
         email,
         password: hashedPassword,
         role: 'CLIENT_ADMIN',

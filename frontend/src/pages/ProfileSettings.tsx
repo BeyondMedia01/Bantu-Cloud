@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { User, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, Lock, Phone, CheckCircle2, AlertCircle } from 'lucide-react';
 import { UserAPI } from '../api/client';
 
 const ProfileSettings: React.FC = () => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [nameLoading, setNameLoading] = useState(false);
-  const [nameSuccess, setNameSuccess] = useState(false);
-  const [nameError, setNameError] = useState('');
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -18,25 +20,28 @@ const ProfileSettings: React.FC = () => {
 
   useEffect(() => {
     UserAPI.me().then((res) => {
-      setName(res.data.name || '');
-      setEmail(res.data.email || '');
+      const d = res.data as any;
+      setFirstName(d.firstName || d.name?.split(' ')[0] || '');
+      setLastName(d.lastName || d.name?.split(' ').slice(1).join(' ') || '');
+      setPhone(d.phone || '');
+      setEmail(d.email || '');
     }).catch(() => {});
   }, []);
 
-  const handleSaveName = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setNameError('');
-    setNameSuccess(false);
-    if (!name.trim()) { setNameError('Name cannot be empty'); return; }
-    setNameLoading(true);
+    setProfileError('');
+    setProfileSuccess(false);
+    if (!firstName.trim()) { setProfileError('First name cannot be empty'); return; }
+    setProfileLoading(true);
     try {
-      await UserAPI.update({ name: name.trim() });
-      setNameSuccess(true);
-      setTimeout(() => setNameSuccess(false), 3000);
+      await UserAPI.update({ firstName: firstName.trim(), lastName: lastName.trim(), phone: phone.trim() } as any);
+      setProfileSuccess(true);
+      setTimeout(() => setProfileSuccess(false), 3000);
     } catch (err: any) {
-      setNameError(err?.response?.data?.message || 'Failed to update profile');
+      setProfileError(err?.response?.data?.message || 'Failed to update profile');
     } finally {
-      setNameLoading(false);
+      setProfileLoading(false);
     }
   };
 
@@ -44,22 +49,14 @@ const ProfileSettings: React.FC = () => {
     e.preventDefault();
     setPwError('');
     setPwSuccess(false);
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      setPwError('All fields are required'); return;
-    }
-    if (newPassword.length < 8) {
-      setPwError('New password must be at least 8 characters'); return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPwError('New passwords do not match'); return;
-    }
+    if (!currentPassword || !newPassword || !confirmPassword) { setPwError('All fields are required'); return; }
+    if (newPassword.length < 8) { setPwError('New password must be at least 8 characters'); return; }
+    if (newPassword !== confirmPassword) { setPwError('New passwords do not match'); return; }
     setPwLoading(true);
     try {
       await UserAPI.changePassword({ currentPassword, newPassword });
       setPwSuccess(true);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
       setTimeout(() => setPwSuccess(false), 3000);
     } catch (err: any) {
       setPwError(err?.response?.data?.message || 'Failed to change password');
@@ -67,6 +64,8 @@ const ProfileSettings: React.FC = () => {
       setPwLoading(false);
     }
   };
+
+  const inputCls = "w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue";
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
@@ -82,45 +81,43 @@ const ProfileSettings: React.FC = () => {
           <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400">Personal Information</h2>
         </div>
 
-        {nameSuccess && (
+        {profileSuccess && (
           <div className="flex items-center gap-2 p-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-medium mb-4">
             <CheckCircle2 size={15} /> Profile updated successfully
           </div>
         )}
-        {nameError && (
+        {profileError && (
           <div className="flex items-center gap-2 p-3 rounded-xl border border-red-200 bg-red-50 text-red-600 text-sm font-medium mb-4">
-            <AlertCircle size={15} /> {nameError}
+            <AlertCircle size={15} /> {profileError}
           </div>
         )}
 
-        <form onSubmit={handleSaveName} className="flex flex-col gap-4">
+        <form onSubmit={handleSaveProfile} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">First Name</label>
+              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="Jane" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Last Name</label>
+              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} placeholder="Smith" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                <span className="flex items-center gap-1"><Phone size={12} /> Phone Number (2FA)</span>
+              </label>
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} placeholder="+263 77 123 4567" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
-              <input
-                type="email"
-                value={email}
-                disabled
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium bg-slate-50 text-slate-400 cursor-not-allowed"
-              />
+              <input type="email" value={email} disabled className={`${inputCls} bg-slate-50 text-slate-400 cursor-not-allowed`} />
             </div>
           </div>
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={nameLoading}
-              className="bg-btn-primary text-navy font-bold text-sm px-5 py-2.5 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {nameLoading ? 'Saving…' : 'Save Changes'}
+            <button type="submit" disabled={profileLoading} className="bg-btn-primary text-navy font-bold text-sm px-5 py-2.5 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50">
+              {profileLoading ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -147,43 +144,21 @@ const ProfileSettings: React.FC = () => {
         <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Current Password</label>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              autoComplete="current-password"
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-            />
+            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" className={inputCls} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">New Password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                autoComplete="new-password"
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              />
+              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Confirm New Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              />
+              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
             </div>
           </div>
           <p className="text-xs text-slate-400 font-medium">Minimum 8 characters</p>
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={pwLoading}
-              className="bg-btn-primary text-navy font-bold text-sm px-5 py-2.5 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
+            <button type="submit" disabled={pwLoading} className="bg-btn-primary text-navy font-bold text-sm px-5 py-2.5 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50">
               {pwLoading ? 'Updating…' : 'Update Password'}
             </button>
           </div>

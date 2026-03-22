@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Key, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, Key, ArrowRight, Phone } from 'lucide-react';
 import { AuthAPI } from '../api/client';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', licenseToken: '' });
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', phone: '', email: '', password: '', licenseToken: ''
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +35,7 @@ const Register: React.FC = () => {
         <h1 className="text-3xl font-bold tracking-tight text-navy">Bantu Payroll</h1>
       </div>
 
-      <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-10">
+      <div className="w-full max-w-[480px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">Create your account</h2>
           <p className="text-slate-500 font-medium">You'll need a license token from your platform admin</p>
@@ -44,8 +46,55 @@ const Register: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* Name Row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">First Name</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><User size={18} /></span>
+                <input
+                  type="text"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                  placeholder="Jane"
+                  value={form.firstName}
+                  onChange={set('firstName')}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Last Name</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><User size={18} /></span>
+                <input
+                  type="text"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                  placeholder="Smith"
+                  value={form.lastName}
+                  onChange={set('lastName')}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Phone Number <span className="text-slate-300">(for 2FA)</span></label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Phone size={18} /></span>
+              <input
+                type="tel"
+                required
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                placeholder="+263 77 123 4567"
+                value={form.phone}
+                onChange={set('phone')}
+              />
+            </div>
+          </div>
+
           {[
-            { field: 'name', label: 'Full Name', icon: <User size={18} />, type: 'text', placeholder: 'Jane Smith' },
             { field: 'email', label: 'Email Address', icon: <Mail size={18} />, type: 'email', placeholder: 'jane@company.com' },
             { field: 'password', label: 'Password', icon: <Lock size={18} />, type: 'password', placeholder: '••••••••' },
             { field: 'licenseToken', label: 'License Token', icon: <Key size={18} />, type: 'text', placeholder: 'Paste your license token' },

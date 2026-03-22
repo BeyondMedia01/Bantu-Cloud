@@ -60,7 +60,12 @@ const AppShell: React.FC = () => {
 
   // Fetch live user name so the sidebar stays current after profile updates
   useEffect(() => {
-    UserAPI.me().then((res) => setLiveUserName(res.data.name || null)).catch(() => {});
+    UserAPI.me().then((res) => {
+      const d = res.data as any;
+      // Prefer dedicated firstName, fall back to first word of full name
+      const first = d.firstName || d.name?.split(' ')[0] || null;
+      setLiveUserName(first);
+    }).catch(() => {});
   }, []);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 

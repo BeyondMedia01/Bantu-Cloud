@@ -44,7 +44,7 @@ router.get('/me', async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: { id: true, name: true, email: true, role: true, createdAt: true, preferences: true },
+      select: { id: true, name: true, firstName: true, lastName: true, phone: true, email: true, role: true, createdAt: true, preferences: true },
     });
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
@@ -56,17 +56,24 @@ router.get('/me', async (req, res) => {
 
 // PUT /api/user/me — update current user's profile/preferences
 router.put('/me', async (req, res) => {
-  const { name, preferences } = req.body;
-  
+  const { name, firstName, lastName, phone, preferences } = req.body;
+
   try {
     const data = {};
-    if (name !== undefined) data.name = name.trim();
+    if (firstName !== undefined) {
+      data.firstName = firstName.trim();
+      data.lastName = (lastName || '').trim();
+      data.name = `${data.firstName} ${data.lastName}`.trim();
+    } else if (name !== undefined) {
+      data.name = name.trim();
+    }
+    if (phone !== undefined) data.phone = phone?.trim() || null;
     if (preferences !== undefined) data.preferences = preferences;
 
     const user = await prisma.user.update({
       where: { id: req.user.userId },
       data,
-      select: { id: true, name: true, email: true, role: true, createdAt: true, preferences: true },
+      select: { id: true, name: true, firstName: true, lastName: true, phone: true, email: true, role: true, createdAt: true, preferences: true },
     });
     res.json(user);
   } catch (error) {

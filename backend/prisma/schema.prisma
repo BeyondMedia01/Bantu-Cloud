@@ -129,7 +129,10 @@ enum DataType {
 
 model User {
   id                  String      @id @default(uuid())
-  name                String?
+  name                String?     // kept for backwards compat (full name)
+  firstName           String?
+  lastName            String?
+  phone               String?
   email               String      @unique
   password            String
   role                UserRole    @default(EMPLOYEE)
