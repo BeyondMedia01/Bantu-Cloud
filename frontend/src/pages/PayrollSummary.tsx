@@ -117,7 +117,7 @@ const PayrollSummary: React.FC = () => {
         ))}
       </div>
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-slate-50">
@@ -161,7 +161,7 @@ const PayrollSummary: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/payroll')} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+          <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
             <ArrowLeft size={20} />
           </button>
           <div>

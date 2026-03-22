@@ -16,6 +16,7 @@ import MiniCalendar from '../components/dashboard/MiniCalendar';
 import RemindersCard from '../components/dashboard/RemindersCard';
 import FilingDeadlinesCard from '../components/dashboard/FilingDeadlinesCard';
 
+const fmtDate = (d: string | undefined) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const RUN_STATUS_STYLES: Record<string, string> = {
   DRAFT: 'bg-slate-100 text-slate-600',
@@ -201,7 +202,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="font-bold text-sm text-navy">{currentRun.name}</p>
               <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                {new Date(currentRun.runDate).toLocaleDateString()} · {currentRun.currency}
+                {fmtDate(currentRun.runDate)} · {currentRun.currency}
               </p>
             </button>
           ) : summary?.lastRun ? (
@@ -213,7 +214,7 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-bold text-sm">{new Date(summary.lastRun.runDate).toLocaleDateString()}</span>
+                <span className="font-bold text-sm">{fmtDate(summary.lastRun.runDate)}</span>
                 <ArrowUpRight size={16} className="text-slate-300" />
               </div>
             </div>
@@ -250,7 +251,7 @@ const Dashboard: React.FC = () => {
                   {exchangeRate.toCurrency}
                 </p>
                 <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                  {new Date(exchangeRate.effectiveDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {fmtDate(exchangeRate.effectiveDate)}
                   {exchangeRate.source === 'RBZ' ? ' · RBZ' : ''}
                 </p>
               </>

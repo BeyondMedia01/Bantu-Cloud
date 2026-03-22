@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 const STATUS_COLORS: Record<string, string> = {
   APPROVED: 'bg-emerald-50 text-emerald-700',
@@ -21,6 +23,7 @@ const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day
 
 const Leave: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [records, setRecords] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,17 +31,16 @@ const Leave: React.FC = () => {
   const [filterEmployee, setFilterEmployee] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
-  const [actionError, setActionError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
 
   const load = () => {
     setLoading(true);
     LeaveAPI.getAll()
       .then((r) => {
         const data = r.data;
-        // Support both {records:[]} and flat array responses
         setRecords(Array.isArray(data) ? data : (data.records || []));
       })
-      .catch(() => {})
+      .catch(() => showToast('Failed to load leave records', 'error'))
       .finally(() => setLoading(false));
   };
 
@@ -49,14 +51,21 @@ const Leave: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this leave record?')) return;
-    setActionError('');
+  const handleDelete = (item: any) => {
+    const label = `${item.employee?.firstName ?? ''} ${item.employee?.lastName ?? ''} — ${item.type}`.trim();
+    setDeleteTarget({ id: item.id, label });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await LeaveAPI.delete(id);
+      await LeaveAPI.delete(deleteTarget.id);
+      showToast('Leave record deleted', 'success');
       load();
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Failed to delete leave record');
+      showToast(err.response?.data?.message || 'Failed to delete leave record', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -70,6 +79,16 @@ const Leave: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Leave Record"
+          message={`Delete leave record for ${deleteTarget.label}? This action cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -118,11 +137,17 @@ const Leave: React.FC = () => {
         </button>
       </div>
 
-      {actionError && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{actionError}</div>
-      )}
-
       {/* Filters */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+      {(filterStatus || filterEmployee || filterStartDate || filterEndDate) && (
+        <button
+          onClick={() => { setFilterStatus(''); setFilterEmployee(''); setFilterStartDate(''); setFilterEndDate(''); }}
+          className="ml-auto text-xs font-bold text-slate-400 hover:text-navy px-3 py-1.5 rounded-full border border-border hover:bg-slate-50 transition-colors"
+        >
+          Clear filters
+        </button>
+      )}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <select
           value={filterStatus}
@@ -171,9 +196,20 @@ const Leave: React.FC = () => {
       {/* Table */}
       {loading ? (
         <SkeletonTable headers={['Employee', 'Leave Type', 'Dates', 'Days', 'Status', 'Actions']} />
+      ) : records.length === 0 ? (
+        <div className="text-center py-16 bg-primary rounded-2xl border border-border">
+          <p className="font-bold text-slate-500">No leave records yet</p>
+          <p className="text-sm text-slate-400 mt-1 mb-4">Start tracking employee leave by recording the first entry.</p>
+          <button
+            onClick={() => navigate('/leave/new')}
+            className="inline-flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+          >
+            <Plus size={16} /> Record Leave
+          </button>
+        </div>
       ) : (
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scroll-x-shadow">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border bg-slate-50">
@@ -211,14 +247,14 @@ const Leave: React.FC = () => {
                         <button
                           onClick={() => navigate(`/leave/${item.id}/edit`)}
                           className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-navy transition-colors"
-                          title="Edit"
+                          aria-label="Edit leave record"
                         >
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleDelete(item)}
                           className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
-                          title="Delete"
+                          aria-label="Delete leave record"
                         >
                           <Trash size={16} />
                         </button>
@@ -228,7 +264,7 @@ const Leave: React.FC = () => {
                 )) : (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
-                      No leave records found.
+                      No records match your filters.
                     </td>
                   </tr>
                 )}

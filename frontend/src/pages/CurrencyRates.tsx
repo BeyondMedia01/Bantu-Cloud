@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash, History, TrendingUp, Anchor, Calendar, Info, Globe, X, Check } from 'lucide-react';
 import { CurrencyRateAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 interface Props {
   activeCompanyId?: string | null;
 }
 
 const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) => {
+  const { showToast } = useToast();
   const [rates, setRates]       = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm]         = useState({ toCurrency: 'ZiG', rate: '', effectiveDate: new Date().toISOString().slice(0, 10), source: 'RBZ', notes: '' });
   const [saving, setSaving]     = useState(false);
   const [formError, setFormError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchRates = async () => {
     try {
@@ -48,13 +52,17 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this exchange rate record?')) return;
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await CurrencyRateAPI.delete(id);
+      await CurrencyRateAPI.delete(deleteTarget);
       fetchRates();
-    } catch (error) {
-      alert('Failed to delete rate');
+    } catch {
+      showToast('Failed to delete rate', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -62,6 +70,15 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
 
   return (
     <div className="flex flex-col gap-8">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Exchange Rate"
+          message="Delete this exchange rate record? This action cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-navy mb-1">Exchange Rates</h2>

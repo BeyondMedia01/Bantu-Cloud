@@ -50,7 +50,7 @@ const EmployeeProfile: React.FC = () => {
     try {
       await EmployeeSelfAPI.updateProfile(form);
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => setSaved(false), 5000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save');
     } finally {
@@ -112,11 +112,16 @@ const EmployeeProfile: React.FC = () => {
           ))}
           <div>
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Bank Name</label>
-            <select value={form.bankName} onChange={set('bankName')}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue">
-              <option value="">— Select bank —</option>
-              {ZIMBABWE_BANKS.map((b) => <option key={b} value={b}>{b}</option>)}
-            </select>
+            <datalist id="zw-banks-profile">
+              {ZIMBABWE_BANKS.map((b) => <option key={b} value={b} />)}
+            </datalist>
+            <input
+              list="zw-banks-profile"
+              value={form.bankName}
+              onChange={set('bankName')}
+              placeholder="Search or type bank name"
+              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
+            />
           </div>
           <div>
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Bank Account Number</label>

@@ -121,7 +121,7 @@ const EmployeeNew: React.FC = () => {
   return (
     <div className="max-w-3xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/employees')} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/employees')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
@@ -255,7 +255,14 @@ const EmployeeNew: React.FC = () => {
         <Section title="Pay Details & Bank Splitting">
           <div className="grid grid-cols-2 gap-4 mb-6">
             <Field label="Payment Method" required>
-              <select required value={form.paymentMethod} onChange={set('paymentMethod')}>
+              <select required value={form.paymentMethod} onChange={(e) => {
+                const method = e.target.value;
+                setForm(f => ({
+                  ...f,
+                  paymentMethod: method,
+                  bankAccounts: method === 'CASH' ? [] : f.bankAccounts,
+                }));
+              }}>
                 <option value="BANK">Bank</option>
                 <option value="CASH">Cash</option>
               </select>
@@ -299,6 +306,10 @@ const EmployeeNew: React.FC = () => {
                 </button>
               </div>
 
+              <datalist id="zw-banks">
+                {ZIMBABWE_BANKS.map(b => <option key={b} value={b} />)}
+              </datalist>
+
               {form.bankAccounts.map((acc, index) => (
                 <div key={index} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 relative group transition-all hover:bg-slate-50">
                   {form.bankAccounts.length > 1 && (
@@ -314,15 +325,14 @@ const EmployeeNew: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bank Name</label>
-                      <select 
-                        required 
-                        value={acc.bankName} 
+                      <input
+                        required
+                        list="zw-banks"
+                        value={acc.bankName}
                         onChange={(e) => handleAccountChange(index, 'bankName', e.target.value)}
                         className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
-                      >
-                        <option value="">Select Bank</option>
-                        {ZIMBABWE_BANKS.map(b => <option key={b} value={b}>{b}</option>)}
-                      </select>
+                        placeholder="Search or type bank name"
+                      />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Number</label>
@@ -346,8 +356,8 @@ const EmployeeNew: React.FC = () => {
 
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
-                      <select 
-                        value={acc.splitType} 
+                      <select
+                        value={acc.splitType}
                         onChange={(e) => handleAccountChange(index, 'splitType', e.target.value)}
                         className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
                       >
@@ -355,6 +365,11 @@ const EmployeeNew: React.FC = () => {
                         <option value="FIXED">Fixed Amount</option>
                         <option value="PERCENTAGE">Percentage (%)</option>
                       </select>
+                      <p className="text-[10px] text-slate-400 leading-snug">
+                        {acc.splitType === 'REMAINDER' && 'Receives everything left after other splits.'}
+                        {acc.splitType === 'FIXED' && 'A fixed currency amount is paid to this account.'}
+                        {acc.splitType === 'PERCENTAGE' && 'A percentage of net pay is paid to this account.'}
+                      </p>
                     </div>
 
                     {acc.splitType !== 'REMAINDER' && (
@@ -404,6 +419,11 @@ const EmployeeNew: React.FC = () => {
                 <option value="FDS_AVERAGE">FDS Average</option>
                 <option value="FDS_FORECASTING">FDS Forecasting</option>
               </select>
+              <p className="text-[10px] text-slate-400 mt-1 leading-snug">
+                {form.taxMethod === 'NON_FDS' && 'Standard PAYE — tax calculated monthly on current earnings.'}
+                {form.taxMethod === 'FDS_AVERAGE' && 'Fixed-date scheme using average of year-to-date earnings.'}
+                {form.taxMethod === 'FDS_FORECASTING' && 'Fixed-date scheme projecting annual income from current pay.'}
+              </p>
             </Field>
             <Field label="Tax Table" required>
               <select required value={form.taxTable} onChange={set('taxTable')}>

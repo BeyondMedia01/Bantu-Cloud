@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Search, User, Hash, CheckCircle, Lock, Download, FileText } from 'lucide-react';
 import { PayslipSummaryAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
+  const { showToast } = useToast();
   const [summaries, setSummaries] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const [finalizeTarget, setFinalizeTarget] = useState<string | null>(null);
 
   const fetchSummaries = async () => {
     try {
@@ -21,13 +25,17 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
     }
   }, [activeCompanyId]);
 
-  const handleFinalize = async (id: string) => {
-    if (!window.confirm('Are you sure you want to finalize this payslip? This will lock it from further edits.')) return;
+  const handleFinalize = (id: string) => setFinalizeTarget(id);
+
+  const confirmFinalize = async () => {
+    if (!finalizeTarget) return;
     try {
-      await PayslipSummaryAPI.update(id, { isFinalized: true });
+      await PayslipSummaryAPI.update(finalizeTarget, { isFinalized: true });
       fetchSummaries();
-    } catch (error) {
-      alert('Failed to finalize payslip');
+    } catch {
+      showToast('Failed to finalize payslip', 'error');
+    } finally {
+      setFinalizeTarget(null);
     }
   };
 
@@ -38,6 +46,15 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
 
   return (
     <div className="flex flex-col gap-8">
+      {finalizeTarget && (
+        <ConfirmModal
+          title="Finalize Payslip"
+          message="Finalizing this payslip will lock it from further edits. This action cannot be undone."
+          confirmLabel="Finalize"
+          onConfirm={confirmFinalize}
+          onCancel={() => setFinalizeTarget(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Payroll Summaries</h2>

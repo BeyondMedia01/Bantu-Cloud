@@ -553,7 +553,7 @@ const Transactions: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/utilities')} className="p-2 hover:bg-slate-100 rounded-xl">
+          <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl">
             <ArrowLeft size={20} />
           </button>
           <div>

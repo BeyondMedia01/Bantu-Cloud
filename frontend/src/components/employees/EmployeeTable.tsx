@@ -3,6 +3,7 @@ import { Edit, Trash, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Employee } from '../../types/employee';
 import { ReportsAPI } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -11,6 +12,7 @@ interface EmployeeTableProps {
 
 const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleDownloadIT7 = async (employee: Employee) => {
     try {
@@ -23,9 +25,8 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) =>
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
-      console.error('Failed to download IT7:', error);
-      alert('Failed to generate IT7 certificate. Please ensure there is completed payroll data for this year.');
+    } catch {
+      showToast('Failed to generate IT7 certificate. Ensure there is completed payroll data for this year.', 'error');
     }
   };
 

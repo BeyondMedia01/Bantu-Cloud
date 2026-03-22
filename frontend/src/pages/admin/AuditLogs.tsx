@@ -71,7 +71,7 @@ const AuditLogs: React.FC = () => {
     <div>
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/admin')} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/admin')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1">

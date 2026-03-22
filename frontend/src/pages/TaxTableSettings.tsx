@@ -3,18 +3,22 @@ import { Plus, FileUp, Loader, ChevronRight, Hash, Percent, Calendar, Trash, Pen
 import { TaxTableAPI } from '../api/client';
 import UploadTaxTableModal from '../components/tax/UploadTaxTableModal';
 import NewTaxTableModal from '../components/tax/NewTaxTableModal';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const EMPTY_ROW = { lowerBound: '', upperBound: '', rate: '', fixedAmount: '' };
 
 type PendingRow = { lowerBound: string; upperBound: string; rate: string; fixedAmount: string; error: string; saving: boolean };
 
 const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
+  const { showToast } = useToast();
   const [tables, setTables]               = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
   const [activeTableId, setActiveTableId] = useState<string | null>(null);
   const [brackets, setBrackets]           = useState<any[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen]       = useState(false);
+  const [deleteTableTarget, setDeleteTableTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Multiple pending add rows
   const [pendingRows, setPendingRows] = useState<PendingRow[]>([]);
@@ -62,20 +66,24 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
         t.currency === res.data.currency ? { ...t, isActive: t.id === id } : t
       ));
     } catch {
-      alert('Failed to set active table');
+      showToast('Failed to set active table', 'error');
     } finally {
       setActivating(false);
     }
   };
 
-  const handleDeleteTable = async (id: string, name: string) => {
-    if (!window.confirm(`Delete tax table "${name}"? All brackets will be lost.`)) return;
+  const handleDeleteTable = (id: string, name: string) => setDeleteTableTarget({ id, name });
+
+  const confirmDeleteTable = async () => {
+    if (!deleteTableTarget) return;
     try {
-      await TaxTableAPI.delete(id);
-      setTables(prev => prev.filter(t => t.id !== id));
-      if (activeTableId === id) { setActiveTableId(null); setBrackets([]); }
+      await TaxTableAPI.delete(deleteTableTarget.id);
+      setTables(prev => prev.filter(t => t.id !== deleteTableTarget.id));
+      if (activeTableId === deleteTableTarget.id) { setActiveTableId(null); setBrackets([]); }
     } catch {
-      alert('Failed to delete tax table');
+      showToast('Failed to delete tax table', 'error');
+    } finally {
+      setDeleteTableTarget(null);
     }
   };
 
@@ -85,7 +93,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
       await TaxTableAPI.deleteBracket(activeTableId, bracketId);
       setBrackets(prev => prev.filter(b => b.id !== bracketId));
     } catch {
-      alert('Failed to delete bracket');
+      showToast('Failed to delete bracket', 'error');
     }
   };
 
@@ -162,7 +170,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-12"><Loader className="animate-spin text-slate-300" /></div>;
+  if (loading) return <div className="flex justify-center p-12"><Loader className="animate-spin text-accent-blue" /></div>;
 
   const activeTable = tables.find((t: any) => t.id === activeTableId);
 
@@ -170,6 +178,15 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {deleteTableTarget && (
+        <ConfirmModal
+          title="Delete Tax Table"
+          message={`Delete tax table "${deleteTableTarget.name}"? All brackets will be lost.`}
+          confirmLabel="Delete"
+          onConfirm={confirmDeleteTable}
+          onCancel={() => setDeleteTableTarget(null)}
+        />
+      )}
       <header className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-navy">Tax Tables</h2>

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Search, User, Hash, CheckCircle, ShieldCheck, Download, FileText, AlertCircle, Trash, Settings, X, Save, Info } from 'lucide-react';
 import { NSSAContributionAPI, NSSASettingsAPI, type NSSASettings } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
+  const { showToast } = useToast();
   const [contributions, setContributions] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [settings, setSettings] = useState<NSSASettings>({ 
     employeeRate: 3.5, 
     employerRate: 3.5, 
@@ -44,17 +48,21 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
       await NSSAContributionAPI.update(id, { submittedToNSSA: !currentStatus });
       fetchContributions();
     } catch (error) {
-      alert('Failed to update submission status');
+      showToast('Failed to update submission status', 'error');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this NSSA record?')) return;
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await NSSAContributionAPI.delete(id);
+      await NSSAContributionAPI.delete(deleteTarget);
       fetchContributions();
-    } catch (error) {
-      alert('Failed to delete NSSA record');
+    } catch {
+      showToast('Failed to delete NSSA record', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -64,9 +72,9 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
     try {
       await NSSASettingsAPI.update(settings);
       setShowSettings(false);
-      fetchContributions(); 
+      fetchContributions();
     } catch (err) {
-      alert('Failed to save NSSA settings');
+      showToast('Failed to save NSSA settings', 'error');
     } finally {
       setSavingSettings(false);
     }
@@ -80,6 +88,15 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
 
   return (
     <div className="flex flex-col gap-8 relative">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete NSSA Record"
+          message="Are you sure you want to delete this NSSA contribution record?"
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">NSSA Contributions</h2>

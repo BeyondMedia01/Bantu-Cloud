@@ -6,6 +6,8 @@ import {
 import { EmployeeAPI, TransactionCodeAPI, PayrollInputAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import BenefitCalculator from '../components/tax/BenefitCalculator';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const CURRENT_PERIOD = new Date().toISOString().slice(0, 7);
 
@@ -44,8 +46,10 @@ const fmtAmt = (n: number) =>
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PayslipInput: React.FC = () => {
+  const { showToast } = useToast();
   const [employees, setEmployees]       = useState<any[]>([]);
   const [txCodes, setTxCodes]           = useState<any[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [selectedEmp, setSelectedEmp]   = useState<any>(null);
   const [inputs, setInputs]             = useState<any[]>([]);
 
@@ -199,13 +203,17 @@ const PayslipInput: React.FC = () => {
 
   // ── Delete ───────────────────────────────────────────────────────────────
 
-  const handleDelete = async (inp: any) => {
-    if (!window.confirm(`Remove "${inp.transactionCode?.name ?? 'this input'}"?`)) return;
+  const handleDelete = (inp: any) => setDeleteTarget(inp);
+
+  const confirmDeleteInput = async () => {
+    if (!deleteTarget) return;
     try {
-      await PayrollInputAPI.delete(inp.id);
+      await PayrollInputAPI.delete(deleteTarget.id);
       loadInputs(selectedEmp.id);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete.');
+      showToast(err.response?.data?.message || 'Failed to delete', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -220,7 +228,7 @@ const PayslipInput: React.FC = () => {
       if (selectedEmp) loadInputs(selectedEmp.id);
       loadEmployees(); // Refresh employee list if needed
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Import failed.');
+      showToast(err.response?.data?.message || 'Import failed.', 'error');
     } finally {
       setImporting(false);
       e.target.value = ''; // Reset input
@@ -319,6 +327,15 @@ const PayslipInput: React.FC = () => {
 
   return (
     <div className="flex gap-0 h-[calc(100vh-80px)] -mx-6 -my-6 overflow-hidden">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Remove Payslip Input"
+          message={`Remove "${deleteTarget.transactionCode?.name ?? 'this input'}"? This cannot be undone.`}
+          confirmLabel="Remove"
+          onConfirm={confirmDeleteInput}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
 
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
       <aside className="w-72 shrink-0 border-r border-border flex flex-col bg-slate-50/60">
@@ -341,7 +358,7 @@ const PayslipInput: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-2">
           {loadingEmps ? (
             <div className="flex justify-center py-10">
-              <Loader size={20} className="animate-spin text-slate-300" />
+              <Loader size={20} className="animate-spin text-accent-blue" />
             </div>
           ) : filteredEmps.length === 0 ? (
             <p className="text-xs text-slate-400 italic text-center py-8">No employees found</p>
@@ -498,7 +515,7 @@ const PayslipInput: React.FC = () => {
               {/* ── Table ────────────────────────────────────────────── */}
               {loadingInputs ? (
                 <div className="flex justify-center py-16">
-                  <Loader size={24} className="animate-spin text-slate-300" />
+                  <Loader size={24} className="animate-spin text-accent-blue" />
                 </div>
               ) : inputs.length === 0 && !showAdd ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
@@ -511,7 +528,7 @@ const PayslipInput: React.FC = () => {
                 </div>
               ) : inputs.length > 0 && (
                 <div className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto scroll-x-shadow">
                     <table className="w-full text-sm min-w-[1000px]">
                       <thead>
                         <tr className="border-b border-border bg-slate-50">
@@ -576,7 +593,7 @@ const PayslipInput: React.FC = () => {
                                       className="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-emerald-600 disabled:opacity-50">
                                       {editSaving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
                                     </button>
-                                    <button onClick={() => { setEditingId(null); setEditError(''); }}
+                                    <button onClick={() => { setEditingId(null); setEditError(''); setEditForm({ ...EMPTY_FORM }); }}
                                       className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
                                       <X size={13} />
                                     </button>

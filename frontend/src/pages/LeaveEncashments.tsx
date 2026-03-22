@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Loader, Banknote, CheckCircle2, XCircle, Zap, Clock, AlertCircle } from 'lucide-react';
 import { LeaveEncashmentAPI, EmployeeAPI, LeaveBalanceAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
 const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ');
@@ -13,22 +15,30 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 const LeaveEncashments: React.FC = () => {
+  const { showToast } = useToast();
   const [encashments, setEncashments] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
-  const [actionMsg, setActionMsg] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ employeeId: '', leaveType: 'ANNUAL', days: '', notes: '' });
   const [saving, setSaving] = useState(false);
+
+  // Reject modal state
+  const [rejectTarget, setRejectTarget] = useState<{ id: string } | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const rejectInputRef = useRef<HTMLInputElement>(null);
+
+  // Process confirm modal state
+  const [processTarget, setProcessTarget] = useState<{ id: string } | null>(null);
 
   const load = () => {
     setLoading(true);
     LeaveEncashmentAPI.getAll()
       .then((r) => setEncashments(r.data))
-      .catch(() => {})
+      .catch(() => showToast('Failed to load encashments', 'error'))
       .finally(() => setLoading(false));
   };
 
@@ -38,6 +48,13 @@ const LeaveEncashments: React.FC = () => {
       .then((r) => setEmployees(r.data?.data || r.data || []))
       .catch(() => {});
   }, []);
+
+  // Focus reject reason input when modal opens
+  useEffect(() => {
+    if (rejectTarget) {
+      setTimeout(() => rejectInputRef.current?.focus(), 50);
+    }
+  }, [rejectTarget]);
 
   // Fetch balances when employee changes in form
   useEffect(() => {
@@ -65,6 +82,7 @@ const LeaveEncashments: React.FC = () => {
       });
       setShowForm(false);
       setForm({ employeeId: '', leaveType: 'ANNUAL', days: '', notes: '' });
+      showToast('Encashment request submitted', 'success');
       load();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit encashment');
@@ -75,43 +93,45 @@ const LeaveEncashments: React.FC = () => {
 
   const handleApprove = async (id: string) => {
     setActionLoading('approve-' + id);
-    setError('');
     try {
       await LeaveEncashmentAPI.approve(id);
-      setActionMsg('Encashment approved');
+      showToast('Encashment approved', 'success');
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to approve');
+      showToast(err.response?.data?.message || 'Failed to approve', 'error');
     } finally {
       setActionLoading('');
     }
   };
 
-  const handleReject = async (id: string) => {
-    const reason = window.prompt('Rejection reason (optional):') ?? '';
+  const confirmReject = async () => {
+    if (!rejectTarget) return;
+    const id = rejectTarget.id;
+    setRejectTarget(null);
     setActionLoading('reject-' + id);
-    setError('');
     try {
-      await LeaveEncashmentAPI.reject(id, reason);
-      setActionMsg('Encashment rejected and balance restored');
+      await LeaveEncashmentAPI.reject(id, rejectReason);
+      showToast('Encashment rejected and balance restored', 'success');
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reject');
+      showToast(err.response?.data?.message || 'Failed to reject', 'error');
     } finally {
       setActionLoading('');
+      setRejectReason('');
     }
   };
 
-  const handleProcess = async (id: string) => {
-    if (!window.confirm('Process encashment into payroll inputs? This will create a LEAVE_ENCASHMENT earning for the next payroll run.')) return;
+  const confirmProcess = async () => {
+    if (!processTarget) return;
+    const id = processTarget.id;
+    setProcessTarget(null);
     setActionLoading('process-' + id);
-    setError('');
     try {
       await LeaveEncashmentAPI.process(id);
-      setActionMsg('Encashment processed — a PayrollInput has been created for the next run');
+      showToast('Encashment processed — a payroll input has been created for the next run', 'success');
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to process');
+      showToast(err.response?.data?.message || 'Failed to process', 'error');
     } finally {
       setActionLoading('');
     }
@@ -122,6 +142,45 @@ const LeaveEncashments: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Reject reason modal */}
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { setRejectTarget(null); setRejectReason(''); }} />
+          <div className="relative bg-white rounded-2xl shadow-xl border border-border w-full max-w-sm p-6 flex flex-col gap-4">
+            <h2 className="font-bold text-navy">Reject Encashment</h2>
+            <p className="text-sm text-slate-500">Provide an optional reason for rejection. The employee's leave balance will be restored.</p>
+            <div>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Reason (optional)</label>
+              <input
+                ref={rejectInputRef}
+                type="text"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') confirmReject(); if (e.key === 'Escape') { setRejectTarget(null); setRejectReason(''); } }}
+                placeholder="e.g. Insufficient leave balance"
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => { setRejectTarget(null); setRejectReason(''); }} className="px-4 py-2 rounded-full border border-border text-sm font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+              <button onClick={confirmReject} className="px-4 py-2 rounded-full bg-red-500 text-white text-sm font-bold hover:bg-red-600">Reject</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Process confirm modal */}
+      {processTarget && (
+        <ConfirmModal
+          title="Process to Payroll"
+          message="This will create a LEAVE_ENCASHMENT earning entry for the next payroll run. Continue?"
+          confirmLabel="Process"
+          danger={false}
+          onConfirm={confirmProcess}
+          onCancel={() => setProcessTarget(null)}
+        />
+      )}
+
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-navy">Leave Encashments</h2>
@@ -136,7 +195,6 @@ const LeaveEncashments: React.FC = () => {
       </header>
 
       {error && <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600"><AlertCircle size={16} />{error}</div>}
-      {actionMsg && <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">{actionMsg}</div>}
 
       {/* Encashment Request Form */}
       {showForm && (
@@ -144,7 +202,7 @@ const LeaveEncashments: React.FC = () => {
           <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-5">Request Encashment</h3>
           <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Employee</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Employee <span className="text-red-400">*</span></label>
               <select required value={form.employeeId} onChange={set('employeeId')}
                 className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue">
                 <option value="">Select employee…</option>
@@ -154,7 +212,7 @@ const LeaveEncashments: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type <span className="text-red-400">*</span></label>
               <select required value={form.leaveType} onChange={set('leaveType')}
                 className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue">
                 {LEAVE_TYPES.map((t) => <option key={t} value={t}>{fmtType(t)}</option>)}
@@ -166,7 +224,7 @@ const LeaveEncashments: React.FC = () => {
               )}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Days to Encash</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Days to Encash <span className="text-red-400">*</span></label>
               <input type="number" required min="0.5" step="0.5" value={form.days} onChange={set('days')}
                 className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
               {selectedBalance && form.days && (
@@ -185,7 +243,8 @@ const LeaveEncashments: React.FC = () => {
             </div>
             <div className="sm:col-span-2 flex gap-3 pt-2">
               <button type="submit" disabled={saving}
-                className="bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
+                className="bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 flex items-center gap-2">
+                {saving && <Loader size={14} className="animate-spin" />}
                 {saving ? 'Submitting…' : 'Submit Encashment'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
@@ -199,78 +258,84 @@ const LeaveEncashments: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-slate-400" /></div>
+        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-accent-blue" /></div>
       ) : encashments.length === 0 ? (
         <div className="text-center py-16 bg-primary rounded-2xl border border-border">
           <Banknote size={36} className="mx-auto mb-3 text-slate-200" />
           <p className="font-bold text-slate-500">No encashment requests yet</p>
+          <p className="text-sm text-slate-400 mt-1">Submit a request above to convert unused leave days into earnings.</p>
         </div>
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-border bg-slate-50">
-                {['Employee', 'Type', 'Days', 'Rate/Day', 'Total Amount', 'Status', 'Actions'].map((h) => (
-                  <th key={h} className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {encashments.map((enc: any) => (
-                <tr key={enc.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-4">
-                    <p className="text-sm font-bold">{enc.employee?.firstName} {enc.employee?.lastName}</p>
-                    <p className="text-xs text-slate-400">{enc.employee?.employeeCode}</p>
-                  </td>
-                  <td className="px-5 py-4 text-sm font-medium">{fmtType(enc.leaveType)}</td>
-                  <td className="px-5 py-4 text-sm font-bold">{enc.days}</td>
-                  <td className="px-5 py-4 text-sm">{enc.currency} {enc.ratePerDay.toFixed(2)}</td>
-                  <td className="px-5 py-4 text-sm font-bold">{enc.currency} {enc.totalAmount.toFixed(2)}</td>
-                  <td className="px-5 py-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_STYLE[enc.status] || 'bg-slate-100 text-slate-600'}`}>
-                      {enc.status === 'PENDING' && <Clock size={11} />}
-                      {enc.status === 'APPROVED' && <CheckCircle2 size={11} />}
-                      {enc.status === 'PROCESSED' && <Zap size={11} />}
-                      {enc.status === 'REJECTED' && <XCircle size={11} />}
-                      {enc.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-1.5">
-                      {enc.status === 'PENDING' && (<>
-                        <button
-                          onClick={() => handleApprove(enc.id)}
-                          disabled={actionLoading === 'approve-' + enc.id}
-                          className="text-xs font-bold px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full hover:bg-teal-100 disabled:opacity-60"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(enc.id)}
-                          disabled={actionLoading === 'reject-' + enc.id}
-                          className="text-xs font-bold px-2.5 py-1 bg-red-50 text-red-600 rounded-full hover:bg-red-100 disabled:opacity-60"
-                        >
-                          Reject
-                        </button>
-                      </>)}
-                      {enc.status === 'APPROVED' && (
-                        <button
-                          onClick={() => handleProcess(enc.id)}
-                          disabled={actionLoading === 'process-' + enc.id}
-                          className="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100 disabled:opacity-60 flex items-center gap-1"
-                        >
-                          <Zap size={11} /> Process to Payroll
-                        </button>
-                      )}
-                      {enc.status === 'PROCESSED' && enc.payrollInputId && (
-                        <span className="text-xs text-slate-400 font-medium">In payroll</span>
-                      )}
-                    </div>
-                  </td>
+          <div className="overflow-x-auto scroll-x-shadow">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-border bg-slate-50">
+                  {['Employee', 'Type', 'Days', 'Rate/Day', 'Total Amount', 'Status', 'Actions'].map((h) => (
+                    <th key={h} className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {encashments.map((enc: any) => (
+                  <tr key={enc.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-5 py-4">
+                      <p className="text-sm font-bold">{enc.employee?.firstName} {enc.employee?.lastName}</p>
+                      <p className="text-xs text-slate-400">{enc.employee?.employeeCode}</p>
+                    </td>
+                    <td className="px-5 py-4 text-sm font-medium">{fmtType(enc.leaveType)}</td>
+                    <td className="px-5 py-4 text-sm font-bold">{enc.days}</td>
+                    <td className="px-5 py-4 text-sm">{enc.currency} {Number(enc.ratePerDay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-5 py-4 text-sm font-bold">{enc.currency} {Number(enc.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-5 py-4">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_STYLE[enc.status] || 'bg-slate-100 text-slate-600'}`}>
+                        {enc.status === 'PENDING' && <Clock size={11} />}
+                        {enc.status === 'APPROVED' && <CheckCircle2 size={11} />}
+                        {enc.status === 'PROCESSED' && <Zap size={11} />}
+                        {enc.status === 'REJECTED' && <XCircle size={11} />}
+                        {enc.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1.5">
+                        {enc.status === 'PENDING' && (<>
+                          <button
+                            onClick={() => handleApprove(enc.id)}
+                            disabled={!!actionLoading}
+                            className="text-xs font-bold px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full hover:bg-teal-100 disabled:opacity-60 flex items-center gap-1"
+                          >
+                            {actionLoading === 'approve-' + enc.id ? <Loader size={10} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => { setRejectTarget({ id: enc.id }); setRejectReason(''); }}
+                            disabled={!!actionLoading}
+                            className="text-xs font-bold px-2.5 py-1 bg-red-50 text-red-600 rounded-full hover:bg-red-100 disabled:opacity-60 flex items-center gap-1"
+                          >
+                            {actionLoading === 'reject-' + enc.id ? <Loader size={10} className="animate-spin" /> : <XCircle size={11} />}
+                            Reject
+                          </button>
+                        </>)}
+                        {enc.status === 'APPROVED' && (
+                          <button
+                            onClick={() => setProcessTarget({ id: enc.id })}
+                            disabled={!!actionLoading}
+                            className="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100 disabled:opacity-60 flex items-center gap-1"
+                          >
+                            {actionLoading === 'process-' + enc.id ? <Loader size={10} className="animate-spin" /> : <Zap size={11} />}
+                            Process to Payroll
+                          </button>
+                        )}
+                        {enc.status === 'PROCESSED' && enc.payrollInputId && (
+                          <span className="text-xs text-slate-400 font-medium">In payroll</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

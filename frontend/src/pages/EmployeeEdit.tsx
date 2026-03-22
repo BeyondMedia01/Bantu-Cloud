@@ -3,6 +3,7 @@ import { useToast } from '../context/ToastContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download } from 'lucide-react';
 import { EmployeeAPI, BranchAPI, DepartmentAPI, NecTableAPI, TaxTableAPI, SystemSettingsAPI, DocumentsAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { getActiveCompanyId } from '../lib/companyContext';
 import SalaryStructurePanel from '../components/employees/SalaryStructurePanel';
 import EmployeeAuditTab from '../components/EmployeeAuditTab';
@@ -65,6 +66,9 @@ const EmployeeEdit: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'PERSONAL' | 'WORK' | 'PAY' | 'TAX' | 'LEAVE' | 'DOCUMENTS' | 'AUDIT'>('PERSONAL');
   const [documents, setDocuments] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [docUploadFile, setDocUploadFile] = useState<File | null>(null);
+  const [docForm, setDocForm] = useState({ type: 'OTHER', name: '' });
+  const [deleteDocTarget, setDeleteDocTarget] = useState<string | null>(null);
 
   useEffect(() => {
     const companyId = getActiveCompanyId();
@@ -212,39 +216,26 @@ const EmployeeEdit: React.FC = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const type = window.prompt('Document Type (ID, CONTRACT, MEDICAL, OTHER)?', 'OTHER') || 'OTHER';
-    const name = window.prompt('Document Name?', file.name) || file.name;
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('employeeId', id!);
-    formData.append('name', name);
-    formData.append('type', type.toUpperCase());
-
-    setUploading(true);
-    try {
-      await DocumentsAPI.upload(formData);
-      loadDocuments();
-      showToast('Document uploaded successfully', 'success');
-    } catch (err) {
-      showToast('Upload failed', 'error');
-    } finally {
-      setUploading(false);
-    }
+    setDocForm({ type: 'OTHER', name: file.name });
+    setDocUploadFile(file);
+    e.target.value = '';
   };
 
-  const deleteDocument = async (docId: string) => {
-    if (!window.confirm('Delete this document?')) return;
+  const deleteDocument = (docId: string) => setDeleteDocTarget(docId);
+
+  const confirmDeleteDocument = async () => {
+    if (!deleteDocTarget) return;
     try {
-      await DocumentsAPI.delete(docId);
+      await DocumentsAPI.delete(deleteDocTarget);
       loadDocuments();
       showToast('Document deleted', 'success');
-    } catch (err) {
+    } catch {
       showToast('Delete failed', 'error');
+    } finally {
+      setDeleteDocTarget(null);
     }
   };
 
@@ -256,8 +247,80 @@ const EmployeeEdit: React.FC = () => {
 
   return (
     <div className="max-w-3xl">
+      {docUploadFile && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold text-navy mb-5">Upload Document</h3>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Document Type</label>
+                <select
+                  value={docForm.type}
+                  onChange={(e) => setDocForm(p => ({ ...p, type: e.target.value }))}
+                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
+                >
+                  <option value="ID">ID</option>
+                  <option value="CONTRACT">Contract</option>
+                  <option value="MEDICAL">Medical</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Document Name</label>
+                <input
+                  type="text"
+                  value={docForm.name}
+                  onChange={(e) => setDocForm(p => ({ ...p, name: e.target.value }))}
+                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={async () => {
+                  const file = docUploadFile;
+                  setDocUploadFile(null);
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('employeeId', id!);
+                  formData.append('name', docForm.name || file.name);
+                  formData.append('type', docForm.type.toUpperCase());
+                  setUploading(true);
+                  try {
+                    await DocumentsAPI.upload(formData);
+                    loadDocuments();
+                    showToast('Document uploaded successfully', 'success');
+                  } catch {
+                    showToast('Upload failed', 'error');
+                  } finally {
+                    setUploading(false);
+                  }
+                }}
+                className="flex-1 bg-btn-primary text-navy py-2.5 rounded-full font-bold hover:opacity-90 text-sm"
+              >
+                Upload
+              </button>
+              <button
+                onClick={() => setDocUploadFile(null)}
+                className="px-5 py-2.5 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {deleteDocTarget && (
+        <ConfirmModal
+          title="Delete Document"
+          message="Delete this document? This action cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={confirmDeleteDocument}
+          onCancel={() => setDeleteDocTarget(null)}
+        />
+      )}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/employees')} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/employees')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
@@ -473,6 +536,10 @@ const EmployeeEdit: React.FC = () => {
                 </button>
               </div>
 
+              <datalist id="zw-banks">
+                {ZIMBABWE_BANKS.map(b => <option key={b} value={b} />)}
+              </datalist>
+
               {form.bankAccounts.map((acc: any, index: number) => (
                 <div key={index} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 relative group transition-all hover:bg-slate-50">
                   {form.bankAccounts.length > 1 && (
@@ -488,15 +555,14 @@ const EmployeeEdit: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bank Name</label>
-                      <select 
-                        required 
-                        value={acc.bankName} 
+                      <input
+                        required
+                        list="zw-banks"
+                        value={acc.bankName}
                         onChange={(e) => handleAccountChange(index, 'bankName', e.target.value)}
                         className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
-                      >
-                        <option value="">Select Bank</option>
-                        {ZIMBABWE_BANKS.map(b => <option key={b} value={b}>{b}</option>)}
-                      </select>
+                        placeholder="Search or type bank name"
+                      />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Number</label>
@@ -520,8 +586,8 @@ const EmployeeEdit: React.FC = () => {
 
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
-                      <select 
-                        value={acc.splitType} 
+                      <select
+                        value={acc.splitType}
                         onChange={(e) => handleAccountChange(index, 'splitType', e.target.value)}
                         className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
                       >
@@ -529,6 +595,11 @@ const EmployeeEdit: React.FC = () => {
                         <option value="FIXED">Fixed Amount</option>
                         <option value="PERCENTAGE">Percentage (%)</option>
                       </select>
+                      <p className="text-[10px] text-slate-400 leading-snug">
+                        {acc.splitType === 'REMAINDER' && 'Receives everything left after other splits.'}
+                        {acc.splitType === 'FIXED' && 'A fixed currency amount is paid to this account.'}
+                        {acc.splitType === 'PERCENTAGE' && 'A percentage of net pay is paid to this account.'}
+                      </p>
                     </div>
 
                     {acc.splitType !== 'REMAINDER' && (

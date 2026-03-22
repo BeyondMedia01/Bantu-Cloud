@@ -53,7 +53,7 @@ const LoanNew: React.FC = () => {
   return (
     <div className="max-w-xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/loans')} className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
+        <button onClick={() => navigate('/loans')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
         <div>
           <h1 className="text-2xl font-bold">New Loan</h1>
           <p className="text-slate-500 font-medium text-sm">Issue a new employee loan with repayment schedule</p>
@@ -75,14 +75,14 @@ const LoanNew: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <Field label="Loan Amount *"><input required type="number" step="0.01" value={form.amount} onChange={set('amount')} placeholder="1000.00" /></Field>
           <Field label="Annual Interest Rate (%)"><input type="number" step="0.1" value={form.interestRate} onChange={set('interestRate')} /></Field>
-          <Field label="Term (Months)"><input required type="number" value={form.termMonths} onChange={set('termMonths')} /></Field>
+          <Field label="Term (Months) *"><input required type="number" value={form.termMonths} onChange={set('termMonths')} /></Field>
           <Field label="Start Date *"><input required type="date" value={form.startDate} onChange={set('startDate')} /></Field>
         </div>
 
         {monthlyInstalment && (
           <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estimated Monthly Instalment</p>
-            <p className="text-2xl font-bold text-accent-blue">{monthlyInstalment}</p>
+            <p className="text-2xl font-bold text-accent-blue">{Number(monthlyInstalment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         )}
 

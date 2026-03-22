@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash, Info, Calendar, Percent, Hash } from 'lucide-react';
 import { TaxBandAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
+  const { showToast } = useToast();
   const [bands, setBands] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBand, setEditingBand] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchBands = async () => {
     try {
@@ -22,18 +26,31 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
     }
   }, [activeCompanyId]);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this tax band?')) return;
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await TaxBandAPI.delete(id);
+      await TaxBandAPI.delete(deleteTarget);
       fetchBands();
-    } catch (error) {
-      alert('Failed to delete tax band');
+    } catch {
+      showToast('Failed to delete tax band', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
   return (
     <div className="flex flex-col gap-8">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Tax Band"
+          message="Are you sure you want to delete this tax band?"
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Tax Configuration</h2>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash, Building2, MapPin, Hash, Pencil, X, Check } from 'lucide-react';
 import { CompanyAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 
 
@@ -9,6 +10,7 @@ const Companies: React.FC = () => {
   const [companies, setCompanies] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const { showToast } = useToast();
 
   // Create form state
@@ -77,15 +79,20 @@ const Companies: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to remove ${name}? This will delete all associated data.`)) {
-      try {
-        await CompanyAPI.delete(id);
-        fetchCompanies();
-        showToast(`${name} has been removed`, 'success');
-      } catch {
-        showToast('Failed to delete company', 'error');
-      }
+  const handleDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await CompanyAPI.delete(deleteTarget.id);
+      fetchCompanies();
+      showToast(`${deleteTarget.name} has been removed`, 'success');
+    } catch {
+      showToast('Failed to delete company', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -96,6 +103,15 @@ const Companies: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Remove Company"
+          message={`Are you sure you want to remove ${deleteTarget.name}? This will delete all associated data and cannot be undone.`}
+          confirmLabel="Remove Company"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Company Directory</h2>

@@ -78,7 +78,7 @@ const EmployeeImport: React.FC = () => {
     <div className="max-w-2xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/employees')} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/employees')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>

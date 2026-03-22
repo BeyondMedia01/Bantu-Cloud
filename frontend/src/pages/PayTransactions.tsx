@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Search, X, Loader } from 'lucide-react';
 import { TransactionCodeAPI } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 const TYPES = ['EARNING', 'BENEFIT', 'DEDUCTION'];
 const CALC_TYPES = ['fixed', 'percentage', 'formula'];
@@ -20,6 +21,7 @@ const emptyForm = {
 };
 
 const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
+  const { showToast } = useToast();
   const [codes, setCodes] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<{ mode: 'create' | 'edit'; tc?: any } | null>(null);
@@ -95,7 +97,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
       await TransactionCodeAPI.delete(id);
       setCodes(c => c.filter(x => x.id !== id));
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Cannot delete — this code may be in use.');
+      showToast(e?.response?.data?.message || 'Cannot delete — this code may be in use.', 'error');
     } finally {
       setDeleteId(null);
     }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Loader, Building2, Edit2, Save, X, Check } from 'lucide-react';
 import { BranchAPI, DepartmentAPI, SubCompanyAPI, CompanyAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { getActiveCompanyId } from '../lib/companyContext';
 
 const TABS = ['branches', 'departments', 'subcompanies'] as const;
@@ -22,6 +23,7 @@ const ClientAdminStructure: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ type: Tab; id: string; name: string } | null>(null);
 
   // Company profile state
   const [company, setCompany] = useState<any>(null);
@@ -57,7 +59,7 @@ const ClientAdminStructure: React.FC = () => {
       setCompany(updated.data);
       setEditing(false);
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      setTimeout(() => setSaveSuccess(false), 5000);
     } catch (err: any) {
       setSaveError(err.response?.data?.message || 'Failed to save changes.');
     } finally {
@@ -86,14 +88,22 @@ const ClientAdminStructure: React.FC = () => {
 
   useEffect(loadAll, [companyId]);
 
-  const handleDelete = async (type: Tab, id: string) => {
-    if (!confirm('Delete this item?')) return;
+  const handleDelete = (type: Tab, id: string, name: string) => {
+    setDeleteTarget({ type, id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      if (type === 'branches') await BranchAPI.delete(id);
-      else if (type === 'departments') await DepartmentAPI.delete(id);
-      else await SubCompanyAPI.delete(id);
+      if (deleteTarget.type === 'branches') await BranchAPI.delete(deleteTarget.id);
+      else if (deleteTarget.type === 'departments') await DepartmentAPI.delete(deleteTarget.id);
+      else await SubCompanyAPI.delete(deleteTarget.id);
       loadAll();
-    } catch {}
+    } catch {
+      setError('Failed to delete item');
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -123,6 +133,15 @@ const ClientAdminStructure: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8">
+      {deleteTarget && (
+        <ConfirmModal
+          title={`Delete ${TAB_LABELS[deleteTarget.type].replace(/s$/, '')}`}
+          message={`Are you sure you want to delete "${deleteTarget.name}"? This action cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header>
         <h1 className="text-2xl font-bold">Company Structure</h1>
         <p className="text-slate-500 text-sm font-medium">Company profile and organisational structure</p>
@@ -293,7 +312,8 @@ const ClientAdminStructure: React.FC = () => {
                     <td className="px-4 py-3 text-sm">{item._count?.employees ?? '—'}</td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => handleDelete(tab, item.id)}
+                        onClick={() => handleDelete(tab, item.id, item.name)}
+                        aria-label={`Delete ${item.name}`}
                         className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 size={14} />

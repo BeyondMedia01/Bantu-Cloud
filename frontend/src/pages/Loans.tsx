@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, ChevronRight } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { LoanAPI } from '../api/client';
+import { useToast } from '../context/ToastContext';
+
+const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtAmt = (n: number | undefined) => n != null ? Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
 
 const statusColor: Record<string, string> = {
   ACTIVE: 'bg-blue-50 text-blue-700',
@@ -13,12 +17,16 @@ const statusColor: Record<string, string> = {
 
 const Loans: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [loans, setLoans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    LoanAPI.getAll().then((r) => setLoans(r.data)).catch(() => {}).finally(() => setLoading(false));
+    LoanAPI.getAll()
+      .then((r) => setLoans(r.data))
+      .catch(() => showToast('Failed to load loans', 'error'))
+      .finally(() => setLoading(false));
   }, []);
 
   const filtered = filter
@@ -55,9 +63,20 @@ const Loans: React.FC = () => {
 
       {loading ? (
         <SkeletonTable headers={['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', '']} />
+      ) : filtered.length === 0 && !filter ? (
+        <div className="text-center py-16 bg-primary rounded-2xl border border-border">
+          <p className="font-bold text-slate-500">No loans yet</p>
+          <p className="text-sm text-slate-400 mt-1 mb-4">Set up employee loans and track repayment schedules.</p>
+          <button
+            onClick={() => navigate('/loans/new')}
+            className="inline-flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+          >
+            <Plus size={16} /> Create First Loan
+          </button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400 bg-primary rounded-2xl border border-border">
-          <p className="font-medium">No loans found</p>
+          <p className="font-medium">No loans match this filter.</p>
         </div>
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -76,11 +95,11 @@ const Loans: React.FC = () => {
                     <p className="font-bold text-sm">{loan.employee?.firstName} {loan.employee?.lastName}</p>
                     <p className="text-xs text-slate-400">{loan.employee?.employeeCode}</p>
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold">{loan.amount?.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm font-bold">{fmtAmt(loan.amount)}</td>
                   <td className="px-4 py-3 text-sm">{loan.interestRate}%</td>
                   <td className="px-4 py-3 text-sm">{loan.termMonths}mo</td>
-                  <td className="px-4 py-3 text-sm font-medium">{loan.monthlyInstalment?.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-sm">{new Date(loan.startDate).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-sm font-medium">{fmtAmt(loan.monthlyInstalment)}</td>
+                  <td className="px-4 py-3 text-sm">{fmtDate(loan.startDate)}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[loan.status] || 'bg-slate-100 text-slate-600'}`}>
                       {loan.status}

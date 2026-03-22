@@ -1,10 +1,14 @@
 import { Search, UserPlus, Trash, Users as UsersIcon, Eye, Calculator, Download as DownloadIcon, Check, X, Key, ShieldAlert } from 'lucide-react';
 import { PayrollUserAPI } from '../api/client';
 import { useState, useEffect } from 'react';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
+  const { showToast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -21,13 +25,17 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
     }
   }, [activeCompanyId]);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to remove this user? This revokes all system access.')) return;
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await PayrollUserAPI.delete(id);
+      await PayrollUserAPI.delete(deleteTarget);
       fetchUsers();
-    } catch (error) {
-      alert('Failed to delete user');
+    } catch {
+      showToast('Failed to delete user', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -55,13 +63,22 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
 
   return (
     <div className="flex flex-col gap-8">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Remove User"
+          message="Are you sure you want to remove this user? This revokes all system access."
+          confirmLabel="Remove"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Access Control</h2>
           <p className="text-slate-500 font-medium">Manage user roles, system access, and fine-grained data permissions.</p>
         </div>
-        <button 
-          onClick={() => { alert('Open Invite Modal'); }}
+        <button
+          onClick={() => { showToast('Feature coming soon', 'success'); }}
           className="bg-btn-primary text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
         >
           <UserPlus size={20} /> Invite New User
@@ -152,10 +169,8 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                   </td>
                   <td className="px-6 py-5 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => {
-                          alert('Open Edit Permissions Modal');
-                        }}
+                      <button
+                        onClick={() => { showToast('Feature coming soon', 'success'); }}
                         className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-navy transition-colors"
                         title="Edit Permissions"
                       >

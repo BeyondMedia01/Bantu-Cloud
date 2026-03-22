@@ -65,6 +65,7 @@ const Login: React.FC = () => {
               <input
                 type="email"
                 required
+                autoComplete="email"
                 className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
                 placeholder="admin@example.com"
                 value={email}
@@ -80,6 +81,7 @@ const Login: React.FC = () => {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
                 placeholder="••••••••"
                 value={password}

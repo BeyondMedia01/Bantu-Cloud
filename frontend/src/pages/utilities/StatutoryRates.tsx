@@ -46,7 +46,7 @@ const StatutoryRates: React.FC = () => {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/utilities')} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>

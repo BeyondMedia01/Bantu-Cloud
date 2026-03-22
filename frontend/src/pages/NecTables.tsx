@@ -4,15 +4,19 @@ import {
   Check, X, Pencil, Percent, Hash,
 } from 'lucide-react';
 import { NecTableAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const EMPTY_GRADE = { gradeCode: '', description: '', minRate: '', necLevyRate: '' };
 const EMPTY_TABLE = { name: '', sector: '', currency: 'USD', effectiveDate: '', expiryDate: '' };
 
 const NecTables: React.FC = () => {
+  const { showToast } = useToast();
   const [tables, setTables]               = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
   const [activeTableId, setActiveTableId] = useState<string | null>(null);
   const [grades, setGrades]               = useState<any[]>([]);
+  const [deleteTableTarget, setDeleteTableTarget] = useState<{ id: string; name: string } | null>(null);
 
   // New table form
   const [addingTable, setAddingTable]     = useState(false);
@@ -86,14 +90,18 @@ const NecTables: React.FC = () => {
     }
   };
 
-  const handleDeleteTable = async (id: string, name: string) => {
-    if (!window.confirm(`Delete NEC table "${name}"? All grades will be removed.`)) return;
+  const handleDeleteTable = (id: string, name: string) => setDeleteTableTarget({ id, name });
+
+  const confirmDeleteTable = async () => {
+    if (!deleteTableTarget) return;
     try {
-      await NecTableAPI.delete(id);
-      setTables(prev => prev.filter(t => t.id !== id));
-      if (activeTableId === id) { setActiveTableId(null); setGrades([]); }
+      await NecTableAPI.delete(deleteTableTarget.id);
+      setTables(prev => prev.filter(t => t.id !== deleteTableTarget.id));
+      if (activeTableId === deleteTableTarget.id) { setActiveTableId(null); setGrades([]); }
     } catch {
-      alert('Failed to delete NEC table');
+      showToast('Failed to delete NEC table', 'error');
+    } finally {
+      setDeleteTableTarget(null);
     }
   };
 
@@ -165,7 +173,7 @@ const NecTables: React.FC = () => {
       await NecTableAPI.deleteGrade(activeTableId, gradeId);
       setGrades(prev => prev.filter(g => g.id !== gradeId));
     } catch {
-      alert('Failed to delete grade');
+      showToast('Failed to delete grade', 'error');
     }
   };
 
@@ -174,7 +182,7 @@ const NecTables: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center p-12">
-        <Loader className="animate-spin text-slate-300" />
+        <Loader className="animate-spin text-accent-blue" />
       </div>
     );
   }
@@ -184,6 +192,15 @@ const NecTables: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {deleteTableTarget && (
+        <ConfirmModal
+          title="Delete NEC Table"
+          message={`Delete NEC table "${deleteTableTarget.name}"? All grades will be removed.`}
+          confirmLabel="Delete"
+          onConfirm={confirmDeleteTable}
+          onCancel={() => setDeleteTableTarget(null)}
+        />
+      )}
       <header className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-navy">NEC Tables</h2>

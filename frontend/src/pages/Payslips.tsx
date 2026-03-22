@@ -131,7 +131,7 @@ const Payslips: React.FC = () => {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/payroll')} className="p-2 hover:bg-slate-100 rounded-xl">
+          <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl">
             <ArrowLeft size={20} />
           </button>
           <div>

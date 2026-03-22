@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Save, Edit, Type, Hash, ToggleLeft, Calendar, Info, Clock, AlertCircle, XCircle } from 'lucide-react';
 import { SystemSettingsAPI } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
+  const { showToast } = useToast();
   const [settings, setSettings] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -29,7 +31,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       setEditingId(null);
       fetchSettings();
     } catch (error) {
-      alert('Failed to update setting');
+      showToast('Failed to update setting', 'error');
     }
   };
 

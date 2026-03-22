@@ -18,8 +18,10 @@ const PayrollNew: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setError('');
     setForm((f) => ({ ...f, [field]: e.target.value }));
+  };
 
   const needsExchangeRate = form.currencyMode === 'ZiG' || form.currencyMode === 'DUAL';
 
@@ -65,7 +67,7 @@ const PayrollNew: React.FC = () => {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/payroll')} className="p-2 hover:bg-slate-100 rounded-xl">
+        <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl">
           <ArrowLeft size={20} />
         </button>
         <div>
@@ -126,7 +128,7 @@ const PayrollNew: React.FC = () => {
                   name="currencyMode"
                   value={mode}
                   checked={form.currencyMode === mode}
-                  onChange={() => setForm((f) => ({ ...f, currencyMode: mode }))}
+                  onChange={() => { setError(''); setForm((f) => ({ ...f, currencyMode: mode })); }}
                   className="accent-blue-600"
                 />
                 <span className="font-medium text-sm">{modeLabel[mode]}</span>

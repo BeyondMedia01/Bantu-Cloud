@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader, RefreshCw, ChevronsRight, CalendarCheck, AlertCircle } from 'lucide-react';
 import { LeaveBalanceAPI, EmployeeAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ');
 
@@ -16,6 +17,7 @@ const LeaveBalances: React.FC = () => {
   const [showAdjust, setShowAdjust] = useState<string | null>(null);
   const [adjValue, setAdjValue] = useState('');
   const [adjNote, setAdjNote] = useState('');
+  const [confirmAction, setConfirmAction] = useState<'accrue' | 'yearend' | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -35,8 +37,11 @@ const LeaveBalances: React.FC = () => {
 
   useEffect(load, [yearFilter, employeeFilter]);
 
-  const handleAccrue = async () => {
-    if (!window.confirm('Run monthly accrual for all active employees?')) return;
+  const handleAccrue = () => setConfirmAction('accrue');
+
+  const handleYearEnd = () => setConfirmAction('yearend');
+
+  const runAccrue = async () => {
     setActionLoading('accrue');
     setActionMsg('');
     setError('');
@@ -51,9 +56,8 @@ const LeaveBalances: React.FC = () => {
     }
   };
 
-  const handleYearEnd = async () => {
+  const runYearEnd = async () => {
     const yr = parseInt(yearFilter);
-    if (!window.confirm(`Run year-end carry-over for ${yr}? Unused leave will be rolled forward (within policy limits) and remainder forfeited.`)) return;
     setActionLoading('yearend');
     setActionMsg('');
     setError('');
@@ -94,6 +98,17 @@ const LeaveBalances: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {confirmAction && (
+        <ConfirmModal
+          title={confirmAction === 'accrue' ? 'Run Monthly Accrual' : 'Year-End Carry-Over'}
+          message={confirmAction === 'accrue'
+            ? 'Run monthly accrual for all active employees? This will credit leave balances based on active policies.'
+            : `Run year-end carry-over for ${yearFilter}? Unused leave will be rolled forward (within policy limits) and remainder forfeited.`}
+          confirmLabel={confirmAction === 'accrue' ? 'Run Accrual' : 'Run Year-End'}
+          onConfirm={() => { const action = confirmAction; setConfirmAction(null); if (action === 'accrue') runAccrue(); else runYearEnd(); }}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-navy">Leave Balances</h2>

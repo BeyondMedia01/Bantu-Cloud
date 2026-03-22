@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash, Shield, Loader } from 'lucide-react';
 import { LeavePolicyAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
 
@@ -23,6 +24,7 @@ const LeavePolicy: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -81,13 +83,17 @@ const LeavePolicy: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this leave policy?')) return;
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await LeavePolicyAPI.delete(id);
+      await LeavePolicyAPI.delete(deleteTarget);
       load();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete policy');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -96,6 +102,15 @@ const LeavePolicy: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Leave Policy"
+          message="Delete this leave policy? All associated accrual rules will be removed."
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header className="flex justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-navy">Leave Policies</h2>

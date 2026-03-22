@@ -11,6 +11,8 @@ const MONTHS = [
   { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' },
 ];
 
+const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
 const currentYear = new Date().getFullYear();
 const YEARS = [currentYear, currentYear - 1, currentYear - 2];
 
@@ -242,7 +244,7 @@ const Reports: React.FC = () => {
                   <option value="">Select Run...</option>
                   {runs.map((r: any) => (
                     <option key={r.id} value={r.id}>
-                      {new Date(r.startDate).toLocaleDateString()} – {new Date(r.endDate).toLocaleDateString()}
+                      {fmtDate(r.startDate)} – {fmtDate(r.endDate)}
                     </option>
                   ))}
                 </select>

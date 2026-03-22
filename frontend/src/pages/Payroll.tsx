@@ -4,9 +4,11 @@ import SkeletonTable from '../components/common/SkeletonTable';
 import { useNavigate } from 'react-router-dom';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
+import { useToast } from '../context/ToastContext';
 
 const Payroll: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [runs, setRuns] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -22,9 +24,27 @@ const Payroll: React.FC = () => {
         setRuns(data.data || data);
         setTotal(data.total || (data.data || data).length);
       })
-      .catch(() => {})
+      .catch(() => showToast('Failed to load payroll runs', 'error'))
       .finally(() => setLoading(false));
   };
+
+  // Close bank dropdown on Escape key or click outside
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setBankDropdown(null); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
+    if (!bankDropdown) return;
+    const onOutside = (e: MouseEvent) => {
+      if (bankDropdownRef.current && !bankDropdownRef.current.contains(e.target as Node)) {
+        setBankDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', onOutside);
+    return () => document.removeEventListener('mousedown', onOutside);
+  }, [bankDropdown]);
 
   useEffect(() => { loadRuns(); }, [getActiveCompanyId()]);
 

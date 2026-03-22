@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Search, Calendar, User, Hash, Info, Trash } from 'lucide-react';
 import { PayslipTransactionAPI } from '../api/client';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { useToast } from '../context/ToastContext';
 
 const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
+  const { showToast } = useToast();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchTransactions = async () => {
     try {
@@ -21,13 +25,17 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
     }
   }, [activeCompanyId]);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this transaction ledger entry?')) return;
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await PayslipTransactionAPI.delete(id);
+      await PayslipTransactionAPI.delete(deleteTarget);
       fetchTransactions();
-    } catch (error) {
-      alert('Failed to delete transaction');
+    } catch {
+      showToast('Failed to delete transaction', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -39,6 +47,15 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
 
   return (
     <div className="flex flex-col gap-8">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Transaction"
+          message="Delete this transaction ledger entry? This action cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Transaction Ledger</h2>

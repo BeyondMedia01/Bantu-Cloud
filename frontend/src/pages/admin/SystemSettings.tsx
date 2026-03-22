@@ -34,7 +34,7 @@ const SystemSettings: React.FC = () => {
         Object.entries(values).map(([name, value]) => AdminAPI.updateSetting(name, value))
       );
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => setSaved(false), 5000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save settings');
     } finally {

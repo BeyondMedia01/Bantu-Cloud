@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Download, Upload, AlertTriangle, CheckCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BackupAPI } from '../../api/client';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const BackupRestore: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const handleExport = async () => {
     setLoading(true);
@@ -32,14 +34,17 @@ const BackupRestore: React.FC = () => {
     }
   };
 
-  const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRestore = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setPendingFile(file);
+    // reset input so same file can be re-selected
+    e.target.value = '';
+  };
 
-    if (!window.confirm('WARNING: Restoring from a backup will overwrite or merge data. This action is irreversible. Are you sure you want to proceed?')) {
-      return;
-    }
-
+  const confirmRestore = async () => {
+    if (!pendingFile) return;
+    setPendingFile(null);
     setLoading(true);
     setError('');
     setSuccess('');
@@ -56,8 +61,8 @@ const BackupRestore: React.FC = () => {
           setLoading(false);
         }
       };
-      reader.readAsText(file);
-    } catch (err) {
+      reader.readAsText(pendingFile);
+    } catch {
       setError('Failed to read backup file');
       setLoading(false);
     }
@@ -65,8 +70,18 @@ const BackupRestore: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <button 
+      {pendingFile && (
+        <ConfirmModal
+          title="Restore from Backup"
+          message="WARNING: Restoring from a backup will overwrite or merge data. This action is irreversible. Are you sure you want to proceed?"
+          confirmLabel="Restore"
+          onConfirm={confirmRestore}
+          onCancel={() => setPendingFile(null)}
+        />
+      )}
+      <button
         onClick={() => navigate('/utilities')}
+        aria-label="Go back"
         className="flex items-center gap-2 text-slate-500 hover:text-navy mb-6 transition-colors"
       >
         <ArrowLeft size={20} />

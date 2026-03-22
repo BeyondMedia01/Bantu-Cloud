@@ -4,6 +4,7 @@ import { getActiveCompanyId } from '../lib/companyContext';
 import type { Employee, EmployeeFilters as IFilters } from '../types/employee';
 import type { Branch, Department } from '../types/common';
 import { useToast } from '../context/ToastContext';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 // Components
 import EmployeeTable from '../components/employees/EmployeeTable';
@@ -13,6 +14,7 @@ import EmployeeTableSkeleton from '../components/employees/EmployeeTableSkeleton
 
 const Employees: React.FC = () => {
   const { showToast } = useToast();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -83,18 +85,34 @@ const Employees: React.FC = () => {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this employee? This action cannot be undone.')) return;
+  const handleDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await EmployeeAPI.delete(id);
+      await EmployeeAPI.delete(deleteTarget.id);
       fetchEmployees();
-    } catch (error) {
+      showToast('Employee deleted successfully', 'success');
+    } catch {
       showToast('Failed to delete employee. Please try again.', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-500">
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Employee"
+          message={`Are you sure you want to delete ${deleteTarget.name}? This action cannot be undone.`}
+          confirmLabel="Delete Employee"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <EmployeeActions total={total} />
       
       <EmployeeFilters 

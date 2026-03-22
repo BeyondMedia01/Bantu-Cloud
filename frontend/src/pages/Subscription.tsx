@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, Loader, ExternalLink, AlertTriangle } from 'lucide-react';
 import { SubscriptionAPI } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 const PLANS = [
   { id: 'BASIC', name: 'Basic', price: '$29/mo', employees: 25, features: ['25 employees', 'Core payroll', 'Leave management', 'Email support'] },
@@ -10,6 +11,7 @@ const PLANS = [
 ];
 
 const Subscription: React.FC = () => {
+  const { showToast } = useToast();
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
@@ -33,7 +35,7 @@ const Subscription: React.FC = () => {
         window.location.href = res.data.url;
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to process subscription');
+      showToast(err.response?.data?.message || 'Failed to process subscription', 'error');
     } finally {
       setUpgrading(false);
     }
@@ -44,7 +46,7 @@ const Subscription: React.FC = () => {
       const res = await SubscriptionAPI.portal();
       window.location.href = res.data.url;
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to open billing portal');
+      showToast(err.response?.data?.message || 'Failed to open billing portal', 'error');
     }
   };
 

@@ -32,7 +32,7 @@ const CompanyNew: React.FC = () => {
   return (
     <div className="max-w-xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
