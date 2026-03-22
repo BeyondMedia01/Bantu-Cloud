@@ -484,7 +484,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           { payrollRunId: null, period: { lte: runPeriod }, processed: false }, // unattached, not yet processed
         ],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true } } },
     });
     const inputsByEmployee = {};
     for (const inp of allInputs) {
@@ -502,7 +502,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         effectiveFrom: { lte: run.endDate },
         OR: [{ effectiveTo: null }, { effectiveTo: { gte: run.startDate } }],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true } } },
     });
 
     // Build a set of (employeeId:transactionCodeId) already covered by explicit payroll inputs for this run
@@ -1204,7 +1204,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         if (idsToProcess.length > 0) {
           await tx.payrollInput.updateMany({
             where: { id: { in: idsToProcess } },
-            data: { processed: true },
+            data: { processed: true, payrollRunId: run.id },
           });
         }
       }
