@@ -24,7 +24,7 @@ const Payslips: React.FC = () => {
     if (!runId) return;
     Promise.all([PayrollAPI.getById(runId), PayrollAPI.getPayslips(runId)])
       .then(([r, p]) => { setRun(r.data); setPayslips(p.data); })
-      .catch(() => {})
+      .catch(() => showToast('Failed to load payslips', 'error'))
       .finally(() => setLoading(false));
   }, [runId]);
 
@@ -60,7 +60,7 @@ const Payslips: React.FC = () => {
       a.download = `payslip-${lastName}-${firstName}.pdf`;
       a.click();
       window.URL.revokeObjectURL(url);
-    } catch {}
+    } catch { showToast('Failed to download payslip PDF', 'error'); }
   };
 
   const handleExport = async () => {
@@ -73,7 +73,7 @@ const Payslips: React.FC = () => {
       a.download = `payroll-${runId}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
-    } catch {}
+    } catch { showToast('Failed to export CSV', 'error'); }
   };
 
   const handleSend = async (payslipId: string) => {

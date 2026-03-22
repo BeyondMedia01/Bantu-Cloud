@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CalendarDays, Loader, Clock, CheckCircle2, XCircle, Plus, Banknote, AlertCircle } from 'lucide-react';
 import { EmployeeSelfAPI, LeaveAPI, LeaveBalanceAPI, LeaveEncashmentAPI } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 const statusColor: Record<string, string> = {
   APPROVED: 'bg-emerald-50 text-emerald-700',
@@ -20,6 +21,7 @@ const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_
 type Tab = 'history' | 'apply' | 'encash';
 
 const EmployeeLeave: React.FC = () => {
+  const { showToast } = useToast();
   const [records, setRecords] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
@@ -42,7 +44,7 @@ const EmployeeLeave: React.FC = () => {
         setRecords(r.data.records || []);
         setRequests(r.data.requests || []);
       })
-      .catch(() => {})
+      .catch(() => showToast('Failed to load leave history', 'error'))
       .finally(() => setLoading(false));
 
     LeaveBalanceAPI.getAll({ year: String(new Date().getFullYear()) })

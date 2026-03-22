@@ -15,7 +15,7 @@ const LoanDetail: React.FC = () => {
     if (!id) return;
     Promise.all([LoanAPI.getById(id), LoanAPI.getRepayments(id)])
       .then(([l, r]) => { setLoan(l.data); setRepayments(r.data); })
-      .catch(() => {})
+      .catch(() => setActionError('Failed to load loan details'))
       .finally(() => setLoading(false));
   };
 

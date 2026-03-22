@@ -29,6 +29,8 @@ const Leave: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterEmployee, setFilterEmployee] = useState('');
+  const [filterEmployeeQuery, setFilterEmployeeQuery] = useState('');
+  const [empDropdownOpen, setEmpDropdownOpen] = useState(false);
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
@@ -68,6 +70,17 @@ const Leave: React.FC = () => {
       setDeleteTarget(null);
     }
   };
+
+  const hasFilters = filterStatus || filterEmployee || filterStartDate || filterEndDate;
+  const clearFilters = () => {
+    setFilterStatus(''); setFilterEmployee(''); setFilterEmployeeQuery('');
+    setFilterStartDate(''); setFilterEndDate('');
+  };
+
+  const filteredEmployees = employees.filter((e: any) => {
+    const q = filterEmployeeQuery.toLowerCase();
+    return !q || `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) || (e.employeeCode || '').toLowerCase().includes(q);
+  });
 
   const filtered = records.filter((r) => {
     if (filterStatus && r.status !== filterStatus) return false;
@@ -138,16 +151,18 @@ const Leave: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-      {(filterStatus || filterEmployee || filterStartDate || filterEndDate) && (
-        <button
-          onClick={() => { setFilterStatus(''); setFilterEmployee(''); setFilterStartDate(''); setFilterEndDate(''); }}
-          className="ml-auto text-xs font-bold text-slate-400 hover:text-navy px-3 py-1.5 rounded-full border border-border hover:bg-slate-50 transition-colors"
-        >
-          Clear filters
-        </button>
-      )}
-      </div>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Filters</p>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-xs font-bold text-slate-400 hover:text-red-500 px-3 py-1.5 rounded-full border border-border hover:border-red-200 hover:bg-red-50 transition-colors"
+            >
+              × Clear filters
+            </button>
+          )}
+        </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <select
           value={filterStatus}
@@ -161,16 +176,44 @@ const Leave: React.FC = () => {
           <option value="CANCELLED">Cancelled</option>
         </select>
 
-        <select
-          value={filterEmployee}
-          onChange={(e) => setFilterEmployee(e.target.value)}
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
-        >
-          <option value="">All Employees</option>
-          {employees.map((e: any) => (
-            <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
-          ))}
-        </select>
+        {/* Employee autocomplete */}
+        <div className="relative">
+          <input
+            type="text"
+            value={filterEmployeeQuery}
+            onChange={(e) => { setFilterEmployeeQuery(e.target.value); setEmpDropdownOpen(true); }}
+            onFocus={() => setEmpDropdownOpen(true)}
+            onBlur={() => setTimeout(() => setEmpDropdownOpen(false), 150)}
+            placeholder="Search employee…"
+            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
+          />
+          {filterEmployee && (
+            <button
+              type="button"
+              onClick={() => { setFilterEmployee(''); setFilterEmployeeQuery(''); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy text-lg leading-none"
+            >×</button>
+          )}
+          {empDropdownOpen && filteredEmployees.length > 0 && (
+            <div className="absolute z-20 mt-1 w-full bg-primary border border-border rounded-2xl shadow-lg max-h-52 overflow-y-auto">
+              {filteredEmployees.slice(0, 30).map((e: any) => (
+                <button
+                  key={e.id}
+                  type="button"
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-slate-50 transition-colors"
+                  onMouseDown={() => {
+                    setFilterEmployee(e.id);
+                    setFilterEmployeeQuery(`${e.firstName} ${e.lastName}`);
+                    setEmpDropdownOpen(false);
+                  }}
+                >
+                  <span className="font-bold text-navy">{e.firstName} {e.lastName}</span>
+                  <span className="text-slate-400 ml-2 text-xs">{e.employeeCode}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="relative">
           <input
@@ -191,6 +234,7 @@ const Leave: React.FC = () => {
             placeholder="End date"
           />
         </div>
+      </div>
       </div>
 
       {/* Table */}

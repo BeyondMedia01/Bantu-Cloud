@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, CheckCircle2, AlertTriangle, Loader, Lock } from 'lucide-react';
 import { UtilitiesAPI, PayrollCalendarAPI } from '../../api/client';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const PeriodEnd: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ const PeriodEnd: React.FC = () => {
   const [statusLoading, setStatusLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+  const [confirmPending, setConfirmPending] = useState<'reopen' | 'close' | null>(null);
 
   useEffect(() => {
     PayrollCalendarAPI.getAll().then((r) => setCalendars(r.data)).catch(() => {});
@@ -35,40 +37,45 @@ const PeriodEnd: React.FC = () => {
 
   const selectedCal = calendars.find(c => c.id === selectedId);
 
-  const handleAction = async () => {
+  const handleAction = () => {
     if (!selectedId || !selectedCal) return;
-    
-    if (selectedCal.isClosed) {
-      if (!confirm('Re-open this period? This will allow edits and payroll runs again.')) return;
-      setLoading(true);
-      setError('');
-      try {
+    setConfirmPending(selectedCal.isClosed ? 'reopen' : 'close');
+  };
+
+  const runAction = async () => {
+    if (!selectedId || !selectedCal || !confirmPending) return;
+    setConfirmPending(null);
+    setLoading(true);
+    setError('');
+    try {
+      if (confirmPending === 'reopen') {
         await UtilitiesAPI.unClosePeriod(selectedId);
         setResult({ message: 'Period re-opened successfully' });
-        PayrollCalendarAPI.getAll().then((r) => setCalendars(r.data)).catch(() => {});
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to re-open period');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      if (!confirm('Close this period? This cannot be undone.')) return;
-      setLoading(true);
-      setError('');
-      try {
+      } else {
         const res = await UtilitiesAPI.periodEnd(selectedId);
         setResult(res.data);
-        PayrollCalendarAPI.getAll().then((r) => setCalendars(r.data)).catch(() => {});
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to close period');
-      } finally {
-        setLoading(false);
       }
+      PayrollCalendarAPI.getAll().then((r) => setCalendars(r.data)).catch(() => {});
+    } catch (err: any) {
+      setError(err.response?.data?.message || `Failed to ${confirmPending === 'reopen' ? 're-open' : 'close'} period`);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="max-w-xl">
+      {confirmPending && (
+        <ConfirmModal
+          title={confirmPending === 'reopen' ? 'Re-open Period?' : 'Close Period?'}
+          message={confirmPending === 'reopen'
+            ? 'Re-opening this period will allow edits and payroll runs again.'
+            : 'Closing this period will finalise all runs. This action cannot be undone.'}
+          confirmLabel={confirmPending === 'reopen' ? 'Re-open' : 'Close Period'}
+          onConfirm={runAction}
+          onCancel={() => setConfirmPending(null)}
+        />
+      )}
       <div className="flex items-center gap-4 mb-8">
         <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
         <div>

@@ -2,15 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { FileText, Loader } from 'lucide-react';
 import { EmployeeSelfAPI } from '../../api/client';
 import { PayrollAPI } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 const EmployeePayslips: React.FC = () => {
+  const { showToast } = useToast();
   const [payslips, setPayslips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     EmployeeSelfAPI.getPayslips()
       .then((r) => setPayslips(r.data))
-      .catch(() => {})
+      .catch(() => showToast('Failed to load payslips', 'error'))
       .finally(() => setLoading(false));
   }, []);
 

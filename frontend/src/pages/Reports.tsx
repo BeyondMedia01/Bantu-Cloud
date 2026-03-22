@@ -35,11 +35,13 @@ const Reports: React.FC = () => {
           const list = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
           setRuns(list);
           if (list.length > 0) setSelectedRunId(list[0].id);
-        });
-      
+        })
+        .catch(() => showToast('Failed to load payroll runs', 'error'));
+
       setLoadingCashflow(true);
       IntelligenceAPI.getCashflow(companyId)
         .then(res => setCashflow(res.data))
+        .catch(() => {})
         .finally(() => setLoadingCashflow(false));
     }
   }, [companyId]);

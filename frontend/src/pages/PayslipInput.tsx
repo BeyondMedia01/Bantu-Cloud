@@ -86,7 +86,7 @@ const PayslipInput: React.FC = () => {
       const list = (empRes.data as any).data ?? empRes.data;
       setEmployees(list);
       setTxCodes(txRes.data);
-    }).catch(() => {}).finally(() => setLoadingEmps(false));
+    }).catch(() => showToast('Failed to load employees or transaction codes', 'error')).finally(() => setLoadingEmps(false));
   }, []);
 
   useEffect(() => {

@@ -6,11 +6,12 @@ import type { Branch, Department } from '../types/common';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/common/ConfirmModal';
 
-// Components
 import EmployeeTable from '../components/employees/EmployeeTable';
 import EmployeeFilters from '../components/employees/EmployeeFilters';
 import EmployeeActions from '../components/employees/EmployeeActions';
 import EmployeeTableSkeleton from '../components/employees/EmployeeTableSkeleton';
+
+const LIMIT = 20;
 
 const Employees: React.FC = () => {
   const { showToast } = useToast();
@@ -20,6 +21,7 @@ const Employees: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<IFilters>({
     search: '',
     branch: '',
@@ -27,7 +29,6 @@ const Employees: React.FC = () => {
     employmentType: '',
   });
 
-  // Reactive company ID — updates when AppShell sets it asynchronously
   const [companyId, setCompanyId] = useState<string | null>(() => getActiveCompanyId());
 
   useEffect(() => {
@@ -54,7 +55,11 @@ const Employees: React.FC = () => {
     if (!companyId) return;
     setLoading(true);
     try {
-      const params: Record<string, string> = { companyId };
+      const params: Record<string, string> = {
+        companyId,
+        page: String(page),
+        limit: String(LIMIT),
+      };
       if (filters.search) params.search = filters.search;
       if (filters.branch) params.branchId = filters.branch;
       if (filters.department) params.departmentId = filters.department;
@@ -68,26 +73,21 @@ const Employees: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [companyId, filters]);
+  }, [companyId, filters, page]);
+
+  useEffect(() => { fetchDependencies(); }, [fetchDependencies]);
 
   useEffect(() => {
-    fetchDependencies();
-  }, [fetchDependencies]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchEmployees();
-    }, 300); // Debounce search
+    const timer = setTimeout(() => { fetchEmployees(); }, 300);
     return () => clearTimeout(timer);
   }, [fetchEmployees]);
 
   const handleFilterChange = (field: keyof IFilters, value: string) => {
+    setPage(1);
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDelete = (id: string, name: string) => {
-    setDeleteTarget({ id, name });
-  };
+  const handleDelete = (id: string, name: string) => setDeleteTarget({ id, name });
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -102,6 +102,10 @@ const Employees: React.FC = () => {
     }
   };
 
+  const totalPages = Math.ceil(total / LIMIT);
+  const rangeStart = total === 0 ? 0 : (page - 1) * LIMIT + 1;
+  const rangeEnd = Math.min(page * LIMIT, total);
+
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-500">
       {deleteTarget && (
@@ -114,22 +118,44 @@ const Employees: React.FC = () => {
         />
       )}
       <EmployeeActions total={total} />
-      
-      <EmployeeFilters 
-        filters={filters} 
+      <EmployeeFilters
+        filters={filters}
         onFilterChange={handleFilterChange}
         branches={branches}
         departments={departments}
         total={total}
       />
+      {loading ? <EmployeeTableSkeleton /> : (
+        <EmployeeTable employees={employees} onDelete={handleDelete} />
+      )}
 
-      {loading ? (
-        <EmployeeTableSkeleton />
-      ) : (
-        <EmployeeTable 
-          employees={employees} 
-          onDelete={handleDelete} 
-        />
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm font-medium text-slate-500">
+          <span>
+            Showing <span className="font-bold text-navy">{rangeStart}–{rangeEnd}</span> of{' '}
+            <span className="font-bold text-navy">{total}</span> employees
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 rounded-full border border-border hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-xs"
+            >
+              ← Previous
+            </button>
+            <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-4 py-2 rounded-full border border-border hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-xs"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

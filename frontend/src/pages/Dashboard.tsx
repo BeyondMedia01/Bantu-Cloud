@@ -98,6 +98,19 @@ const Dashboard: React.FC = () => {
       {/* Intelligence Layer */}
       <IntelligenceWidget />
 
+      {/* No company selected guard */}
+      {!loading && !summary && (
+        <div className="flex flex-col items-center justify-center py-24 bg-primary rounded-2xl border border-border text-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-2">
+            <TrendingUp size={28} className="text-slate-400" />
+          </div>
+          <h3 className="text-lg font-bold text-navy">No company selected</h3>
+          <p className="text-sm text-slate-400 font-medium max-w-xs">
+            Select a company from the sidebar to load your dashboard metrics and payroll insights.
+          </p>
+        </div>
+      )}
+
       {/* ZIMRA TIN missing alert */}
       {!loading && noTinCount > 0 && (
         <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">

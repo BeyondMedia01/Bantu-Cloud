@@ -25,7 +25,7 @@ const LeaveBalances: React.FC = () => {
     if (employeeFilter) params.employeeId = employeeFilter;
     LeaveBalanceAPI.getAll(params)
       .then((r) => setBalances(r.data))
-      .catch(() => {})
+      .catch(() => setError('Failed to load leave balances'))
       .finally(() => setLoading(false));
   };
 

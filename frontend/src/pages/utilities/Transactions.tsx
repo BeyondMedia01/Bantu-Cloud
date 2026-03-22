@@ -5,6 +5,7 @@ import {
   CheckCircle2, X, AlertCircle, Zap, Eye,
 } from 'lucide-react';
 import { TransactionCodeAPI } from '../../api/client';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -149,7 +150,9 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
     try {
       await TransactionCodeAPI.deleteRule(editData.id, ruleId);
       setRules((prev) => prev.filter((r) => r.id !== ruleId));
-    } catch {}
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete rule');
+    }
   };
 
   const canNext = () => {
@@ -510,24 +513,29 @@ const Transactions: React.FC = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
     TransactionCodeAPI.getAll()
       .then((r) => setCodes(r.data))
-      .catch(() => {})
+      .catch(() => setError('Failed to load transaction codes'))
       .finally(() => setLoading(false));
   };
 
   useEffect(load, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this transaction code? This cannot be undone.')) return;
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await TransactionCodeAPI.delete(id);
+      await TransactionCodeAPI.delete(deleteTarget);
       load();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Cannot delete — it may be in use');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -550,6 +558,15 @@ const Transactions: React.FC = () => {
 
   return (
     <div>
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Transaction Code"
+          message="Are you sure you want to delete this transaction code? This cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

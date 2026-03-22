@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Key, ArrowRight, Phone } from 'lucide-react';
+import { Mail, Lock, User, Key, ArrowRight, Phone, Eye, EyeOff } from 'lucide-react';
 import { AuthAPI } from '../api/client';
 
 const Register: React.FC = () => {
@@ -10,6 +10,19 @@ const Register: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const getStrength = (pw: string) => {
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    return score; // 0-4
+  };
+  const strength = getStrength(form.password);
+  const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][strength];
+  const strengthColor = ['', 'bg-red-400', 'bg-amber-400', 'bg-blue-400', 'bg-emerald-500'][strength];
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -94,9 +107,8 @@ const Register: React.FC = () => {
             </div>
           </div>
 
-          {[
+          {[  
             { field: 'email', label: 'Email Address', icon: <Mail size={18} />, type: 'email', placeholder: 'jane@company.com' },
-            { field: 'password', label: 'Password', icon: <Lock size={18} />, type: 'password', placeholder: '••••••••' },
             { field: 'licenseToken', label: 'License Token', icon: <Key size={18} />, type: 'text', placeholder: 'Paste your license token' },
           ].map(({ field, label, icon, type, placeholder }) => (
             <div key={field} className="flex flex-col gap-2">
@@ -114,6 +126,43 @@ const Register: React.FC = () => {
               </div>
             </div>
           ))}
+
+          {/* Password with strength meter */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Password</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Lock size={18} /></span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                placeholder="Min. 8 characters"
+                value={form.password}
+                onChange={set('password')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {form.password.length > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${strengthColor}`}
+                    style={{ width: `${(strength / 4) * 100}%` }}
+                  />
+                </div>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                  strength <= 1 ? 'text-red-400' : strength === 2 ? 'text-amber-500' : strength === 3 ? 'text-blue-500' : 'text-emerald-600'
+                }`}>{strengthLabel}</span>
+              </div>
+            )}
+          </div>
 
           <button
             type="submit"

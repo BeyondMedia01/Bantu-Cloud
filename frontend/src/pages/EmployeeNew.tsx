@@ -35,6 +35,7 @@ const EmployeeNew: React.FC = () => {
   const [taxTables, setTaxTables] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'PERSONAL' | 'WORK' | 'PAY' | 'TAX' | 'LEAVE'>('PERSONAL');
 
   const [form, setForm] = useState({
     // Personal Details
@@ -138,6 +139,28 @@ const EmployeeNew: React.FC = () => {
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{error}</div>
       )}
+
+      {/* Tab bar */}
+      <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl mb-8 w-fit">
+        {[
+          { id: 'PERSONAL', label: 'Personal' },
+          { id: 'WORK',     label: 'Work' },
+          { id: 'PAY',      label: 'Pay' },
+          { id: 'TAX',      label: 'Tax' },
+          { id: 'LEAVE',    label: 'Stats' },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setActiveTab(t.id as any)}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === t.id ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
 

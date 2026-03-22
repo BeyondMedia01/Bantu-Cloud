@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, CalendarDays, User } from 'lucide-react';
 import { EmployeeSelfAPI } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 const EmployeeDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [payslips, setPayslips] = useState<any[]>([]);
   const [leave, setLeave] = useState<any[]>([]);
@@ -19,7 +21,7 @@ const EmployeeDashboard: React.FC = () => {
       setProfile(p.data);
       setPayslips(ps.data?.slice(0, 3) || []);
       setLeave(l.data?.slice(0, 3) || []);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch(() => showToast('Failed to load dashboard data', 'error')).finally(() => setLoading(false));
   }, []);
 
   if (loading) return (

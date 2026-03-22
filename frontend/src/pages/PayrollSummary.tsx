@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Users, TrendingUp, TrendingDown, DollarSign, Banknote, ChevronDown, FileText } from 'lucide-react';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 const fmt = (n: number | null | undefined) =>
   n != null ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -9,6 +10,7 @@ const fmt = (n: number | null | undefined) =>
 const PayrollSummary: React.FC = () => {
   const { runId } = useParams<{ runId: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [run, setRun] = useState<any>(null);
   const [payslips, setPayslips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ const PayrollSummary: React.FC = () => {
     if (!runId) return;
     Promise.all([PayrollAPI.getById(runId), PayrollAPI.getPayslips(runId)])
       .then(([r, p]) => { setRun(r.data); setPayslips(p.data); })
-      .catch(() => {})
+      .catch(() => showToast('Failed to load payroll run', 'error'))
       .finally(() => setLoading(false));
   }, [runId]);
 
@@ -68,7 +70,7 @@ const PayrollSummary: React.FC = () => {
       const a = document.createElement('a');
       a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
-    } catch {}
+    } catch { showToast('Export failed', 'error'); }
     finally { setExporting(''); }
   };
 
@@ -81,7 +83,7 @@ const PayrollSummary: React.FC = () => {
       const a = document.createElement('a');
       a.href = url; a.download = `payroll-summary-${runId}.pdf`; a.click();
       URL.revokeObjectURL(url);
-    } catch {}
+    } catch { showToast('Failed to generate PDF', 'error'); }
     finally { setExporting(''); }
   };
 
@@ -95,7 +97,7 @@ const PayrollSummary: React.FC = () => {
       const a = document.createElement('a');
       a.href = url; a.download = `${format.toUpperCase()}-Payments-${runId}.csv`; a.click();
       URL.revokeObjectURL(url);
-    } catch {}
+    } catch { showToast('Failed to generate bank file', 'error'); }
     finally { setExporting(''); }
   };
 

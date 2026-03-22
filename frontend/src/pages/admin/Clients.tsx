@@ -2,18 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import SkeletonTable from '../../components/common/SkeletonTable';
 import { ClientAPI } from '../../api/client';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import { useToast } from '../../context/ToastContext';
 
 const AdminClients: React.FC = () => {
+  const { showToast } = useToast();
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', address: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
-    ClientAPI.getAll().then((r) => setClients(r.data)).catch(() => {}).finally(() => setLoading(false));
+    ClientAPI.getAll().then((r) => setClients(r.data)).catch(() => showToast('Failed to load clients', 'error')).finally(() => setLoading(false));
   };
 
   useEffect(load, []);
@@ -37,13 +41,24 @@ const AdminClients: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this client? This will remove all associated data.')) return;
-    try { await ClientAPI.delete(id); load(); } catch {}
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try { await ClientAPI.delete(deleteTarget); load(); } catch { showToast('Failed to delete client', 'error'); } finally { setDeleteTarget(null); }
   };
 
   return (
     <div>
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Client"
+          message="Are you sure you want to delete this client? This will remove all associated data and cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Clients</h1>

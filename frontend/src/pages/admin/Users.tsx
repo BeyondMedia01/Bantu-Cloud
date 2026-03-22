@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import SkeletonTable from '../../components/common/SkeletonTable';
 import { AdminAPI } from '../../api/client';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import { useToast } from '../../context/ToastContext';
 
 const roleColor: Record<string, string> = {
   PLATFORM_ADMIN: 'bg-red-50 text-red-700',
@@ -10,16 +12,18 @@ const roleColor: Record<string, string> = {
 };
 
 const AdminUsers: React.FC = () => {
+  const { showToast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'CLIENT_ADMIN' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
-    AdminAPI.getUsers().then((r) => setUsers(r.data)).catch(() => {}).finally(() => setLoading(false));
+    AdminAPI.getUsers().then((r) => setUsers(r.data)).catch(() => showToast('Failed to load users', 'error')).finally(() => setLoading(false));
   };
 
   useEffect(load, []);
@@ -43,17 +47,28 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this user?')) return;
-    try { await AdminAPI.deleteUser(id); load(); } catch {}
+  const handleDelete = (id: string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try { await AdminAPI.deleteUser(deleteTarget); load(); } catch { showToast('Failed to delete user', 'error'); } finally { setDeleteTarget(null); }
   };
 
   const handleRoleChange = async (id: string, role: string) => {
-    try { await AdminAPI.changeRole(id, role); load(); } catch {}
+    try { await AdminAPI.changeRole(id, role); load(); } catch { showToast('Failed to update role', 'error'); }
   };
 
   return (
     <div>
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete User"
+          message="Are you sure you want to delete this user? This action cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Users</h1>
