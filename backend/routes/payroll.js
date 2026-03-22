@@ -710,6 +710,16 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       let inputNssaExcludedUSD = 0, inputNssaExcludedZIG = 0;
       let inputPayeExcludedUSD = 0, inputPayeExcludedZIG = 0;
 
+      // Auto-calculate 'Shortime' (201) if units are entered but monetary amounts are zero
+      for (const i of empInputs) {
+        if (i.transactionCode.code === '201' && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
+          const dayRate = emp.baseRate / (workingDaysPerMonth || 22);
+          const amt = round2(dayRate * i.units);
+          if (emp.currency === 'ZiG') i.employeeZiG = amt;
+          else i.employeeUSD = amt;
+        }
+      }
+
       for (const input of empInputs) {
         const tc = input.transactionCode;
         const isEarning = tc.type === 'EARNING' || tc.type === 'BENEFIT';
