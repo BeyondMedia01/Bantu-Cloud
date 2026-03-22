@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { PaginatedResponse, Branch, Department } from '../types/common';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5005/api`;
+const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname || 'localhost'}:5005/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

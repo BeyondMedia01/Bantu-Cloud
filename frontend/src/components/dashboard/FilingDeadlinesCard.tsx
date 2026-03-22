@@ -109,10 +109,9 @@ const TAG_COLORS: Record<string, string> = {
 
 interface FilingDeadlinesCardProps {
   holidays?: PublicHoliday[];
-  compact?: boolean;
 }
 
-const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ holidays = [], compact }) => {
+const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ holidays = [] }) => {
   const deadlines = getUpcomingDeadlines(holidays);
 
   return (
@@ -122,7 +121,7 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
         <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Filing Deadlines</h3>
       </div>
 
-      <div className={compact ? 'grid grid-cols-2 lg:grid-cols-4 gap-3' : 'grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3'}>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {deadlines.map((d, i) => {
           const days = daysUntil(d.dueDate);
           const urgent = days <= 7;
