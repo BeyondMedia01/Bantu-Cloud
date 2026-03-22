@@ -1739,6 +1739,20 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       gross: (historicalPayslips.reduce((sum, p) => sum + (p.gross || 0), 0) + (payslip.gross || 0)),
     };
 
+    // Build earnings/deductions lists for the current payslip
+    const earningTxs = transactions.filter(
+      (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
+    );
+    const deductionTxs = transactions.filter(
+      (t) => t.transactionCode.type === 'DEDUCTION'
+    );
+
+    const basicSalary = (payslip.basicSalaryApplied > 0)
+      ? payslip.basicSalaryApplied
+      : (payslip.employee.baseRate ?? 0);
+
+    const ccy = payslip.payrollRun.currency;
+
     // ── Build table rows for the new PDF layout ─────────────────────────────
     const lineItems = [
       { name: 'Basic Salary', allowance: basicSalary, deduction: 0, employer: 0, ytd: ytdStat.basicSalary },
