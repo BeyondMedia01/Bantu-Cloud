@@ -82,15 +82,16 @@ function _drawPayslip(doc, data) {
   ];
 
   // Table Header
-  doc.rect(LEFT, doc.y, TABLE_W, 25).fill(BLUE);
+  const headerY = doc.y;
+  doc.rect(LEFT, headerY, TABLE_W, 25).fill(BLUE);
   let cx = LEFT + 5;
   doc.fillColor('white').font('Helvetica-Bold').fontSize(9);
   cols.forEach(c => {
-    doc.text(c.label.toUpperCase(), cx, doc.y - 18, { width: c.w - 10, align: c.xc || c.align });
+    doc.text(c.label.toUpperCase(), cx, headerY + 8, { width: c.w - 10, align: c.xc || c.align });
     cx += c.w;
   });
 
-  doc.y += 10;
+  doc.y = headerY + 25 + 5; // Move cursor after header with a small gap
   doc.fillColor('black').font('Helvetica').fontSize(9);
 
   // Table Rows

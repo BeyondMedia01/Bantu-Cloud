@@ -1739,22 +1739,62 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       gross: (historicalPayslips.reduce((sum, p) => sum + (p.gross || 0), 0) + (payslip.gross || 0)),
     };
 
-    // Build earnings lines: each TC earning/benefit separately
-    const earningTxs = transactions.filter(
-      (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
-    );
-    // All TC deductions — pre-tax (pension) and post-tax alike, so payslip shows full picture
-    const deductionTxs = transactions.filter(
-      (t) => t.transactionCode.type === 'DEDUCTION'
-    );
+    // ── Build table rows for the new PDF layout ─────────────────────────────
+    const lineItems = [
+      { name: 'Basic Salary', allowance: basicSalary, deduction: 0, employer: 0, ytd: ytdStat.basicSalary },
+    ];
 
-    // Use stored effective basic (pro-rated for unpaid leave, NEC-bumped) if available;
-    // fall back to employee's master rate for payslips processed before this field existed.
-    const basicSalary = (payslip.basicSalaryApplied > 0)
-      ? payslip.basicSalaryApplied
-      : (payslip.employee.baseRate ?? 0);
+    // Add Earnings/Benefits
+    earningTxs.forEach(t => {
+      lineItems.push({
+        name: t.transactionCode.name,
+        allowance: t.amount,
+        deduction: 0,
+        employer: 0,
+        ytd: ytdMap[t.transactionCode.id] ?? t.amount
+      });
+    });
 
-    const ccy = payslip.payrollRun.currency;
+    // Add Deductions (Employee)
+    deductionTxs.forEach(t => {
+      lineItems.push({
+        name: t.transactionCode.name,
+        allowance: 0,
+        deduction: t.amount,
+        employer: 0,
+        ytd: ytdMap[t.transactionCode.id] ?? t.amount
+      });
+    });
+
+    // Add Statutory rows with YTD
+    lineItems.push({ name: 'PAYE', allowance: 0, deduction: payslip.paye, employer: 0, ytd: ytdStat.paye });
+    lineItems.push({ name: 'AIDS Levy', allowance: 0, deduction: payslip.aidsLevy, employer: 0, ytd: ytdStat.aidsLevy });
+    lineItems.push({ name: 'NSSA Employee', allowance: 0, deduction: payslip.nssaEmployee, employer: 0, ytd: ytdStat.nssaEmployee });
+    
+    // Employer portions (Company Contributions column)
+    if (payslip.nssaEmployer > 0) {
+      lineItems.push({ name: 'NSSA Employer', allowance: 0, deduction: 0, employer: payslip.nssaEmployer, ytd: ytdStat.nssaEmployer });
+    }
+    if (payslip.zimdefEmployer > 0) {
+      lineItems.push({ name: 'ZIMDEF (Manpower)', allowance: 0, deduction: 0, employer: payslip.zimdefEmployer, ytd: ytdStat.zimdefEmployer });
+    }
+    if (payslip.sdfContribution > 0) {
+      lineItems.push({ name: 'SDF (Training)', allowance: 0, deduction: 0, employer: payslip.sdfContribution, ytd: ytdStat.sdfContribution });
+    }
+    if (payslip.wcifEmployer > 0) {
+      lineItems.push({ name: 'WCIF (Insurance)', allowance: 0, deduction: 0, employer: payslip.wcifEmployer, ytd: ytdStat.wcifEmployer });
+    }
+    if (payslip.necLevy > 0) {
+      lineItems.push({ name: 'NEC Employee', allowance: 0, deduction: payslip.necLevy, employer: 0, ytd: ytdStat.necLevy });
+    }
+    if (payslip.necEmployer > 0) {
+      lineItems.push({ name: 'NEC Employer', allowance: 0, deduction: 0, employer: payslip.necEmployer, ytd: ytdStat.necEmployer });
+    }
+
+    // Loan deductions
+    if (payslip.loanDeductions > 0) {
+      lineItems.push({ name: 'Loan Repayments', allowance: 0, deduction: payslip.loanDeductions, employer: 0, ytd: 0 });
+    }
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
@@ -1766,38 +1806,16 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       companyName: payslip.payrollRun.company.name,
       period: `${payslip.payrollRun.startDate.toLocaleDateString()} – ${payslip.payrollRun.endDate.toLocaleDateString()}`,
       employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
+      employeeCode: payslip.employee.employeeCode || '',
       nationalId: payslip.employee.idPassport || '',
       jobTitle: payslip.employee.position || '',
       currency: ccy,
-      // Structured earnings (basic + per-TC allowances/benefits)
-      earnings: [
-        { code: 'BASIC', name: 'Basic Salary', amount: basicSalary, currency: ccy },
-        ...earningTxs.map((t) => ({
-          code: t.transactionCode.code,
-          name: t.transactionCode.name,
-          amount: t.amount,
-          currency: t.currency,
-        })),
-      ],
+      lineItems,
       grossPay: payslip.gross,
-      // Statutory deductions
-      paye: payslip.paye,
-      aidsLevy: payslip.aidsLevy,
-      nssaEmployee: payslip.nssaEmployee,
-      nssaEmployer: payslip.nssaEmployer,
-      wcifEmployer: payslip.wcifEmployer || 0,
-      zimdefEmployer: payslip.zimdefEmployer || 0,
-      sdfContribution: payslip.sdfContribution || 0,
-      necLevy: payslip.necLevy || 0,
-      necEmployer: payslip.necEmployer || 0,
-      pensionEmployee: pensionAmt || payslip.pensionApplied || 0,
-      medicalAid: medicalAidAmt,
-      loanDeductions: payslip.loanDeductions || 0,
-      // Per-TC deductions (advances, other post-tax deductions)
-      otherDeductions: filteredOtherDeductions,
+      totalDeductions: (payslip.gross - payslip.netPay),
       netSalary: payslip.netPay,
-      netPayUSD: payslip.netPayUSD ?? null,
-      netPayZIG: payslip.netPayZIG ?? null,
+      netPayUSD: payslip.netPayUSD,
+      netPayZIG: payslip.netPayZIG,
     }, res);
   } catch (error) {
     console.error(error);
