@@ -165,6 +165,9 @@ function _drawPayslip(doc, data) {
   
   drawPlatformLogo(doc, LEFT, footerY + 10, 20);
   doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(10).text('Bantu - HR & Payroll', LEFT + 30, footerY + 12);
+  
+  // Diagnostic Version Tag
+  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6).text('v2.0 Professional', RIGHT - 60, footerY + 14);
   doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7.5).text('Empowering Business Through Seamless Payroll Automation', LEFT + 30, footerY + 23);
   
   doc.fontSize(7).text('CONFIDENTIAL DOCUMENT', RIGHT - 100, footerY + 15, { align: 'right' });
