@@ -161,9 +161,12 @@ const startServer = async () => {
 
   try {
     // Run auto-boot actions
-    console.log('Running auto-boot actions (Holidays)...');
+    console.log('Running auto-boot actions (Holidays, Transaction Codes)...');
     const { autoSeedHolidays } = require('./utils/holidays');
+    const { autoSeedTransactionCodes } = require('./utils/transactionCodes');
+    
     await autoSeedHolidays();
+    await autoSeedTransactionCodes();
     console.log('Auto-boot actions complete.');
 
     const portStr = process.env.PORT || '5005';

@@ -685,7 +685,12 @@ router.get('/it7/:employeeId/:year', requirePermission('view_reports'), async (r
       } else if (tc?.type === 'BENEFIT') {
         totalBenefits += amt;
       } else if (tc?.type === 'DEDUCTION' && tc?.preTax) {
-        totalPension += amt;
+        if (cat === 'PENSION' || (!cat && (code.includes('PENSION') || code.includes('PEN')))) {
+          totalPension += amt;
+        } else {
+          // Other pre-tax deductions (like Shortime) reduce the reported gross on IT7
+          totalGross -= amt;
+        }
       }
     }
 

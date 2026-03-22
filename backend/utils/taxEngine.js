@@ -176,33 +176,28 @@ function calculatePaye({
   }
 
   const payeBeforeLevy = annualBrackets ? annualPaye / 12 : annualPaye;
-
-  const aidsLevyGross    = payeBeforeLevy * aidsLevyRate;
   const medicalAidCredit = medicalAid * medicalAidCreditRate;
 
-  // Combined pre-credit tax (PAYE + AIDS levy)
-  const combinedPreCredit = payeBeforeLevy + aidsLevyGross;
-
-  // Apply credits to the combined tax, then apply any ZIMRA directives as reductions
-  let totalPaye = Math.max(0, combinedPreCredit - medicalAidCredit - taxCredits);
+  // ZIMRA: Tax credits are deducted from the income tax determined BEFORE calculating the AIDS levy.
+  // totalPayeNet = (PAYE - Credits) * 3% AIDS Levy
+  const payeAfterCredits = Math.max(0, payeBeforeLevy - medicalAidCredit - taxCredits);
+  const aidsLevy = payeAfterCredits * aidsLevyRate;
+  const totalPaye = payeAfterCredits + aidsLevy;
 
   // Tax directive — REDUCTION mode (per ZIMRA directive instruments):
   //   taxDirectivePerc: percentage reduction of the post-credit PAYE total (e.g. 10 = −10%)
   //   taxDirectiveAmt:  fixed monthly reduction of the post-credit PAYE total
+  let finalTotalPaye = totalPaye;
   if (taxDirectivePerc > 0) {
-    totalPaye = totalPaye * (1 - Math.min(taxDirectivePerc, 100) / 100);
+    finalTotalPaye = finalTotalPaye * (1 - Math.min(taxDirectivePerc, 100) / 100);
   }
   if (taxDirectiveAmt > 0) {
-    totalPaye = Math.max(0, totalPaye - taxDirectiveAmt);
+    finalTotalPaye = Math.max(0, finalTotalPaye - taxDirectiveAmt);
   }
 
-  // Proportionally split totalPaye back into core PAYE and AIDS levy for payslip reporting.
-  // This ensures aidsLevy shown on the payslip accurately reflects the actual deduction after
-  // credits and directives (preventing a non-zero AIDS levy display when totalPaye = 0).
-  const aidsLevy = combinedPreCredit > 0
-    ? totalPaye * (aidsLevyGross / combinedPreCredit)
-    : 0;
-  const payeNet  = totalPaye - aidsLevy;
+  // Final split for reporting
+  const finalAidsLevy = payeAfterCredits > 0 ? (finalTotalPaye * (aidsLevy / totalPaye)) : 0;
+  const finalPayeNet  = finalTotalPaye - finalAidsLevy;
 
   const totalDeductions = nssaEmployee + effectivePension + medicalAid + totalPaye;
   const netSalary       = cashEarnings - totalDeductions;
@@ -220,11 +215,11 @@ function calculatePaye({
     zimdefEmployer,
     sdfContribution,
     taxableIncome,
-    payeBeforeLevy: payeNet,
+    payeBeforeLevy: finalPayeNet,
     medicalAidCredit,
-    aidsLevy,
-    taxCreditsApplied: combinedPreCredit > 0 ? (combinedPreCredit - totalPaye) : (medicalAidCredit + taxCredits),
-    totalPaye,
+    aidsLevy: finalAidsLevy,
+    taxCreditsApplied: payeBeforeLevy > 0 ? (payeBeforeLevy + (payeBeforeLevy * aidsLevyRate) - finalTotalPaye) : (medicalAidCredit + taxCredits),
+    totalPaye: finalTotalPaye,
     netSalary,
   };
 }
