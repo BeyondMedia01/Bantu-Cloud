@@ -118,13 +118,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
 // ─── App ─────────────────────────────────────────────────────────────────────
 
 import { ToastProvider } from './context/ToastContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 const App: React.FC = () => {
   const role = getUserRole();
 
   return (
-    <ToastProvider>
-      <BrowserRouter>
+    <SettingsProvider>
+      <ToastProvider>
+        <BrowserRouter>
         <Routes>
         {/* Public */}
         <Route path="/" element={<Landing />} />
@@ -239,8 +241,9 @@ const App: React.FC = () => {
         } />
       </Routes>
     </BrowserRouter>
-  </ToastProvider>
-);
+    </ToastProvider>
+    </SettingsProvider>
+  );
 };
 
 export default App;

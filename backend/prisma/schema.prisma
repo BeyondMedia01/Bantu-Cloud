@@ -139,6 +139,7 @@ model User {
   passwordResetExpiry DateTime?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
+  preferences         Json?       @default("{}")
   clientAdmin         ClientAdmin?
   employee            Employee?
   sessions            Session[]

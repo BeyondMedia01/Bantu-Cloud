@@ -58,9 +58,9 @@ export const LicenseValidateAPI = {
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 export const UserAPI = {
-  me: () => api.get('/user/me'),
+  me: () => api.get<{ id: string; name: string; email: string; role: string; preferences?: any }>('/user/me'),
   companies: () => api.get('/user/companies'),
-  update: (data: { name: string }) => api.put('/user/me', data),
+  update: (data: { name?: string; preferences?: any }) => api.put('/user/me', data),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.put('/user/change-password', data),
 };
