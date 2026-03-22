@@ -6,12 +6,7 @@ const router = express.Router();
 
 const getClientId = async (req) => {
   if (req.user.role === 'PLATFORM_ADMIN') return null;
-  if (req.clientId) {
-    const company = await prisma.company.findUnique({ where: { id: req.clientId }, select: { clientId: true } });
-    return company?.clientId;
-  }
-  const ca = await prisma.clientAdmin.findUnique({ where: { userId: req.user.userId } });
-  return ca?.clientId ?? null;
+  return req.clientId;
 };
 
 // GET /api/companies
