@@ -219,7 +219,7 @@ const Payslips: React.FC = () => {
 
                   {/* One column per earning/benefit TC (e.g. Transport Allowance) */}
                   {allEarningTCs.map((tc) => (
-                    <th key={tc.tcId} className={thCls}>{tc.code}</th>
+                    <th key={tc.tcId} className={thCls}>{tc.name}</th>
                   ))}
 
                   {/* Gross Pay */}
@@ -234,7 +234,7 @@ const Payslips: React.FC = () => {
 
                   {/* One column per post-tax deduction TC (e.g. Advance) */}
                   {allDeductionTCs.map((tc) => (
-                    <th key={tc.tcId} className={thCls + ' text-red-400'}>{tc.code}</th>
+                    <th key={tc.tcId} className={thCls + ' text-red-400'}>{tc.name}</th>
                   ))}
 
                   {/* Statutory deductions total */}
