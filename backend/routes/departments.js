@@ -8,11 +8,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   const { companyId, branchId } = req.query;
   try {
+    const where = {};
+    if (companyId) where.companyId = companyId;
+    else if (req.companyId) where.companyId = req.companyId;
+    else if (req.clientId) where.company = { clientId: req.clientId };
+    if (branchId) where.branchId = branchId;
+
     const departments = await prisma.department.findMany({
-      where: {
-        ...(companyId && { companyId }),
-        ...(branchId && { branchId }),
-      },
+      where: Object.keys(where).length > 0 ? where : undefined,
       include: { _count: { select: { employees: true } } },
       orderBy: { name: 'asc' },
     });

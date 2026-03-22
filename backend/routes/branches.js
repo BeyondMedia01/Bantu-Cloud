@@ -8,8 +8,13 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   const { companyId } = req.query;
   try {
+    const where = {};
+    if (companyId) where.companyId = companyId;
+    else if (req.companyId) where.companyId = req.companyId;
+    else if (req.clientId) where.company = { clientId: req.clientId };
+
     const branches = await prisma.branch.findMany({
-      where: companyId ? { companyId } : undefined,
+      where: Object.keys(where).length > 0 ? where : undefined,
       include: { departments: true, _count: { select: { employees: true } } },
       orderBy: { name: 'asc' },
     });
