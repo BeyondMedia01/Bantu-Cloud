@@ -102,8 +102,14 @@ function _drawPayslip(doc, data) {
   doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(8.5);
 
   // Table Rows
+  let pages = 1;
   (data.lineItems || []).forEach((item, i) => {
-    if (doc.y > 750) doc.addPage();
+    if (doc.y > 750 && pages < 2) {
+      doc.addPage();
+      pages++;
+    }
+    if (pages >= 2 && doc.y > 750) return; // Prevent infinite pages or overflow
+
     if (i % 2 === 0) doc.rect(LEFT, doc.y, TABLE_W, ROW_H).fill(LIGHT_GRAY).fillColor(TEXT_DARK);
     
     let rx = LEFT + 5;
@@ -580,14 +586,14 @@ const generatePayrollSummaryPDF = (data, stream) => {
     { label: 'NEC Match', w: 65,  align: 'right'  },
     { label: 'CTC',       w: 85,  align: 'right'  }, // Cost to Company
   ];
-  const HDR_H = 22, ROW_H = 18;
+  const HDR_H = 20, ROW_H = 16;
 
   const drawHeader = (y) => {
     doc.rect(20, y, 1150, HDR_H).fill(NAVY);
     let cx = 25;
     cols.forEach(col => {
-      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('white')
-        .text(col.label, cx, y + 6, { width: col.w - 10, align: col.align });
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('white')
+        .text(col.label, cx, y + 5, { width: col.w - 10, align: col.align });
       cx += col.w;
     });
     return y + HDR_H;
