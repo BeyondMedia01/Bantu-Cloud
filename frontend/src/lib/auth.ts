@@ -51,5 +51,9 @@ export function logout(): void {
 
 export function saveAuthData(token: string, companyId?: string): void {
   sessionStorage.setItem('token', token);
-  if (companyId) sessionStorage.setItem('activeCompanyId', companyId);
+  if (companyId) {
+    sessionStorage.setItem('activeCompanyId', companyId);
+  } else {
+    sessionStorage.removeItem('activeCompanyId');
+  }
 }
