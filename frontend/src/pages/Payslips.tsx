@@ -256,10 +256,16 @@ const Payslips: React.FC = () => {
               <tbody className="divide-y divide-border">
                 {payslips.map((p: any) => {
                   // Build lookup maps for quick access
-                  const earningMap: Record<string, number> = {};
-                  for (const e of (p.earningLines || [])) earningMap[e.tcId] = e.amount;
-                  const deductionMap: Record<string, number> = {};
-                  for (const d of (p.deductionLines || [])) deductionMap[d.tcId] = d.amount;
+                  const earningMap: Record<string, string[]> = {};
+                  for (const e of (p.earningLines || [])) {
+                    if (!earningMap[e.tcId]) earningMap[e.tcId] = [];
+                    earningMap[e.tcId].push(`${e.currency || ccy} ${fmt(e.amount)}`);
+                  }
+                  const deductionMap: Record<string, string[]> = {};
+                  for (const d of (p.deductionLines || [])) {
+                    if (!deductionMap[d.tcId]) deductionMap[d.tcId] = [];
+                    deductionMap[d.tcId].push(`${d.currency || ccy} ${fmt(d.amount)}`);
+                  }
 
                   const totalDeductions = p.gross - p.netPay;
                   const grossUSD = p.grossUSD ?? p.gross;
@@ -279,7 +285,7 @@ const Payslips: React.FC = () => {
                       {/* Earning TC columns — blank if employee doesn't have this TC */}
                       {allEarningTCs.map((tc) => (
                         <td key={tc.tcId} className="px-4 py-3 text-sm font-medium">
-                          {earningMap[tc.tcId] != null ? fmt(earningMap[tc.tcId]) : '—'}
+                          {earningMap[tc.tcId] ? earningMap[tc.tcId].join(' / ') : '—'}
                         </td>
                       ))}
 
@@ -295,8 +301,8 @@ const Payslips: React.FC = () => {
 
                       {/* Post-tax deduction TC columns */}
                       {allDeductionTCs.map((tc) => (
-                        <td key={tc.tcId} className="px-4 py-3 text-sm text-red-500 font-medium">
-                          {deductionMap[tc.tcId] != null ? fmt(deductionMap[tc.tcId]) : '—'}
+                        <td key={tc.tcId} className="px-4 py-3 text-sm text-red-500 font-medium whitespace-nowrap">
+                          {deductionMap[tc.tcId] ? deductionMap[tc.tcId].join(' / ') : '—'}
                         </td>
                       ))}
 

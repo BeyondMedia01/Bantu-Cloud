@@ -1627,12 +1627,14 @@ router.get('/:runId/payslips', async (req, res) => {
           code: t.transactionCode.code,
           name: t.transactionCode.name,
           amount: t.amount,
+          currency: t.currency,
         })),
         deductionLines: deductionTxs.map((t) => ({
           tcId: t.transactionCodeId,
           code: t.transactionCode.code,
           name: t.transactionCode.name,
           amount: t.amount,
+          currency: t.currency,
         })),
       };
     });
