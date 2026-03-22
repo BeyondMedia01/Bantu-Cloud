@@ -41,7 +41,7 @@ function _drawPayslip(doc, data) {
   const PAGE_WIDTH = 555;
   const RIGHT = PAGE_WIDTH - 40;
   const TABLE_W = RIGHT - LEFT;
-  const ROW_H = 16;
+  let ROW_H = 16;
   const BLUE = '#1a2e4a';
   const TEXT_DARK = '#1e293b';
   const TEXT_MUTED = '#64748b';
@@ -98,35 +98,47 @@ function _drawPayslip(doc, data) {
     cx += c.w;
   });
 
+  // ── Dynamic Scaling to fit 1 page ─────────────────────────────────────────
+  const maxTableHeight = 540; // 780 (footer) - 240 (header/info/summary/overhead)
+  const numItems = (data.lineItems || []).length;
+  let dynamicFontSize = 8.5;
+
+  // If table is too long for 1 page, scale down
+  if (numItems * ROW_H > maxTableHeight) {
+    ROW_H = Math.max(9, Math.floor(maxTableHeight / Math.max(1, numItems)));
+    dynamicFontSize = Math.max(5, (ROW_H / 16) * 8.5);
+  }
+
   doc.y = headerY + 20;
-  doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(8.5);
+  doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(dynamicFontSize);
 
   // Table Rows
   let pages = 1;
   (data.lineItems || []).forEach((item, i) => {
+    // Failsafe: only add page if it's REALLY long (data bug protection)
     if (doc.y > 750 && pages < 2) {
       doc.addPage();
       pages++;
     }
-    if (pages >= 2 && doc.y > 750) return; // Prevent infinite pages or overflow
+    if (pages >= 2 && doc.y > 750) return; 
 
     if (i % 2 === 0) doc.rect(LEFT, doc.y, TABLE_W, ROW_H).fill(LIGHT_GRAY).fillColor(TEXT_DARK);
     
     let rx = LEFT + 5;
-    doc.text(item.name, rx, doc.y + 4, { width: cols[0].w - 10 });
+    doc.text(item.name, rx, doc.y + (ROW_H * 0.25), { width: cols[0].w - 10 });
     rx += cols[0].w;
     doc.font('Helvetica-Bold');
-    doc.text(item.allowance > 0 ? fmt(item.allowance) : '', rx, doc.y + 4, { width: cols[1].w - 10, align: 'right' });
+    doc.text(item.allowance > 0 ? fmt(item.allowance) : '', rx, doc.y + (ROW_H * 0.25), { width: cols[1].w - 10, align: 'right' });
     rx += cols[1].w;
-    doc.fillColor('#e11d48'); // Red for deductions
-    doc.text(item.deduction > 0 ? fmt(item.deduction) : '', rx, doc.y + 4, { width: cols[2].w - 10, align: 'right' });
+    doc.fillColor('#e11d48');
+    doc.text(item.deduction > 0 ? fmt(item.deduction) : '', rx, doc.y + (ROW_H * 0.25), { width: cols[2].w - 10, align: 'right' });
     rx += cols[2].w;
     doc.fillColor(TEXT_DARK).font('Helvetica');
-    doc.text(item.employer > 0 ? fmt(item.employer) : '', rx, doc.y + 4, { width: cols[3].w - 10, align: 'right' });
+    doc.text(item.employer > 0 ? fmt(item.employer) : '', rx, doc.y + (ROW_H * 0.25), { width: cols[3].w - 10, align: 'right' });
     rx += cols[3].w;
-    doc.fillColor(TEXT_MUTED).fontSize(7.5);
-    doc.text(item.ytd > 0 ? fmt(item.ytd) : '—', rx, doc.y + 4, { width: cols[4].w - 10, align: 'right' });
-    doc.fillColor(TEXT_DARK).fontSize(8.5);
+    doc.fillColor(TEXT_MUTED).fontSize(dynamicFontSize * 0.85); // Slightly smaller for YTD
+    doc.text(item.ytd > 0 ? fmt(item.ytd) : '—', rx, doc.y + (ROW_H * 0.25), { width: cols[4].w - 10, align: 'right' });
+    doc.fillColor(TEXT_DARK).fontSize(dynamicFontSize);
     
     doc.y += ROW_H;
   });
