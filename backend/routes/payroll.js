@@ -1107,32 +1107,73 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       // ── Save per-TC breakdown to PayrollTransaction ───────────────────────
       // Covers all inputs (explicit PayrollInput records) and salary-structure
       // defaults (EmployeeTransaction). Enables line-by-line display on payslips.
-      const allEmpItems = [
-        ...empInputs.map((i) => ({
-          transactionCodeId: i.transactionCodeId,
-          amount: run.dualCurrency
-            ? (i.employeeUSD || 0)
-            : toRunCcy(i.employeeUSD, i.employeeZiG),
-          type: i.transactionCode.type,
-        })),
-        ...empDefaults.map((sd) => ({
-          transactionCodeId: sd.transactionCodeId,
-          amount: run.dualCurrency
-            ? (sd.currency === 'USD' ? sd.value : 0)
-            : toRunCcy(sd.currency === 'USD' ? sd.value : 0, sd.currency === 'ZiG' ? sd.value : 0),
-          type: sd.transactionCode.type,
-        })),
-      ];
-      for (const item of allEmpItems) {
-        if (item.amount !== 0) {
-          payrollTxData.push({
-            employeeId: emp.id,
-            payrollRunId: run.id,
-            transactionCodeId: item.transactionCodeId,
-            amount: item.amount,
-            currency: run.dualCurrency ? 'USD' : run.currency,
-          });
+      const allEmpItems = [];
+      
+      // 1. Explicit Inputs
+      for (const i of empInputs) {
+        if (run.dualCurrency) {
+          if ((i.employeeUSD || 0) !== 0) {
+            allEmpItems.push({
+              transactionCodeId: i.transactionCodeId,
+              amount: i.employeeUSD,
+              currency: 'USD',
+            });
+          }
+          if ((i.employeeZiG || 0) !== 0) {
+            allEmpItems.push({
+              transactionCodeId: i.transactionCodeId,
+              amount: i.employeeZiG,
+              currency: 'ZiG',
+            });
+          }
+        } else {
+          const amt = toRunCcy(i.employeeUSD, i.employeeZiG);
+          if (amt !== 0) {
+            allEmpItems.push({
+              transactionCodeId: i.transactionCodeId,
+              amount: amt,
+              currency: run.currency,
+            });
+          }
         }
+      }
+
+      // 2. Salary Structure Defaults
+      for (const sd of empDefaults) {
+        if (run.dualCurrency) {
+          if (sd.currency === 'USD' && (sd.value || 0) !== 0) {
+            allEmpItems.push({
+              transactionCodeId: sd.transactionCodeId,
+              amount: sd.value,
+              currency: 'USD',
+            });
+          } else if (sd.currency === 'ZiG' && (sd.value || 0) !== 0) {
+            allEmpItems.push({
+              transactionCodeId: sd.transactionCodeId,
+              amount: sd.value,
+              currency: 'ZiG',
+            });
+          }
+        } else {
+          const amt = toRunCcy(sd.currency === 'USD' ? sd.value : 0, sd.currency === 'ZiG' ? sd.value : 0);
+          if (amt !== 0) {
+            allEmpItems.push({
+              transactionCodeId: sd.transactionCodeId,
+              amount: amt,
+              currency: run.currency,
+            });
+          }
+        }
+      }
+
+      for (const item of allEmpItems) {
+        payrollTxData.push({
+          employeeId: emp.id,
+          payrollRunId: run.id,
+          transactionCodeId: item.transactionCodeId,
+          amount: item.amount,
+          currency: item.currency,
+        });
       }
     }
 
@@ -1626,7 +1667,7 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
     // Fetch per-TC breakdown saved during payroll processing
     const transactions = await prisma.payrollTransaction.findMany({
       where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
-      include: { transactionCode: { select: { code: true, name: true, type: true, preTax: true } } },
+      include: { transactionCode: { select: { code: true, name: true, type: true, preTax: true, incomeCategory: true } } },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -1659,6 +1700,7 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
           code: t.transactionCode.code,
           name: t.transactionCode.name,
           amount: t.amount,
+          currency: t.currency,
         });
       }
     }
@@ -1686,11 +1728,12 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       currency: ccy,
       // Structured earnings (basic + per-TC allowances/benefits)
       earnings: [
-        { code: 'BASIC', name: 'Basic Salary', amount: basicSalary },
+        { code: 'BASIC', name: 'Basic Salary', amount: basicSalary, currency: ccy },
         ...earningTxs.map((t) => ({
           code: t.transactionCode.code,
           name: t.transactionCode.name,
           amount: t.amount,
+          currency: t.currency,
         })),
       ],
       grossPay: payslip.gross,

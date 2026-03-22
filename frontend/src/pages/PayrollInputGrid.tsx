@@ -14,6 +14,7 @@ interface TxCode {
   name: string;
   type: 'EARNING' | 'DEDUCTION' | 'BENEFIT';
   taxable: boolean;
+  isActive: boolean;
 }
 
 interface Employee {
@@ -372,7 +373,7 @@ const PayrollInputGrid: React.FC = () => {
   }
 
   const hasDirty = dirtySet.size > 0;
-  const available = allTxCodes.filter((t) => !activeCols.find((c) => c.id === t.id));
+  const available = allTxCodes.filter((t) => t.isActive !== false && !activeCols.find((c) => c.id === t.id));
 
   const totalGross = Object.values(summaries).reduce((s, v) => s + (v?.gross || 0), 0);
   const totalPaye = Object.values(summaries).reduce((s, v) => s + (v?.paye || 0), 0);

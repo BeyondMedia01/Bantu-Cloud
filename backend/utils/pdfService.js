@@ -92,7 +92,8 @@ function _drawPayslip(doc, data) {
     : [{ code: 'BASIC', name: 'Basic Salary', amount: data.baseSalary || 0 }];
 
   for (const e of earningLines) {
-    row(`${e.name}`, `${ccy} ${fmt(e.amount)}`);
+    const lineCcy = e.currency || ccy;
+    row(`${e.name}`, `${lineCcy} ${fmt(e.amount)}`);
   }
 
   doc.moveDown(0.2);
@@ -108,7 +109,8 @@ function _drawPayslip(doc, data) {
   if (data.pensionEmployee) row('Pension Fund', `${ccy} ${fmt(data.pensionEmployee)}`);
   if (data.medicalAid) row('Medical Aid', `${ccy} ${fmt(data.medicalAid)}`);
   for (const d of (data.otherDeductions || [])) {
-    row(`${d.name}`, `${ccy} ${fmt(d.amount)}`);
+    const lineCcy = d.currency || ccy;
+    row(`${d.name}`, `${lineCcy} ${fmt(d.amount)}`);
   }
   if (data.loanDeductions) row('Loan Deductions', `${ccy} ${fmt(data.loanDeductions)}`);
 

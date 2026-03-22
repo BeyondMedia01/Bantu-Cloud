@@ -35,13 +35,23 @@ const INCLUDE = {
 
 // GET /api/payroll-inputs
 router.get('/', async (req, res) => {
-  const { payrollRunId, employeeId, processed } = req.query;
+    const { payrollRunId, employeeId, processed, period } = req.query;
   try {
     const where = {
       ...(payrollRunId && { payrollRunId }),
       ...(employeeId && { employeeId }),
       ...(processed !== undefined && processed !== '' && { processed: processed === 'true' }),
     };
+
+    if (period) {
+      where.OR = [
+        { period: period },
+        {
+          period: { lte: period },
+          duration: 'Indefinite',
+        }
+      ];
+    }
     if (req.companyId) {
       where.employee = { companyId: req.companyId };
     } else if (req.clientId) {
