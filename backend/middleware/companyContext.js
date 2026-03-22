@@ -14,6 +14,9 @@ const companyContext = async (req, res, next) => {
 
   if (!companyId) {
     req.companyId = null;
+    if (req.user && req.user.clientId) {
+      req.clientId = req.user.clientId;
+    }
     return next();
   }
 

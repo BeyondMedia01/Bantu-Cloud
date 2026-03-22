@@ -161,6 +161,7 @@ router.get('/', async (req, res) => {
 
   try {
     const where = {
+      ...(req.clientId && { clientId: req.clientId }),
       ...(scopedCompanyId && { companyId: scopedCompanyId }),
       ...(branchId && { branchId }),
       ...(departmentId && { departmentId }),
