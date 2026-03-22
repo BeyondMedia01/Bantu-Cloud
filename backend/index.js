@@ -151,18 +151,32 @@ const { runLeaveAccrual } = require('./jobs/leaveAccrual');
 // Run at 00:05 on the 1st of every month
 cron.schedule('5 0 1 * *', () => runLeaveAccrual());
 
-// ─── Auto-Boot Actions ────────────────────────────────────────────────────────
-const { autoSeedHolidays } = require('./utils/holidays');
-autoSeedHolidays();
-
 // ─── Start ────────────────────────────────────────────────────────────────────
+const startServer = async () => {
+  console.log('--- Bantu Server Startup ---');
+  console.log(`Node Version: ${process.version}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Searching for port on: ${process.env.PORT || 5005}`);
 
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server environment: ${process.env.NODE_ENV}`);
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+  try {
+    // Run auto-boot actions
+    console.log('Running auto-boot actions (Holidays)...');
+    const { autoSeedHolidays } = require('./utils/holidays');
+    await autoSeedHolidays();
+    console.log('Auto-boot actions complete.');
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log('-------------------------------------------');
+      console.log(`🚀 Server ready at http://0.0.0.0:${PORT}`);
+      console.log('-------------------------------------------');
+    });
+  } catch (err) {
+    console.error('❌ FATAL STARTUP ERROR:', err);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 process.on('SIGINT', async () => {
   const prisma = require('./lib/prisma');
