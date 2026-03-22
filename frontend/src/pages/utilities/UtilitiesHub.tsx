@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, RefreshCw, Calendar, FileText, Percent, CalendarDays } from 'lucide-react';
+import { TrendingUp, RefreshCw, Calendar, FileText, Percent, CalendarDays, Globe, GraduationCap } from 'lucide-react';
 
 const UTILITIES = [
   {
@@ -74,6 +74,22 @@ const UTILITIES = [
     description: 'Manage global default rates for SDF and ZIMDEF (Standard Zimbabwean rates)',
     color: 'text-indigo-600',
     bg: 'bg-indigo-50',
+  },
+  {
+    path: '/currency-rates',
+    icon: <Globe size={24} />,
+    title: 'Currency Rates',
+    description: 'Set USD / ZiG exchange rates used in payroll calculations',
+    color: 'text-blue-500',
+    bg: 'bg-blue-50',
+  },
+  {
+    path: '/grades',
+    icon: <GraduationCap size={24} />,
+    title: 'Salary Grades',
+    description: 'Define salary bands and pay grades for job classifications',
+    color: 'text-purple-500',
+    bg: 'bg-purple-50',
   },
 ];
 
