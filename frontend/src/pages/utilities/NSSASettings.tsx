@@ -10,6 +10,7 @@ const NSSASettingsPage: React.FC = () => {
     employeeRate: 3.5,
     employerRate: 3.5,
     ceilingUSD: 700,
+    wcifRate: 0.01,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -101,7 +102,6 @@ const NSSASettingsPage: React.FC = () => {
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-bold text-slate-600 mb-1.5">
                     Employer Rate (%)
@@ -114,6 +114,25 @@ const NSSASettingsPage: React.FC = () => {
                       max="100"
                       value={form.employerRate}
                       onChange={(e) => handleChange('employerRate', e.target.value)}
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                      required
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                    WCIF Rate (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={form.wcifRate}
+                      onChange={(e) => handleChange('wcifRate', e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
                       required
                     />

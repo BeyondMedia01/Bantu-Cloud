@@ -485,11 +485,17 @@ export interface NSSASettings {
   employeeRate: number;
   employerRate: number;
   ceilingUSD: number;
+  wcifRate: number;
 }
 
 export const NSSASettingsAPI = {
   get: () => api.get<NSSASettings>('/nssa-settings'),
   update: (data: NSSASettings) => api.put<{ message: string }>('/nssa-settings', data),
+};
+
+export const StatutoryRatesAPI = {
+  get: () => api.get<{ sdfRate: number; zimdefRate: number }>('/statutory-rates'),
+  update: (data: { sdfRate: number; zimdefRate: number }) => api.put<{ message: string }>('/statutory-rates', data),
 };
 
 // ─── Currency Rates ───────────────────────────────────────────────────────────

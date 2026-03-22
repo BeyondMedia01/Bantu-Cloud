@@ -3,30 +3,7 @@ import { Plus, Trash, Building2, MapPin, Hash, Pencil, X, Check, Percent } from 
 import { CompanyAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 
-const rateInput = (
-  label: string,
-  value: string,
-  onChange: (v: string) => void,
-  hint: string
-) => (
-  <div className="flex flex-col gap-2">
-    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</label>
-    <div className="relative">
-      <input
-        type="number"
-        min="0"
-        max="100"
-        step="0.01"
-        className="w-full px-4 py-3 pr-10 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
-        placeholder="0.00"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      />
-      <Percent size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-    </div>
-    <p className="text-[10px] text-slate-400">{hint}</p>
-  </div>
-);
+
 
 const Companies: React.FC = () => {
   const [companies, setCompanies] = useState<any[]>([]);
@@ -38,9 +15,6 @@ const Companies: React.FC = () => {
   const [newName, setNewName] = useState('');
   const [newBp, setNewBp] = useState('');
   const [newAddress, setNewAddress] = useState('');
-  const [newWcif, setNewWcif] = useState('');
-  const [newSdf, setNewSdf] = useState('');
-  const [newZimdef, setNewZimdef] = useState('');
 
   // Edit form state
   const [editForm, setEditForm] = useState<any>({});
@@ -63,11 +37,8 @@ const Companies: React.FC = () => {
         name: newName,
         taxId: newBp,
         address: newAddress,
-        wcifRate: newWcif !== '' ? parseFloat(newWcif) / 100 : null,
-        sdfRate:  newSdf  !== '' ? parseFloat(newSdf)  / 100 : null,
-        zimdefRate: newZimdef !== '' ? parseFloat(newZimdef) / 100 : null,
       });
-      setNewName(''); setNewBp(''); setNewAddress(''); setNewWcif(''); setNewSdf(''); setNewZimdef('');
+      setNewName(''); setNewBp(''); setNewAddress('');
       setIsAdding(false);
       fetchCompanies();
       showToast('New company entity created successfully', 'success');
@@ -85,9 +56,6 @@ const Companies: React.FC = () => {
       address: company.address || '',
       contactEmail: company.contactEmail || '',
       contactPhone: company.contactPhone || '',
-      wcifRate: company.wcifRate != null ? String(parseFloat((company.wcifRate * 100).toFixed(4))) : '',
-      sdfRate:  company.sdfRate  != null ? String(parseFloat((company.sdfRate  * 100).toFixed(4))) : '',
-      zimdefRate: company.zimdefRate != null ? String(parseFloat((company.zimdefRate * 100).toFixed(4))) : '',
     });
   };
 
@@ -100,9 +68,6 @@ const Companies: React.FC = () => {
         address: editForm.address || null,
         contactEmail: editForm.contactEmail || null,
         contactPhone: editForm.contactPhone || null,
-        wcifRate: editForm.wcifRate !== '' ? parseFloat(editForm.wcifRate) / 100 : null,
-        sdfRate:  editForm.sdfRate  !== '' ? parseFloat(editForm.sdfRate)  / 100 : null,
-        zimdefRate: editForm.zimdefRate !== '' ? parseFloat(editForm.zimdefRate) / 100 : null,
       });
       setEditingId(null);
       fetchCompanies();
@@ -164,14 +129,6 @@ const Companies: React.FC = () => {
               <input type="text" className={inputCls} placeholder="123 Samora Machel Ave, Harare"
                 value={newAddress} onChange={e => setNewAddress(e.target.value)} />
             </div>
-            <div className="md:col-span-2">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Industry Statutory Rates</p>
-              <div className="grid grid-cols-2 gap-6">
-                {rateInput('WCIF Rate (%)', newWcif, setNewWcif, 'Workers Compensation — overrides global setting')}
-                {rateInput('SDF Rate (%)', newSdf, setNewSdf, 'Standard Development Fund — overrides global setting')}
-                {rateInput('ZIMDEF Rate (%)', newZimdef, setNewZimdef, 'ZIMDEF Levy — overrides global setting')}
-              </div>
-            </div>
             <div className="md:col-span-2 flex items-center justify-end gap-3 mt-2">
               <button type="button" onClick={() => setIsAdding(false)}
                 className="px-6 py-3 rounded-[9999px] font-bold text-slate-500 hover:bg-slate-100 transition-colors">
@@ -210,33 +167,6 @@ const Companies: React.FC = () => {
                   <input className={inputCls} placeholder="Contact Email" type="email" value={editForm.contactEmail} onChange={ef('contactEmail')} />
                   <input className={inputCls} placeholder="Contact Phone" value={editForm.contactPhone} onChange={ef('contactPhone')} />
 
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">WCIF Rate (%)</label>
-                      <div className="relative mt-1">
-                        <input className={inputCls + ' pr-8'} type="number" min="0" max="100" step="0.01"
-                          placeholder="0.00" value={editForm.wcifRate} onChange={ef('wcifRate')} />
-                        <Percent size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SDF Rate (%)</label>
-                      <div className="relative mt-1">
-                        <input className={inputCls + ' pr-8'} type="number" min="0" max="100" step="0.01"
-                          placeholder="0.00" value={editForm.sdfRate} onChange={ef('sdfRate')} />
-                        <Percent size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ZIMDEF Rate (%)</label>
-                      <div className="relative mt-1">
-                        <input className={inputCls + ' pr-8'} type="number" min="0" max="100" step="0.01"
-                          placeholder="0.00" value={editForm.zimdefRate} onChange={ef('zimdefRate')} />
-                        <Percent size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="flex gap-2 mt-1">
                     <button onClick={() => handleUpdate(company.id)}
                       className="flex-1 flex items-center justify-center gap-2 bg-btn-primary text-navy py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">
@@ -268,25 +198,6 @@ const Companies: React.FC = () => {
                         <MapPin size={13} className="shrink-0 mt-0.5" />
                         <span className="text-xs font-semibold leading-tight">{company.address || 'Address not set'}</span>
                       </div>
-                      {(company.wcifRate != null || company.sdfRate != null) && (
-                        <div className="flex items-center gap-3 mt-1">
-                          {company.wcifRate != null && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                              WCIF {(company.wcifRate * 100).toFixed(2)}%
-                            </span>
-                          )}
-                          {company.sdfRate != null && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 border border-purple-100">
-                              SDF {(company.sdfRate * 100).toFixed(2)}%
-                            </span>
-                          )}
-                          {company.zimdefRate != null && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100">
-                              ZIMDEF {(company.zimdefRate * 100).toFixed(2)}%
-                            </span>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

@@ -67,6 +67,7 @@ import License from './pages/License';
 // Utilities
 import UtilitiesHub from './pages/utilities/UtilitiesHub';
 import Transactions from './pages/utilities/Transactions';
+import StatutoryRates from './pages/utilities/StatutoryRates';
 import BackPay from './pages/utilities/BackPay';
 import PayIncrease from './pages/utilities/PayIncrease';
 import PeriodEnd from './pages/utilities/PeriodEnd';
@@ -184,6 +185,7 @@ const App: React.FC = () => {
           <Route path="/utilities/pay-increase" element={<PayIncrease />} />
           <Route path="/utilities/period-end" element={<PeriodEnd />} />
           <Route path="/utilities/tax-tables" element={<TaxTableSettings />} />
+          <Route path="/utilities/statutory-rates" element={<StatutoryRates />} />
           <Route path="/utilities/nec-tables" element={<NecTables />} />
           <Route path="/utilities/nssa" element={<NSSASettings />} />
           <Route path="/utilities/payroll-calendar" element={<PayrollCalendar />} />

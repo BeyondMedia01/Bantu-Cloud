@@ -445,7 +445,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     const elderlyCreditUSD = await getSettingAsNumber('ELDERLY_TAX_CREDIT_USD', 75);
     const elderlyCreditZIG = await getSettingAsNumber('ELDERLY_TAX_CREDIT_ZIG', 900);
 
-    const zimdefRate = await getSettingAsNumber('ZIMDEF_RATE', 1) / 100;
+    const globalZimdefRate = await getSettingAsNumber('ZIMDEF_RATE', 1) / 100;
+    const zimdefRate = run.company.zimdefRate != null ? run.company.zimdefRate / 100 : globalZimdefRate;
 
     // Working days per month — used for pro-rating unpaid leave deductions
     const workingDaysPerMonth = await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22);
@@ -480,7 +481,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         employeeId: { in: employees.map((e) => e.id) },
         OR: [
           { payrollRunId: run.id },                                  // run-linked (any processed state — for re-runs)
-          { payrollRunId: null, period: runPeriod, processed: false }, // unattached, not yet processed
+          { payrollRunId: null, period: { lte: runPeriod }, processed: false }, // unattached, not yet processed
         ],
       },
       include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true } } },
@@ -1157,10 +1158,14 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
       if (allInputs.length > 0) {
         // Mark inputs as processed — retained for audit trail (ZIMRA may request source data).
-        await tx.payrollInput.updateMany({
-          where: { id: { in: allInputs.map((i) => i.id) } },
-          data: { processed: true },
-        });
+        // NOTE: Indefinite transaction codes are NOT marked as processed so they repeat in following months.
+        const idsToProcess = allInputs.filter(i => i.duration !== 'Indefinite').map(i => i.id);
+        if (idsToProcess.length > 0) {
+          await tx.payrollInput.updateMany({
+            where: { id: { in: idsToProcess } },
+            data: { processed: true },
+          });
+        }
       }
 
       if (appliedRepaymentIds.size > 0) {

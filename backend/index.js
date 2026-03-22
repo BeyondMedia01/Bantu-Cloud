@@ -123,6 +123,7 @@ app.use('/api/payincrease', require('./routes/payIncrease'));
 app.use('/api/backpay', require('./routes/backPay'));
 app.use('/api/period-end', require('./routes/periodEnd'));
 app.use('/api/nssa-settings', require('./routes/nssaSettings'));
+app.use('/api/statutory-rates', require('./routes/statutoryRates'));
 app.use('/api/nssa-contributions', require('./routes/nssaContributions'));
 app.use('/api/currency-rates', require('./routes/currencyRates'));
 app.use('/api/nec-tables', require('./routes/necTables'));

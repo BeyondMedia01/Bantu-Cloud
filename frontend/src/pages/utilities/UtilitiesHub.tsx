@@ -67,6 +67,14 @@ const UTILITIES = [
     color: 'text-orange-500',
     bg: 'bg-orange-50',
   },
+  {
+    path: '/utilities/statutory-rates',
+    icon: <Percent size={24} />,
+    title: 'Statutory Rates',
+    description: 'Manage global default rates for SDF and ZIMDEF (Standard Zimbabwean rates)',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+  },
 ];
 
 const UtilitiesHub: React.FC = () => {

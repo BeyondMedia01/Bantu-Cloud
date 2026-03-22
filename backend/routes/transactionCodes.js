@@ -123,6 +123,11 @@ router.delete('/:id', requirePermission('update_settings'), async (req, res) => 
     res.status(204).send();
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Transaction code not found' });
+    if (error.code === 'P2003') {
+      return res.status(400).json({ 
+        message: 'Cannot delete this transaction code because it is already used in existing payroll records. Please deactivate it instead.' 
+      });
+    }
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }

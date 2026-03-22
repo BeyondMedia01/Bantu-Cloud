@@ -9,6 +9,7 @@ const NSSA_KEYS = {
   EMPLOYEE_RATE: 'NSSA_EMPLOYEE_RATE',
   EMPLOYER_RATE: 'NSSA_EMPLOYER_RATE',
   CEILING_USD:   'NSSA_CEILING_USD',
+  WCIF_RATE:     'WCIF_RATE',
 };
 
 // GET /api/nssa-settings — return current NSSA rates
@@ -27,6 +28,7 @@ router.get('/', async (req, res) => {
       employeeRate: parseFloat(byKey[NSSA_KEYS.EMPLOYEE_RATE] ?? '4.5'),
       employerRate: parseFloat(byKey[NSSA_KEYS.EMPLOYER_RATE] ?? '4.5'),
       ceilingUSD:   parseFloat(byKey[NSSA_KEYS.CEILING_USD]   ?? '700'),
+      wcifRate:     parseFloat(byKey[NSSA_KEYS.WCIF_RATE]     ?? '0.01'),
     });
   } catch (err) {
     console.error('NSSA settings GET error:', err);
@@ -36,12 +38,13 @@ router.get('/', async (req, res) => {
 
 // PUT /api/nssa-settings — upsert the three NSSA values
 router.put('/', requirePermission('update_settings'), async (req, res) => {
-  const { employeeRate, employerRate, ceilingUSD } = req.body;
+  const { employeeRate, employerRate, ceilingUSD, wcifRate } = req.body;
 
   const updates = [
     { key: NSSA_KEYS.EMPLOYEE_RATE, value: String(employeeRate), desc: 'NSSA employee contribution rate (%)' },
     { key: NSSA_KEYS.EMPLOYER_RATE, value: String(employerRate), desc: 'NSSA employer contribution rate (%)' },
     { key: NSSA_KEYS.CEILING_USD,   value: String(ceilingUSD),   desc: 'NSSA maximum insurable earnings ceiling (USD/month)' },
+    { key: NSSA_KEYS.WCIF_RATE,     value: String(wcifRate),     desc: 'Workmans Compensation Insurance Fund rate (%)' },
   ];
 
   const user = req.user;
@@ -71,7 +74,7 @@ router.put('/', requirePermission('update_settings'), async (req, res) => {
       req,
       action: 'NSSA_SETTINGS_UPDATED',
       resource: 'system_setting',
-      details: { employeeRate, employerRate, ceilingUSD },
+      details: { employeeRate, employerRate, ceilingUSD, wcifRate },
     });
 
     res.json({ message: 'NSSA settings updated' });
