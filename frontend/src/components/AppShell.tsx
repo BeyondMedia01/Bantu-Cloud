@@ -99,10 +99,11 @@ const AppShell: React.FC = () => {
     { to: '/shifts', label: 'Shifts & Roster', icon: <Clock size={18} /> },
     { to: '/attendance', label: 'Attendance', icon: <Cpu size={18} /> },
     { to: '/utilities', label: 'Utilities', icon: <Wrench size={18} /> },
+    { to: '/client-admin/structure', label: 'Company Structure', icon: <Building2 size={18} /> },
   ];
 
   const adminSectionLinks = (!isAdmin && !isEmployee) ? [
-    { to: '/client-admin/structure', label: 'Company Structure', icon: <Building2 size={18} /> },
+    { to: '/companies', label: 'Companies', icon: <Building2 size={18} /> },
     { to: '/client-admin/settings', label: 'Settings', icon: <Settings size={18} /> },
   ] : [];
 
@@ -135,7 +136,7 @@ const AppShell: React.FC = () => {
         className={`flex items-center border-b border-border shrink-0 py-5
           ${collapsed && !mobile ? 'justify-center px-0' : 'gap-3 px-5'}`}
       >
-        <div className="w-9 h-9 bg-btn-primary rounded-xl flex items-center justify-center text-navy font-bold text-lg shadow-lg shrink-0">B</div>
+        <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
         {(!collapsed || mobile) && <span className="text-lg font-bold tracking-tight">Bantu</span>}
       </Link>
 
@@ -288,7 +289,7 @@ const AppShell: React.FC = () => {
           <Menu size={20} />
         </button>
         <Link to={homeLink} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-btn-primary rounded-xl flex items-center justify-center text-navy font-bold text-base shadow">B</div>
+          <img src="/logo.svg" alt="Bantu" className="w-8 h-8" />
           <span className="font-bold tracking-tight">Bantu</span>
         </Link>
         <div className="w-10" />
