@@ -1679,9 +1679,65 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
     // Fetch per-TC breakdown saved during payroll processing
     const transactions = await prisma.payrollTransaction.findMany({
       where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
-      include: { transactionCode: { select: { code: true, name: true, type: true, preTax: true, incomeCategory: true } } },
+      include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true, incomeCategory: true } } },
       orderBy: { createdAt: 'asc' },
     });
+
+    // YTD Calculation: Fetch all completed runs for this employee in the current tax year
+    const yearStart = new Date(new Date(payslip.payrollRun.startDate).getFullYear(), 0, 1);
+    const historicalRuns = await prisma.payrollRun.findMany({
+      where: {
+        companyId: payslip.payrollRun.companyId,
+        status: 'COMPLETED',
+        startDate: { gte: yearStart, lte: payslip.payrollRun.startDate },
+        id: { not: payslip.payrollRunId } // exclude current run if it's already completed
+      },
+      select: { id: true }
+    });
+    const historicRunIds = historicalRuns.map(r => r.id);
+    
+    // Fetch historical transactions
+    const historicalTxs = await prisma.payrollTransaction.findMany({
+      where: {
+        employeeId: payslip.employeeId,
+        payrollRunId: { in: historicRunIds }
+      },
+      select: { transactionCodeId: true, amount: true }
+    });
+
+    // Fetch historical payslips for statutory totals
+    const historicalPayslips = await prisma.payslip.findMany({
+      where: {
+        employeeId: payslip.employeeId,
+        payrollRunId: { in: historicRunIds }
+      }
+    });
+
+    const ytdMap = {}; // Key: transactionCodeId, Value: sum
+    historicalTxs.forEach(tx => {
+      ytdMap[tx.transactionCodeId] = (ytdMap[tx.transactionCodeId] || 0) + tx.amount;
+    });
+
+    // Add current run transactions to YTD
+    transactions.forEach(tx => {
+      ytdMap[tx.transactionCodeId] = (ytdMap[tx.transactionCodeId] || 0) + tx.amount;
+    });
+
+    // Statutory YTDs (current + historical)
+    const ytdStat = {
+      paye: (historicalPayslips.reduce((sum, p) => sum + (p.paye || 0), 0) + (payslip.paye || 0)),
+      aidsLevy: (historicalPayslips.reduce((sum, p) => sum + (p.aidsLevy || 0), 0) + (payslip.aidsLevy || 0)),
+      nssaEmployee: (historicalPayslips.reduce((sum, p) => sum + (p.nssaEmployee || 0), 0) + (payslip.nssaEmployee || 0)),
+      nssaEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.nssaEmployer || 0), 0) + (payslip.nssaEmployer || 0)),
+      pensionApplied: (historicalPayslips.reduce((sum, p) => sum + (p.pensionApplied || 0), 0) + (payslip.pensionApplied || 0)),
+      zimdefEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.zimdefEmployer || 0), 0) + (payslip.zimdefEmployer || 0)),
+      sdfContribution: (historicalPayslips.reduce((sum, p) => sum + (p.sdfContribution || 0), 0) + (payslip.sdfContribution || 0)),
+      wcifEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.wcifEmployer || 0), 0) + (payslip.wcifEmployer || 0)),
+      necLevy: (historicalPayslips.reduce((sum, p) => sum + (p.necLevy || 0), 0) + (payslip.necLevy || 0)),
+      necEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.necEmployer || 0), 0) + (payslip.necEmployer || 0)),
+      basicSalary: (historicalPayslips.reduce((sum, p) => sum + (p.basicSalaryApplied || 0), 0) + (payslip.basicSalaryApplied || 0)),
+      gross: (historicalPayslips.reduce((sum, p) => sum + (p.gross || 0), 0) + (payslip.gross || 0)),
+    };
 
     // Build earnings lines: each TC earning/benefit separately
     const earningTxs = transactions.filter(
@@ -1691,31 +1747,6 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
     const deductionTxs = transactions.filter(
       (t) => t.transactionCode.type === 'DEDUCTION'
     );
-
-    // Identify specialized deductions for the payslip labels (Pension/Medical Aid)
-    let medicalAidAmt = 0;
-    let pensionAmt = 0;
-    const filteredOtherDeductions = [];
-
-    for (const t of deductionTxs) {
-      const tcn = t.transactionCode.name?.toLowerCase() || '';
-      const tcc = t.transactionCode.code?.toUpperCase() || '';
-      const isMed = t.transactionCode.incomeCategory === 'MEDICAL_AID' || /medical\s*aid|med\s*aid/i.test(tcn) || /MED_AID|MEDICAL_AID/i.test(tcc) || (tcn.includes('medical') && /^\d+$/.test(tcc));
-      const isPen = t.transactionCode.incomeCategory === 'PENSION';
-
-      if (isMed) {
-        medicalAidAmt += t.amount;
-      } else if (isPen) {
-        pensionAmt += t.amount;
-      } else {
-        filteredOtherDeductions.push({
-          code: t.transactionCode.code,
-          name: t.transactionCode.name,
-          amount: t.amount,
-          currency: t.currency,
-        });
-      }
-    }
 
     // Use stored effective basic (pro-rated for unpaid leave, NEC-bumped) if available;
     // fall back to employee's master rate for payslips processed before this field existed.
