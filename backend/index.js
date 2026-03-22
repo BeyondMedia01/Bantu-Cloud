@@ -150,6 +150,10 @@ const { runLeaveAccrual } = require('./jobs/leaveAccrual');
 // Run at 00:05 on the 1st of every month
 cron.schedule('5 0 1 * *', () => runLeaveAccrual());
 
+// ─── Auto-Boot Actions ────────────────────────────────────────────────────────
+const { autoSeedHolidays } = require('./utils/holidays');
+autoSeedHolidays();
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 if (require.main === module) {
