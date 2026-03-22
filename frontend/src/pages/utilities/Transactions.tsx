@@ -42,6 +42,7 @@ const EMPTY_FORM = {
   affectsPaye: true, affectsNssa: true, affectsAidsLevy: true,
   calculationType: 'fixed', defaultValue: '', formula: '',
   isActive: true,
+  incomeCategory: null as string | null,
 };
 
 function livePreview(form: typeof EMPTY_FORM, sampleSalary = 1000): string {
@@ -88,6 +89,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
           defaultValue: editData.defaultValue != null ? String(editData.defaultValue) : '',
           formula: editData.formula || '',
           isActive: editData.isActive ?? true,
+          incomeCategory: editData.incomeCategory || null,
         }
       : { ...EMPTY_FORM }
   );
@@ -270,6 +272,28 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
               {checkRow('Pensionable', 'pensionable', 'Included in NSSA/pension contribution basis')}
               {form.type === 'DEDUCTION' &&
                 checkRow('Pre-Tax Deduction', 'preTax', 'Deducted from gross before PAYE is calculated (e.g. approved pension schemes)')}
+
+              <div className="mt-4">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Formal Tax Rule (ZIMRA)</label>
+                <select 
+                  value={form.incomeCategory || ''} 
+                  onChange={e => setForm(p => ({ ...p, incomeCategory: e.target.value || null }))}
+                  className={fieldClass}
+                >
+                  <option value="">None / Standard</option>
+                  <option value="BASIC_SALARY">Basic Salary</option>
+                  <option value="BONUS">Bonus</option>
+                  <option value="PENSION">Pension (Exempt)</option>
+                  <option value="MEDICAL_AID">Medical Aid (50% Tax Credit)</option>
+                  <option value="ALLOWANCE">Allowance</option>
+                  <option value="OVERTIME">Overtime</option>
+                  <option value="COMMISSION">Commission</option>
+                  <option value="BENEFIT">Benefit</option>
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Use "Medical Aid" to ensure the 50% tax credit is applied automatically.
+                </p>
+              </div>
             </div>
           )}
 
