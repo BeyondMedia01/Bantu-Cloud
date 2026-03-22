@@ -56,6 +56,19 @@ body {
   }
 }
 
+/* Horizontal scroll shadow — shows fade indicators when content overflows */
+.scroll-x-shadow {
+  background-image:
+    linear-gradient(to right, white 0%, transparent 100%),
+    linear-gradient(to left, white 0%, transparent 100%),
+    radial-gradient(ellipse 80% 50% at left, rgba(0, 0, 0, 0.07), transparent),
+    radial-gradient(ellipse 80% 50% at right, rgba(0, 0, 0, 0.07), transparent);
+  background-position: left, right, left, right;
+  background-repeat: no-repeat;
+  background-size: 24px 100%, 24px 100%, 16px 100%, 16px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
 /* Custom Styles for Glassmorphism and Charts */
 .glass-morphism {
   background: rgba(255, 255, 255, 0.8);

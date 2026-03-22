@@ -7,7 +7,7 @@ import {
   ClipboardList, Clock, Cpu, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
 import { getUser, logout } from '../lib/auth';
-import { CompanyAPI } from '../api/client';
+import { CompanyAPI, UserAPI } from '../api/client';
 import { setActiveCompanyId } from '../lib/companyContext';
 import { useIdleTimer } from '../hooks/useIdleTimer';
 import IdleTimerModal from './common/IdleTimerModal';
@@ -25,6 +25,7 @@ const AppShell: React.FC = () => {
 
   const [companies, setCompanies] = useState<any[]>([]);
   const [activeCompany, setActiveCompany] = useState<any>(null);
+  const [liveUserName, setLiveUserName] = useState<string | null>(null);
   const [companyDropdown, setCompanyDropdown] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() =>
@@ -56,6 +57,11 @@ const AppShell: React.FC = () => {
   };
 
   useEffect(loadCompanies, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch live user name so the sidebar stays current after profile updates
+  useEffect(() => {
+    UserAPI.me().then((res) => setLiveUserName(res.data.name || null)).catch(() => {});
+  }, []);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   const handleLogout = () => {
@@ -71,7 +77,8 @@ const AppShell: React.FC = () => {
     setActiveCompany(company);
     setActiveCompanyId(company.id);
     setCompanyDropdown(false);
-    window.location.reload();
+    window.dispatchEvent(new Event('activeCompanyChanged'));
+    navigate(homeLink);
   };
 
   const isAdmin = user?.role === 'PLATFORM_ADMIN';
@@ -236,7 +243,7 @@ const AppShell: React.FC = () => {
             <Link to="/profile" title={user?.name || 'Profile'} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-border hover:bg-slate-200 transition-colors">
               <User size={15} className="text-slate-400" />
             </Link>
-            <button onClick={handleLogout} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400" title="Sign out">
+            <button onClick={handleLogout} aria-label="Sign out" className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400" title="Sign out">
               <LogOut size={16} />
             </button>
           </div>
@@ -247,11 +254,11 @@ const AppShell: React.FC = () => {
                 <User size={15} className="text-slate-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold leading-none truncate">{user?.name || 'User'}</p>
+                <p className="text-xs font-bold leading-none truncate">{liveUserName || user?.name || 'User'}</p>
                 <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">{user?.role?.replace(/_/g, ' ')}</p>
               </div>
             </Link>
-            <button onClick={handleLogout} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 shrink-0" title="Sign out">
+            <button onClick={handleLogout} aria-label="Sign out" className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 shrink-0" title="Sign out">
               <LogOut size={16} />
             </button>
           </div>
@@ -285,7 +292,7 @@ const AppShell: React.FC = () => {
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-primary border-b border-border z-30 flex items-center justify-between px-4">
-        <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-slate-100 rounded-xl">
+        <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-2 hover:bg-slate-100 rounded-xl">
           <Menu size={20} />
         </button>
         <Link to={homeLink} className="flex items-center gap-2">
