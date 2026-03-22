@@ -413,18 +413,26 @@ const EmployeeNew: React.FC = () => {
             <Field label="Tax Directive Amount">
               <input type="number" step="0.01" min="0" value={form.taxDirectiveAmt} onChange={set('taxDirectiveAmt')} placeholder="0.00" />
             </Field>
-            <Field label="Tax Method" required>
-              <select required value={form.taxMethod} onChange={set('taxMethod')}>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Tax Method<span className="text-red-400 ml-1">*</span>
+              </label>
+              <select
+                required
+                value={form.taxMethod}
+                onChange={set('taxMethod')}
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium text-sm"
+              >
                 <option value="NON_FDS">Non-FDS</option>
                 <option value="FDS_AVERAGE">FDS Average</option>
                 <option value="FDS_FORECASTING">FDS Forecasting</option>
               </select>
-              <p className="text-[10px] text-slate-400 mt-1 leading-snug">
-                {form.taxMethod === 'NON_FDS' && 'Standard PAYE — tax calculated monthly on current earnings.'}
-                {form.taxMethod === 'FDS_AVERAGE' && 'Fixed-date scheme using average of year-to-date earnings.'}
-                {form.taxMethod === 'FDS_FORECASTING' && 'Fixed-date scheme projecting annual income from current pay.'}
+              <p className="text-[10px] text-slate-400 leading-snug">
+                {form.taxMethod === 'NON_FDS' && 'Standard PAYE — tax calculated monthly.'}
+                {form.taxMethod === 'FDS_AVERAGE' && 'Fixed-date scheme (YTD average).'}
+                {form.taxMethod === 'FDS_FORECASTING' && 'Fixed-date scheme (Annual projection).'}
               </p>
-            </Field>
+            </div>
             <Field label="Tax Table" required>
               <select required value={form.taxTable} onChange={set('taxTable')}>
                 <option value="">— Select tax table —</option>

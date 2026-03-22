@@ -7,7 +7,7 @@ import { useToast } from '../../context/ToastContext';
 
 interface EmployeeTableProps {
   employees: Employee[];
-  onDelete: (id: string) => void;
+  onDelete: (id: string, name: string) => void;
 }
 
 const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) => {
@@ -105,7 +105,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) =>
                       <Edit size={16} />
                     </button>
                     <button
-                      onClick={() => onDelete(emp.id)}
+                      onClick={() => onDelete(emp.id, `${emp.firstName} ${emp.lastName}`)}
                       className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
                       title="Delete"
                     >
