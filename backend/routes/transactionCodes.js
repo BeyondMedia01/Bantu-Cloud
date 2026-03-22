@@ -14,6 +14,7 @@ function pickTcFields(body) {
     taxable, pensionable, preTax,
     calculationType, defaultValue, formula,
     affectsPaye, affectsNssa, affectsAidsLevy,
+    incomeCategory,
     isActive,
   } = body;
   return {
@@ -29,6 +30,7 @@ function pickTcFields(body) {
     ...(affectsPaye !== undefined && { affectsPaye: Boolean(affectsPaye) }),
     ...(affectsNssa !== undefined && { affectsNssa: Boolean(affectsNssa) }),
     ...(affectsAidsLevy !== undefined && { affectsAidsLevy: Boolean(affectsAidsLevy) }),
+    ...(incomeCategory !== undefined && { incomeCategory: incomeCategory || null }),
     ...(isActive !== undefined && { isActive: Boolean(isActive) }),
   };
 }

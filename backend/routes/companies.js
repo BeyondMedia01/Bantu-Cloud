@@ -37,7 +37,12 @@ router.post('/', requirePermission('manage_companies'), async (req, res) => {
     if (!clientId) return res.status(400).json({ message: 'Client not found for user' });
 
     const company = await prisma.company.create({
-      data: { clientId, name, registrationNumber, taxId, address, contactEmail, contactPhone },
+      data: {
+        clientId, name, registrationNumber, taxId, address, contactEmail, contactPhone,
+        ...(req.body.wcifRate !== undefined && { wcifRate: req.body.wcifRate === null ? null : parseFloat(req.body.wcifRate) }),
+        ...(req.body.sdfRate  !== undefined && { sdfRate:  req.body.sdfRate  === null ? null : parseFloat(req.body.sdfRate) }),
+        ...(req.body.zimdefRate !== undefined && { zimdefRate: req.body.zimdefRate === null ? null : parseFloat(req.body.zimdefRate) }),
+      },
     });
     res.status(201).json(company);
   } catch (error) {
@@ -88,6 +93,7 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
         name, registrationNumber, taxId, address, contactEmail, contactPhone,
         ...(wcifRate !== undefined && { wcifRate: wcifRate === null ? null : parseFloat(wcifRate) }),
         ...(sdfRate  !== undefined && { sdfRate:  sdfRate  === null ? null : parseFloat(sdfRate) }),
+        ...(req.body.zimdefRate !== undefined && { zimdefRate: req.body.zimdefRate === null ? null : parseFloat(req.body.zimdefRate) }),
       },
     });
     res.json(updated);

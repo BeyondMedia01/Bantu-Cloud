@@ -83,6 +83,7 @@ enum IncomeCategory {
   COMMISSION
   BENEFIT
   PENSION
+  MEDICAL_AID
 }
 
 enum LeaveStatus {
@@ -196,6 +197,7 @@ model Company {
   // Industry-specific statutory rates — override global SystemSettings when set
   wcifRate           Float?       // Workers Compensation Insurance Fund rate for this company's industry
   sdfRate            Float?       // Standard Development Fund / Manpower Training Levy rate
+  zimdefRate         Float?       // Zimbabwe Manpower Development Fund rate
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   client             Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)

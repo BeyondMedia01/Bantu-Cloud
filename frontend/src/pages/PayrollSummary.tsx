@@ -40,6 +40,11 @@ const PayrollSummary: React.FC = () => {
       net: payslips.reduce((s, p) => s + (p.netPay ?? 0), 0),
       netUSD: payslips.reduce((s, p) => s + (p.netPayUSD ?? p.netPay ?? 0), 0),
       netZIG: payslips.reduce((s, p) => s + (p.netPayZIG ?? 0), 0),
+      nssaR: payslips.reduce((s, p) => s + (p.nssaEmployer ?? 0), 0),
+      wcif:  payslips.reduce((s, p) => s + (p.wcifEmployer ?? 0), 0),
+      sdf:   payslips.reduce((s, p) => s + (p.sdfContribution ?? 0), 0),
+      zimdef: payslips.reduce((s, p) => s + (p.zimdefEmployer ?? 0), 0),
+      necR:  payslips.reduce((s, p) => s + (p.necEmployer ?? 0), 0),
     };
   }, [payslips]);
 
@@ -289,6 +294,7 @@ const PayrollSummary: React.FC = () => {
                   'Total Deductions',
                   isDual ? 'Net Pay (USD)' : 'Net Pay',
                   ...(isDual ? ['Net Pay (ZiG)'] : []),
+                  'NSSA Empr', 'WCIF', 'SDF', 'ZIMDEF', 'NEC Empr'
                 ].map((h) => (
                   <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     {h}
@@ -320,6 +326,11 @@ const PayrollSummary: React.FC = () => {
                     <td className="px-4 py-3 text-sm text-red-500 font-bold">{fmt(totalDed)}</td>
                     <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(isDual ? netUSD : p.netPay)}</td>
                     {isDual && <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(p.netPayZIG)}</td>}
+                    <td className="px-4 py-3 text-sm text-blue-500 font-medium">{fmt(p.nssaEmployer)}</td>
+                    <td className="px-4 py-3 text-sm text-blue-500 font-medium">{fmt(p.wcifEmployer)}</td>
+                    <td className="px-4 py-3 text-sm text-blue-500 font-medium">{fmt(p.sdfContribution)}</td>
+                    <td className="px-4 py-3 text-sm text-blue-500 font-medium">{fmt(p.zimdefEmployer)}</td>
+                    <td className="px-4 py-3 text-sm text-blue-500 font-medium">{fmt(p.necEmployer)}</td>
                   </tr>
                 );
               })}
@@ -339,6 +350,11 @@ const PayrollSummary: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-red-500">{fmt(totals.paye + totals.nssa + totals.aidsLevy + totals.loans)}</td>
                   <td className="px-4 py-3 text-sm text-emerald-600">{fmt(isDual ? totals.netUSD : totals.net)}</td>
                   {isDual && <td className="px-4 py-3 text-sm text-emerald-600">{fmt(totals.netZIG)}</td>}
+                  <td className="px-4 py-3 text-sm text-blue-500">{fmt(totals.nssaR)}</td>
+                  <td className="px-4 py-3 text-sm text-blue-500">{fmt(totals.wcif)}</td>
+                  <td className="px-4 py-3 text-sm text-blue-500">{fmt(totals.sdf)}</td>
+                  <td className="px-4 py-3 text-sm text-blue-500">{fmt(totals.zimdef)}</td>
+                  <td className="px-4 py-3 text-sm text-blue-500">{fmt(totals.necR)}</td>
                 </tr>
               </tfoot>
             )}

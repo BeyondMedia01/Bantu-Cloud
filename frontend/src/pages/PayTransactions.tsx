@@ -16,6 +16,7 @@ const emptyForm = {
   affectsPaye: true,
   affectsNssa: true,
   isActive: true,
+  incomeCategory: null,
 };
 
 const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
@@ -56,6 +57,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
       affectsPaye: tc.affectsPaye ?? true,
       affectsNssa: tc.affectsNssa ?? true,
       isActive: tc.isActive ?? true,
+      incomeCategory: tc.incomeCategory ?? null,
     });
     setError('');
     setModal({ mode: 'edit', tc });
@@ -287,6 +289,26 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                     placeholder="0.00"
                   />
                 </div>
+              </div>
+
+              {/* Income Category (Tax Rule) */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tax Rule / Category</label>
+                <select
+                  className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-blue"
+                  value={form.incomeCategory || ''}
+                  onChange={e => setForm((f: any) => ({ ...f, incomeCategory: e.target.value || null }))}
+                >
+                  <option value="">None / Standard</option>
+                  <option value="BASIC_SALARY">Basic Salary</option>
+                  <option value="BONUS">Bonus</option>
+                  <option value="PENSION">Pension (Exempt)</option>
+                  <option value="MEDICAL_AID">Medical Aid (50% Tax Credit)</option>
+                  <option value="ALLOWANCE">Allowance</option>
+                  <option value="OVERTIME">Overtime</option>
+                  <option value="COMMISSION">Commission</option>
+                  <option value="BENEFIT">Benefit</option>
+                </select>
               </div>
 
               {/* Checkboxes */}

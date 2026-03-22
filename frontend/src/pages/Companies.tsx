@@ -40,6 +40,7 @@ const Companies: React.FC = () => {
   const [newAddress, setNewAddress] = useState('');
   const [newWcif, setNewWcif] = useState('');
   const [newSdf, setNewSdf] = useState('');
+  const [newZimdef, setNewZimdef] = useState('');
 
   // Edit form state
   const [editForm, setEditForm] = useState<any>({});
@@ -64,8 +65,9 @@ const Companies: React.FC = () => {
         address: newAddress,
         wcifRate: newWcif !== '' ? parseFloat(newWcif) / 100 : null,
         sdfRate:  newSdf  !== '' ? parseFloat(newSdf)  / 100 : null,
+        zimdefRate: newZimdef !== '' ? parseFloat(newZimdef) / 100 : null,
       });
-      setNewName(''); setNewBp(''); setNewAddress(''); setNewWcif(''); setNewSdf('');
+      setNewName(''); setNewBp(''); setNewAddress(''); setNewWcif(''); setNewSdf(''); setNewZimdef('');
       setIsAdding(false);
       fetchCompanies();
       showToast('New company entity created successfully', 'success');
@@ -85,6 +87,7 @@ const Companies: React.FC = () => {
       contactPhone: company.contactPhone || '',
       wcifRate: company.wcifRate != null ? String(parseFloat((company.wcifRate * 100).toFixed(4))) : '',
       sdfRate:  company.sdfRate  != null ? String(parseFloat((company.sdfRate  * 100).toFixed(4))) : '',
+      zimdefRate: company.zimdefRate != null ? String(parseFloat((company.zimdefRate * 100).toFixed(4))) : '',
     });
   };
 
@@ -99,6 +102,7 @@ const Companies: React.FC = () => {
         contactPhone: editForm.contactPhone || null,
         wcifRate: editForm.wcifRate !== '' ? parseFloat(editForm.wcifRate) / 100 : null,
         sdfRate:  editForm.sdfRate  !== '' ? parseFloat(editForm.sdfRate)  / 100 : null,
+        zimdefRate: editForm.zimdefRate !== '' ? parseFloat(editForm.zimdefRate) / 100 : null,
       });
       setEditingId(null);
       fetchCompanies();
@@ -165,6 +169,7 @@ const Companies: React.FC = () => {
               <div className="grid grid-cols-2 gap-6">
                 {rateInput('WCIF Rate (%)', newWcif, setNewWcif, 'Workers Compensation — overrides global setting')}
                 {rateInput('SDF Rate (%)', newSdf, setNewSdf, 'Standard Development Fund — overrides global setting')}
+                {rateInput('ZIMDEF Rate (%)', newZimdef, setNewZimdef, 'ZIMDEF Levy — overrides global setting')}
               </div>
             </div>
             <div className="md:col-span-2 flex items-center justify-end gap-3 mt-2">
@@ -222,6 +227,14 @@ const Companies: React.FC = () => {
                         <Percent size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       </div>
                     </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ZIMDEF Rate (%)</label>
+                      <div className="relative mt-1">
+                        <input className={inputCls + ' pr-8'} type="number" min="0" max="100" step="0.01"
+                          placeholder="0.00" value={editForm.zimdefRate} onChange={ef('zimdefRate')} />
+                        <Percent size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex gap-2 mt-1">
@@ -265,6 +278,11 @@ const Companies: React.FC = () => {
                           {company.sdfRate != null && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 border border-purple-100">
                               SDF {(company.sdfRate * 100).toFixed(2)}%
+                            </span>
+                          )}
+                          {company.zimdefRate != null && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100">
+                              ZIMDEF {(company.zimdefRate * 100).toFixed(2)}%
                             </span>
                           )}
                         </div>

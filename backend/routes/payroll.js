@@ -716,9 +716,12 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         const tcName = tc.name || '';
         const tcCode = tc.code || '';
         const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
-                             (/medical\s*aid|med\s*aid/i.test(tcName) ||
+                             (tc.incomeCategory === 'MEDICAL_AID' ||
+                              /medical\s*aid|med\s*aid/i.test(tcName) ||
                               /MED_AID|MEDICAL_AID/i.test(tcCode) ||
                               (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
+
+        const isPension = tc.type === 'DEDUCTION' && (tc.incomeCategory === 'PENSION' || tc.preTax === true);
 
         if (run.dualCurrency) {
           if (isEarning) {
@@ -1639,8 +1642,8 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
     for (const t of deductionTxs) {
       const tcn = t.transactionCode.name?.toLowerCase() || '';
       const tcc = t.transactionCode.code?.toUpperCase() || '';
-      const isMed = /medical\s*aid|med\s*aid/i.test(tcn) || /MED_AID|MEDICAL_AID/i.test(tcc) || (tcn.includes('medical') && /^\d+$/.test(tcc));
-      const isPen = t.transactionCode.preTax === true;
+      const isMed = t.transactionCode.incomeCategory === 'MEDICAL_AID' || /medical\s*aid|med\s*aid/i.test(tcn) || /MED_AID|MEDICAL_AID/i.test(tcc) || (tcn.includes('medical') && /^\d+$/.test(tcc));
+      const isPen = t.transactionCode.incomeCategory === 'PENSION' || t.transactionCode.preTax === true;
 
       if (isMed) {
         medicalAidAmt += t.amount;

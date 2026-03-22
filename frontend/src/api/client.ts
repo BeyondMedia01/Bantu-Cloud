@@ -143,6 +143,7 @@ export interface Company {
   contactPhone?: string;
   wcifRate?: number | null;
   sdfRate?: number | null;
+  zimdefRate?: number | null;
   createdAt: string;
   updatedAt: string;
 }
