@@ -296,7 +296,7 @@ router.get('/summary', requirePermission('view_reports'), async (req, res) => {
     const companyWhere = req.companyId ? { companyId: req.companyId } : (req.clientId ? { clientId: req.clientId } : {});
     const runWhere = req.companyId ? { companyId: req.companyId } : (req.clientId ? { company: { clientId: req.clientId } } : {});
 
-    const [employeeCount, lastRun, pendingLeave, activeLoans, currentRun, noTinCount, noBankCount] = await Promise.all([
+    let [employeeCount, lastRun, pendingLeave, activeLoans, currentRun, noTinCount, noBankCount] = await Promise.all([
       prisma.employee.count({ where: companyWhere }),
       prisma.payrollRun.findFirst({ where: { ...runWhere, status: 'COMPLETED' }, orderBy: { runDate: 'desc' } }),
       prisma.leaveRequest.count({ where: { status: 'PENDING', ...(req.companyId ? { employee: { companyId: req.companyId } } : (req.clientId ? { employee: { clientId: req.clientId } } : {})) } }),
@@ -304,7 +304,7 @@ router.get('/summary', requirePermission('view_reports'), async (req, res) => {
       prisma.payrollRun.findFirst({
         where: { ...runWhere, status: { notIn: ['COMPLETED', 'ERROR'] } },
         orderBy: { runDate: 'desc' },
-        select: { id: true, name: true, status: true, runDate: true, currency: true },
+        select: { id: true, status: true, runDate: true, startDate: true, endDate: true, currency: true },
       }),
       prisma.employee.count({
         where: { ...companyWhere, dischargeDate: null, OR: [{ tin: null }, { tin: '' }] },
@@ -313,6 +313,14 @@ router.get('/summary', requirePermission('view_reports'), async (req, res) => {
         where: { ...companyWhere, dischargeDate: null, paymentMethod: 'BANK', OR: [{ accountNumber: null }, { accountNumber: '' }] },
       }),
     ]);
+
+    if (currentRun) {
+      const getFormattedDate = (d) => {
+        const date = new Date(d);
+        return `${date.getDate().toString().padStart(2, '0')} ${date.toLocaleString('en-GB', { month: 'short' })} ${date.getFullYear()}`;
+      };
+      currentRun.name = `${getFormattedDate(currentRun.startDate)} - ${getFormattedDate(currentRun.endDate)}`;
+    }
 
     res.json({ employeeCount, lastRun, pendingLeave, activeLoans, currentRun, noTinCount, noBankCount });
   } catch (error) {
