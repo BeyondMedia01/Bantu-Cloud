@@ -90,6 +90,18 @@ async function main() {
       affectsNssa: true,
       affectsAidsLevy: true,
     },
+    {
+      code: '201',
+      name: 'Shortime of days/hours not worked',
+      type: 'DEDUCTION',
+      incomeCategory: 'BASIC_SALARY',
+      taxable: true,
+      pensionable: true,
+      preTax: true,
+      affectsPaye: true,
+      affectsNssa: true,
+      affectsAidsLevy: true,
+    },
   ];
 
   for (const tc of transactionCodes) {

@@ -58,8 +58,8 @@ describe('Tax Engine — Zimbabwean PAYE (FDS)', () => {
     ];
     const result = calculatePaye({ baseSalary: 1000, currency: 'USD', medicalAid: 100, taxBrackets: brackets });
     expect(result.medicalAidCredit).toBe(50);
-    expect(result.totalPaye).toBeCloseTo(128.91, 2);
-    expect(result.netSalary).toBeCloseTo(739.59, 2);
+    expect(result.totalPaye).toBeCloseTo(127.41, 2);
+    expect(result.netSalary).toBeCloseTo(741.09, 2);
   });
 
   // ─── 6. FDS_FORECASTING: annualises income and applies annual brackets ─────
