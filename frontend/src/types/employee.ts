@@ -14,7 +14,10 @@ export interface Employee {
   lastName: string;
   maidenName?: string | null;
   nationality?: string | null;
-  idPassport?: string | null;
+  nationalId?: string | null;
+  passportNumber?: string | null;
+  email?: string | null;
+  phone?: string | null;
   dateOfBirth?: string | Date | null;
   gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
   maritalStatus?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED' | null;

@@ -274,9 +274,12 @@ model Employee {
   gender           Gender?
   maritalStatus    MaritalStatus?
   nationality      String?
-  idPassport       String?
+  nationalId       String?
+  passportNumber   String?
   socialSecurityNum String?
   pensionNumber     String?
+  email            String?
+  phone            String?
   homeAddress      String?
   postalAddress    String?
   nextOfKin        String?

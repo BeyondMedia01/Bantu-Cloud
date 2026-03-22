@@ -25,6 +25,11 @@ const ZIMBABWE_BANKS = [
   'ZB Bank',
 ];
 
+const AFRICAN_NATIONALITIES = [
+  'Zimbabwean', 'South African', 'Zambian', 'Botswana', 'Malawian',
+  'Mozambican', 'Namibian', 'Kenyan', 'Nigerian', 'Ghanaian', 'Other'
+];
+
 const TITLES = ['Mr', 'Mrs', 'Miss', 'Ms', 'Dr', 'Prof', 'Rev'];
 
 const EmployeeEdit: React.FC = () => {
@@ -42,7 +47,7 @@ const EmployeeEdit: React.FC = () => {
   const [form, setForm] = useState<Record<string, any>>({
     // Personal
     employeeCode: '', title: '', firstName: '', lastName: '', maidenName: '',
-    nationality: '', idPassport: '', dateOfBirth: '', gender: '', maritalStatus: '',
+    nationality: 'Zimbabwean', nationalId: '', passportNumber: '', email: '', phone: '', dateOfBirth: '', gender: '', maritalStatus: '',
     homeAddress: '', postalAddress: '',
     nextOfKinName: '', nextOfKinContact: '', socialSecurityNum: '', pensionNumber: '',
     // Work
@@ -106,8 +111,11 @@ const EmployeeEdit: React.FC = () => {
         firstName:          e.firstName || '',
         lastName:           e.lastName || '',
         maidenName:         e.maidenName || '',
-        nationality:        e.nationality || '',
-        idPassport:         e.idPassport || '',
+        nationality:        e.nationality || 'Zimbabwean',
+        nationalId:         e.nationalId || '',
+        passportNumber:     e.passportNumber || '',
+        email:              e.email || '',
+        phone:              e.phone || '',
         dateOfBirth:        d(e.dateOfBirth),
         gender:             e.gender || '',
         maritalStatus:      e.maritalStatus || '',
@@ -378,10 +386,29 @@ const EmployeeEdit: React.FC = () => {
               <input value={form.maidenName} onChange={set('maidenName')} />
             </Field>
             <Field label="Nationality" required>
-              <input required value={form.nationality} onChange={set('nationality')} />
+              <select required value={form.nationality || 'Zimbabwean'} onChange={set('nationality')}>
+                <option value="">— Select —</option>
+                {AFRICAN_NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
             </Field>
-            <Field label="ID / Passport Number" required>
-              <input required value={form.idPassport} onChange={set('idPassport')} />
+            <Field label="National ID" required={form.nationality === 'Zimbabwean'}>
+              <input 
+                required={form.nationality === 'Zimbabwean'} 
+                value={form.nationalId} 
+                onChange={set('nationalId')} 
+                placeholder={form.nationality === 'Zimbabwean' ? "e.g. 63-123456A78" : "National ID"}
+                pattern={form.nationality === 'Zimbabwean' ? "^[0-9]{2}-?[0-9]{6,7}\\s?[A-Za-z]\\s?[0-9]{2}$" : undefined}
+                title={form.nationality === 'Zimbabwean' ? "Format: 63-123456A78" : undefined}
+              />
+            </Field>
+            <Field label="Passport Number">
+              <input value={form.passportNumber} onChange={set('passportNumber')} placeholder="Passport Number" />
+            </Field>
+            <Field label="Email Address">
+              <input type="email" value={form.email} onChange={set('email')} placeholder="e.g. john@example.com" />
+            </Field>
+            <Field label="Phone Number">
+              <input type="tel" value={form.phone} onChange={set('phone')} placeholder="e.g. 0771234567" />
             </Field>
             <Field label="Date of Birth" required>
               <input required type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} />
@@ -572,6 +599,8 @@ const EmployeeEdit: React.FC = () => {
                         onChange={(e) => handleAccountChange(index, 'accountNumber', e.target.value)}
                         className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
                         placeholder="000000000"
+                        pattern="^\d+$"
+                        title="Account number must contain only digits"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">

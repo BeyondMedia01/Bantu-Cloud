@@ -22,7 +22,10 @@ const IMPORT_COLUMNS = [
   { header: 'Last Name *',                key: 'lastName' },
   { header: 'Maiden Name',                key: 'maidenName' },
   { header: 'Nationality *',              key: 'nationality' },
-  { header: 'ID/Passport Number *',       key: 'idPassport' },
+  { header: 'National ID *',              key: 'nationalId',        hint: 'e.g. 63-123456A78' },
+  { header: 'Passport Number',            key: 'passportNumber' },
+  { header: 'Email',                      key: 'email' },
+  { header: 'Phone',                      key: 'phone' },
   { header: 'Date of Birth *',            key: 'dateOfBirth',       hint: 'YYYY-MM-DD' },
   { header: 'Gender *',                   key: 'gender',            hint: 'MALE/FEMALE/OTHER' },
   { header: 'Marital Status *',           key: 'maritalStatus',     hint: 'SINGLE/MARRIED/DIVORCED/WIDOWED' },
@@ -85,7 +88,10 @@ const pickEmployeeFields = (body) => ({
   lastName:          body.lastName,
   maidenName:        body.maidenName,
   nationality:       body.nationality,
-  idPassport:        body.idPassport,
+  nationalId:        body.nationalId,
+  passportNumber:    body.passportNumber,
+  email:             body.email,
+  phone:             body.phone,
   socialSecurityNum: body.socialSecurityNum,
   dateOfBirth:       body.dateOfBirth ? new Date(body.dateOfBirth) : undefined,
   gender:            body.gender || undefined,
@@ -171,7 +177,8 @@ router.get('/', async (req, res) => {
           { firstName: { contains: search, mode: 'insensitive' } },
           { lastName: { contains: search, mode: 'insensitive' } },
           { employeeCode: { contains: search, mode: 'insensitive' } },
-          { idPassport: { contains: search, mode: 'insensitive' } },
+          { nationalId: { contains: search, mode: 'insensitive' } },
+          { passportNumber: { contains: search, mode: 'insensitive' } },
         ],
       }),
     };
@@ -208,6 +215,20 @@ router.post('/', requirePermission('manage_employees'), async (req, res) => {
 
   if (req.body.tin && !isValidTin(req.body.tin)) {
     return res.status(400).json({ message: 'TIN must be 10 digits (legacy) or 10–15 alphanumeric characters (new ZIMRA format)' });
+  }
+
+  if (req.body.nationality === 'Zimbabwean' && req.body.nationalId) {
+    if (!/^\d{2}-?\d{6,7}\s?[A-Z]\s?\d{2}$/i.test(req.body.nationalId)) {
+      return res.status(400).json({ message: 'Invalid Zimbabwe National ID format. Example: 63-123456A78' });
+    }
+  }
+
+  if (req.body.bankAccounts && req.body.bankAccounts.length > 0) {
+    for (const acc of req.body.bankAccounts) {
+      if (!/^\d+$/.test(acc.accountNumber)) {
+        return res.status(400).json({ message: 'Bank account number must contain only digits.' });
+      }
+    }
   }
 
   try {
@@ -297,7 +318,7 @@ router.get('/import/template', (req, res) => {
   const format = (req.query.format || 'csv').toLowerCase();
   const headers = IMPORT_COLUMNS.map((c) => c.header);
   const sample = [
-    'EMP001', 'Mr', 'John', 'Doe', '', 'Zimbabwean', '63-123456A78',
+    'EMP001', 'Mr', 'John', 'Doe', '', 'Zimbabwean', '63-123456A78', '', 'john@demo.com', '0771234567',
     '1985-03-15', 'MALE', 'MARRIED', '1 Main St Harare', '',
     'Jane Doe', '0771234567', '3001234567', '2024-01-01',
     'Software Engineer', 'Developer', 'Engineering', 'Main Branch',
@@ -395,7 +416,10 @@ router.post('/import', requirePermission('manage_employees'), upload.single('fil
         lastName:           get(row, 'Last Name'),
         maidenName:         get(row, 'Maiden Name'),
         nationality:        get(row, 'Nationality'),
-        idPassport:         get(row, 'ID/Passport Number'),
+        nationalId:         get(row, 'National ID'),
+        passportNumber:     get(row, 'Passport Number'),
+        email:              get(row, 'Email'),
+        phone:              get(row, 'Phone'),
         dateOfBirth:        get(row, 'Date of Birth'),
         gender:             get(row, 'Gender'),
         maritalStatus:      get(row, 'Marital Status'),
@@ -647,6 +671,20 @@ router.put('/:id', requirePermission('manage_employees'), async (req, res) => {
 
   if (req.body.tin && !isValidTin(req.body.tin)) {
     return res.status(400).json({ message: 'TIN must be 10 digits (legacy) or 10–15 alphanumeric characters (new ZIMRA format)' });
+  }
+
+  if (req.body.nationality === 'Zimbabwean' && req.body.nationalId) {
+    if (!/^\d{2}-?\d{6,7}\s?[A-Z]\s?\d{2}$/i.test(req.body.nationalId)) {
+      return res.status(400).json({ message: 'Invalid Zimbabwe National ID format. Example: 63-123456A78' });
+    }
+  }
+
+  if (req.body.bankAccounts && req.body.bankAccounts.length > 0) {
+    for (const acc of req.body.bankAccounts) {
+      if (!/^\d+$/.test(acc.accountNumber)) {
+        return res.status(400).json({ message: 'Bank account number must contain only digits.' });
+      }
+    }
   }
 
   try {
