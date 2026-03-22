@@ -6,6 +6,8 @@ import NewTaxTableModal from '../components/tax/NewTaxTableModal';
 
 const EMPTY_ROW = { lowerBound: '', upperBound: '', rate: '', fixedAmount: '' };
 
+type PendingRow = { lowerBound: string; upperBound: string; rate: string; fixedAmount: string; error: string; saving: boolean };
+
 const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
   const [tables, setTables]               = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
@@ -14,11 +16,8 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen]       = useState(false);
 
-  // Add row
-  const [addingRow, setAddingRow] = useState(false);
-  const [newRow, setNewRow]       = useState({ ...EMPTY_ROW });
-  const [addError, setAddError]   = useState('');
-  const [addSaving, setAddSaving] = useState(false);
+  // Multiple pending add rows
+  const [pendingRows, setPendingRows] = useState<PendingRow[]>([]);
 
   // Inline edit
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -90,27 +89,38 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
     }
   };
 
-  const handleAddBracket = async () => {
+  const addPendingRow = () => {
+    setPendingRows(prev => [...prev, { lowerBound: '', upperBound: '', rate: '', fixedAmount: '', error: '', saving: false }]);
+    setEditingId(null);
+  };
+
+  const updatePending = (idx: number, key: string, val: string) => {
+    setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, [key]: val } : r));
+  };
+
+  const removePending = (idx: number) => {
+    setPendingRows(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleSavePending = async (idx: number) => {
     if (!activeTableId) return;
-    if (newRow.lowerBound === '' || newRow.rate === '') {
-      setAddError('Lower bound and rate are required.'); return;
+    const row = pendingRows[idx];
+    if (row.lowerBound === '' || row.rate === '') {
+      setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, error: 'Lower bound and rate are required.' } : r));
+      return;
     }
-    setAddSaving(true);
-    setAddError('');
+    setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, saving: true, error: '' } : r));
     try {
       const created = await TaxTableAPI.createBracket(activeTableId, {
-        lowerBound:  parseFloat(newRow.lowerBound),
-        upperBound:  newRow.upperBound !== '' ? parseFloat(newRow.upperBound) : null,
-        rate:        parseFloat(newRow.rate) / 100,
-        fixedAmount: newRow.fixedAmount !== '' ? parseFloat(newRow.fixedAmount) : 0,
+        lowerBound:  parseFloat(row.lowerBound),
+        upperBound:  row.upperBound !== '' ? parseFloat(row.upperBound) : null,
+        rate:        parseFloat(row.rate) / 100,
+        fixedAmount: row.fixedAmount !== '' ? parseFloat(row.fixedAmount) : 0,
       });
       setBrackets(prev => [...prev, created.data].sort((a, b) => a.lowerBound - b.lowerBound));
-      setNewRow({ ...EMPTY_ROW });
-      setAddingRow(false);
+      setPendingRows(prev => prev.filter((_, i) => i !== idx));
     } catch (err: any) {
-      setAddError(err.response?.data?.message || 'Failed to add bracket.');
-    } finally {
-      setAddSaving(false);
+      setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, saving: false, error: err.response?.data?.message || 'Failed to add bracket.' } : r));
     }
   };
 
@@ -123,8 +133,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
       fixedAmount: String(bracket.fixedAmount),
     });
     setEditError('');
-    // Cancel add mode
-    setAddingRow(false);
+    setPendingRows([]);
   };
 
   const handleSaveEdit = async () => {
@@ -184,7 +193,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
             {tables.map((table: any) => (
               <button
                 key={table.id}
-                onClick={() => { setActiveTableId(table.id); setAddingRow(false); setEditingId(null); }}
+                onClick={() => { setActiveTableId(table.id); setPendingRows([]); setEditingId(null); }}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${activeTableId === table.id ? 'bg-accent-blue text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
               >
                 <div className="flex flex-col gap-0.5">
@@ -238,7 +247,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => { setAddingRow(true); setEditingId(null); setNewRow({ ...EMPTY_ROW }); setAddError(''); }}
+                    onClick={addPendingRow}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                   >
                     <Plus size={13} className="text-emerald-500" /> Add Bracket
@@ -334,52 +343,52 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                     </tr>
                   )}
 
-                  {/* Add row */}
-                  {addingRow && (
-                    <>
+                  {/* Pending add rows */}
+                  {pendingRows.map((row, idx) => (
+                    <React.Fragment key={idx}>
                       <tr className="bg-emerald-50/40">
                         <td className="px-3 py-2.5">
-                          <input type="number" value={newRow.lowerBound} onChange={e => setNewRow(p => ({ ...p, lowerBound: e.target.value }))} placeholder="0" className={inputCls} autoFocus />
+                          <input type="number" value={row.lowerBound} onChange={e => updatePending(idx, 'lowerBound', e.target.value)} placeholder="0" className={inputCls} autoFocus={idx === pendingRows.length - 1} />
                         </td>
                         <td className="px-3 py-2.5">
-                          <input type="number" value={newRow.upperBound} onChange={e => setNewRow(p => ({ ...p, upperBound: e.target.value }))} placeholder="(none = above)" className={inputCls} />
+                          <input type="number" value={row.upperBound} onChange={e => updatePending(idx, 'upperBound', e.target.value)} placeholder="(none = above)" className={inputCls} />
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="relative">
-                            <input type="number" step="0.01" min="0" max="100" value={newRow.rate} onChange={e => setNewRow(p => ({ ...p, rate: e.target.value }))} placeholder="0.00" className={inputCls + ' pr-6'} />
+                            <input type="number" step="0.01" min="0" max="100" value={row.rate} onChange={e => updatePending(idx, 'rate', e.target.value)} placeholder="0.00" className={inputCls + ' pr-6'} />
                             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="relative">
                             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
-                            <input type="number" step="0.01" value={newRow.fixedAmount} onChange={e => setNewRow(p => ({ ...p, fixedAmount: e.target.value }))} placeholder="0.00" className={inputCls + ' pl-5'} />
+                            <input type="number" step="0.01" value={row.fixedAmount} onChange={e => updatePending(idx, 'fixedAmount', e.target.value)} placeholder="0.00" className={inputCls + ' pl-5'} />
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1">
-                            <button onClick={handleAddBracket} disabled={addSaving} className="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors disabled:opacity-50">
-                              {addSaving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
+                            <button onClick={() => handleSavePending(idx)} disabled={row.saving} className="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors disabled:opacity-50">
+                              {row.saving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
                             </button>
-                            <button onClick={() => { setAddingRow(false); setAddError(''); setNewRow({ ...EMPTY_ROW }); }} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
+                            <button onClick={() => removePending(idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
                               <X size={13} />
                             </button>
                           </div>
                         </td>
                       </tr>
-                      {addError && (
+                      {row.error && (
                         <tr>
-                          <td colSpan={5} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{addError}</td>
+                          <td colSpan={5} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{row.error}</td>
                         </tr>
                       )}
-                    </>
-                  )}
+                    </React.Fragment>
+                  ))}
 
-                  {brackets.length === 0 && !addingRow && (
+                  {brackets.length === 0 && pendingRows.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic text-sm">
                         No brackets defined.{' '}
-                        <button onClick={() => setAddingRow(true)} className="text-accent-blue font-bold not-italic hover:underline">Add the first bracket →</button>
+                        <button onClick={addPendingRow} className="text-accent-blue font-bold not-italic hover:underline">Add the first bracket →</button>
                       </td>
                     </tr>
                   )}

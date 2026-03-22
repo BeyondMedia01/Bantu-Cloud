@@ -261,6 +261,7 @@ const PayrollInputGrid: React.FC = () => {
             transactionCodeId: tcId,
             [amountField]: amountNum,
             period,
+            duration: 'Once',
           });
           if (!gridUpdates[empId]) gridUpdates[empId] = {};
           gridUpdates[empId][tcId] = { value: cell.value, inputId: res.data.id };

@@ -129,7 +129,7 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
     const tcIds = [...new Set(inputs.map((i) => i.transactionCodeId))];
     const tcs = await prisma.transactionCode.findMany({
       where: { id: { in: tcIds } },
-      select: { id: true, type: true, taxable: true, preTax: true },
+      select: { id: true, type: true, taxable: true, preTax: true, name: true, code: true },
     });
     const tcMap = Object.fromEntries(tcs.map((t) => [t.id, t]));
 
@@ -172,14 +172,24 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
 
     const results = [];
     for (const [empId, empInputs] of Object.entries(byEmployee)) {
-      let earnings = 0, preTaxDeductions = 0, postTaxDeductions = 0;
+      let earnings = 0, preTaxDeductions = 0, postTaxDeductions = 0, medicalAidAmt = 0;
 
       for (const inp of empInputs) {
         const tc = tcMap[inp.transactionCodeId];
         const amt = parseFloat(inp.amount) || 0;
-        if (!tc || tc.type === 'EARNING' || tc.type === 'BENEFIT') earnings += amt;
-        else if (tc.type === 'DEDUCTION') {
+        
+        const tcName = tc?.name || '';
+        const tcCode = tc?.code || '';
+        const isMedAid = tc && tc.type === 'DEDUCTION' && tc.preTax === false &&
+                         (tcName.toLowerCase().includes('medical aid') ||
+                          (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)) ||
+                          tcCode.toUpperCase() === 'MED_AID' || tcCode.toUpperCase() === 'MEDICAL_AID');
+
+        if (!tc || tc.type === 'EARNING' || tc.type === 'BENEFIT') {
+          earnings += amt;
+        } else if (tc.type === 'DEDUCTION') {
           if (tc.preTax) preTaxDeductions += amt;
+          else if (isMedAid) medicalAidAmt += amt;
           else postTaxDeductions += amt;
         }
       }
@@ -195,6 +205,7 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
         nssaCeiling: previewNssaCeiling,
         aidsLevyRate: previewAidsLevyRate,
         medicalAidCreditRate: previewMedicalAidCreditRate,
+        medicalAid: medicalAidAmt,
       });
 
       results.push({
@@ -472,7 +483,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           { payrollRunId: null, period: runPeriod, processed: false }, // unattached, not yet processed
         ],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true } } },
     });
     const inputsByEmployee = {};
     for (const inp of allInputs) {
@@ -490,7 +501,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         effectiveFrom: { lte: run.endDate },
         OR: [{ effectiveTo: null }, { effectiveTo: { gte: run.startDate } }],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true } } },
     });
 
     // Build a set of (employeeId:transactionCodeId) already covered by explicit payroll inputs for this run
@@ -689,6 +700,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       const unpaidLeave = unpaidLeaveByEmployee[emp.id];
 
       let inputEarnings = 0, inputDeductions = 0, inputPension = 0;
+      let inputMedicalAid = 0, inputMedicalAidUSD = 0, inputMedicalAidZIG = 0;
       let inputEarningsUSD = 0, inputEarningsZIG = 0;
       let inputDeductionsUSD = 0, inputDeductionsZIG = 0;
       let inputPensionUSD = 0, inputPensionZIG = 0;
@@ -701,6 +713,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         const tc = input.transactionCode;
         const isEarning = tc.type === 'EARNING' || tc.type === 'BENEFIT';
         const isPreTaxDeduction = tc.type === 'DEDUCTION' && tc.preTax === true;
+        const tcName = tc.name || '';
+        const tcCode = tc.code || '';
+        const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
+                             (/medical\s*aid|med\s*aid/i.test(tcName) ||
+                              /MED_AID|MEDICAL_AID/i.test(tcCode));
 
         if (run.dualCurrency) {
           if (isEarning) {
@@ -718,6 +735,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             // Pre-tax pension: deducted from taxable income before PAYE
             inputPensionUSD += input.employeeUSD || 0;
             inputPensionZIG += input.employeeZiG || 0;
+          } else if (isMedicalAid) {
+            inputMedicalAidUSD += input.employeeUSD || 0;
+            inputMedicalAidZIG += input.employeeZiG || 0;
           } else {
             // Post-tax deductions: subtracted from net pay after PAYE
             inputDeductionsUSD += input.employeeUSD || 0;
@@ -731,6 +751,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             if (tc.affectsPaye === false) inputPayeExcluded += amt;
           } else if (isPreTaxDeduction) {
             inputPension += amt;
+          } else if (isMedicalAid) {
+            inputMedicalAid += amt;
           } else {
             inputDeductions += amt;
           }
@@ -742,6 +764,12 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         const tc = sd.transactionCode;
         const isEarning = tc.type === 'EARNING' || tc.type === 'BENEFIT';
         const isPreTaxDeduction = tc.type === 'DEDUCTION' && tc.preTax === true;
+        const tcName = tc.name || '';
+        const tcCode = tc.code || '';
+          const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
+                               (/medical\s*aid|med\s*aid/i.test(tcName) ||
+                                /MED_AID|MEDICAL_AID/i.test(tcCode));
+
         // Treat EmployeeTransaction.value as stored in sd.currency — split into USD/ZiG amounts
         const empUSD = sd.currency === 'USD' ? sd.value : 0;
         const empZIG = sd.currency === 'ZiG' ? sd.value : 0;
@@ -761,6 +789,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           } else if (isPreTaxDeduction) {
             inputPensionUSD += empUSD;
             inputPensionZIG += empZIG;
+          } else if (isMedicalAid) {
+            inputMedicalAidUSD += empUSD;
+            inputMedicalAidZIG += empZIG;
           } else {
             inputDeductionsUSD += empUSD;
             inputDeductionsZIG += empZIG;
@@ -771,8 +802,13 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             inputEarnings += amt;
             if (tc.affectsNssa === false) inputNssaExcluded += amt;
             if (tc.affectsPaye === false) inputPayeExcluded += amt;
-          } else if (isPreTaxDeduction) inputPension += amt;
-          else inputDeductions += amt;
+          } else if (isPreTaxDeduction) {
+            inputPension += amt;
+          } else if (isMedicalAid) {
+            inputMedicalAid += amt;
+          } else {
+            inputDeductions += amt;
+          }
         }
       }
 
@@ -904,7 +940,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevExUSD,
           pensionContribution: (adj.pensionContribution || 0) + inputPensionUSD,
           pensionCap: pensionCapUSD > 0 ? pensionCapUSD : null,
-          medicalAid: adj.medicalAid || 0,
+          medicalAid: (adj.medicalAid || 0) + inputMedicalAidUSD,
           taxCredits: (emp.taxCredits || 0) + elderlyCreditUSD_val, 
           wcifRate, sdfRate,
           taxBrackets: taxBracketsUSD,
@@ -931,7 +967,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           severanceAmount: 0, severanceExemption: remSevExZIG,
           pensionContribution: inputPensionZIG,
           pensionCap: pensionCapZIG > 0 ? pensionCapZIG : null,
-          medicalAid: 0, taxCredits: elderlyCreditZIG_val,
+          medicalAid: inputMedicalAidZIG, taxCredits: elderlyCreditZIG_val,
           wcifRate: 0, sdfRate: 0,
           taxBrackets: taxBracketsZIG, annualBrackets: annualBracketsZIG, nssaCeiling: nssaCeilingZIG,
           nssaEmployeeRate: effectiveNssaEmpRate, 
@@ -958,7 +994,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           pensionCap: run.currency === 'ZiG'
             ? (pensionCapZIG > 0 ? pensionCapZIG : null)
             : (pensionCapUSD > 0 ? pensionCapUSD : null),
-          medicalAid: adj.medicalAid || 0,
+          medicalAid: (adj.medicalAid || 0) + inputMedicalAid,
           taxCredits: (emp.taxCredits || 0) + elderlyCredit, 
           wcifRate, sdfRate,
           taxBrackets,
@@ -1594,6 +1630,30 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       (t) => t.transactionCode.type === 'DEDUCTION'
     );
 
+    // Identify specialized deductions for the payslip labels (Pension/Medical Aid)
+    let medicalAidAmt = 0;
+    let pensionAmt = 0;
+    const filteredOtherDeductions = [];
+
+    for (const t of deductionTxs) {
+      const tcn = t.transactionCode.name?.toLowerCase() || '';
+      const tcc = t.transactionCode.code?.toUpperCase() || '';
+      const isMed = /medical\s*aid|med\s*aid/i.test(tcn) || /MED_AID|MEDICAL_AID/i.test(tcc);
+      const isPen = t.transactionCode.preTax === true;
+
+      if (isMed) {
+        medicalAidAmt += t.amount;
+      } else if (isPen) {
+        pensionAmt += t.amount;
+      } else {
+        filteredOtherDeductions.push({
+          code: t.transactionCode.code,
+          name: t.transactionCode.name,
+          amount: t.amount,
+        });
+      }
+    }
+
     // Use stored effective basic (pro-rated for unpaid leave, NEC-bumped) if available;
     // fall back to employee's master rate for payslips processed before this field existed.
     const basicSalary = (payslip.basicSalaryApplied > 0)
@@ -1635,15 +1695,11 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       sdfContribution: payslip.sdfContribution || 0,
       necLevy: payslip.necLevy || 0,
       necEmployer: payslip.necEmployer || 0,
-      pensionEmployee: 0,
-      medicalAid: 0,
+      pensionEmployee: pensionAmt || payslip.pensionApplied || 0,
+      medicalAid: medicalAidAmt,
       loanDeductions: payslip.loanDeductions || 0,
       // Per-TC deductions (advances, other post-tax deductions)
-      otherDeductions: deductionTxs.map((t) => ({
-        code: t.transactionCode.code,
-        name: t.transactionCode.name,
-        amount: t.amount,
-      })),
+      otherDeductions: filteredOtherDeductions,
       netSalary: payslip.netPay,
       netPayUSD: payslip.netPayUSD ?? null,
       netPayZIG: payslip.netPayZIG ?? null,

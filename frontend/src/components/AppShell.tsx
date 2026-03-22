@@ -232,22 +232,24 @@ const AppShell: React.FC = () => {
       <div className={`px-3 py-3 border-t border-border shrink-0 ${collapsed && !mobile ? '' : ''}`}>
         {collapsed && !mobile ? (
           <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-border" title={user?.name || 'User'}>
+            <Link to="/profile" title={user?.name || 'Profile'} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-border hover:bg-slate-200 transition-colors">
               <User size={15} className="text-slate-400" />
-            </div>
+            </Link>
             <button onClick={handleLogout} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400" title="Sign out">
               <LogOut size={16} />
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1">
-            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-border shrink-0">
-              <User size={15} className="text-slate-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold leading-none truncate">{user?.name || 'User'}</p>
-              <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">{user?.role?.replace(/_/g, ' ')}</p>
-            </div>
+          <div className="flex items-center gap-3 mb-1">
+            <Link to="/profile" className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-border shrink-0">
+                <User size={15} className="text-slate-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold leading-none truncate">{user?.name || 'User'}</p>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">{user?.role?.replace(/_/g, ' ')}</p>
+              </div>
+            </Link>
             <button onClick={handleLogout} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 shrink-0" title="Sign out">
               <LogOut size={16} />
             </button>

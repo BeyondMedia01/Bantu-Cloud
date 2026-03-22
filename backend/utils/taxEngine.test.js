@@ -48,4 +48,35 @@ describe('Tax Engine — Zimbabwean PAYE (FDS)', () => {
     expect(result.nssaEmployee).toBe(31.5);
     expect(result.taxableIncome).toBe(1168.5);
   });
+
+  it('should apply 50% medical aid tax credit correctly', () => {
+    // Income: 1000 USD
+    // NSSA: 31.5
+    // Taxable Income: 1000 - 31.5 = 968.5 (under 1000 band, 20% bracket)
+    // Paye: (968.5 - 100) * 0.20 = 173.7
+    // Aids Levy: 173.7 * 0.03 = 5.211
+    // Total Pre-Credit: 178.911
+    
+    // Medical Aid Contribution: 100 USD
+    // Credit: 100 * 0.50 = 50 USD
+    // Final Paye: 178.911 - 50 = 128.911
+    
+    const taxBrackets = [
+      { lowerBound: 0, upperBound: 100, rate: 0, fixedAmount: 0 },
+      { lowerBound: 100, upperBound: 1000, rate: 0.20, fixedAmount: 0 },
+    ];
+    
+    const result = calculatePaye({ 
+      baseSalary: 1000, 
+      currency: 'USD',
+      medicalAid: 100,
+      taxBrackets
+    });
+    
+    expect(result.medicalAidCredit).toBe(50);
+    expect(result.totalPaye).toBeCloseTo(128.91, 2);
+    // Ensure net salary includes the deduction of medical aid
+    // cash (1000) - nssa (31.5) - medicalAid (100) - totalPaye (128.91) = 739.59
+    expect(result.netSalary).toBeCloseTo(739.59, 2);
+  });
 });

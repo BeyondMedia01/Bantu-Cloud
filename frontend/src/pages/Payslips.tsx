@@ -250,6 +250,13 @@ const Payslips: React.FC = () => {
                     <th className={thCls}>Net Pay</th>
                   )}
 
+                  {/* Employer Contributions */}
+                  <th className={thCls + ' text-blue-400 border-l border-border'}>NSSA Employer</th>
+                  <th className={thCls + ' text-blue-400'}>WCIF</th>
+                  <th className={thCls + ' text-blue-400'}>SDF</th>
+                  <th className={thCls + ' text-blue-400'}>ZIMDEF</th>
+                  <th className={thCls + ' text-blue-400'}>NEC Employer</th>
+
                   <th className={thCls}>Actions</th>
                 </tr>
               </thead>
@@ -312,6 +319,13 @@ const Payslips: React.FC = () => {
                       ) : (
                         <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(p.netPay)}</td>
                       )}
+
+                      {/* Employer Contributions */}
+                      <td className="px-4 py-3 text-sm text-blue-600 font-medium border-l border-border">{fmt(p.nssaEmployer)}</td>
+                      <td className="px-4 py-3 text-sm text-blue-600 font-medium">{fmt(p.wcifEmployer)}</td>
+                      <td className="px-4 py-3 text-sm text-blue-600 font-medium">{fmt(p.sdfContribution)}</td>
+                      <td className="px-4 py-3 text-sm text-blue-600 font-medium">{fmt(p.zimdefEmployer)}</td>
+                      <td className="px-4 py-3 text-sm text-blue-600 font-medium">{fmt(p.necEmployer)}</td>
 
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">

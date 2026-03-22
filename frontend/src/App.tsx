@@ -90,6 +90,9 @@ import AuditLogs from './pages/admin/AuditLogs';
 import TaxTableSettings from './pages/TaxTableSettings';
 import NecTables from './pages/NecTables';
 
+// Profile Settings
+import ProfileSettings from './pages/ProfileSettings';
+
 // Employee self-service
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeePayslips from './pages/employee/Payslips';
@@ -191,6 +194,8 @@ const App: React.FC = () => {
           <Route path="/shifts/roster" element={<Roster />} />
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/devices" element={<Devices />} />
+
+          <Route path="/profile" element={<ProfileSettings />} />
         </Route>
 
         {/* Admin (PLATFORM_ADMIN only) */}
@@ -205,6 +210,7 @@ const App: React.FC = () => {
           <Route path="/admin/licenses" element={<AdminLicenses />} />
           <Route path="/admin/settings" element={<SystemSettings />} />
           <Route path="/admin/logs" element={<AuditLogs />} />
+          <Route path="/profile" element={<ProfileSettings />} />
         </Route>
 
         {/* Employee self-service */}
@@ -217,6 +223,7 @@ const App: React.FC = () => {
           <Route path="/employee/payslips" element={<EmployeePayslips />} />
           <Route path="/employee/profile" element={<EmployeeProfile />} />
           <Route path="/employee/leave" element={<EmployeeLeave />} />
+          <Route path="/profile" element={<ProfileSettings />} />
         </Route>
 
         {/* Default redirect based on role */}

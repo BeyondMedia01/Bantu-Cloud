@@ -128,12 +128,12 @@ function _drawPayslip(doc, data) {
   if (hasEmployerItems) {
     sectionTitle('Employer Contributions');
     note('These contributions are borne by your employer and do not reduce your net pay.');
-    if (data.nssaEmployer) row('NSSA Employer (4.5%)', `${ccy} ${fmt(data.nssaEmployer)}`);
-    if (data.wcifEmployer) row('WCIF (Workers Compensation)', `${ccy} ${fmt(data.wcifEmployer)}`);
-    if (data.zimdefEmployer) row('ZIMDEF (Manpower Levy)', `${ccy} ${fmt(data.zimdefEmployer)}`);
-    if (data.sdfContribution) row('SDF / Training Levy', `${ccy} ${fmt(data.sdfContribution)}`);
-    if (data.necEmployer) row('NEC Employer Match', `${ccy} ${fmt(data.necEmployer)}`);
-    if (data.necLevy && !data.necEmployer) row('NEC Levy', `${ccy} ${fmt(data.necLevy)}`);
+    if (data.nssaEmployer != null) row('NSSA Employer (4.5%)', `${ccy} ${fmt(data.nssaEmployer)}`);
+    if (data.wcifEmployer != null) row('WCIF (Workers Compensation)', `${ccy} ${fmt(data.wcifEmployer)}`);
+    if (data.zimdefEmployer != null) row('ZIMDEF (Manpower Levy)', `${ccy} ${fmt(data.zimdefEmployer)}`);
+    if (data.sdfContribution != null) row('SDF / Training Levy', `${ccy} ${fmt(data.sdfContribution)}`);
+    if (data.necEmployer != null) row('NEC Employer Match', `${ccy} ${fmt(data.necEmployer)}`);
+    if (data.necLevy != null && !data.necEmployer) row('NEC Levy', `${ccy} ${fmt(data.necLevy)}`);
     doc.moveDown(0.3);
     divider();
   }

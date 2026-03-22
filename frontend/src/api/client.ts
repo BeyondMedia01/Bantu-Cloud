@@ -60,6 +60,9 @@ export const LicenseValidateAPI = {
 export const UserAPI = {
   me: () => api.get('/user/me'),
   companies: () => api.get('/user/companies'),
+  update: (data: { name: string }) => api.put('/user/me', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.put('/user/change-password', data),
 };
 
 // ─── Dashboard Types ──────────────────────────────────────────────────────────

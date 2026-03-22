@@ -228,7 +228,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                   className={`${fieldClass} font-mono`}
                   disabled={!!editData}
                 />
-                <p className="text-xs text-slate-400 mt-1">Auto-uppercased, no spaces</p>
+                <p className="text-xs text-slate-400 mt-1">Auto-uppercased, no spaces. For ZIMRA compliance, medical aid codes should be numerical (e.g. 5401).</p>
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Category *</label>
