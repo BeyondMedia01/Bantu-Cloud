@@ -1691,7 +1691,7 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       const tcn = t.transactionCode.name?.toLowerCase() || '';
       const tcc = t.transactionCode.code?.toUpperCase() || '';
       const isMed = t.transactionCode.incomeCategory === 'MEDICAL_AID' || /medical\s*aid|med\s*aid/i.test(tcn) || /MED_AID|MEDICAL_AID/i.test(tcc) || (tcn.includes('medical') && /^\d+$/.test(tcc));
-      const isPen = t.transactionCode.incomeCategory === 'PENSION' || t.transactionCode.preTax === true;
+      const isPen = t.transactionCode.incomeCategory === 'PENSION';
 
       if (isMed) {
         medicalAidAmt += t.amount;
@@ -1787,12 +1787,36 @@ router.get('/:runId/summary/pdf', requirePermission('export_reports'), async (re
       orderBy: { employee: { lastName: 'asc' } },
     });
 
+    // Fetch transactions for this run to provide breakdown (pension vs other)
+    const transactions = await prisma.payrollTransaction.findMany({
+      where: { payrollRunId: run.id },
+      include: { transactionCode: { select: { type: true, incomeCategory: true, preTax: true } } },
+    });
+    const txByPayslip = {};
+    for (const t of transactions) {
+      const key = `${t.employeeId}`;
+      if (!txByPayslip[key]) txByPayslip[key] = { pension: 0, otherDeductions: 0 };
+      
+      const isPension = t.transactionCode.incomeCategory === 'PENSION';
+      if (t.transactionCode.type === 'DEDUCTION') {
+        if (isPension) txByPayslip[key].pension += t.amount;
+        else txByPayslip[key].otherDeductions += t.amount;
+      }
+    }
+
     // Grouping by Department/CostCenter (Belina style)
     const groupsMap = {};
     for (const ps of payslips) {
       const gName = ps.employee.department?.name || ps.employee.costCenter || 'General';
       if (!groupsMap[gName]) groupsMap[gName] = [];
-      groupsMap[gName].push(ps);
+      
+      // Inject breakdown into payslip object for the PDF generator
+      const breakdown = txByPayslip[ps.employeeId] || { pension: 0, otherDeductions: 0 };
+      groupsMap[gName].push({
+        ...ps,
+        pensionActual: breakdown.pension,
+        otherDeductionsActual: breakdown.otherDeductions,
+      });
     }
     const sortedGroups = Object.keys(groupsMap).sort().map(name => ({
       name,
@@ -2018,7 +2042,9 @@ async function payslipToBuffer(payslipId) {
     pensionEmployee: 0,
     medicalAid: 0,
     loanDeductions: payslip.loanDeductions || 0,
-    otherDeductions: deductionTxs.map((t) => ({ code: t.transactionCode.code, name: t.transactionCode.name, amount: t.amount })),
+    otherDeductions: deductionTxs
+      .filter(t => t.transactionCode.incomeCategory !== 'MEDICAL_AID' && t.transactionCode.incomeCategory !== 'PENSION')
+      .map((t) => ({ code: t.transactionCode.code, name: t.transactionCode.name, amount: t.amount })),
     netSalary: payslip.netPay,
     netPayUSD: payslip.netPayUSD ?? null,
     netPayZIG: payslip.netPayZIG ?? null,

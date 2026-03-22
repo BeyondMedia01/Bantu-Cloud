@@ -592,23 +592,23 @@ const generatePayrollSummaryPDF = (data, stream) => {
 
   // ── Column Definitions ──────────────────────────────────────────────────────
   const cols = [
-    { label: 'Code',      w: 45,  align: 'left'   },
-    { label: 'Name',      w: 120, align: 'left'   },
-    { label: 'Position',  w: 100, align: 'left'   },
-    { label: 'Basic',     w: 70,  align: 'right'  },
-    { label: 'Allow/Ben', w: 70,  align: 'right'  },
-    { label: 'Gross',     w: 80,  align: 'right'  },
-    { label: 'PAYE',      w: 70,  align: 'right'  },
-    { label: 'AIDS',      w: 50,  align: 'right'  },
+    { label: 'Code',      w: 40,  align: 'left'   },
+    { label: 'Name',      w: 100, align: 'left'   },
+    { label: 'Position',  w: 80,  align: 'left'   },
+    { label: 'Basic',     w: 65,  align: 'right'  },
+    { label: 'Allow/Ben', w: 65,  align: 'right'  },
+    { label: 'Gross',     w: 75,  align: 'right'  },
+    { label: 'PAYE',      w: 65,  align: 'right'  },
+    { label: 'AIDS',      w: 45,  align: 'right'  },
     { label: 'NSSA Emp',  w: 60,  align: 'right'  },
-    { label: 'Nec Emp',   w: 60,  align: 'right'  },
-    { label: 'Pension',   w: 65,  align: 'right'  },
-    { label: 'Loans',     w: 65,  align: 'right'  },
+    { label: 'Pension',   w: 60,  align: 'right'  },
+    { label: 'Loans',     w: 60,  align: 'right'  },
+    { label: 'Other Ded', w: 60,  align: 'right'  },
     { label: 'Net Pay',   w: 85,  align: 'right'  },
-    { label: 'NSSA Empr', w: 65,  align: 'right'  },
-    { label: 'ZIMDEF',    w: 65,  align: 'right'  },
-    { label: 'NEC Match', w: 70,  align: 'right'  },
-    { label: 'CTC',       w: 90,  align: 'right'  }, // Cost to Company
+    { label: 'NSSA Empr', w: 60,  align: 'right'  },
+    { label: 'ZIMDEF',    w: 60,  align: 'right'  },
+    { label: 'NEC Match', w: 65,  align: 'right'  },
+    { label: 'CTC',       w: 85,  align: 'right'  }, // Cost to Company
   ];
   const HDR_H = 22, ROW_H = 18;
 
@@ -656,9 +656,9 @@ const generatePayrollSummaryPDF = (data, stream) => {
         fmtN(p.paye),
         fmtN(p.aidsLevy),
         fmtN(p.nssaEmployee),
-        fmtN(p.necLevy),
-        fmtN(p.pensionApplied), // Assuming we have this
+        fmtN(p.pensionActual || p.pensionApplied || 0),
         fmtN(p.loanDeductions),
+        fmtN(p.otherDeductionsActual || 0),
         fmtN(p.netPay),
         fmtN(p.nssaEmployer),
         fmtN(p.zimdefEmployer),
@@ -686,6 +686,8 @@ const generatePayrollSummaryPDF = (data, stream) => {
         t.necR   += p.necEmployer || 0;
         t.zimdef += p.zimdefEmployer || 0;
         t.ctc    += ctc;
+        t.otherDed = (t.otherDed || 0) + (p.otherDeductionsActual || 0);
+        t.pension = (t.pension || 0) + (p.pensionActual || p.pensionApplied || 0);
       });
 
       currentY += ROW_H;
@@ -696,7 +698,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
     doc.font('Helvetica-Bold').fontSize(8.5).fillColor(NAVY).text(`SUBTOTAL: ${group.name}`, 30, currentY + 5);
     
     // Display subtotals for main money columns
-    const stCells = { 5: groupTotals.gross, 6: groupTotals.paye, 12: groupTotals.net, 16: groupTotals.ctc };
+    const stCells = { 5: groupTotals.gross, 6: groupTotals.paye, 9: groupTotals.pension, 11: groupTotals.otherDed, 12: groupTotals.net, 16: groupTotals.ctc };
     let scx = 25;
     cols.forEach((col, ci) => {
       if (stCells[ci] !== undefined) {
@@ -714,7 +716,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
   doc.font('Helvetica-Bold').fontSize(11).fillColor(NAVY).text('GRAND TOTALS', 30, footerY + 10);
   
   let gcx = 25;
-  const gtCells = { 5: grandTotals.gross, 6: grandTotals.paye, 8: grandTotals.nssaE, 12: grandTotals.net, 14: grandTotals.zimdef, 16: grandTotals.ctc };
+  const gtCells = { 5: grandTotals.gross, 6: grandTotals.paye, 8: grandTotals.nssaE, 9: grandTotals.pension, 11: grandTotals.otherDed, 12: grandTotals.net, 14: grandTotals.zimdef, 16: grandTotals.ctc };
   cols.forEach((col, ci) => {
     if (gtCells[ci] !== undefined) {
       doc.text(fmtN(gtCells[ci]), gcx, footerY + 10, { width: col.w - 10, align: col.align });
