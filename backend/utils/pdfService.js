@@ -48,27 +48,31 @@ function _drawPayslip(doc, data) {
   const LIGHT_GRAY = '#f8fafc';
 
   // ── Build line items from actual backend data ──────────────────────────────
-  // earnings → Allowances column; statutory/other deductions → Deductions column;
-  // employer contributions → Company Cont. column
-  const earningLines = data.earnings && data.earnings.length > 0
-    ? data.earnings
-    : [{ name: 'Basic Salary', amount: data.baseSalary || 0, currency: ccy }];
+  // Prefer pre-calculated line items if provided (supports YTD & detailed TCs)
+  let lineItems = data.lineItems;
 
-  const lineItems = [
-    ...earningLines.map(e => ({ name: e.name, allowance: e.amount || 0, deduction: 0, employer: 0 })),
-    { name: 'PAYE', allowance: 0, deduction: data.paye || 0, employer: 0 },
-    { name: 'AIDS Levy (3% of PAYE)', allowance: 0, deduction: data.aidsLevy || 0, employer: 0 },
-    { name: 'NSSA Employee (4.5%)', allowance: 0, deduction: data.nssaEmployee || 0, employer: 0 },
-    ...(data.pensionEmployee ? [{ name: 'Pension Fund', allowance: 0, deduction: data.pensionEmployee, employer: 0 }] : []),
-    ...(data.medicalAid ? [{ name: 'Medical Aid', allowance: 0, deduction: data.medicalAid, employer: 0 }] : []),
-    ...(data.loanDeductions ? [{ name: 'Loan Deductions', allowance: 0, deduction: data.loanDeductions, employer: 0 }] : []),
-    ...(data.otherDeductions || []).map(d => ({ name: d.name, allowance: 0, deduction: d.amount || 0, employer: 0 })),
-    ...(data.nssaEmployer ? [{ name: 'NSSA Employer (4.5%)', allowance: 0, deduction: 0, employer: data.nssaEmployer }] : []),
-    ...(data.wcifEmployer ? [{ name: 'WCIF (Workers Comp.)', allowance: 0, deduction: 0, employer: data.wcifEmployer }] : []),
-    ...(data.zimdefEmployer ? [{ name: 'ZIMDEF (Manpower Levy)', allowance: 0, deduction: 0, employer: data.zimdefEmployer }] : []),
-    ...(data.necLevy ? [{ name: 'NEC Levy', allowance: 0, deduction: 0, employer: data.necLevy }] : []),
-    ...(data.necEmployer ? [{ name: 'NEC Employer Match', allowance: 0, deduction: 0, employer: data.necEmployer }] : []),
-  ].filter(item => item.allowance > 0 || item.deduction > 0 || item.employer > 0);
+  if (!lineItems) {
+    // Legacy fallback: reconstruct from totals if granular lines are missing
+    const earningLines = data.earnings && data.earnings.length > 0
+      ? data.earnings
+      : [{ name: 'Basic Salary', amount: data.baseSalary || 0, currency: ccy }];
+
+    lineItems = [
+      ...earningLines.map(e => ({ name: e.name, allowance: e.amount || 0, deduction: 0, employer: 0, ytd: 0 })),
+      { name: 'PAYE', allowance: 0, deduction: data.paye || 0, employer: 0, ytd: 0 },
+      { name: 'AIDS Levy (3% of PAYE)', allowance: 0, deduction: data.aidsLevy || 0, employer: 0, ytd: 0 },
+      { name: 'NSSA Employee (4.5%)', allowance: 0, deduction: data.nssaEmployee || 0, employer: 0, ytd: 0 },
+      ...(data.pensionEmployee ? [{ name: 'Pension Fund', allowance: 0, deduction: data.pensionEmployee, employer: 0, ytd: 0 }] : []),
+      ...(data.medicalAid ? [{ name: 'Medical Aid', allowance: 0, deduction: data.medicalAid, employer: 0, ytd: 0 }] : []),
+      ...(data.loanDeductions ? [{ name: 'Loan Deductions', allowance: 0, deduction: data.loanDeductions, employer: 0, ytd: 0 }] : []),
+      ...(data.otherDeductions || []).map(d => ({ name: d.name, allowance: 0, deduction: d.amount || 0, employer: 0, ytd: 0 })),
+      ...(data.nssaEmployer ? [{ name: 'NSSA Employer (4.5%)', allowance: 0, deduction: 0, employer: data.nssaEmployer, ytd: 0 }] : []),
+      ...(data.wcifEmployer ? [{ name: 'WCIF (Workers Comp.)', allowance: 0, deduction: 0, employer: data.wcifEmployer, ytd: 0 }] : []),
+      ...(data.zimdefEmployer ? [{ name: 'ZIMDEF (Manpower Levy)', allowance: 0, deduction: 0, employer: data.zimdefEmployer, ytd: 0 }] : []),
+      ...(data.necLevy ? [{ name: 'NEC Levy', allowance: 0, deduction: 0, employer: data.necLevy, ytd: 0 }] : []),
+      ...(data.necEmployer ? [{ name: 'NEC Employer Match', allowance: 0, deduction: 0, employer: data.necEmployer, ytd: 0 }] : []),
+    ].filter(item => item.allowance > 0 || item.deduction > 0 || item.employer > 0);
+  }
 
   // Compute total deductions (statutory + other post-tax)
   const totalDeductions =
@@ -93,12 +97,12 @@ function _drawPayslip(doc, data) {
   // ── Employee Info grid ────────────────────────────────────────────────────
   doc.y = 100;
   const infoData = [
-    { label: 'Name',        value: data.employeeName },
-    { label: 'Code',        value: data.employeeCode || '—' },
-    { label: 'Position',    value: data.jobTitle || '—' },
+    { label: 'Name', value: data.employeeName },
+    { label: 'Code', value: data.employeeCode || '—' },
+    { label: 'Position', value: data.jobTitle || '—' },
     { label: 'National ID', value: data.nationalId || '—' },
-    { label: 'Currency',    value: ccy },
-    { label: 'Pay Date',    value: new Date().toLocaleDateString() },
+    { label: 'Currency', value: ccy },
+    { label: 'Pay Date', value: new Date().toLocaleDateString() },
   ];
   const infoCols = 3;
   const infoColW = TABLE_W / infoCols;
@@ -115,10 +119,11 @@ function _drawPayslip(doc, data) {
 
   // ── Table header ──────────────────────────────────────────────────────────
   const cols = [
-    { label: 'Description',  w: 200, align: 'left'  },
-    { label: 'Allowances',   w: 80,  align: 'right' },
-    { label: 'Deductions',   w: 80,  align: 'right' },
-    { label: 'Company Cont.',w: 115, align: 'right' },
+    { label: 'Description', w: 160, align: 'left' },
+    { label: 'Allowances', w: 75, align: 'right' },
+    { label: 'Deductions', w: 75, align: 'right' },
+    { label: 'Company Cont.', w: 95, align: 'right' },
+    { label: 'YTD', w: 70, align: 'right' },
   ];
   const headerY = doc.y;
   doc.rect(LEFT, headerY, TABLE_W, TABLE_HDR_H).fill(BLUE);
@@ -133,21 +138,25 @@ function _drawPayslip(doc, data) {
 
   // ── Table rows — no addPage(), strictly single page ───────────────────────
   lineItems.forEach((item, i) => {
-    if (i % 2 === 0) doc.rect(LEFT, doc.y, TABLE_W, ROW_H).fill(LIGHT_GRAY).fillColor(TEXT_DARK);
-    const rowY = doc.y + ROW_H * 0.2;
+    const rowStartY = doc.y;
+    if (i % 2 === 0) doc.rect(LEFT, rowStartY, TABLE_W, ROW_H).fill(LIGHT_GRAY).fillColor(TEXT_DARK);
+    const textY = rowStartY + Math.max(1, (ROW_H - dynamicFontSize) / 2);
     let rx = LEFT + 5;
     doc.font('Helvetica').fillColor(TEXT_DARK).fontSize(dynamicFontSize);
-    doc.text(item.name, rx, rowY, { width: cols[0].w - 10, lineBreak: false });
+    doc.text(item.name, rx, textY, { width: cols[0].w - 10, lineBreak: false });
     rx += cols[0].w;
     doc.font('Helvetica-Bold').fillColor(item.allowance > 0 ? '#059669' : TEXT_MUTED);
-    doc.text(item.allowance > 0 ? fmt(item.allowance) : '—', rx, rowY, { width: cols[1].w - 10, align: 'right', lineBreak: false });
+    doc.text(item.allowance > 0 ? fmt(item.allowance) : '—', rx, textY, { width: cols[1].w - 10, align: 'right', lineBreak: false });
     rx += cols[1].w;
     doc.fillColor(item.deduction > 0 ? '#e11d48' : TEXT_MUTED);
-    doc.text(item.deduction > 0 ? fmt(item.deduction) : '—', rx, rowY, { width: cols[2].w - 10, align: 'right', lineBreak: false });
+    doc.text(item.deduction > 0 ? fmt(item.deduction) : '—', rx, textY, { width: cols[2].w - 10, align: 'right', lineBreak: false });
     rx += cols[2].w;
     doc.fillColor(item.employer > 0 ? TEXT_DARK : TEXT_MUTED).font('Helvetica');
-    doc.text(item.employer > 0 ? fmt(item.employer) : '—', rx, rowY, { width: cols[3].w - 10, align: 'right', lineBreak: false });
-    doc.y += ROW_H;
+    doc.text(item.employer > 0 ? fmt(item.employer) : '—', rx, textY, { width: cols[3].w - 10, align: 'right', lineBreak: false });
+    rx += cols[3].w;
+    doc.fillColor(TEXT_MUTED).font('Helvetica');
+    doc.text(item.ytd ? fmt(item.ytd) : '—', rx, textY, { width: cols[4].w - 10, align: 'right', lineBreak: false });
+    doc.y = rowStartY + ROW_H;  // explicit reset — not += which double-advances
   });
 
   // ── Summary row — anchored to bottom quarter of the page ──────────────────
@@ -247,18 +256,18 @@ const generateP16PDF = (data, stream) => {
 
   // ── Column definitions ──────────────────────────────────────────────────────
   const COLS = [
-    { label: 'Employee',        key: 'name',          x: 30,  w: 130 },
-    { label: 'ID / Passport',   key: 'idPassport',    x: 162, w: 80 },
-    { label: 'TIN',             key: 'tin',           x: 244, w: 70 },
-    { label: 'Gross Pay',       key: 'totalGross',    x: 316, w: 75 },
-    { label: 'NSSA Employee',   key: 'totalNssa',     x: 393, w: 75 },
-    { label: 'PAYE',            key: 'totalPaye',     x: 470, w: 70 },
-    { label: 'AIDS Levy',       key: 'totalAidsLevy', x: 542, w: 65 },
-    { label: 'Net Pay',         key: 'totalNet',      x: 609, w: 75 },
-    { label: 'WCIF (Empr)',     key: 'totalWcif',     x: 686, w: 55 },
-    { label: 'ZIMDEF (Empr)',   key: 'totalZimdef',   x: 742, w: 55 },
-    { label: 'SDF (Empr)',      key: 'totalSdf',      x: 798, w: 50 },
-    { label: 'NEC (Empr)',      key: 'totalNecEmpr',  x: 849, w: 50 },
+    { label: 'Employee', key: 'name', x: 30, w: 130 },
+    { label: 'ID / Passport', key: 'idPassport', x: 162, w: 80 },
+    { label: 'TIN', key: 'tin', x: 244, w: 70 },
+    { label: 'Gross Pay', key: 'totalGross', x: 316, w: 75 },
+    { label: 'NSSA Employee', key: 'totalNssa', x: 393, w: 75 },
+    { label: 'PAYE', key: 'totalPaye', x: 470, w: 70 },
+    { label: 'AIDS Levy', key: 'totalAidsLevy', x: 542, w: 65 },
+    { label: 'Net Pay', key: 'totalNet', x: 609, w: 75 },
+    { label: 'WCIF (Empr)', key: 'totalWcif', x: 686, w: 55 },
+    { label: 'ZIMDEF (Empr)', key: 'totalZimdef', x: 742, w: 55 },
+    { label: 'SDF (Empr)', key: 'totalSdf', x: 798, w: 50 },
+    { label: 'NEC (Empr)', key: 'totalNecEmpr', x: 849, w: 50 },
   ];
 
   const ROW_H = 18;
@@ -294,18 +303,18 @@ const generateP16PDF = (data, stream) => {
 
     const emp = row.employee || {};
     const cells = {
-      name:           `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
-      idPassport:     emp.idPassport || '—',
-      tin:            emp.tin || '—',
-      totalGross:     fmt(row.totalGross),
-      totalNssa:      fmt(row.totalNssa),
-      totalPaye:      fmt(row.totalPaye),
-      totalAidsLevy:  fmt(row.totalAidsLevy),
-      totalNet:       fmt(row.totalNet),
-      totalWcif:      fmt(row.totalWcif),
-      totalZimdef:    fmt(row.totalZimdef),
-      totalSdf:       fmt(row.totalSdf),
-      totalNecEmpr:   fmt(row.totalNecEmpr),
+      name: `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
+      idPassport: emp.idPassport || '—',
+      tin: emp.tin || '—',
+      totalGross: fmt(row.totalGross),
+      totalNssa: fmt(row.totalNssa),
+      totalPaye: fmt(row.totalPaye),
+      totalAidsLevy: fmt(row.totalAidsLevy),
+      totalNet: fmt(row.totalNet),
+      totalWcif: fmt(row.totalWcif),
+      totalZimdef: fmt(row.totalZimdef),
+      totalSdf: fmt(row.totalSdf),
+      totalNecEmpr: fmt(row.totalNecEmpr),
     };
 
     COLS.forEach(col => {
@@ -320,15 +329,15 @@ const generateP16PDF = (data, stream) => {
   // ── Totals row ───────────────────────────────────────────────────────────────
   if ((data.rows || []).length > 0) {
     const totals = (data.rows || []).reduce((acc, r) => {
-      acc.totalGross    += r.totalGross    || 0;
-      acc.totalNssa     += r.totalNssa     || 0;
-      acc.totalPaye     += r.totalPaye     || 0;
+      acc.totalGross += r.totalGross || 0;
+      acc.totalNssa += r.totalNssa || 0;
+      acc.totalPaye += r.totalPaye || 0;
       acc.totalAidsLevy += r.totalAidsLevy || 0;
-      acc.totalNet      += r.totalNet      || 0;
-      acc.totalWcif     += r.totalWcif     || 0;
-      acc.totalZimdef   += r.totalZimdef   || 0;
-      acc.totalSdf      += r.totalSdf      || 0;
-      acc.totalNecEmpr  += r.totalNecEmpr  || 0;
+      acc.totalNet += r.totalNet || 0;
+      acc.totalWcif += r.totalWcif || 0;
+      acc.totalZimdef += r.totalZimdef || 0;
+      acc.totalSdf += r.totalSdf || 0;
+      acc.totalNecEmpr += r.totalNecEmpr || 0;
       return acc;
     }, { totalGross: 0, totalNssa: 0, totalPaye: 0, totalAidsLevy: 0, totalNet: 0, totalWcif: 0, totalZimdef: 0, totalSdf: 0, totalNecEmpr: 0 });
 
@@ -340,15 +349,15 @@ const generateP16PDF = (data, stream) => {
 
     const totalCells = {
       name: 'TOTALS', idPassport: '', tin: '',
-      totalGross:    fmt(totals.totalGross),
-      totalNssa:     fmt(totals.totalNssa),
-      totalPaye:     fmt(totals.totalPaye),
+      totalGross: fmt(totals.totalGross),
+      totalNssa: fmt(totals.totalNssa),
+      totalPaye: fmt(totals.totalPaye),
       totalAidsLevy: fmt(totals.totalAidsLevy),
-      totalNet:      fmt(totals.totalNet),
-      totalWcif:     fmt(totals.totalWcif),
-      totalZimdef:   fmt(totals.totalZimdef),
-      totalSdf:      fmt(totals.totalSdf),
-      totalNecEmpr:  fmt(totals.totalNecEmpr),
+      totalNet: fmt(totals.totalNet),
+      totalWcif: fmt(totals.totalWcif),
+      totalZimdef: fmt(totals.totalZimdef),
+      totalSdf: fmt(totals.totalSdf),
+      totalNecEmpr: fmt(totals.totalNecEmpr),
     };
     COLS.forEach(col => {
       const isNum = !['name', 'idPassport', 'tin'].includes(col.key);
@@ -445,11 +454,11 @@ const generateP2PDF = (data, stream) => {
   row(`Total Remuneration (${ccy})`, `${ccy} ${fmt(data.totalRemuneration)}`);
   row(`Total PAYE Deducted (${ccy})`, `${ccy} ${fmt(data.totalPaye)}`);
   row(`Total AIDS Levy Deducted (${ccy})`, `${ccy} ${fmt(data.totalAidsLevy)}`);
-  
+
   doc.moveDown(0.5);
   doc.moveTo(350, doc.y).lineTo(545, doc.y).lineWidth(1).stroke('#1a2e4a');
   doc.moveDown(0.5);
-  
+
   const totalDue = (data.totalPaye || 0) + (data.totalAidsLevy || 0);
   row('TOTAL TAX DUE TO ZIMRA', `${ccy} ${fmt(totalDue)}`, true);
 
@@ -458,15 +467,15 @@ const generateP2PDF = (data, stream) => {
   doc.font('Helvetica-Bold').fontSize(12).text('3. DECLARATION');
   doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(0.5).stroke('#dddddd');
   doc.moveDown(0.8);
-  
+
   doc.font('Helvetica-Oblique').fontSize(9).fillColor('#444444')
     .text('I declare that the information given in this return is true and correct in every detail.');
   doc.moveDown(2);
-  
+
   const sigY = doc.y;
   doc.moveTo(60, sigY).lineTo(250, sigY).lineWidth(0.5).stroke('#000000');
   doc.moveTo(350, sigY).lineTo(540, sigY).lineWidth(0.5).stroke('#000000');
-  
+
   doc.font('Helvetica').fontSize(8).fillColor('black');
   doc.text('Signature of Employer/Public Officer', 60, sigY + 5);
   doc.text('Date', 350, sigY + 5);
@@ -534,7 +543,7 @@ const generateIT7PDF = (data, stream) => {
 
   // ── Section C: Remuneration & Deductions ──────────────────────────────────
   sectionTitle('SECTION C: REMUNERATION AND TAX DEDUCTED');
-  
+
   doc.font('Helvetica-Bold').fontSize(10).text('DESCRIPTION', LEFT);
   doc.text(`AMOUNT (${ccy})`, 350, doc.y - 12, { align: 'right', width: PAGE_RIGHT - 350 });
   doc.moveDown(0.4);
@@ -545,7 +554,7 @@ const generateIT7PDF = (data, stream) => {
   row('2. Bonuses and Gratuities', `${ccy} ${fmt(data.totalBonus)}`);
   row('3. Allowances (Taxable)', `${ccy} ${fmt(data.totalAllowances)}`);
   row('4. Taxable Benefits (Non-Cash)', `${ccy} ${fmt(data.totalBenefits)}`);
-  
+
   doc.moveDown(0.2);
   doc.moveTo(350, doc.y).lineTo(PAGE_RIGHT, doc.y).lineWidth(1).stroke('#1a2e4a');
   doc.moveDown(0.4);
@@ -569,12 +578,12 @@ const generateIT7PDF = (data, stream) => {
   sectionTitle('SECTION D: DECLARATION');
   doc.font('Helvetica-Oblique').fontSize(9).fillColor('#444444')
     .text('I certify that the particulars given in this certificate are true and correct and have been correctly extracted from the payroll records of the employer as of this date.');
-  
+
   doc.moveDown(2.5);
   const sigY = doc.y;
   doc.moveTo(LEFT, sigY).lineTo(250, sigY).lineWidth(0.5).stroke('#000000');
   doc.moveTo(350, sigY).lineTo(PAGE_RIGHT, sigY).lineWidth(0.5).stroke('#000000');
-  
+
   doc.fillColor('black').font('Helvetica').fontSize(8);
   doc.text('Authorized Signature / Public Officer', LEFT, sigY + 5);
   doc.text('Date of Issue', 350, sigY + 5);
@@ -607,23 +616,23 @@ const generatePayrollSummaryPDF = (data, stream) => {
 
   // ── Column Definitions ──────────────────────────────────────────────────────
   const cols = [
-    { label: 'Code',      w: 40,  align: 'left'   },
-    { label: 'Name',      w: 100, align: 'left'   },
-    { label: 'Position',  w: 80,  align: 'left'   },
-    { label: 'Basic',     w: 65,  align: 'right'  },
-    { label: 'Allow/Ben', w: 65,  align: 'right'  },
-    { label: 'Gross',     w: 75,  align: 'right'  },
-    { label: 'PAYE',      w: 65,  align: 'right'  },
-    { label: 'AIDS',      w: 45,  align: 'right'  },
-    { label: 'NSSA Emp',  w: 60,  align: 'right'  },
-    { label: 'Pension',   w: 60,  align: 'right'  },
-    { label: 'Loans',     w: 60,  align: 'right'  },
-    { label: 'Other Ded', w: 60,  align: 'right'  },
-    { label: 'Net Pay',   w: 85,  align: 'right'  },
-    { label: 'NSSA Empr', w: 60,  align: 'right'  },
-    { label: 'ZIMDEF',    w: 60,  align: 'right'  },
-    { label: 'NEC Match', w: 65,  align: 'right'  },
-    { label: 'CTC',       w: 85,  align: 'right'  }, // Cost to Company
+    { label: 'Code', w: 40, align: 'left' },
+    { label: 'Name', w: 100, align: 'left' },
+    { label: 'Position', w: 80, align: 'left' },
+    { label: 'Basic', w: 65, align: 'right' },
+    { label: 'Allow/Ben', w: 65, align: 'right' },
+    { label: 'Gross', w: 75, align: 'right' },
+    { label: 'PAYE', w: 65, align: 'right' },
+    { label: 'AIDS', w: 45, align: 'right' },
+    { label: 'NSSA Emp', w: 60, align: 'right' },
+    { label: 'Pension', w: 60, align: 'right' },
+    { label: 'Loans', w: 60, align: 'right' },
+    { label: 'Other Ded', w: 60, align: 'right' },
+    { label: 'Net Pay', w: 85, align: 'right' },
+    { label: 'NSSA Empr', w: 60, align: 'right' },
+    { label: 'ZIMDEF', w: 60, align: 'right' },
+    { label: 'NEC Match', w: 65, align: 'right' },
+    { label: 'CTC', w: 85, align: 'right' }, // Cost to Company
   ];
   const HDR_H = 20, ROW_H = 16;
 
@@ -691,16 +700,16 @@ const generatePayrollSummaryPDF = (data, stream) => {
 
       // Accumulate
       [groupTotals, grandTotals].forEach(t => {
-        t.gross  += p.gross || 0;
-        t.paye   += p.paye || 0;
-        t.aids   += p.aidsLevy || 0;
-        t.nssaE  += p.nssaEmployee || 0;
-        t.nssaR  += p.nssaEmployer || 0;
-        t.net    += p.netPay || 0;
-        t.necE   += p.necLevy || 0;
-        t.necR   += p.necEmployer || 0;
+        t.gross += p.gross || 0;
+        t.paye += p.paye || 0;
+        t.aids += p.aidsLevy || 0;
+        t.nssaE += p.nssaEmployee || 0;
+        t.nssaR += p.nssaEmployer || 0;
+        t.net += p.netPay || 0;
+        t.necE += p.necLevy || 0;
+        t.necR += p.necEmployer || 0;
         t.zimdef += p.zimdefEmployer || 0;
-        t.ctc    += ctc;
+        t.ctc += ctc;
         t.otherDed = (t.otherDed || 0) + (p.otherDeductionsActual || 0);
         t.pension = (t.pension || 0) + (p.pensionActual || p.pensionApplied || 0);
       });
@@ -711,7 +720,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
     // Subtotal Row
     doc.rect(20, currentY, 1150, ROW_H).fill('#f1f5f9');
     doc.font('Helvetica-Bold').fontSize(8.5).fillColor(NAVY).text(`SUBTOTAL: ${group.name}`, 30, currentY + 5);
-    
+
     // Display subtotals for main money columns
     const stCells = { 5: groupTotals.gross, 6: groupTotals.paye, 9: groupTotals.pension, 11: groupTotals.otherDed, 12: groupTotals.net, 16: groupTotals.ctc };
     let scx = 25;
@@ -729,7 +738,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
   const footerY = currentY + 10;
   doc.rect(20, footerY, 1150, 30).fill('#cbd5e1');
   doc.font('Helvetica-Bold').fontSize(11).fillColor(NAVY).text('GRAND TOTALS', 30, footerY + 10);
-  
+
   let gcx = 25;
   const gtCells = { 5: grandTotals.gross, 6: grandTotals.paye, 8: grandTotals.nssaE, 9: grandTotals.pension, 11: grandTotals.otherDed, 12: grandTotals.net, 14: grandTotals.zimdef, 16: grandTotals.ctc };
   cols.forEach((col, ci) => {

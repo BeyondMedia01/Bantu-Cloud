@@ -1034,3 +1034,18 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
 }
+
+model Job {
+  id          String   @id @default(uuid())
+  type        String   // e.g., "EMAIL_PAYSLIP"
+  payload     Json
+  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  error       String?
+  runAt       DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, runAt])
+}

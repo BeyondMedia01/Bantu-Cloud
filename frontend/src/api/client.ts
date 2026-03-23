@@ -243,7 +243,7 @@ export const PayrollAPI = {
   sendPayslip: (runId: string, payslipId: string) =>
     api.post<{ message: string; to: string }>(`/payroll/${runId}/payslips/${payslipId}/send`),
   sendAllPayslips: (runId: string) =>
-    api.post<{ sent: number; skipped: number; failed: number; errors: string[] }>(`/payroll/${runId}/send-all`),
+    api.post<{ message: string; count: number }>(`/payroll/${runId}/send-all`),
   preview: (data: { inputs: any[]; currency?: string; period?: string }) =>
     api.post<any[]>('/payroll/preview', data),
   getPayslipPdfUrl: (runId: string, id: string) =>

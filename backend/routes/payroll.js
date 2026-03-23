@@ -2,11 +2,13 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const { requirePermission } = require('../lib/permissions');
 const { calculatePaye } = require('../utils/taxEngine');
-const { generatePayslipPDF, generatePayslipBuffer, generatePayrollSummaryPDF } = require('../utils/pdfService');
+const { generatePayrollSummaryPDF } = require('../utils/pdfService');
 const { getSettingAsNumber } = require('../lib/systemSettings');
 const { audit } = require('../lib/audit');
 const { validateBody } = require('../lib/validate');
 const { sendPayslip } = require('../lib/mailer');
+const { calculateYTD } = require('../utils/ytdCalculator');
+const { payslipToBuffer } = require('../utils/payslipFormatter');
 
 const router = express.Router();
 
@@ -42,7 +44,7 @@ router.post(
   requirePermission('manage_payroll'),
   validateBody({
     startDate: { required: true, isDate: true },
-    endDate:   { required: true, isDate: true },
+    endDate: { required: true, isDate: true },
   }),
   async (req, res) => {
     const { startDate, endDate, currency, exchangeRate, dualCurrency, payrollCalendarId, notes } = req.body;
@@ -64,7 +66,7 @@ router.post(
           clientId: req.clientId, // assumes clientId is resolved in companyContext
           isClosed: true,
           startDate: { lte: new Date(endDate) },
-          endDate:   { gte: new Date(startDate) },
+          endDate: { gte: new Date(startDate) },
         },
       });
       if (overlappingClosedCal) {
@@ -116,7 +118,7 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
       // If period is provided in body, use it.
       ...(req.body.period && {
         startDate: { lte: new Date(req.body.period + '-31') },
-        endDate:   { gte: new Date(req.body.period + '-01') },
+        endDate: { gte: new Date(req.body.period + '-01') },
       })
     },
   });
@@ -139,30 +141,30 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
 
     const taxTable = company
       ? await prisma.taxTable.findFirst({
-          where: {
-            clientId: company.clientId,
-            currency,
-            isActive: true,
-          },
-          include: { brackets: true },
-        }) ?? await prisma.taxTable.findFirst({
-          where: {
-            clientId: company.clientId,
-            currency,
-            effectiveDate: { lte: new Date() },
-            OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
-          },
-          include: { brackets: true },
-          orderBy: { effectiveDate: 'desc' },
-        })
+        where: {
+          clientId: company.clientId,
+          currency,
+          isActive: true,
+        },
+        include: { brackets: true },
+      }) ?? await prisma.taxTable.findFirst({
+        where: {
+          clientId: company.clientId,
+          currency,
+          effectiveDate: { lte: new Date() },
+          OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+        },
+        include: { brackets: true },
+        orderBy: { effectiveDate: 'desc' },
+      })
       : null;
     const taxBrackets = taxTable?.brackets ?? [];
     const annualBrackets = taxBrackets.length > 0 && (taxTable?.isAnnual ?? true);
 
-    const previewAidsLevyRate        = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
+    const previewAidsLevyRate = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
     const previewMedicalAidCreditRate = await getSettingAsNumber('MEDICAL_AID_CREDIT_RATE', 50) / 100;
-    const previewNssaEmployeeRate    = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;
-    const previewNssaCeiling         = await getSettingAsNumber('NSSA_CEILING_USD', 700);
+    const previewNssaEmployeeRate = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;
+    const previewNssaCeiling = await getSettingAsNumber('NSSA_CEILING_USD', 700);
 
     const byEmployee = {};
     for (const inp of inputs) {
@@ -177,13 +179,13 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
       for (const inp of empInputs) {
         const tc = tcMap[inp.transactionCodeId];
         const amt = parseFloat(inp.amount) || 0;
-        
+
         const tcName = tc?.name || '';
         const tcCode = tc?.code || '';
         const isMedAid = tc && tc.type === 'DEDUCTION' && tc.preTax === false &&
-                         (tcName.toLowerCase().includes('medical aid') ||
-                          (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)) ||
-                          tcCode.toUpperCase() === 'MED_AID' || tcCode.toUpperCase() === 'MEDICAL_AID');
+          (tcName.toLowerCase().includes('medical aid') ||
+            (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)) ||
+            tcCode.toUpperCase() === 'MED_AID' || tcCode.toUpperCase() === 'MEDICAL_AID');
 
         if (!tc || tc.type === 'EARNING' || tc.type === 'BENEFIT') {
           earnings += amt;
@@ -229,13 +231,13 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
 
 router.post('/:runId/submit', requirePermission('manage_payroll'), async (req, res) => {
   try {
-    const run = await prisma.payrollRun.findUnique({ 
+    const run = await prisma.payrollRun.findUnique({
       where: { id: req.params.runId },
       include: { payrollCalendar: true }
     });
     if (!run) return res.status(404).json({ message: 'Payroll run not found' });
     if (req.companyId && run.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
-    
+
     if (run.payrollCalendar?.isClosed) {
       return res.status(400).json({ message: 'Cannot submit a payroll run for a closed period' });
     }
@@ -245,7 +247,7 @@ router.post('/:runId/submit', requirePermission('manage_payroll'), async (req, r
         clientId: req.clientId,
         isClosed: true,
         startDate: { lte: run.endDate },
-        endDate:   { gte: run.startDate },
+        endDate: { gte: run.startDate },
       },
     });
     if (overlappingClosedCal) {
@@ -271,7 +273,7 @@ router.post('/:runId/submit', requirePermission('manage_payroll'), async (req, r
 
 router.post('/:runId/approve', requirePermission('approve_payroll'), async (req, res) => {
   try {
-    const run = await prisma.payrollRun.findUnique({ 
+    const run = await prisma.payrollRun.findUnique({
       where: { id: req.params.runId },
       include: { payrollCalendar: true }
     });
@@ -286,7 +288,7 @@ router.post('/:runId/approve', requirePermission('approve_payroll'), async (req,
         clientId: req.clientId,
         isClosed: true,
         startDate: { lte: run.endDate },
-        endDate:   { gte: run.startDate },
+        endDate: { gte: run.startDate },
       },
     });
     if (overlappingClosedCal) {
@@ -320,7 +322,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     });
     if (!run) return res.status(404).json({ message: 'Payroll run not found' });
     if (req.companyId && run.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
-    
+
     if (run.payrollCalendar?.isClosed) {
       return res.status(400).json({ message: 'Cannot process payroll for a closed period' });
     }
@@ -329,7 +331,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         clientId: run.company.clientId,
         isClosed: true,
         startDate: { lte: run.endDate },
-        endDate:   { gte: run.startDate },
+        endDate: { gte: run.startDate },
       },
     });
     if (overlappingClosedCal) {
@@ -421,16 +423,16 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     // Industry-specific WCIF and SDF rates: company setting overrides global SystemSetting
     // Rates are stored as percentages (e.g. 1.5 for 1.5%) — divide by 100 for decimal multiplier
     const globalWcifRate = await getSettingAsNumber('WCIF_RATE', 0) / 100;
-    const globalSdfRate  = await getSettingAsNumber('SDF_RATE', 0) / 100;
+    const globalSdfRate = await getSettingAsNumber('SDF_RATE', 0) / 100;
     const wcifRate = run.company.wcifRate != null ? run.company.wcifRate / 100 : globalWcifRate;
-    const sdfRate  = run.company.sdfRate  != null ? run.company.sdfRate  / 100 : globalSdfRate;
+    const sdfRate = run.company.sdfRate != null ? run.company.sdfRate / 100 : globalSdfRate;
 
     // NSSA contribution rates from SystemSettings — stored as percentages, converted to decimals
     const nssaEmployeeRate = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;
     const nssaEmployerRate = await getSettingAsNumber('NSSA_EMPLOYER_RATE', 4.5) / 100;
 
     // AIDS levy and medical aid credit rates from SystemSettings — stored as percentages
-    const aidsLevyRate        = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
+    const aidsLevyRate = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
     const medicalAidCreditRate = await getSettingAsNumber('MEDICAL_AID_CREDIT_RATE', 50) / 100;
 
     // Pension deduction cap per ZIMRA regulations (0 = no cap)
@@ -514,7 +516,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     for (const sd of allSalaryDefaults) {
       const key = `${sd.employeeId}:${sd.transactionCodeId}`;
       if (!latestDefaultByKey[key] ||
-          new Date(sd.effectiveFrom) > new Date(latestDefaultByKey[key].effectiveFrom)) {
+        new Date(sd.effectiveFrom) > new Date(latestDefaultByKey[key].effectiveFrom)) {
         latestDefaultByKey[key] = sd;
       }
     }
@@ -564,8 +566,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         employeeId: { in: employeeIds },
         status: 'ACTIVE',
       },
-      include: { 
-        repayments: { where: { status: 'PAID' } } 
+      include: {
+        repayments: { where: { status: 'PAID' } }
       },
     });
     const loansByEmployee = {};
@@ -586,7 +588,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         status: 'APPROVED',
         type: { in: UNPAID_LEAVE_TYPES },
         startDate: { lte: new Date(run.endDate) },
-        endDate:   { gte: new Date(run.startDate) },
+        endDate: { gte: new Date(run.startDate) },
       },
       select: { employeeId: true, type: true, totalDays: true },
     });
@@ -606,7 +608,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const fdsYtdByEmployee = {};
     if (fdsAvgEmpIds.length > 0) {
-      const taxYear  = new Date(run.startDate).getFullYear();
+      const taxYear = new Date(run.startDate).getFullYear();
       const yearStart = new Date(taxYear, 0, 1);
       const ytdPayslips = await prisma.payslip.findMany({
         where: {
@@ -617,16 +619,16 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             startDate: { gte: yearStart, lt: new Date(run.startDate) },
           },
         },
-        select: { 
-          employeeId: true, gross: true, 
+        select: {
+          employeeId: true, gross: true,
           exemptBonus: true, exemptBonusUSD: true, exemptBonusZIG: true,
           exemptSeverance: true, medicalAidCredit: true,
           payrollRun: { select: { startDate: true } }
         },
       });
       for (const ps of ytdPayslips) {
-        const rec = (fdsYtdByEmployee[ps.employeeId] ??= { 
-          cumGross: 0, 
+        const rec = (fdsYtdByEmployee[ps.employeeId] ??= {
+          cumGross: 0,
           uniqueMonths: new Set(),
           cumExemptBonus: 0,
           cumExemptBonusUSD: 0,
@@ -727,10 +729,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         const tcName = tc.name || '';
         const tcCode = tc.code || '';
         const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
-                             (tc.incomeCategory === 'MEDICAL_AID' ||
-                              /medical\s*aid|med\s*aid/i.test(tcName) ||
-                              /MED_AID|MEDICAL_AID/i.test(tcCode) ||
-                              (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
+          (tc.incomeCategory === 'MEDICAL_AID' ||
+            /medical\s*aid|med\s*aid/i.test(tcName) ||
+            /MED_AID|MEDICAL_AID/i.test(tcCode) ||
+            (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
 
         const isPension = tc.type === 'DEDUCTION' && (tc.incomeCategory === 'PENSION' || tc.preTax === true);
 
@@ -781,9 +783,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         const isPreTaxDeduction = tc.type === 'DEDUCTION' && tc.preTax === true;
         const tcName = tc.name || '';
         const tcCode = tc.code || '';
-          const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
-                               (/medical\s*aid|med\s*aid/i.test(tcName) ||
-                                /MED_AID|MEDICAL_AID/i.test(tcCode));
+        const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
+          (/medical\s*aid|med\s*aid/i.test(tcName) ||
+            /MED_AID|MEDICAL_AID/i.test(tcCode));
 
         // Treat EmployeeTransaction.value as stored in sd.currency — split into USD/ZiG amounts
         const empUSD = sd.currency === 'USD' ? sd.value : 0;
@@ -847,7 +849,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           // Calculate worked days in period
           const workedDays = Math.ceil((dDate - run.startDate) / (1000 * 60 * 60 * 24)) + 1;
           const periodDays = Math.ceil((run.endDate - run.startDate) / (1000 * 60 * 60 * 24)) + 1;
-          
+
           // Cap at working days per month for consistency with leave logic
           const prorationFactor = Math.min(1, workedDays / periodDays);
           effectiveBaseRate = effectiveBaseRate * prorationFactor;
@@ -872,9 +874,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         // NEC Employer Match: usually matches the employee contribution
         necEmployer = necLevy;
       }
-      
-      const ytd = fdsYtdByEmployee[emp.id] || { 
-        cumGross: 0, 
+
+      const ytd = fdsYtdByEmployee[emp.id] || {
+        cumGross: 0,
         uniqueMonths: new Set(),
         cumExemptBonus: 0,
         cumExemptBonusUSD: 0,
@@ -911,11 +913,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       // Enforce annual cumulative thresholds for bonus/severance exemptions
       const remBonusExUSD = Math.max(0, bonusExemptionUSD - ytd.cumExemptBonusUSD);
       const remBonusExZIG = Math.max(0, bonusExemptionZIG - ytd.cumExemptBonusZIG);
-      const remBonusEx    = run.currency === 'ZiG' ? remBonusExZIG : remBonusExUSD;
+      const remBonusEx = run.currency === 'ZiG' ? remBonusExZIG : remBonusExUSD;
 
-      const remSevExUSD   = Math.max(0, severanceExemptionUSD - ytd.cumExemptSeverance);
-      const remSevExZIG   = Math.max(0, severanceExemptionZIG - ytd.cumExemptSeverance);
-      const remSevEx      = run.currency === 'ZiG' ? remSevExZIG : remSevExUSD;
+      const remSevExUSD = Math.max(0, severanceExemptionUSD - ytd.cumExemptSeverance);
+      const remSevExZIG = Math.max(0, severanceExemptionZIG - ytd.cumExemptSeverance);
+      const remSevEx = run.currency === 'ZiG' ? remSevExZIG : remSevExUSD;
 
       // FDS_AVERAGE: derive the average monthly gross (YTD + this month) to pass
       // as the PAYE basis.  Only the PAYE band lookup uses this average; NSSA,
@@ -931,9 +933,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       }
       const directiveActive =
         (!emp.taxDirectiveEffective || new Date(emp.taxDirectiveEffective) <= runStart) &&
-        (!emp.taxDirectiveExpiry    || new Date(emp.taxDirectiveExpiry)    >= runStart);
+        (!emp.taxDirectiveExpiry || new Date(emp.taxDirectiveExpiry) >= runStart);
       const effectiveTaxDirectivePerc = directiveActive ? (emp.taxDirectivePerc || 0) : 0;
-      const effectiveTaxDirectiveAmt  = directiveActive ? (emp.taxDirectiveAmt  || 0) : 0;
+      const effectiveTaxDirectiveAmt = directiveActive ? (emp.taxDirectiveAmt || 0) : 0;
 
       let taxResult, taxResultUSD, taxResultZIG;
 
@@ -956,18 +958,18 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           pensionContribution: (adj.pensionContribution || 0) + inputPensionUSD,
           pensionCap: pensionCapUSD > 0 ? pensionCapUSD : null,
           medicalAid: (adj.medicalAid || 0) + inputMedicalAidUSD,
-          taxCredits: (emp.taxCredits || 0) + elderlyCreditUSD_val, 
+          taxCredits: (emp.taxCredits || 0) + elderlyCreditUSD_val,
           wcifRate, sdfRate,
           taxBrackets: taxBracketsUSD,
           // FDS_FORECASTING: always annualise regardless of tax-table isAnnual flag
           annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
           nssaCeiling: nssaCeilingUSD,
-          nssaEmployeeRate: effectiveNssaEmpRate, 
+          nssaEmployeeRate: effectiveNssaEmpRate,
           nssaEmployerRate: effectiveNssaEmprRate,
           nssaExcludedEarnings: inputNssaExcludedUSD,
           payeExcludedEarnings: inputPayeExcludedUSD,
           taxDirectivePerc: effectiveTaxDirectivePerc,
-          taxDirectiveAmt:  effectiveTaxDirectiveAmt,
+          taxDirectiveAmt: effectiveTaxDirectiveAmt,
           aidsLevyRate, medicalAidCreditRate,
           loanBenefit: totalLoanBenefitUSD,
           fdsAveragePAYEBasis: fdsAvgPAYEBasis,
@@ -985,12 +987,12 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           medicalAid: inputMedicalAidZIG, taxCredits: elderlyCreditZIG_val,
           wcifRate: 0, sdfRate: 0,
           taxBrackets: taxBracketsZIG, annualBrackets: annualBracketsZIG, nssaCeiling: nssaCeilingZIG,
-          nssaEmployeeRate: effectiveNssaEmpRate, 
+          nssaEmployeeRate: effectiveNssaEmpRate,
           nssaEmployerRate: effectiveNssaEmprRate,
           nssaExcludedEarnings: inputNssaExcludedZIG,
           payeExcludedEarnings: inputPayeExcludedZIG,
           taxDirectivePerc: effectiveTaxDirectivePerc,
-          taxDirectiveAmt:  effectiveTaxDirectiveAmt,
+          taxDirectiveAmt: effectiveTaxDirectiveAmt,
           aidsLevyRate, medicalAidCreditRate,
           loanBenefit: totalLoanBenefitZIG,
           zimdefRate,
@@ -1010,18 +1012,18 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             ? (pensionCapZIG > 0 ? pensionCapZIG : null)
             : (pensionCapUSD > 0 ? pensionCapUSD : null),
           medicalAid: (adj.medicalAid || 0) + inputMedicalAid,
-          taxCredits: (emp.taxCredits || 0) + elderlyCredit, 
+          taxCredits: (emp.taxCredits || 0) + elderlyCredit,
           wcifRate, sdfRate,
           taxBrackets,
           // FDS_FORECASTING: always annualise regardless of tax-table isAnnual flag
           annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBrackets,
           nssaCeiling,
-          nssaEmployeeRate: effectiveNssaEmpRate, 
+          nssaEmployeeRate: effectiveNssaEmpRate,
           nssaEmployerRate: effectiveNssaEmprRate,
           nssaExcludedEarnings: inputNssaExcluded,
           payeExcludedEarnings: inputPayeExcluded,
           taxDirectivePerc: effectiveTaxDirectivePerc,
-          taxDirectiveAmt:  effectiveTaxDirectiveAmt,
+          taxDirectiveAmt: effectiveTaxDirectiveAmt,
           aidsLevyRate, medicalAidCreditRate,
           loanBenefit: totalLoanBenefit,
           fdsAveragePAYEBasis: fdsAvgPAYEBasis,
@@ -1118,7 +1120,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       // Covers all inputs (explicit PayrollInput records) and salary-structure
       // defaults (EmployeeTransaction). Enables line-by-line display on payslips.
       const allEmpItems = [];
-      
+
       // 1. Explicit Inputs
       for (const i of empInputs) {
         if (run.dualCurrency) {
@@ -1251,7 +1253,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     await prisma.payrollRun.update({
       where: { id: req.params.runId },
       data: { status: 'ERROR' },
-    }).catch(() => {});
+    }).catch(() => { });
     console.error('Payroll process error:', error);
     res.status(500).json({ message: 'Payroll processing failed' });
   }
@@ -1279,7 +1281,7 @@ router.get('/:runId/reconcile', requirePermission('process_payroll'), async (req
 
     const year = parseInt(req.query.year || new Date(run.startDate).getFullYear());
     const yearStart = new Date(year, 0, 1);
-    const yearEnd   = new Date(year, 11, 31, 23, 59, 59);
+    const yearEnd = new Date(year, 11, 31, 23, 59, 59);
 
     // Fetch all COMPLETED payslips for this company in the given year
     const payslips = await prisma.payslip.findMany({
@@ -1319,15 +1321,15 @@ router.get('/:runId/reconcile', requirePermission('process_payroll'), async (req
           totalNecEmpr: 0,
         };
       }
-      byEmployee[ps.employeeId].cumulativeGross     += ps.gross ?? 0;
-      byEmployee[ps.employeeId].cumulativePaye       += ps.paye ?? 0;
-      byEmployee[ps.employeeId].cumulativeAidsLevy   += ps.aidsLevy ?? 0;
+      byEmployee[ps.employeeId].cumulativeGross += ps.gross ?? 0;
+      byEmployee[ps.employeeId].cumulativePaye += ps.paye ?? 0;
+      byEmployee[ps.employeeId].cumulativeAidsLevy += ps.aidsLevy ?? 0;
       byEmployee[ps.employeeId].months++;
-      byEmployee[ps.employeeId].totalWcif       += ps.wcifEmployer   || 0;
-      byEmployee[ps.employeeId].totalSdf        += ps.sdfContribution || 0;
-      byEmployee[ps.employeeId].totalZimdef     += ps.zimdefEmployer || 0;
-      byEmployee[ps.employeeId].totalNecLevy    += ps.necLevy        || 0;
-      byEmployee[ps.employeeId].totalNecEmpr    += ps.necEmployer    || 0;
+      byEmployee[ps.employeeId].totalWcif += ps.wcifEmployer || 0;
+      byEmployee[ps.employeeId].totalSdf += ps.sdfContribution || 0;
+      byEmployee[ps.employeeId].totalZimdef += ps.zimdefEmployer || 0;
+      byEmployee[ps.employeeId].totalNecLevy += ps.necLevy || 0;
+      byEmployee[ps.employeeId].totalNecEmpr += ps.necEmployer || 0;
     }
 
     // Fetch tax table using same 3-tier logic as /process (active → period-matched → most recent)
@@ -1374,33 +1376,33 @@ router.get('/:runId/reconcile', requirePermission('process_payroll'), async (req
         annualBrackets: annualBracketsReconcile,
         taxCredits: (emp.taxCredits || 0) * agg.months,
         taxDirectivePerc: ((!emp.taxDirectiveEffective || new Date(emp.taxDirectiveEffective) <= yearEnd) &&
-                           (!emp.taxDirectiveExpiry    || new Date(emp.taxDirectiveExpiry)    >= yearStart))
-                          ? (emp.taxDirectivePerc || 0) : 0,
+          (!emp.taxDirectiveExpiry || new Date(emp.taxDirectiveExpiry) >= yearStart))
+          ? (emp.taxDirectivePerc || 0) : 0,
         taxDirectiveAmt: ((!emp.taxDirectiveEffective || new Date(emp.taxDirectiveEffective) <= yearEnd) &&
-                          (!emp.taxDirectiveExpiry    || new Date(emp.taxDirectiveExpiry)    >= yearStart))
-                         ? (emp.taxDirectiveAmt || 0) * agg.months : 0,
+          (!emp.taxDirectiveExpiry || new Date(emp.taxDirectiveExpiry) >= yearStart))
+          ? (emp.taxDirectiveAmt || 0) * agg.months : 0,
       });
 
       const correctAnnualPaye = annualResult.totalPaye;
-      const deductedPaye      = agg.cumulativePaye + agg.cumulativeAidsLevy;
-      const adjustment        = parseFloat((correctAnnualPaye - deductedPaye).toFixed(2));
+      const deductedPaye = agg.cumulativePaye + agg.cumulativeAidsLevy;
+      const adjustment = parseFloat((correctAnnualPaye - deductedPaye).toFixed(2));
 
       results.push({
-        employeeId:         empId,
-        name:               `${emp.firstName} ${emp.lastName}`,
-        employeeCode:       emp.employeeCode,
+        employeeId: empId,
+        name: `${emp.firstName} ${emp.lastName}`,
+        employeeCode: emp.employeeCode,
         year,
-        months:             agg.months,
-        cumulativeGross:    parseFloat(agg.cumulativeGross.toFixed(2)),
-        deductedPaye:       parseFloat(deductedPaye.toFixed(2)),
-        correctAnnualPaye:  parseFloat(correctAnnualPaye.toFixed(2)),
+        months: agg.months,
+        cumulativeGross: parseFloat(agg.cumulativeGross.toFixed(2)),
+        deductedPaye: parseFloat(deductedPaye.toFixed(2)),
+        correctAnnualPaye: parseFloat(correctAnnualPaye.toFixed(2)),
         adjustment,
-        adjustmentType:     adjustment > 0 ? 'UNDERPAID' : adjustment < 0 ? 'OVERPAID' : 'BALANCED',
+        adjustmentType: adjustment > 0 ? 'UNDERPAID' : adjustment < 0 ? 'OVERPAID' : 'BALANCED',
       });
     }
 
     const totalUnderpaid = results.filter((r) => r.adjustment > 0).reduce((s, r) => s + r.adjustment, 0);
-    const totalOverpaid  = results.filter((r) => r.adjustment < 0).reduce((s, r) => s + r.adjustment, 0);
+    const totalOverpaid = results.filter((r) => r.adjustment < 0).reduce((s, r) => s + r.adjustment, 0);
 
     res.json({
       runId: run.id,
@@ -1409,7 +1411,7 @@ router.get('/:runId/reconcile', requirePermission('process_payroll'), async (req
       summary: {
         totalEmployees: results.length,
         totalUnderpaid: parseFloat(totalUnderpaid.toFixed(2)),
-        totalOverpaid:  parseFloat(totalOverpaid.toFixed(2)),
+        totalOverpaid: parseFloat(totalOverpaid.toFixed(2)),
         note: 'Apply adjustments as PAYE_ADJUSTMENT PayrollInputs on the final run of the year.',
       },
       results,
@@ -1440,8 +1442,10 @@ router.get('/:runId/input-reconciliation', requirePermission('process_payroll'),
     const [payslips, inputs] = await Promise.all([
       prisma.payslip.findMany({
         where: { payrollRunId: run.id },
-        select: { employeeId: true, gross: true, paye: true, nssaEmployee: true, netPay: true,
-                  employee: { select: { firstName: true, lastName: true, employeeCode: true } } },
+        select: {
+          employeeId: true, gross: true, paye: true, nssaEmployee: true, netPay: true,
+          employee: { select: { firstName: true, lastName: true, employeeCode: true } }
+        },
       }),
       prisma.payrollInput.findMany({
         where: { payrollRunId: run.id, processed: true },
@@ -1457,7 +1461,7 @@ router.get('/:runId/input-reconciliation', requirePermission('process_payroll'),
     // Sum inputs per employee
     const inputTotals = {};
     for (const inp of inputs) {
-      const tc  = inp.transactionCode;
+      const tc = inp.transactionCode;
       const amt = run.dualCurrency
         ? (inp.employeeUSD || 0)
         : toRunCcy(inp.employeeUSD, inp.employeeZiG);
@@ -1467,16 +1471,16 @@ router.get('/:runId/input-reconciliation', requirePermission('process_payroll'),
     }
 
     const results = payslips.map((ps) => {
-      const inp         = inputTotals[ps.employeeId] || { earnings: 0, deductions: 0 };
-      const grossDiff   = parseFloat((ps.gross - inp.earnings).toFixed(4));
+      const inp = inputTotals[ps.employeeId] || { earnings: 0, deductions: 0 };
+      const grossDiff = parseFloat((ps.gross - inp.earnings).toFixed(4));
       return {
-        employeeId:    ps.employeeId,
-        name:          `${ps.employee.firstName} ${ps.employee.lastName}`,
-        employeeCode:  ps.employee.employeeCode,
-        payslipGross:  ps.gross,
+        employeeId: ps.employeeId,
+        name: `${ps.employee.firstName} ${ps.employee.lastName}`,
+        employeeCode: ps.employee.employeeCode,
+        payslipGross: ps.gross,
         inputEarnings: parseFloat(inp.earnings.toFixed(2)),
-        diff:          grossDiff,
-        status:        Math.abs(grossDiff) < 0.01 ? 'OK' : 'MISMATCH',
+        diff: grossDiff,
+        status: Math.abs(grossDiff) < 0.01 ? 'OK' : 'MISMATCH',
       };
     });
 
@@ -1527,7 +1531,7 @@ router.put('/:runId', requirePermission('approve_payroll'), async (req, res) => 
   };
 
   try {
-    const run = await prisma.payrollRun.findUnique({ 
+    const run = await prisma.payrollRun.findUnique({
       where: { id: req.params.runId },
       include: { payrollCalendar: true }
     });
@@ -1542,7 +1546,7 @@ router.put('/:runId', requirePermission('approve_payroll'), async (req, res) => 
         clientId: run.company?.clientId,
         isClosed: true,
         startDate: { lte: run.endDate },
-        endDate:   { gte: run.startDate },
+        endDate: { gte: run.startDate },
       },
     });
     if (overlappingClosedCal) {
@@ -1676,113 +1680,15 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Fetch per-TC breakdown saved during payroll processing
-    const transactions = await prisma.payrollTransaction.findMany({
-      where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
-      include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true, incomeCategory: true } } },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    // YTD Calculation: Fetch all completed runs for this employee in the current tax year
-    const yearStart = new Date(new Date(payslip.payrollRun.startDate).getFullYear(), 0, 1);
-    const historicalRuns = await prisma.payrollRun.findMany({
-      where: {
-        companyId: payslip.payrollRun.companyId,
-        status: 'COMPLETED',
-        startDate: { gte: yearStart, lte: payslip.payrollRun.startDate },
-        id: { not: payslip.payrollRunId } // exclude current run if it's already completed
-      },
-      select: { id: true }
-    });
-    const historicRunIds = historicalRuns.map(r => r.id);
-    
-    // Fetch historical transactions
-    const historicalTxs = await prisma.payrollTransaction.findMany({
-      where: {
-        employeeId: payslip.employeeId,
-        payrollRunId: { in: historicRunIds }
-      },
-      select: { transactionCodeId: true, amount: true }
-    });
-
-    // Fetch historical payslips for statutory totals
-    const historicalPayslips = await prisma.payslip.findMany({
-      where: {
-        employeeId: payslip.employeeId,
-        payrollRunId: { in: historicRunIds }
-      }
-    });
-
-    const ytdMap = {}; // Key: transactionCodeId, Value: sum
-    historicalTxs.forEach(tx => {
-      ytdMap[tx.transactionCodeId] = (ytdMap[tx.transactionCodeId] || 0) + tx.amount;
-    });
-
-    // Add current run transactions to YTD
-    transactions.forEach(tx => {
-      ytdMap[tx.transactionCodeId] = (ytdMap[tx.transactionCodeId] || 0) + tx.amount;
-    });
-
-    // Statutory YTDs (current + historical)
-    const ytdStat = {
-      paye: (historicalPayslips.reduce((sum, p) => sum + (p.paye || 0), 0) + (payslip.paye || 0)),
-      aidsLevy: (historicalPayslips.reduce((sum, p) => sum + (p.aidsLevy || 0), 0) + (payslip.aidsLevy || 0)),
-      nssaEmployee: (historicalPayslips.reduce((sum, p) => sum + (p.nssaEmployee || 0), 0) + (payslip.nssaEmployee || 0)),
-      nssaEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.nssaEmployer || 0), 0) + (payslip.nssaEmployer || 0)),
-      pensionApplied: (historicalPayslips.reduce((sum, p) => sum + (p.pensionApplied || 0), 0) + (payslip.pensionApplied || 0)),
-      zimdefEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.zimdefEmployer || 0), 0) + (payslip.zimdefEmployer || 0)),
-      sdfContribution: (historicalPayslips.reduce((sum, p) => sum + (p.sdfContribution || 0), 0) + (payslip.sdfContribution || 0)),
-      wcifEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.wcifEmployer || 0), 0) + (payslip.wcifEmployer || 0)),
-      necLevy: (historicalPayslips.reduce((sum, p) => sum + (p.necLevy || 0), 0) + (payslip.necLevy || 0)),
-      necEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.necEmployer || 0), 0) + (payslip.necEmployer || 0)),
-      basicSalary: (historicalPayslips.reduce((sum, p) => sum + (p.basicSalaryApplied || 0), 0) + (payslip.basicSalaryApplied || 0)),
-      gross: (historicalPayslips.reduce((sum, p) => sum + (p.gross || 0), 0) + (payslip.gross || 0)),
-    };
-
-    // Build earnings/deductions lists for the current payslip
-    const earningTxs = transactions.filter(
-      (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
-    );
-    const deductionTxs = transactions.filter(
-      (t) => t.transactionCode.type === 'DEDUCTION'
-    );
-
-    const basicSalary = (payslip.basicSalaryApplied > 0)
-      ? payslip.basicSalaryApplied
-      : (payslip.employee.baseRate ?? 0);
-
-    const ccy = payslip.payrollRun.currency;
-
-    // ── Build table rows for the new PDF layout ─────────────────────────────
-    const lineItems = buildPayslipLineItems({
-      payslip,
-      transactions,
-      ytdStat,
-      ytdMap,
-      basicSalary
-    });
+    const result = await payslipToBuffer(req.params.id);
+    if (!result) return res.status(404).json({ message: 'Payslip not found' });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename=payslip-${payslip.employee.lastName}-${payslip.employee.firstName}.pdf`
+      `attachment; filename=payslip-${result.employeeName.replace(/\s+/g, '-')}.pdf`
     );
-
-    generatePayslipPDF({
-      companyName: payslip.payrollRun.company.name,
-      period: `${payslip.payrollRun.startDate.toLocaleDateString()} – ${payslip.payrollRun.endDate.toLocaleDateString()}`,
-      employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
-      employeeCode: payslip.employee.employeeCode || '',
-      nationalId: payslip.employee.idPassport || '',
-      jobTitle: payslip.employee.position || '',
-      currency: ccy,
-      lineItems,
-      grossPay: payslip.gross,
-      totalDeductions: (payslip.gross - payslip.netPay),
-      netSalary: payslip.netPay,
-      netPayUSD: payslip.netPayUSD,
-      netPayZIG: payslip.netPayZIG,
-    }, res);
+    res.send(result.buffer);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -1792,69 +1698,7 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
 /**
  * Shared logic to build the professional table lines with YTD data.
  */
-function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary }) {
-  const earningTxs = transactions.filter(
-    (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
-  );
-  const deductionTxs = transactions.filter(
-    (t) => t.transactionCode.type === 'DEDUCTION'
-  );
-
-  const lines = [
-    { name: 'Basic Salary', allowance: basicSalary, deduction: 0, employer: 0, ytd: ytdStat.basicSalary },
-  ];
-
-  // Add Earnings/Benefits
-  earningTxs.forEach(t => {
-    lines.push({
-      name: t.transactionCode.name,
-      allowance: t.amount,
-      deduction: 0,
-      employer: 0,
-      ytd: ytdMap[t.transactionCodeId] ?? t.amount
-    });
-  });
-
-  // Add Deductions (Employee)
-  deductionTxs.forEach(t => {
-    lines.push({
-      name: t.transactionCode.name,
-      allowance: 0,
-      deduction: t.amount,
-      employer: 0,
-      ytd: ytdMap[t.transactionCodeId] ?? t.amount
-    });
-  });
-
-  // Add Statutory rows with YTD (Only if non-zero)
-  if (payslip.paye > 0) lines.push({ name: 'PAYE', allowance: 0, deduction: payslip.paye, employer: 0, ytd: ytdStat.paye });
-  if (payslip.aidsLevy > 0) lines.push({ name: 'AIDS Levy', allowance: 0, deduction: payslip.aidsLevy, employer: 0, ytd: ytdStat.aidsLevy });
-  if (payslip.nssaEmployee > 0) lines.push({ name: 'NSSA Employee', allowance: 0, deduction: payslip.nssaEmployee, employer: 0, ytd: ytdStat.nssaEmployee });
-  
-  if (payslip.nssaEmployer > 0) {
-    lines.push({ name: 'NSSA Employer', allowance: 0, deduction: 0, employer: payslip.nssaEmployer, ytd: ytdStat.nssaEmployer });
-  }
-  if (payslip.zimdefEmployer > 0) {
-    lines.push({ name: 'ZIMDEF (Manpower)', allowance: 0, deduction: 0, employer: payslip.zimdefEmployer, ytd: ytdStat.zimdefEmployer });
-  }
-  if (payslip.sdfContribution > 0) {
-    lines.push({ name: 'SDF (Training)', allowance: 0, deduction: 0, employer: payslip.sdfContribution, ytd: ytdStat.sdfContribution });
-  }
-  if (payslip.wcifEmployer > 0) {
-    lines.push({ name: 'WCIF (Insurance)', allowance: 0, deduction: 0, employer: payslip.wcifEmployer, ytd: ytdStat.wcifEmployer });
-  }
-  if (payslip.necLevy > 0) {
-    lines.push({ name: 'NEC Employee', allowance: 0, deduction: payslip.necLevy, employer: 0, ytd: ytdStat.necLevy });
-  }
-  if (payslip.necEmployer > 0) {
-    lines.push({ name: 'NEC Employer', allowance: 0, deduction: 0, employer: payslip.necEmployer, ytd: ytdStat.necEmployer });
-  }
-  if (payslip.loanDeductions > 0) {
-    lines.push({ name: 'Loan Repayments', allowance: 0, deduction: payslip.loanDeductions, employer: 0, ytd: 0 });
-  }
-
-  return lines;
-}
+// buildPayslipLineItems refactored to ../utils/payslipFormatter.js
 
 // ─── GET /api/payroll/:runId/summary/pdf ─────────────────────────────────────
 
@@ -1888,7 +1732,7 @@ router.get('/:runId/summary/pdf', requirePermission('export_reports'), async (re
     for (const t of transactions) {
       const key = `${t.employeeId}`;
       if (!txByPayslip[key]) txByPayslip[key] = { pension: 0, otherDeductions: 0 };
-      
+
       const isPension = t.transactionCode.incomeCategory === 'PENSION';
       if (t.transactionCode.type === 'DEDUCTION') {
         if (isPension) txByPayslip[key].pension += t.amount;
@@ -1901,7 +1745,7 @@ router.get('/:runId/summary/pdf', requirePermission('export_reports'), async (re
     for (const ps of payslips) {
       const gName = ps.employee.department?.name || ps.employee.costCenter || 'General';
       if (!groupsMap[gName]) groupsMap[gName] = [];
-      
+
       // Inject breakdown into payslip object for the PDF generator
       const breakdown = txByPayslip[ps.employeeId] || { pension: 0, otherDeductions: 0 };
       groupsMap[gName].push({
@@ -2066,9 +1910,9 @@ router.get('/:runId/variance', requirePermission('process_payroll'), async (req,
       }),
       priorRun
         ? prisma.payslip.findMany({
-            where: { payrollRunId: priorRun.id },
-            include: { employee: { select: { firstName: true, lastName: true, employeeCode: true } } },
-          })
+          where: { payrollRunId: priorRun.id },
+          include: { employee: { select: { firstName: true, lastName: true, employeeCode: true } } },
+        })
         : Promise.resolve([]),
     ]);
 
@@ -2077,25 +1921,25 @@ router.get('/:runId/variance', requirePermission('process_payroll'), async (req,
 
     // ── Current employees ──────────────────────────────────────────────────
     const results = currentPayslips.map((cur) => {
-      const prior     = priorMap[cur.employeeId] ?? null;
-      const pGross    = prior?.gross    ?? null;
-      const grossDelta = prior != null ? parseFloat((cur.gross        - prior.gross).toFixed(2))        : null;
-      const payeDelta  = prior != null ? parseFloat((cur.paye         - prior.paye).toFixed(2))         : null;
-      const nssaDelta  = prior != null ? parseFloat((cur.nssaEmployee - prior.nssaEmployee).toFixed(2)) : null;
-      const netDelta   = prior != null ? parseFloat((cur.netPay       - prior.netPay).toFixed(2))       : null;
-      const pctChange  = pGross != null && pGross !== 0
+      const prior = priorMap[cur.employeeId] ?? null;
+      const pGross = prior?.gross ?? null;
+      const grossDelta = prior != null ? parseFloat((cur.gross - prior.gross).toFixed(2)) : null;
+      const payeDelta = prior != null ? parseFloat((cur.paye - prior.paye).toFixed(2)) : null;
+      const nssaDelta = prior != null ? parseFloat((cur.nssaEmployee - prior.nssaEmployee).toFixed(2)) : null;
+      const netDelta = prior != null ? parseFloat((cur.netPay - prior.netPay).toFixed(2)) : null;
+      const pctChange = pGross != null && pGross !== 0
         ? parseFloat(((grossDelta / pGross) * 100).toFixed(2))
         : null;
 
       return {
-        employeeId:   cur.employeeId,
+        employeeId: cur.employeeId,
         employeeCode: cur.employee.employeeCode,
-        name:         `${cur.employee.firstName} ${cur.employee.lastName}`,
-        status:       prior ? 'EXISTING' : 'NEW',
-        current:  { gross: cur.gross, paye: cur.paye, aidsLevy: cur.aidsLevy, nssaEmployee: cur.nssaEmployee, netPay: cur.netPay },
-        prior:    prior ? { gross: prior.gross, paye: prior.paye, aidsLevy: prior.aidsLevy, nssaEmployee: prior.nssaEmployee, netPay: prior.netPay } : null,
-        delta:    { gross: grossDelta, paye: payeDelta, nssa: nssaDelta, net: netDelta, pct: pctChange },
-        flagged:  pctChange != null ? Math.abs(pctChange) >= threshold : prior === null,
+        name: `${cur.employee.firstName} ${cur.employee.lastName}`,
+        status: prior ? 'EXISTING' : 'NEW',
+        current: { gross: cur.gross, paye: cur.paye, aidsLevy: cur.aidsLevy, nssaEmployee: cur.nssaEmployee, netPay: cur.netPay },
+        prior: prior ? { gross: prior.gross, paye: prior.paye, aidsLevy: prior.aidsLevy, nssaEmployee: prior.nssaEmployee, netPay: prior.netPay } : null,
+        delta: { gross: grossDelta, paye: payeDelta, nssa: nssaDelta, net: netDelta, pct: pctChange },
+        flagged: pctChange != null ? Math.abs(pctChange) >= threshold : prior === null,
       };
     });
 
@@ -2103,29 +1947,29 @@ router.get('/:runId/variance', requirePermission('process_payroll'), async (req,
     const terminatedRows = priorPayslips
       .filter((p) => !currentEmpIds.has(p.employeeId))
       .map((p) => ({
-        employeeId:   p.employeeId,
+        employeeId: p.employeeId,
         employeeCode: p.employee?.employeeCode ?? null,
-        name:         p.employee ? `${p.employee.firstName} ${p.employee.lastName}` : null,
-        status:       'TERMINATED',
-        current:  null,
-        prior:    { gross: p.gross, paye: p.paye, aidsLevy: p.aidsLevy, nssaEmployee: p.nssaEmployee, netPay: p.netPay },
-        delta:    { gross: -p.gross, paye: -p.paye, nssa: -p.nssaEmployee, net: -p.netPay, pct: -100 },
-        flagged:  true,
+        name: p.employee ? `${p.employee.firstName} ${p.employee.lastName}` : null,
+        status: 'TERMINATED',
+        current: null,
+        prior: { gross: p.gross, paye: p.paye, aidsLevy: p.aidsLevy, nssaEmployee: p.nssaEmployee, netPay: p.netPay },
+        delta: { gross: -p.gross, paye: -p.paye, nssa: -p.nssaEmployee, net: -p.netPay, pct: -100 },
+        flagged: true,
       }));
 
     const allResults = [...results, ...terminatedRows]
       .sort((a, b) => Math.abs(b.delta.gross ?? 0) - Math.abs(a.delta.gross ?? 0));
 
     res.json({
-      runId:      run.id,
+      runId: run.id,
       priorRunId: priorRun?.id ?? null,
-      currency:   run.currency,
+      currency: run.currency,
       threshold,
       summary: {
-        total:       allResults.length,
-        flagged:     allResults.filter((r) => r.flagged).length,
+        total: allResults.length,
+        flagged: allResults.filter((r) => r.flagged).length,
         newEmployees: allResults.filter((r) => r.status === 'NEW').length,
-        terminated:   allResults.filter((r) => r.status === 'TERMINATED').length,
+        terminated: allResults.filter((r) => r.status === 'TERMINATED').length,
         note: priorRun
           ? `Compared against run ${priorRun.id} (${new Date(priorRun.startDate).toLocaleDateString()}). Employees with gross change ≥ ${threshold}% are flagged.`
           : 'No prior completed run found — all employees shown as NEW.',
@@ -2144,91 +1988,7 @@ router.get('/:runId/variance', requirePermission('process_payroll'), async (req,
  * Fetches all data for a payslip, generates the PDF, and returns a buffer
  * along with metadata needed for the email (recipient address, names, period).
  */
-async function payslipToBuffer(payslipId) {
-  const payslip = await prisma.payslip.findUnique({
-    where: { id: payslipId },
-    include: {
-      employee: { include: { user: true } },
-      payrollRun: { include: { company: true } },
-    },
-  });
-  if (!payslip) return null;
-
-  const transactions = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
-    include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true } } },
-    orderBy: { createdAt: 'asc' },
-  });
-
-  // Calculate YTD data (same as the main PDF route)
-  const historicRunIds = (await prisma.payrollRun.findMany({
-    where: {
-      companyId: payslip.payrollRun.companyId,
-      status: 'COMPLETED',
-      startDate: { lt: payslip.payrollRun.startDate },
-      payrollCalendar: { year: payslip.payrollRun.payrollCalendar.year }
-    },
-    select: { id: true }
-  })).map(r => r.id);
-
-  const [historicalTxs, historicalPayslips] = await Promise.all([
-    prisma.payrollTransaction.findMany({
-      where: { employeeId: payslip.employeeId, payrollRunId: { in: historicRunIds } },
-      select: { transactionCodeId: true, amount: true }
-    }),
-    prisma.payslip.findMany({
-      where: { employeeId: payslip.employeeId, payrollRunId: { in: historicRunIds } }
-    })
-  ]);
-
-  const ytdMap = {};
-  [...historicalTxs, ...transactions].forEach(tx => {
-    ytdMap[tx.transactionCodeId] = (ytdMap[tx.transactionCodeId] || 0) + tx.amount;
-  });
-
-  const ytdStat = {
-    paye: (historicalPayslips.reduce((sum, p) => sum + (p.paye || 0), 0) + (payslip.paye || 0)),
-    aidsLevy: (historicalPayslips.reduce((sum, p) => sum + (p.aidsLevy || 0), 0) + (payslip.aidsLevy || 0)),
-    nssaEmployee: (historicalPayslips.reduce((sum, p) => sum + (p.nssaEmployee || 0), 0) + (payslip.nssaEmployee || 0)),
-    nssaEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.nssaEmployer || 0), 0) + (payslip.nssaEmployer || 0)),
-    zimdefEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.zimdefEmployer || 0), 0) + (payslip.zimdefEmployer || 0)),
-    sdfContribution: (historicalPayslips.reduce((sum, p) => sum + (p.sdfContribution || 0), 0) + (payslip.sdfContribution || 0)),
-    wcifEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.wcifEmployer || 0), 0) + (payslip.wcifEmployer || 0)),
-    necLevy: (historicalPayslips.reduce((sum, p) => sum + (p.necLevy || 0), 0) + (payslip.necLevy || 0)),
-    necEmployer: (historicalPayslips.reduce((sum, p) => sum + (p.necEmployer || 0), 0) + (payslip.necEmployer || 0)),
-    basicSalary: (historicalPayslips.reduce((sum, p) => sum + (p.basicSalaryApplied || 0), 0) + (payslip.basicSalaryApplied || 0)),
-  };
-
-  const basicSalary = payslip.basicSalaryApplied > 0 ? payslip.basicSalaryApplied : (payslip.employee.baseRate ?? 0);
-  const lineItems = buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary });
-
-  const pdfData = {
-    companyName: payslip.payrollRun.company.name,
-    period: `${payslip.payrollRun.startDate.toLocaleDateString()} – ${payslip.payrollRun.endDate.toLocaleDateString()}`,
-    employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
-    employeeCode: payslip.employee.employeeCode || '',
-    nationalId: payslip.employee.idPassport || '',
-    jobTitle: payslip.employee.position || '',
-    currency: payslip.payrollRun.currency,
-    lineItems,
-    grossPay: payslip.gross,
-    totalDeductions: (payslip.gross - payslip.netPay),
-    netSalary: payslip.netPay,
-    netPayUSD: payslip.netPayUSD,
-    netPayZIG: payslip.netPayZIG,
-  };
-
-  const buffer = await generatePayslipBuffer(pdfData);
-
-  return {
-    buffer,
-    email: payslip.employee.user?.email ?? null,
-    employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
-    companyName: payslip.payrollRun.company.name,
-    period: pdfData.period,
-    companyId: payslip.payrollRun.companyId,
-  };
-}
+// payslipToBuffer refactored to ../utils/payslipFormatter.js
 
 // ─── POST /api/payroll/:runId/payslips/:id/send ───────────────────────────────
 
@@ -2267,36 +2027,40 @@ router.post('/:runId/send-all', requirePermission('export_reports'), async (req,
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const ids = (await prisma.payslip.findMany({
+    // Fetch all payslip IDs for this run
+    const payslipIds = (await prisma.payslip.findMany({
       where: { payrollRunId: run.id },
       select: { id: true },
     })).map((p) => p.id);
 
-    let sent = 0, skipped = 0, failed = 0;
-    const errors = [];
-
-    for (const id of ids) {
-      try {
-        const result = await payslipToBuffer(id);
-        if (!result?.email) { skipped++; continue; }
-
-        await sendPayslip(result.email, {
-          employeeName: result.employeeName,
-          companyName: result.companyName,
-          period: result.period,
-          pdfBuffer: result.buffer,
-        });
-        sent++;
-      } catch (e) {
-        failed++;
-        errors.push(e.message);
-      }
+    if (payslipIds.length === 0) {
+      return res.status(400).json({ message: 'No payslips found for this run' });
     }
 
-    res.json({ sent, skipped, failed, errors });
+    // Queue a job for each payslip
+    await prisma.job.createMany({
+      data: payslipIds.map(id => ({
+        type: 'EMAIL_PAYSLIP',
+        payload: { payslipId: id },
+        status: 'PENDING',
+      })),
+    });
+
+    await audit({
+      req,
+      action: 'BULK_PAYSLIP_EMAILS_QUEUED',
+      resource: 'payroll_run',
+      resourceId: run.id,
+      details: { count: payslipIds.length },
+    });
+
+    res.json({
+      message: `${payslipIds.length} payslip emails have been queued and will be sent in the background.`,
+      count: payslipIds.length
+    });
   } catch (error) {
-    console.error('Send all payslips error:', error);
-    res.status(500).json({ message: 'Failed to send payslips' });
+    console.error('Queue bulk payslips error:', error);
+    res.status(500).json({ message: 'Failed to queue payslip emails' });
   }
 });
 

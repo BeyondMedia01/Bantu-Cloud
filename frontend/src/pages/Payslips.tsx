@@ -97,13 +97,10 @@ const Payslips: React.FC = () => {
     setConfirmSendAll(false);
     try {
       const res = await PayrollAPI.sendAllPayslips(runId);
-      const { sent, skipped, failed } = res.data;
-      const parts = [`${sent} sent`];
-      if (skipped > 0) parts.push(`${skipped} skipped (no email)`);
-      if (failed > 0) parts.push(`${failed} failed`);
-      showToast(parts.join(' · '), failed > 0 ? 'warning' : 'success');
-    } catch {
-      showToast('Failed to send payslips', 'error');
+      showToast(res.data.message, 'success');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Failed to queue payslip emails';
+      showToast(msg, 'error');
     } finally {
       setSendingAll(false);
     }

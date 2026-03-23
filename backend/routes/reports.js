@@ -2,7 +2,6 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const { requirePermission } = require('../lib/permissions');
 const { 
-  generatePayslipPDF, 
   generateP16PDF, 
   generateP2PDF, 
   generateNSSA_P4A,

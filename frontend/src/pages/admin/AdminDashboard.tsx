@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users, Building2, ShieldCheck, Settings, Loader } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, Building2, ShieldCheck, Settings, Loader, AlertCircle } from 'lucide-react';
 import { AdminAPI } from '../../api/client';
 
 const AdminDashboard: React.FC = () => {
-  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    AdminAPI.getStats().then((r) => setStats(r.data)).catch(() => {}).finally(() => setLoading(false));
+    AdminAPI.getStats()
+      .then((r) => setStats(r.data))
+      .catch((err) => {
+        console.error(err);
+        setError('Unable to load dashboard statistics.');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const cards = [
@@ -28,20 +34,25 @@ const AdminDashboard: React.FC = () => {
 
       {loading ? (
         <div className="flex items-center justify-center h-48 text-slate-400"><Loader size={24} className="animate-spin" /></div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-48 text-red-500 gap-2 bg-red-50 rounded-xl mb-8">
+          <AlertCircle size={20} />
+          <span className="font-medium">{error}</span>
+        </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {cards.map((c) => (
-            <button
+            <Link
               key={c.path}
-              onClick={() => navigate(c.path)}
-              className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-blue hover:shadow-md transition-all text-left"
+              to={c.path}
+              className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-blue hover:shadow-md transition-all text-left block"
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.color} mb-4`}>
                 {c.icon}
               </div>
               <p className="text-2xl font-bold mb-1">{c.value}</p>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{c.label}</p>
-            </button>
+            </Link>
           ))}
         </div>
       )}
@@ -54,14 +65,14 @@ const AdminDashboard: React.FC = () => {
           { title: 'System Settings', desc: 'Configure platform-wide settings and defaults', path: '/admin/settings' },
           { title: 'Audit Logs', desc: 'Track all platform actions across users and resources', path: '/admin/logs' },
         ].map((item) => (
-          <button
+          <Link
             key={item.path}
-            onClick={() => navigate(item.path)}
-            className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-blue hover:shadow-md transition-all text-left"
+            to={item.path}
+            className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-blue hover:shadow-md transition-all text-left block"
           >
             <p className="font-bold mb-1">{item.title}</p>
             <p className="text-sm text-slate-500 font-medium">{item.desc}</p>
-          </button>
+          </Link>
         ))}
       </div>
     </div>

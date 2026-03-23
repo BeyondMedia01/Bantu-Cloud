@@ -1,0 +1,155 @@
+const prisma = require('../lib/prisma');
+const { calculateYTD } = require('./ytdCalculator');
+const { generatePayslipBuffer } = require('./pdfService');
+
+/**
+ * Shared logic to build payslip line items.
+ */
+function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary }) {
+  const earningTxs = transactions.filter(
+    (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
+  );
+  const deductionTxs = transactions.filter(
+    (t) => t.transactionCode.type === 'DEDUCTION'
+  );
+
+  const lines = [
+    { name: 'Basic Salary', allowance: basicSalary, deduction: 0, employer: 0, ytd: ytdStat.basicSalary },
+  ];
+
+  // Add Earnings/Benefits
+  earningTxs.forEach(t => {
+    lines.push({
+      name: t.transactionCode.name,
+      allowance: t.amount,
+      deduction: 0,
+      employer: 0,
+      ytd: ytdMap[t.transactionCodeId] ?? t.amount
+    });
+  });
+
+  // Add Statutory rows with YTD
+  lines.push({ name: 'PAYE', allowance: 0, deduction: payslip.paye, employer: 0, ytd: ytdStat.paye });
+  lines.push({ name: 'AIDS Levy', allowance: 0, deduction: payslip.aidsLevy, employer: 0, ytd: ytdStat.aidsLevy });
+  lines.push({ name: 'NSSA Employee', allowance: 0, deduction: payslip.nssaEmployee, employer: 0, ytd: ytdStat.nssaEmployee });
+
+  if (payslip.necLevy > 0) {
+    lines.push({ name: 'NEC Employee', allowance: 0, deduction: payslip.necLevy, employer: 0, ytd: ytdStat.necLevy });
+  }
+
+  // Add Voluntary/Other Deductions
+  deductionTxs.forEach(t => {
+    lines.push({
+      name: t.transactionCode.name,
+      allowance: 0,
+      deduction: t.amount,
+      employer: 0,
+      ytd: ytdMap[t.transactionCodeId] ?? t.amount
+    });
+  });
+
+  if (payslip.loanDeductions > 0) {
+    lines.push({ name: 'Loan Repayments', allowance: 0, deduction: payslip.loanDeductions, employer: 0, ytd: ytdStat.loanDeductions });
+  }
+
+  // Employer Contributions
+  if (payslip.nssaEmployer > 0) {
+    lines.push({ name: 'NSSA Employer', allowance: 0, deduction: 0, employer: payslip.nssaEmployer, ytd: ytdStat.nssaEmployer });
+  }
+  if (payslip.zimdefEmployer > 0) {
+    lines.push({ name: 'ZIMDEF (Manpower)', allowance: 0, deduction: 0, employer: payslip.zimdefEmployer, ytd: ytdStat.zimdefEmployer });
+  }
+  if (payslip.sdfContribution > 0) {
+    lines.push({ name: 'SDF (Training)', allowance: 0, deduction: 0, employer: payslip.sdfContribution, ytd: ytdStat.sdfContribution });
+  }
+  if (payslip.wcifEmployer > 0) {
+    lines.push({ name: 'WCIF (Insurance)', allowance: 0, deduction: 0, employer: payslip.wcifEmployer, ytd: ytdStat.wcifEmployer });
+  }
+  if (payslip.necEmployer > 0) {
+    lines.push({ name: 'NEC Employer', allowance: 0, deduction: 0, employer: payslip.necEmployer, ytd: ytdStat.necEmployer });
+  }
+
+  return lines;
+}
+
+/**
+ * Fetches all data for a payslip, generates the PDF, and returns a buffer
+ * along with metadata needed for the email.
+ */
+async function payslipToBuffer(payslipId) {
+  const payslip = await prisma.payslip.findUnique({
+    where: { id: payslipId },
+    include: {
+      employee: { include: { user: true } },
+      payrollRun: { include: { company: true } },
+    },
+  });
+  if (!payslip) return null;
+
+  const transactions = await prisma.payrollTransaction.findMany({
+    where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
+    include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true } } },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  // Calculate YTD data
+  const yearStart = new Date(new Date(payslip.payrollRun.startDate).getFullYear(), 0, 1);
+  const historicRunIds = (await prisma.payrollRun.findMany({
+    where: {
+      companyId: payslip.payrollRun.companyId,
+      status: 'COMPLETED',
+      startDate: { gte: yearStart, lte: payslip.payrollRun.startDate },
+      id: { not: payslip.payrollRunId }
+    },
+    select: { id: true }
+  })).map(r => r.id);
+
+  const [historicalTxs, historicalPayslips] = await Promise.all([
+    prisma.payrollTransaction.findMany({
+      where: { employeeId: payslip.employeeId, payrollRunId: { in: historicRunIds } },
+      select: { transactionCodeId: true, amount: true }
+    }),
+    prisma.payslip.findMany({
+      where: { employeeId: payslip.employeeId, payrollRunId: { in: historicRunIds } }
+    })
+  ]);
+
+  const { ytdMap, ytdStat } = calculateYTD({
+    currentPayslip: payslip,
+    historicalPayslips,
+    currentTransactions: transactions,
+    historicalTransactions: historicalTxs
+  });
+
+  const basicSalary = payslip.basicSalaryApplied > 0 ? payslip.basicSalaryApplied : (payslip.employee.baseRate ?? 0);
+  const lineItems = buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary });
+
+  const pdfData = {
+    companyName: payslip.payrollRun.company.name,
+    period: `${payslip.payrollRun.startDate.toLocaleDateString()} – ${payslip.payrollRun.endDate.toLocaleDateString()}`,
+    employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
+    employeeCode: payslip.employee.employeeCode || '',
+    nationalId: payslip.employee.idPassport || '',
+    jobTitle: payslip.employee.position || '',
+    currency: payslip.payrollRun.currency,
+    lineItems,
+    grossPay: payslip.gross,
+    totalDeductions: (payslip.gross - payslip.netPay),
+    netSalary: payslip.netPay,
+    netPayUSD: payslip.netPayUSD,
+    netPayZIG: payslip.netPayZIG,
+  };
+
+  const buffer = await generatePayslipBuffer(pdfData);
+
+  return {
+    buffer,
+    email: payslip.employee.user?.email ?? payslip.employee.email ?? null,
+    employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
+    companyName: payslip.payrollRun.company.name,
+    period: pdfData.period,
+    companyId: payslip.payrollRun.companyId,
+  };
+}
+
+module.exports = { payslipToBuffer, buildPayslipLineItems };
