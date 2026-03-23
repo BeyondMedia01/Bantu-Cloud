@@ -452,6 +452,7 @@ model PayrollRun {
   transactions      PayrollTransaction[]
   payslips          Payslip[]
   payrollInputs     PayrollInput[]
+  loanRepayments    LoanRepayment[]
 }
 
 model PayrollTransaction {
@@ -923,15 +924,17 @@ model Loan {
 }
 
 model LoanRepayment {
-  id        String          @id @default(uuid())
-  loanId    String
-  amount    Float
-  dueDate   DateTime
-  paidDate  DateTime?
-  status    RepaymentStatus @default(UNPAID)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  loan      Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  id           String          @id @default(uuid())
+  loanId       String
+  payrollRunId String?         // Tracks which run processed this repayment
+  amount       Float
+  dueDate      DateTime
+  paidDate     DateTime?
+  status       RepaymentStatus @default(UNPAID)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  loan         Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  payrollRun   PayrollRun?     @relation(fields: [payrollRunId], references: [id])
 }
 
 // ─── License & Subscription ───────────────────────────────────────────────────

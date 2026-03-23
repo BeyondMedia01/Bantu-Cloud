@@ -338,8 +338,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       return res.status(400).json({ message: 'A closed calendar period overlaps with this payroll run dates' });
     }
 
-    if (!['DRAFT', 'APPROVED', 'ERROR'].includes(run.status)) {
-      return res.status(400).json({ message: 'Only DRAFT, APPROVED, or ERROR runs can be processed' });
+    if (!['DRAFT', 'APPROVED', 'ERROR', 'COMPLETED'].includes(run.status)) {
+      return res.status(400).json({ message: 'Only DRAFT, APPROVED, ERROR, or COMPLETED runs can be processed' });
     }
 
     // Fetch tax table: prefer explicitly activated table, then period-matched, then most recent
@@ -532,9 +532,12 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     // All due loan repayments for employees in this company
     const allDueRepayments = await prisma.loanRepayment.findMany({
       where: {
-        status: 'UNPAID',
+        OR: [
+          { status: 'UNPAID' },
+          { payrollRunId: run.id }, // Also include those already linked to this run for re-processing
+        ],
         dueDate: { lte: new Date(run.endDate) },
-        loan: { employeeId: { in: employeeIds }, status: 'ACTIVE', repaymentMethod: 'SALARY_DEDUCTION' },
+        loan: { employeeId: { in: employeeIds }, status: { in: ['ACTIVE', 'PAID_OFF'] }, repaymentMethod: 'SALARY_DEDUCTION' },
       },
       include: { loan: { select: { id: true, employeeId: true } } },
       orderBy: { dueDate: 'asc' },
@@ -1200,6 +1203,23 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     // ── Short transaction — bulk writes only ───────────────────────────────────
 
     const result = await prisma.$transaction(async (tx) => {
+      // Reset loan data associated with this run before re-calculating
+      const linkedRepaymentIds = allDueRepayments.filter(r => r.payrollRunId === run.id).map(r => r.id);
+      if (linkedRepaymentIds.length > 0) {
+        // Reset repayments to UNPAID
+        await tx.loanRepayment.updateMany({
+          where: { id: { in: linkedRepaymentIds } },
+          data: { status: 'UNPAID', paidDate: null, payrollRunId: null },
+        });
+
+        // Reset associated loans to ACTIVE (if they were PAID_OFF)
+        const loanIdsToReset = [...new Set(allDueRepayments.filter(r => r.payrollRunId === run.id).map(r => r.loanId))];
+        await tx.loan.updateMany({
+          where: { id: { in: loanIdsToReset } },
+          data: { status: 'ACTIVE' },
+        });
+      }
+
       await tx.payslip.deleteMany({ where: { payrollRunId: run.id } });
       await tx.payrollTransaction.deleteMany({ where: { payrollRunId: run.id } });
       await tx.payrollRun.update({ where: { id: run.id }, data: { status: 'PROCESSING' } });
@@ -1224,7 +1244,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       if (appliedRepaymentIds.size > 0) {
         await tx.loanRepayment.updateMany({
           where: { id: { in: [...appliedRepaymentIds] } },
-          data: { status: 'PAID', paidDate: now },
+          data: { status: 'PAID', paidDate: now, payrollRunId: run.id },
         });
       }
 
