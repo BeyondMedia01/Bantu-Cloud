@@ -53,140 +53,140 @@ function _drawPayslip(doc, data) {
   const CONTENT_W = RIGHT - LEFT;
 
   // ── Header Section ────────────────────────────────────────────────────────
-  doc.rect(0, 0, PAGE_WIDTH, 100).fill(DARK_NAVY);
-  drawPlatformLogo(doc, LEFT, 25, 40);
+  doc.rect(0, 0, PAGE_WIDTH, 110).fill(DARK_NAVY);
+  drawPlatformLogo(doc, LEFT, 30, 45);
   
-  doc.fillColor('white').font('Helvetica-Bold').fontSize(22)
-    .text('PAYSLIP', RIGHT - 150, 30, { width: 150, align: 'right' });
+  doc.fillColor('white').font('Helvetica-Bold').fontSize(24)
+    .text('PAYSLIP', RIGHT - 150, 35, { width: 150, align: 'right' });
   
-  doc.fillColor(BANTU_GREEN).font('Helvetica-Bold').fontSize(14)
-    .text(data.companyName.toUpperCase(), LEFT + 50, 35);
-  doc.fillColor('white').font('Helvetica').fontSize(9)
-    .text(`Period: ${data.period}`, LEFT + 50, 55);
+  doc.fillColor(BANTU_GREEN).font('Helvetica-Bold').fontSize(16)
+    .text(data.companyName.toUpperCase(), LEFT + 60, 40);
+  doc.fillColor('white').font('Helvetica').fontSize(10)
+    .text(`Period: ${data.period}`, LEFT + 60, 62);
 
   // ── Employee & Employment Details Card ────────────────────────────────────
-  let currY = 120;
-  doc.roundedRect(LEFT, currY, CONTENT_W, 90, 8).fill(BG_LIGHT);
+  let currY = 130;
+  doc.roundedRect(LEFT, currY, CONTENT_W, 100, 8).fill(BG_LIGHT);
   doc.lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
 
   const drawInfoField = (label, value, x, y, w) => {
-    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(7).text(label.toUpperCase(), x, y);
-    doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(9).text(value || '—', x, y + 10, { width: w, lineBreak: false });
+    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(7.5).text(label.toUpperCase(), x, y);
+    doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(10).text(value || '—', x, y + 12, { width: w, lineBreak: false });
   };
 
   const colWidth = (CONTENT_W - 40) / 4;
-  drawInfoField('Employee Name', data.employeeName, LEFT + 15, currY + 15, colWidth * 2);
-  drawInfoField('Employee Code', data.employeeCode, LEFT + 15 + colWidth * 2, currY + 15, colWidth);
-  drawInfoField('ID Number', data.nationalId, LEFT + 15 + colWidth * 3, currY + 15, colWidth);
+  drawInfoField('Employee Name', data.employeeName, LEFT + 20, currY + 20, colWidth * 2);
+  drawInfoField('Employee Code', data.employeeCode, LEFT + 20 + colWidth * 2, currY + 20, colWidth);
+  drawInfoField('ID Number', data.nationalId, LEFT + 20 + colWidth * 3, currY + 20, colWidth);
 
-  drawInfoField('Department', data.department, LEFT + 15, currY + 50, colWidth);
-  drawInfoField('Position', data.jobTitle, LEFT + 15 + colWidth, currY + 50, colWidth);
-  drawInfoField('Cost Centre', data.costCenter, LEFT + 15 + colWidth * 2, currY + 50, colWidth);
-  drawInfoField('Pay Method', data.paymentMethod, LEFT + 15 + colWidth * 3, currY + 50, colWidth);
+  drawInfoField('Department', data.department, LEFT + 20, currY + 60, colWidth);
+  drawInfoField('Position', data.jobTitle, LEFT + 20 + colWidth, currY + 60, colWidth);
+  drawInfoField('Cost Centre', data.costCenter, LEFT + 20 + colWidth * 2, currY + 60, colWidth);
+  drawInfoField('Pay Method', data.paymentMethod, LEFT + 20 + colWidth * 3, currY + 60, colWidth);
 
   // ── Bank Details ──────────────────────────────────────────────────────────
-  currY += 105;
-  doc.roundedRect(LEFT, currY, CONTENT_W, 45, 8).fill('#f1f5f9');
+  currY += 120;
+  doc.roundedRect(LEFT, currY, CONTENT_W, 50, 8).fill('#f1f5f9');
   doc.strokeColor(BORDER_COLOR).stroke();
   
-  drawInfoField('Bank Name', data.bankName, LEFT + 15, currY + 12, colWidth * 2);
-  drawInfoField('Account Number', data.accountNumber, LEFT + 15 + colWidth * 2, currY + 12, colWidth * 2);
+  drawInfoField('Bank Name', data.bankName, LEFT + 20, currY + 15, colWidth * 2);
+  drawInfoField('Account Number', data.accountNumber, LEFT + 20 + colWidth * 2, currY + 15, colWidth * 2);
 
   // ── Earnings & Deductions Table ───────────────────────────────────────────
-  currY += 65;
+  currY += 75;
   const TABLE_TOP = currY;
-  const TABLE_HDR_H = 25;
+  const TABLE_HDR_H = 30;
   
   doc.rect(LEFT, TABLE_TOP, CONTENT_W, TABLE_HDR_H).fill(DARK_NAVY);
-  doc.fillColor('white').font('Helvetica-Bold').fontSize(8);
+  doc.fillColor('white').font('Helvetica-Bold').fontSize(9);
   
   const cols = [
-    { label: 'Description', x: LEFT + 15, w: 220, align: 'left' },
-    { label: 'Earnings', x: LEFT + 235, w: 80, align: 'right' },
-    { label: 'Deductions', x: LEFT + 315, w: 80, align: 'right' },
-    { label: 'Employer', x: LEFT + 395, w: 80, align: 'right' },
-    { label: 'YTD', x: LEFT + 475, w: CONTENT_W - 490, align: 'right' }
+    { label: 'Description', x: LEFT + 20, w: 200, align: 'left' },
+    { label: 'Earnings', x: LEFT + 230, w: 80, align: 'right' },
+    { label: 'Deductions', x: LEFT + 310, w: 80, align: 'right' },
+    { label: 'Employer', x: LEFT + 390, w: 80, align: 'right' },
+    { label: 'YTD', x: LEFT + 470, w: CONTENT_W - 490, align: 'right' }
   ];
 
   cols.forEach(c => {
-    doc.text(c.label.toUpperCase(), c.x, TABLE_TOP + 8, { width: c.w, align: c.align });
+    doc.text(c.label.toUpperCase(), c.x, TABLE_TOP + 10, { width: c.w, align: c.align });
   });
 
   currY += TABLE_HDR_H;
   const lineItems = data.lineItems || [];
   
   lineItems.forEach((item, i) => {
-    const rowY = currY + (i * 20);
+    const rowY = currY + (i * 22);
     if (i % 2 === 0) {
-      doc.rect(LEFT, rowY, CONTENT_W, 20).fill('#fafafa');
+      doc.rect(LEFT, rowY, CONTENT_W, 22).fill('#fafafa');
     }
     
-    doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(8.5);
-    doc.text(item.name, cols[0].x, rowY + 6);
+    doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9);
+    doc.text(item.name, cols[0].x, rowY + 7);
     
     doc.font('Helvetica-Bold');
     if (item.allowance > 0) {
-      doc.fillColor('#059669').text(fmt(item.allowance), cols[1].x, rowY + 6, { width: cols[1].w, align: 'right' });
+      doc.fillColor('#059669').text(fmt(item.allowance), cols[1].x, rowY + 7, { width: cols[1].w, align: 'right' });
     }
     if (item.deduction > 0) {
-      doc.fillColor('#e11d48').text(fmt(item.deduction), cols[2].x, rowY + 6, { width: cols[2].w, align: 'right' });
+      doc.fillColor('#e11d48').text(fmt(item.deduction), cols[2].x, rowY + 7, { width: cols[2].w, align: 'right' });
     }
     
-    doc.fillColor(TEXT_MUTED).font('Helvetica');
+    doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(8.5);
     if (item.employer > 0) {
-      doc.text(fmt(item.employer), cols[3].x, rowY + 6, { width: cols[3].w, align: 'right' });
+      doc.text(fmt(item.employer), cols[3].x, rowY + 7, { width: cols[3].w, align: 'right' });
     }
     if (item.ytd) {
-      doc.text(fmt(item.ytd), cols[4].x, rowY + 6, { width: cols[4].w, align: 'right' });
+      doc.text(fmt(item.ytd), cols[4].x, rowY + 7, { width: cols[4].w, align: 'right' });
     }
   });
 
   // ── Summary Totals ────────────────────────────────────────────────────────
-  const FOOTER_START = 620; // Anchor to bottom
-  currY = Math.max(currY + (lineItems.length * 20) + 20, FOOTER_START);
+  const FOOTER_START = 650; // Anchor to bottom
+  currY = Math.max(currY + (lineItems.length * 22) + 25, FOOTER_START);
 
-  doc.rect(LEFT, currY, CONTENT_W, 60).fill(DARK_NAVY);
+  doc.rect(LEFT, currY, CONTENT_W, 70).fill(DARK_NAVY);
   
   const sumW = CONTENT_W / 3;
-  const drawSummary = (label, value, x, y, color = 'white', fontSize = 14) => {
-    doc.fillColor('white').font('Helvetica').fontSize(7).text(label.toUpperCase(), x, y);
-    doc.fillColor(color).font('Helvetica-Bold').fontSize(fontSize).text(value, x, y + 10);
+  const drawSummary = (label, value, x, y, color = 'white', fontSize = 16) => {
+    doc.fillColor('rgba(255,255,255,0.7)').font('Helvetica').fontSize(8).text(label.toUpperCase(), x, y);
+    doc.fillColor(color).font('Helvetica-Bold').fontSize(fontSize).text(value, x, y + 12);
   };
 
   const totalDeductions = data.totalDeductions || (data.grossPay - data.netSalary);
-  drawSummary('Total Earnings', `${ccy} ${fmt(data.grossPay)}`, LEFT + 20, currY + 15);
-  drawSummary('Total Deductions', `${ccy} ${fmt(totalDeductions)}`, LEFT + sumW + 10, currY + 15, '#fb7185');
+  drawSummary('Total Earnings', `${ccy} ${fmt(data.grossPay)}`, LEFT + 25, currY + 20);
+  drawSummary('Total Deductions', `${ccy} ${fmt(totalDeductions)}`, LEFT + sumW + 15, currY + 20, '#fb7185');
   
-  doc.rect(LEFT + sumW * 2, currY, sumW, 60).fill(BANTU_GREEN);
+  doc.rect(LEFT + sumW * 2, currY, sumW, 70).fill(BANTU_GREEN);
   
   if (data.netPayUSD != null && data.netPayZIG != null) {
-    doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(7).text('NET PAY (USD / ZIG)', LEFT + sumW * 2 + 15, currY + 10);
-    doc.font('Helvetica-Bold').fontSize(11).text(`USD ${fmt(data.netPayUSD)}`, LEFT + sumW * 2 + 15, currY + 22);
-    doc.fontSize(10).text(`ZiG ${fmt(data.netPayZIG)}`, LEFT + sumW * 2 + 15, currY + 36);
+    doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(8).text('NET PAY SPLIT', LEFT + sumW * 2 + 20, currY + 15);
+    doc.font('Helvetica-Bold').fontSize(13).text(`USD ${fmt(data.netPayUSD)}`, LEFT + sumW * 2 + 20, currY + 28);
+    doc.fontSize(12).text(`ZiG ${fmt(data.netPayZIG)}`, LEFT + sumW * 2 + 20, currY + 45);
   } else {
-    doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(8).text('NET SALARY', LEFT + sumW * 2 + 15, currY + 15);
-    doc.font('Helvetica-Bold').fontSize(16).text(`${ccy} ${fmt(data.netSalary)}`, LEFT + sumW * 2 + 15, currY + 28);
+    doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(9).text('NET SALARY', LEFT + sumW * 2 + 20, currY + 20);
+    doc.font('Helvetica-Bold').fontSize(18).text(`${ccy} ${fmt(data.netSalary)}`, LEFT + sumW * 2 + 20, currY + 35);
   }
 
   // ── Leave Balances ────────────────────────────────────────────────────────
-  currY += 75;
-  doc.roundedRect(LEFT, currY, CONTENT_W, 40, 6).fill(BG_LIGHT);
+  currY += 90;
+  doc.roundedRect(LEFT, currY, CONTENT_W, 45, 8).fill(BG_LIGHT);
   doc.strokeColor(BORDER_COLOR).stroke();
 
   const leaveW = (CONTENT_W - 40) / 2;
-  doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(7).text('ANNUAL LEAVE BALANCE', LEFT + 15, currY + 10);
-  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(11).text(`${(data.leaveBalance || 0).toFixed(1)} days`, LEFT + 15, currY + 20);
+  doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(8).text('ANNUAL LEAVE BALANCE', LEFT + 20, currY + 12);
+  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(12).text(`${(data.leaveBalance || 0).toFixed(1)} days`, LEFT + 20, currY + 24);
 
-  doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(7).text('LEAVE TAKEN (YTD)', LEFT + 15 + leaveW, currY + 10);
-  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(11).text(`${(data.leaveTaken || 0).toFixed(1)} days`, LEFT + 15 + leaveW, currY + 20);
+  doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(8).text('LEAVE TAKEN (YTD)', LEFT + 20 + leaveW, currY + 12);
+  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(12).text(`${(data.leaveTaken || 0).toFixed(1)} days`, LEFT + 20 + leaveW, currY + 24);
 
   // ── Branding Footer ──────────────────────────────────────────────────────
-  const footerY = 800;
+  const footerY = 810;
   doc.moveTo(LEFT, footerY).lineTo(RIGHT, footerY).lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
   
-  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7)
-    .text('Bantu - Modern HR & Payroll Automation', LEFT, footerY + 10);
-  doc.text('CONFIDENTIAL DOCUMENT', RIGHT - 150, footerY + 10, { width: 150, align: 'right' });
+  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(8)
+    .text('Bantu - Modern HR & Payroll Automation', LEFT, footerY + 12);
+  doc.text('CONFIDENTIAL DOCUMENT', RIGHT - 150, footerY + 12, { width: 150, align: 'right' });
 }
 
 const generatePayslipPDF = (data, stream) => {
@@ -743,13 +743,13 @@ const generatePayrollSummaryPDF = (data, stream) => {
  * Generates a "Payslip Summary" report matching the user's reference image.
  * Vertical block-style per employee, grouped by department.
  */
-const generatePayslipSummaryPDF = (data, res) => {
-  const doc = new PDFDocument({ margin: 30, size: 'A4' });
-  doc.pipe(res);
-
+/**
+ * Internal: shared logic to draw the Payslip Summary report.
+ */
+function _drawPayslipSummary(doc, data) {
   const { companyName, period, groups = [], date = new Date().toLocaleDateString(), time = new Date().toLocaleTimeString() } = data;
   const LEFT = 30, RIGHT = 565, WIDTH = RIGHT - LEFT;
-  const BLUE = '#1a2e4a', GREY = '#64748b', RED = '#dc2626';
+  const BLUE = '#1a2e4a', GREY = '#64748b', RED = '#dc2626', GREEN = '#059669';
 
   const fmt = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -763,7 +763,6 @@ const generatePayslipSummaryPDF = (data, res) => {
   doc.text(`START PERIOD`, LEFT, 105); doc.text(`: ${period}`, LEFT + 70, 105);
   doc.text(`END PERIOD`, LEFT, 118);   doc.text(`: ${period}`, LEFT + 70, 118);
 
-  // Logo Placeholder (top right)
   drawPlatformLogo(doc, RIGHT - 50, 75, 40);
 
   // Table Headers
@@ -776,24 +775,33 @@ const generatePayslipSummaryPDF = (data, res) => {
   doc.text('DEDUCTIONS', LEFT + 260, y + 4);
   doc.text('AMOUNT', LEFT + 380, y + 4);
   doc.text('UNITS', LEFT + 440, y + 4);
-  doc.text('EMPLOYER', LEFT + 485, y + 2, { align: 'right', width: 75 });
-  doc.text('CONTRIBUTIONS', LEFT + 485, y + 10, { align: 'right', width: 75 });
+  doc.text('EMPLOYER CONTRIB.', LEFT + 485, y + 4, { align: 'right', width: 75 });
 
   doc.lineWidth(1).strokeColor(BLUE);
   doc.moveTo(LEFT, y).lineTo(RIGHT, y).stroke();
   doc.moveTo(LEFT, y + 25).lineTo(RIGHT, y + 25).stroke();
   y += 35;
 
+  let grandTotalEarnings = 0;
+  let grandTotalDeductions = 0;
+  let grandTotalEmployer = 0;
+  let grandTotalNetPay = 0;
+
   groups.forEach(group => {
-    // Check for page overflow
     if (y > 750) { doc.addPage(); y = 50; }
 
     // Group Header (Department)
     doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(10).text(group.name.toUpperCase(), LEFT, y);
     y += 20;
 
+    let groupTotalEarnings = 0;
+    let groupTotalDeductions = 0;
+    let groupTotalEmployer = 0;
+    let groupTotalNetPay = 0;
+
     group.payslips.forEach(p => {
-      if (y > 700) { doc.addPage(); y = 50; }
+      // Check for page overflow
+      if (y > 680) { doc.addPage(); y = 50; }
       
       const emp = p.employee || {};
       const lines = p.displayLines || []; 
@@ -812,6 +820,7 @@ const generatePayslipSummaryPDF = (data, res) => {
 
       const maxLines = Math.max(earnings.length, deductions.length, employers.length);
       
+      const startY = y;
       doc.font('Helvetica').fontSize(8.5).fillColor(BLUE);
       for (let i = 0; i < maxLines; i++) {
         const e = earnings[i] || {};
@@ -821,44 +830,83 @@ const generatePayslipSummaryPDF = (data, res) => {
         if (e.name) {
           doc.text(e.name, LEFT, y, { width: 130 });
           doc.text(fmt(e.allowance), LEFT + 140, y, { width: 50, align: 'right' });
-          doc.text(e.units || '0.00', LEFT + 200, y, { width: 40, align: 'right' });
+          doc.text(fmt(e.units || 0), LEFT + 200, y, { width: 40, align: 'right' });
         }
         if (d.name) {
           doc.text(d.name, LEFT + 260, y, { width: 110 });
           doc.text(fmt(d.deduction), LEFT + 380, y, { width: 50, align: 'right' });
-          doc.text(d.units || '0.00', LEFT + 440, y, { width: 40, align: 'right' });
+          doc.text(fmt(d.units || 0), LEFT + 440, y, { width: 40, align: 'right' });
         }
         if (r.name) {
-          // In the image, Employer contrib labels are aligned with earnings or deductions?
-          // Usually they have their own labels too, but I'll follow the image's layout.
-          doc.text(fmt(r.employer), LEFT + 490, y, { width: 70, align: 'right' });
+          // Fixed Employer Contribution labels
+          doc.fontSize(7).text(r.name.substring(0, 15), LEFT + 485, y, { width: 50, align: 'right' });
+          doc.fontSize(8.5).text(fmt(r.employer), LEFT + 485 + 50, y, { width: 30, align: 'right' });
         }
         y += 12;
       }
 
-      // Block Totals
+      // Block Totals (per employee)
       y += 5;
-      doc.lineWidth(0.5).strokeColor(BLUE);
+      doc.lineWidth(0.5).strokeColor(GREY);
       doc.moveTo(LEFT + 140, y).lineTo(LEFT + 190, y).stroke();
       doc.moveTo(LEFT + 380, y).lineTo(LEFT + 430, y).stroke();
-      doc.moveTo(LEFT + 500, y).lineTo(RIGHT, y).stroke();
+      doc.moveTo(LEFT + 485, y).lineTo(RIGHT, y).stroke();
       y += 4;
       
       const totalAllow = earnings.reduce((s, e) => s + e.allowance, 0);
       const totalDed = deductions.reduce((s, d) => s + d.deduction, 0);
       const totalEmpr = employers.reduce((s, r) => s + r.employer, 0);
+      const netPay = p.netPay || (totalAllow - totalDed);
 
       doc.font('Helvetica-Bold');
       doc.text(fmt(totalAllow), LEFT + 140, y, { width: 50, align: 'right' });
       doc.text(fmt(totalDed), LEFT + 380, y, { width: 50, align: 'right' });
-      doc.text(fmt(totalEmpr), LEFT + 490, y, { width: 70, align: 'right' });
+      doc.text(fmt(totalEmpr), LEFT + 485, y, { width: 30, align: 'right' }); // Just the amount for total
       
-      y += 15;
-      doc.moveTo(LEFT, y).lineTo(RIGHT, y).lineWidth(0.5).strokeColor('#e2e8f0');
-      y += 15;
+      // NET PAY for the employee
+      doc.fillColor(GREEN).text('NET PAY:', LEFT + 400, y + 15, { width: 80, align: 'right' });
+      doc.text(`${p.currency || 'USD'} ${fmt(netPay)}`, LEFT + 485, y + 15, { width: 80, align: 'right' });
+      doc.fillColor(BLUE);
+
+      groupTotalEarnings += totalAllow;
+      groupTotalDeductions += totalDed;
+      groupTotalEmployer += totalEmpr;
+      groupTotalNetPay += netPay;
+
+      y += 35;
+      doc.moveTo(LEFT, y - 5).lineTo(RIGHT, y - 5).lineWidth(0.5).strokeColor('#e2e8f0');
     });
+
+    // Subtotal Row for Department
+    if (y > 780) { doc.addPage(); y = 50; }
+    doc.rect(LEFT, y - 5, WIDTH, 20).fill('#f1f5f9');
+    doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(9);
+    doc.text(`SUBTOTAL: ${group.name.toUpperCase()}`, LEFT + 5, y);
+    doc.text(fmt(groupTotalEarnings), LEFT + 140, y, { width: 50, align: 'right' });
+    doc.text(fmt(groupTotalDeductions), LEFT + 380, y, { width: 50, align: 'right' });
+    doc.text(fmt(groupTotalNetPay), LEFT + 485, y, { width: 80, align: 'right' });
+    y += 30;
+
+    grandTotalEarnings += groupTotalEarnings;
+    grandTotalDeductions += groupTotalDeductions;
+    grandTotalEmployer += groupTotalEmployer;
+    grandTotalNetPay += groupTotalNetPay;
   });
 
+  // Grand Total Row
+  if (y > 780) { doc.addPage(); y = 50; }
+  doc.rect(LEFT, y - 5, WIDTH, 25).fill(BLUE);
+  doc.fillColor('white').font('Helvetica-Bold').fontSize(11);
+  doc.text('GRAND TOTALS', LEFT + 5, y);
+  doc.text(fmt(grandTotalEarnings), LEFT + 115, y, { width: 75, align: 'right' });
+  doc.text(fmt(grandTotalDeductions), LEFT + 355, y, { width: 75, align: 'right' });
+  doc.text(fmt(grandTotalNetPay), LEFT + 465, y, { width: 100, align: 'right' });
+}
+
+const generatePayslipSummaryPDF = (data, res) => {
+  const doc = new PDFDocument({ margin: 30, size: 'A4' });
+  doc.pipe(res);
+  _drawPayslipSummary(doc, data);
   doc.end();
 };
 
@@ -869,102 +917,7 @@ const generatePayslipSummaryBuffer = (data) => {
     doc.on('data', (chunk) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
-    
-    const { companyName, period, groups = [], date = new Date().toLocaleDateString(), time = new Date().toLocaleTimeString() } = data;
-    const LEFT = 30, RIGHT = 565, WIDTH = RIGHT - LEFT;
-    const BLUE = '#1a2e4a', GREY = '#64748b', RED = '#dc2626';
-    const fmt = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    // ── Header ──────────────────────────────────────────────────────────────────
-    doc.font('Helvetica-Bold').fontSize(14).fillColor(RED).text('PAYSLIP SUMMARY', 0, 40, { align: 'center' });
-    doc.fontSize(10).fillColor(BLUE).text(companyName, 0, 60, { align: 'center' });
-
-    doc.font('Helvetica').fontSize(9).fillColor(BLUE);
-    doc.text(`DATE`, LEFT, 75);      doc.text(`: ${date}`, LEFT + 70, 75);
-    doc.text(`TIME`, LEFT, 88);      doc.text(`: ${time}`, LEFT + 70, 88);
-    doc.text(`START PERIOD`, LEFT, 105); doc.text(`: ${period}`, LEFT + 70, 105);
-    doc.text(`END PERIOD`, LEFT, 118);   doc.text(`: ${period}`, LEFT + 70, 118);
-    drawPlatformLogo(doc, RIGHT - 50, 75, 40);
-
-    let y = 145;
-    doc.rect(LEFT, y, WIDTH, 18).fill('#f8fafc');
-    doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(9);
-    doc.text('EARNINGS', LEFT + 5, y + 4);
-    doc.text('AMOUNT', LEFT + 140, y + 4);
-    doc.text('UNITS', LEFT + 200, y + 4);
-    doc.text('DEDUCTIONS', LEFT + 260, y + 4);
-    doc.text('AMOUNT', LEFT + 380, y + 4);
-    doc.text('UNITS', LEFT + 440, y + 4);
-    doc.text('EMPLOYER', LEFT + 485, y + 2, { align: 'right', width: 75 });
-    doc.text('CONTRIBUTIONS', LEFT + 485, y + 10, { align: 'right', width: 75 });
-    doc.lineWidth(1).strokeColor(BLUE);
-    doc.moveTo(LEFT, y).lineTo(RIGHT, y).stroke();
-    doc.moveTo(LEFT, y + 25).lineTo(RIGHT, y + 25).stroke();
-    y += 35;
-
-    groups.forEach(group => {
-      if (y > 750) { doc.addPage(); y = 50; }
-      doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(10).text(group.name.toUpperCase(), LEFT, y);
-      y += 20;
-
-      group.payslips.forEach(p => {
-        if (y > 700) { doc.addPage(); y = 50; }
-        const emp = p.employee || {};
-        const lines = p.displayLines || []; 
-        doc.font('Helvetica-Bold').fontSize(8.5).fillColor(BLUE);
-        doc.text(`CODE: ${emp.employeeCode || ''}`, LEFT, y);
-        doc.text(`NAME:  ${emp.lastName || ''}`, LEFT + 120, y);
-        doc.text(`${emp.firstName || ''}`, LEFT + 190, y);
-        doc.text(`DEPARTMENT:   ${group.name}`, LEFT + 350, y);
-        y += 15;
-
-        const earnings = lines.filter(l => l.allowance > 0);
-        const deductions = lines.filter(l => l.deduction > 0);
-        const employers = lines.filter(l => l.employer > 0);
-        const maxLines = Math.max(earnings.length, deductions.length, employers.length);
-        
-        doc.font('Helvetica').fontSize(8.5).fillColor(BLUE);
-        for (let i = 0; i < maxLines; i++) {
-          const e = earnings[i] || {};
-          const d = deductions[i] || {};
-          const r = employers[i] || {};
-          if (e.name) {
-            doc.text(e.name, LEFT, y, { width: 130 });
-            doc.text(fmt(e.allowance), LEFT + 140, y, { width: 50, align: 'right' });
-            doc.text(e.units || '0.00', LEFT + 200, y, { width: 40, align: 'right' });
-          }
-          if (d.name) {
-            doc.text(d.name, LEFT + 260, y, { width: 110 });
-            doc.text(fmt(d.deduction), LEFT + 380, y, { width: 50, align: 'right' });
-            doc.text(d.units || '0.00', LEFT + 440, y, { width: 40, align: 'right' });
-          }
-          if (r.name) {
-            doc.text(fmt(r.employer), LEFT + 490, y, { width: 70, align: 'right' });
-          }
-          y += 12;
-        }
-        y += 5;
-        doc.lineWidth(0.5).strokeColor(BLUE);
-        doc.moveTo(LEFT + 140, y).lineTo(LEFT + 190, y).stroke();
-        doc.moveTo(LEFT + 380, y).lineTo(LEFT + 430, y).stroke();
-        doc.moveTo(LEFT + 500, y).lineTo(RIGHT, y).stroke();
-        y += 4;
-        
-        const totalAllow = earnings.reduce((s, e) => s + e.allowance, 0);
-        const totalDed = deductions.reduce((s, d) => s + d.deduction, 0);
-        const totalEmpr = employers.reduce((s, r) => s + r.employer, 0);
-
-        doc.font('Helvetica-Bold');
-        doc.text(fmt(totalAllow), LEFT + 140, y, { width: 50, align: 'right' });
-        doc.text(fmt(totalDed), LEFT + 380, y, { width: 50, align: 'right' });
-        doc.text(fmt(totalEmpr), LEFT + 490, y, { width: 70, align: 'right' });
-        
-        y += 15;
-        doc.moveTo(LEFT, y).lineTo(RIGHT, y).lineWidth(0.5).strokeColor('#e2e8f0');
-        y += 15;
-      });
-    });
-
+    _drawPayslipSummary(doc, data);
     doc.end();
   });
 };
