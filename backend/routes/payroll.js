@@ -8,7 +8,7 @@ const { audit } = require('../lib/audit');
 const { validateBody } = require('../lib/validate');
 const { sendPayslip } = require('../lib/mailer');
 const { calculateYTD } = require('../utils/ytdCalculator');
-const { payslipToBuffer } = require('../utils/payslipFormatter');
+const { payslipToBuffer, buildPayslipLineItems } = require('../utils/payslipFormatter');
 
 const router = express.Router();
 
