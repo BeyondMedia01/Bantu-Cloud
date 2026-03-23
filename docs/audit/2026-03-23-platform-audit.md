@@ -1,20 +1,18 @@
 # Bantu Platform Audit Report
 **Date:** 2026-03-23
-**Status:** IN PROGRESS
+**Status:** SWEEP COMPLETE — AWAITING REVIEW
 **Sweep target:** 191
-**Files reviewed:** 119
+**Files reviewed:** 191
 
 ## Summary
 
 | Severity | Security | Business Logic | Code Quality | Performance | Total |
 |---|---|---|---|---|---|
 | Critical | 1 | 0 | 0 | 0 | 1 |
-| High | 20 | 4 | 0 | 4 | 28 |
-| Medium | 9 | 2 | 8 | 16 | 35 |
-| Low | 7 | 2 | 11 | 0 | 20 |
-| **Total** | 37 | 8 | 19 | 20 | **84** |
-
-*Update this table after each sweep batch.*
+| High | 30 | 4 | 1 | 4 | 39 |
+| Medium | 17 | 3 | 19 | 17 | 56 |
+| Low | 7 | 2 | 17 | 2 | 28 |
+| **Total** | 55 | 9 | 37 | 23 | **124** |
 
 ---
 
@@ -93,6 +91,7 @@
 - **Fix**: Same fix as `/tax` — drop the `companyId` query param and enforce `req.companyId`.
 
 ### [Medium] `payslipTransactions.js` POST spreads `req.body` directly into Prisma `create` — mass-assignment risk
+<!-- [included in higher tier — see [High] finding in Task 5: payslipTransactions.js POST mass-assignment] -->
 - **File**: `backend/routes/payslipTransactions.js:33`
 - **Domain**: Security
 - **Issue**: `data: { ...req.body, companyId: req.companyId, ... }` passes the entire request body to `prisma.payslipTransaction.create`. An attacker can inject unexpected fields (e.g., `id`, `companyId` overrides, internal flags) that Prisma will attempt to write if they exist on the model. The supplied `companyId` override at the end partially mitigates this for `companyId`, but all other fields are uncontrolled.
@@ -111,12 +110,14 @@
 - **Fix**: Whitelist permitted fields for both mutation handlers. Add ownership checks in `PUT /:id` and `DELETE /:id` (fetch record, assert `record.companyId === req.companyId`).
 
 ### [Medium] `payslipExports.js` PATCH and DELETE have no ownership checks
+<!-- [included in higher tier — see [High] finding above: payslipExports GET/POST/PATCH bypass companyContext middleware] -->
 - **File**: `backend/routes/payslipExports.js:77`
 - **Domain**: Security
 - **Issue**: `PATCH /:id` and `DELETE /:id` do not verify that the targeted `PayslipExport` record belongs to the requesting company. Any authenticated user (with any company context) can mutate or delete another company's export record if they know its ID.
 - **Fix**: Before updating/deleting, look up the record and assert `record.companyId === req.companyId`, returning 403 on mismatch.
 
 ### [Medium] `payslipExports.js` GET returns `bankAccountUSD` and `bankAccountZiG` for all employees in the list
+<!-- [included in higher tier — see [High] finding above: payslipExports GET/POST/PATCH bypass companyContext middleware] -->
 - **File**: `backend/routes/payslipExports.js:17`
 - **Domain**: Security
 - **Issue**: The list endpoint returns `employee.bankAccountUSD` and `employee.bankAccountZiG` as part of every export record. Full bank account numbers should not be returned in a list API response; they should be masked or excluded unless specifically needed for a detail view.
@@ -327,24 +328,28 @@
 - **Fix**: Fetch the holiday first and verify it before deleting. If public holidays are global (not per-client), add a `PLATFORM_ADMIN` guard instead.
 
 ### [Medium] `taxBands.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
+<!-- [included in higher tier — see [High] finding above: taxBands.js all routes have no authentication or authorisation middleware] -->
 - **File**: `backend/routes/taxBands.js:21`
 - **Domain**: Security
 - **Issue**: `data: { ...req.body, effectiveFrom: ... }` passes the entire body to `prisma.taxBand.create`. Any field on the `TaxBand` model (including internal IDs or flags) can be set by the caller.
 - **Fix**: Destructure only the expected fields (`bandNumber`, `description`, `lowerLimit`, `upperLimit`, `rate`, `fixedAmount`, `effectiveFrom`) from `req.body`.
 
 ### [Medium] `auditLogs.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
+<!-- [included in higher tier — see [High] finding above: auditLogs.js all routes have no authentication or authorisation middleware] -->
 - **File**: `backend/routes/auditLogs.js:27`
 - **Domain**: Security
 - **Issue**: `data: { ...req.body, companyId, payPeriod, timestamp }` — the full request body is spread in, meaning a caller can set arbitrary `MultiCurrencyAuditLog` fields including internal relations.
 - **Fix**: Whitelist the expected fields from `req.body` before creating. Ideally remove this public `POST /` endpoint entirely and create audit log entries only from server-side logic.
 
 ### [Medium] `systemSettings.js` `PATCH /:id` accepts `lastUpdatedBy` from `req.body` — caller can spoof audit attribution
+<!-- [included in higher tier — see [Critical] finding above: systemSettings.js all routes have no authenticateToken or permission guard] -->
 - **File**: `backend/routes/systemSettings.js:55`
 - **Domain**: Security
 - **Issue**: `lastUpdatedBy` is read directly from `req.body` and written to the record. Any caller (even unauthenticated, given the lack of auth middleware) can set this field to an arbitrary string, spoofing the attribution of the change in the audit trail.
 - **Fix**: Derive `lastUpdatedBy` from `req.user?.email || req.user?.userId` (server-side), never from the request body.
 
 ### [Medium] `payrollUsers.js` `POST /` — `createdBy` field accepted from `req.body`, enabling audit spoofing
+<!-- [included in higher tier — see [High] finding above: payrollUsers.js all routes have no authentication or authorisation middleware] -->
 - **File**: `backend/routes/payrollUsers.js:38`
 - **Domain**: Security
 - **Issue**: `createdBy` is extracted from `req.body` and written directly to the new `PayrollUser` record. Even if auth were added, a caller could supply any string as the creator identity.
@@ -357,6 +362,7 @@
 - **Fix**: Remove the `req.query.companyId` fallback from all three handlers. Enforce `req.companyId` exclusively, which is already validated by `companyContext`.
 
 ### [Medium] `backup.js` export sends response before logging the audit event, meaning the audit write may be skipped on error
+<!-- [included in higher tier — see [High] finding above: backup.js POST /restore upserts entire payload from req.body] -->
 - **File**: `backend/routes/backup.js:74`
 - **Domain**: Code Quality
 - **Issue**: `res.json(backupData)` is called at line 74, and then `await audit(...)` is called at line 76 — after the response is already sent. If the `audit()` call throws, the error is caught by the outer `catch` block but the response has already been flushed. The same pattern occurs in the restore handler (line 163/165). The audit write is effectively fire-and-forget with no guarantee.
@@ -413,12 +419,14 @@
 - **Fix**: Destructure only the expected fields from `req.body` (`employeeId`, `transactionId`, `amountOriginal`, `rateToUSD`, `currency`, `payPeriod`, `notes`) before creating the record.
 
 ### [High] `leave.js` `PUT /:id` — no ownership check on update; any `manage_leave` user can update leave records from other companies
+<!-- [included in higher tier — see [High] finding in Task 3 Batch B: PUT /api/leave/:id has no ownership check] -->
 - **File**: `backend/routes/leave.js:148`
 - **Domain**: Security
 - **Issue**: `PUT /:id` calls `prisma.leaveRecord.update({ where: { id: req.params.id }, data: ... })` with no prior fetch to verify the record belongs to `req.companyId`. A `manage_leave` user from Company A who knows a `LeaveRecord` UUID from Company B can modify that record's dates, type, totalDays, or status.
 - **Fix**: Before the update, fetch `prisma.leaveRecord.findUnique({ where: { id: req.params.id }, select: { employee: { select: { companyId: true } } } })` and assert `employee.companyId === req.companyId`, returning 403 on mismatch.
 
 ### [High] `leave.js` `DELETE /:id` — no ownership check on delete; same IDOR as PUT
+<!-- [included in higher tier — see [High] finding in Task 3 Batch B: DELETE /api/leave/:id has no ownership check] -->
 - **File**: `backend/routes/leave.js:276`
 - **Domain**: Security
 - **Issue**: `prisma.leaveRecord.delete({ where: { id: req.params.id } })` is called without verifying the record belongs to the requesting company. Identical IDOR exposure as the `PUT /:id` handler.
@@ -431,6 +439,7 @@
 - **Fix**: Add a DB-level check constraint on `Employee.leaveBalance >= 0`, or use a `WHERE leaveBalance >= days_f` condition in the update and check `count` to detect the race. At minimum, guard the payslip display with `Math.max(0, leaveBal?.balance ?? ...)`.
 
 ### [Medium] `leave.js` approval flow re-approves an already-approved request without idempotency check
+<!-- [included in higher tier — see [High] finding above: PUT /api/leave/request/:id/approve and reject have no ownership check] -->
 - **File**: `backend/routes/leave.js:171`
 - **Domain**: Business Logic
 - **Issue**: `PUT /request/:id/approve` calls `prisma.leaveRequest.update(...)` to set status `APPROVED` unconditionally, then creates a new `LeaveRecord` and decrements the balance. If the endpoint is called twice for the same request (double-click, retry), a second `LeaveRecord` is created and the balance is decremented a second time. There is no check that `request.status !== 'APPROVED'` before proceeding.
