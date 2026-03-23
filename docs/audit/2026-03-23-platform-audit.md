@@ -2,17 +2,17 @@
 **Date:** 2026-03-23
 **Status:** IN PROGRESS
 **Sweep target:** 191
-**Files reviewed:** 68
+**Files reviewed:** 73
 
 ## Summary
 
 | Severity | Security | Business Logic | Code Quality | Performance | Total |
 |---|---|---|---|---|---|
 | Critical | 1 | 0 | 0 | 0 | 1 |
-| High | 17 | 0 | 0 | 0 | 17 |
-| Medium | 8 | 0 | 0 | 0 | 8 |
-| Low | 6 | 0 | 0 | 0 | 6 |
-| **Total** | 32 | 0 | 0 | 0 | **32** |
+| High | 17 | 2 | 0 | 0 | 19 |
+| Medium | 8 | 1 | 0 | 0 | 9 |
+| Low | 6 | 1 | 0 | 0 | 7 |
+| **Total** | 32 | 4 | 0 | 0 | **36** |
 
 *Update this table after each sweep batch.*
 
@@ -231,6 +231,32 @@
 - **Domain**: Security
 - **Issue**: The `GET /` list endpoint has no `requirePermission` call. Employee filtering is applied inside the handler for the `EMPLOYEE` role, but users with non-EMPLOYEE roles (e.g., HR viewer with no `manage_loans` permission) can enumerate all loan records across the company.
 - **Fix**: Add `requirePermission('view_loans')` (or `manage_loans`) as route middleware, consistent with the `POST`, `PUT`, and `DELETE` handlers on the same router. `MANUAL` — confirm intended access model.
+
+<!-- Task 4: Tax engine and payroll logic sweep — 2026-03-23 -->
+
+### [High] YTD boundary uses calendar year (January 1) instead of Zimbabwe tax year (April 1)
+- **File**: `backend/utils/payslipFormatter.js:96`, `backend/routes/payroll.js:618`
+- **Domain**: Business Logic
+- **Issue**: The YTD accumulation window is anchored to `new Date(year, 0, 1)` — January 1 of the calendar year — in both `payslipFormatter.js` (YTD on printed payslips) and `payroll.js` (FDS_AVERAGE gross accumulation). Zimbabwe's tax year runs April 1 – March 31. Using a January 1 reset means Q1 payslips (Jan–Mar) carry forward tax-year amounts from the prior April–December into the new calendar year's YTD, and FDS_AVERAGE employees' running average resets three months early. This produces incorrect cumulative PAYE figures on payslips and an incorrect average PAYE base for FDS_AVERAGE employees in January–March.
+- **Fix**: Replace `new Date(year, 0, 1)` with a helper that computes the Zimbabwe tax year start: if the run month is January–March, the tax year started April 1 of the previous year; otherwise April 1 of the current year. Apply the same fix to both call sites. `MANUAL` — confirm with client whether any companies operate under a non-April tax year (ZIMRA allows alternate fiscal year applications).
+
+### [High] NSSA ceiling hardcoded fallback in `taxEngine.js` — no external config enforced at engine level
+- **File**: `backend/utils/taxEngine.js:18`
+- **Domain**: Business Logic
+- **Issue**: `DEFAULT_NSSA_CEILING = { USD: 700, ZiG: 20000 }` is hardcoded in the engine as a last-resort fallback. If a caller omits `nssaCeiling` (e.g., a future integration or unit test that does not pass all SystemSettings values), the engine silently uses the hardcoded value regardless of the current statutory ceiling. The `payroll.js` process route does correctly read `NSSA_CEILING_USD`/`NSSA_CEILING_ZIG` from SystemSettings and pass them through, but the preview route (`/preview`) only reads `NSSA_CEILING_USD` and passes no ZiG ceiling. If a ZiG preview is run, the engine falls back to the hardcoded 20,000 ZiG ceiling.
+- **Fix**: In the `/preview` handler, also read `NSSA_CEILING_ZIG` from SystemSettings and pass the appropriate value based on `currency`. For the engine default, document prominently that `DEFAULT_NSSA_CEILING` must be updated whenever ZIMRA revises the ceiling. `MANUAL` — verify current statutory NSSA ceiling values against latest ZIMRA circular.
+
+### [Medium] Tax engine applies no rounding to PAYE, AIDS levy, or NSSA outputs — floating-point drift accumulates across employees
+- **File**: `backend/utils/taxEngine.js:171-224`
+- **Domain**: Business Logic
+- **Issue**: `calculatePaye` performs all intermediate and final calculations in raw floating-point with no `Math.round` applied to any output field (`nssaEmployee`, `payeBeforeLevy`, `aidsLevy`, `totalPaye`, `netSalary`, etc.). The `payroll.js` process route applies `round2` only to currency-conversion results, not to the tax engine outputs before they are stored. ZIMRA requires figures to 2 decimal places per the FDS specification (noted in a comment at line 471 of `payroll.js`). Accumulated float errors across a large headcount can produce payslip values like `123.450000000001` and small discrepancies between individual payslip totals and payroll run summations.
+- **Fix**: Apply `round2` (or equivalent) to all returned monetary fields inside `calculatePaye` before the return statement, or apply rounding in the caller immediately after `calculatePaye` returns and before writing to `payslipData`. Ensure rounding strategy is consistent (banker's rounding, as already used in `round2`).
+
+### [Low] `normaliseBrackets` silently returns an empty array when `taxBrackets` is null or empty — zero PAYE with no warning
+- **File**: `backend/utils/taxEngine.js:117`
+- **Domain**: Business Logic
+- **Issue**: `const bands = (taxBrackets && taxBrackets.length > 0) ? normaliseBrackets(taxBrackets) : [];` — if no tax brackets are supplied, `bands` is `[]`, the loop produces zero PAYE, and the function returns normally with `totalPaye: 0`. The process route (`payroll.js:396`) now guards against this with an HTTP 422 response, but the `/preview` route does not perform the same guard and will silently return zero PAYE if the active tax table has no brackets.
+- **Fix**: Add the same missing-bracket guard to the `/preview` handler that already exists in the `/process` handler (`payroll.js:396-405`): if `taxBrackets.length === 0` return an error rather than silently computing zero PAYE.
 
 <!-- Task 3 Batches C-E: Statutory, Admin, Supporting routes sweep — 2026-03-23 -->
 
