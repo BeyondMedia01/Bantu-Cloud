@@ -2,17 +2,17 @@
 **Date:** 2026-03-23
 **Status:** IN PROGRESS
 **Sweep target:** 191
-**Files reviewed:** 83
+**Files reviewed:** 119
 
 ## Summary
 
 | Severity | Security | Business Logic | Code Quality | Performance | Total |
 |---|---|---|---|---|---|
 | Critical | 1 | 0 | 0 | 0 | 1 |
-| High | 20 | 4 | 0 | 0 | 24 |
-| Medium | 9 | 2 | 0 | 0 | 11 |
-| Low | 7 | 2 | 0 | 0 | 9 |
-| **Total** | 37 | 8 | 0 | 0 | **45** |
+| High | 20 | 4 | 0 | 4 | 28 |
+| Medium | 9 | 2 | 8 | 16 | 35 |
+| Low | 7 | 2 | 11 | 0 | 20 |
+| **Total** | 37 | 8 | 19 | 20 | **84** |
 
 *Update this table after each sweep batch.*
 
@@ -509,3 +509,131 @@
 - **Domain**: Code Quality
 - **Issue**: `matchEmployeeByPin` performs two sequential `prisma.employee.findFirst` calls with no error handling. Any Prisma connectivity or query error will throw at the call site. The sync functions `processDailyLogs` and `buildPayrollInputsFromAttendance` are pure computation and are correctly unguarded, but the async DB lookup should be self-protecting.
 - **Fix**: Add a try/catch to `matchEmployeeByPin` that catches Prisma errors, logs them with `pin` and `companyId` context, and returns `null` so callers degrade gracefully rather than crashing the processing loop.
+
+<!-- Task 8: Backend performance sweep — 2026-03-23 -->
+
+### [High] N+1: leaveBalances accrual loop issues individual UPDATE per employee×policy
+- **File**: `backend/routes/leaveBalances.js:99`
+- **Domain**: Performance
+- **Issue**: The `POST /api/leave-balances/accrue` handler fetches all active employees and all policies, then in a nested `for (emp) / for (policy)` loop calls `getOrCreateBalance(...)` (which itself issues a `findUnique` + optional `create`) and then `prisma.leaveBalance.update(...)` individually. For a company with 200 employees and 5 policies that is 2,000 Prisma round-trips per accrual run.
+- **Fix**: Pre-fetch all existing balances for the company/year in one `findMany`, build an in-memory map, then use `prisma.$transaction([...])` with a single batched `createMany` / `updateMany` or a chunked `Promise.all`. Remove the inner per-row DB calls.
+
+### [High] N+1: leaveBalances year-end issues individual upsert per balance row
+- **File**: `backend/routes/leaveBalances.js:164`
+- **Domain**: Performance
+- **Issue**: The `POST /api/leave-balances/year-end` handler iterates over every balance for the closing year, issuing a `prisma.leaveBalance.update` and (conditionally) a `prisma.leaveBalance.upsert` for each row — 2× DB calls per balance, unbounded by employee count.
+- **Fix**: Batch the updates using `prisma.$transaction`. Collect all update payloads and new-year upsert payloads in arrays, then execute them together or via `updateMany` with matching `where` clauses.
+
+### [High] N+1: backup restore issues individual upsert per record across 12+ models
+- **File**: `backend/routes/backup.js:104`
+- **Domain**: Performance
+- **Issue**: The restore path iterates over `TransactionCode`, `Grade`, `Branch`, `Department`, `Employee`, `PayrollRun`, and then 12 relational tables in `RELATIONAL_TABLES`, issuing one `tx.*.upsert(...)` per record. A company backup with 300 employees, 12 months of payroll, and associated transactions can easily produce 5,000–10,000 sequential upserts inside a single transaction, causing multi-minute lock times and risk of transaction timeout.
+- **Fix**: Replace the per-record upsert loops with chunked `createMany(..., { skipDuplicates: true })` followed by targeted updates, or use PostgreSQL `ON CONFLICT DO UPDATE` via raw SQL for large tables. Split the transaction into per-model sub-transactions to limit lock scope.
+
+### [High] N+1: transactionCodes seed issues individual upsert per TC per client
+- **File**: `backend/utils/transactionCodes.js:105`
+- **Domain**: Performance
+- **Issue**: `autoSeedTransactionCodes` fetches all clients with `findMany()` (no `select`, returning all columns), then for each client iterates over 8 transaction codes issuing one `prisma.transactionCode.upsert` per iteration — O(clients × 8) sequential round-trips. This runs at startup, adding latency proportional to client count.
+- **Fix**: Add `select: { id: true }` to the `client.findMany()` call. Collect all upsert payloads and execute them in a `prisma.$transaction([...])` batch, or use `createMany` with `skipDuplicates: true` for the creates and a single update pass only when needed.
+
+### [Medium] findMany without select on Employee model — payroll run
+- **File**: `backend/routes/payroll.js:459`
+- **Domain**: Performance
+- **Issue**: `prisma.employee.findMany({ where: { companyId: run.companyId }, include: { necGrade: true } })` returns all ~40 columns of `Employee` plus the related `NecGrade` for every employee. The payroll engine only uses a subset of these fields (baseRate, taxMethod, currency, etc.) but hydrates the full model on every payroll run.
+- **Fix**: Add a `select` clause scoped to the fields actually consumed by the payroll calculation loop (e.g. `id`, `baseRate`, `currency`, `taxMethod`, `taxDirectivePerc`, `taxDirectiveAmt`, `hoursPerPeriod`, `daysPerPeriod`, `paymentBasis`, `rateSource`, `necGradeId`, `gradeId`, `splitUsdPercent`, `motorVehicleBenefit`, plus `necGrade: { select: { minRate, necLevyRate } }`).
+
+### [Medium] findMany without select on Employee model — dashboard
+- **File**: `backend/routes/dashboard.js:25`
+- **Domain**: Performance
+- **Issue**: `prisma.employee.findMany(...)` with no `select` clause returns all columns of the `Employee` model for every active employee, used only to derive counts and aggregated stats for the dashboard.
+- **Fix**: Add `select: { id: true, status: true, departmentId: true, branchId: true, baseRate: true, currency: true }` (or whatever subset the dashboard logic actually reads).
+
+### [Medium] findMany without select on Payslip model — reports (multiple)
+- **File**: `backend/routes/reports.js:26`, `backend/routes/reports.js:72`, `backend/routes/reports.js:377`, `backend/routes/reports.js:440`, `backend/routes/reports.js:501`
+- **Domain**: Performance
+- **Issue**: Multiple report endpoints call `prisma.payslip.findMany(...)` without a `select` clause. The `Payslip` model has ~30 columns including several nullable dual-currency Float fields. Report endpoints that only aggregate totals (PAYE, NSSA, gross, net) hydrate far more data than needed.
+- **Fix**: Add `select` clauses limited to the columns read by each report. For example the payroll summary report only needs `{ gross, paye, aidsLevy, nssaEmployee, nssaEmployer, netPay, employeeId, payrollRunId }`.
+
+### [Medium] Unbounded findMany on PayslipTransaction — no take/skip
+- **File**: `backend/routes/payslipTransactions.js:10`
+- **Domain**: Performance
+- **Issue**: `prisma.payslipTransaction.findMany({ where: { companyId } })` has no `take` or `skip`. This is a GET list endpoint that could return unbounded rows as transaction history grows.
+- **Fix**: Add `take` defaulting to 200 (or a pagination pattern) and expose `page`/`limit` query params. Return `total` alongside `data` for the client to paginate.
+
+### [Medium] Unbounded findMany on AuditLog — admin endpoint
+- **File**: `backend/routes/admin.js:195`
+- **Domain**: Performance
+- **Issue**: `prisma.auditLog.findMany(...)` inside the admin audit-log endpoint has no `take` / pagination guard visible in the surrounding lines. AuditLog rows accumulate indefinitely and this endpoint will degrade with scale.
+- **Fix**: Add `take: parseInt(limit) || 100` and `skip` / `cursor`-based pagination. Return `total` count from a parallel `prisma.auditLog.count({ where })`.
+
+### [Medium/MANUAL] Unindexed FK: `Session.userId`
+- **File**: `backend/prisma/schema.prisma` — model `Session`
+- **Domain**: Performance
+- **Issue**: `Session.userId` references `User` and is used in auth lookups (find session by token, then access user), but has no `@@index([userId])`. Queries filtering by `userId` (e.g. "list all sessions for this user") perform a full table scan.
+- **Fix**: Add `@@index([userId])` to the `Session` model. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `ClientAdmin.clientId`
+- **File**: `backend/prisma/schema.prisma` — model `ClientAdmin`
+- **Domain**: Performance
+- **Issue**: `ClientAdmin.clientId` has no `@@index`. Lookups like "find admins for this client" scan the full table.
+- **Fix**: Add `@@index([clientId])` to `ClientAdmin`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `Employee.clientId`, `Employee.companyId`, `Employee.branchId`, `Employee.departmentId`, `Employee.gradeId`, `Employee.necGradeId`
+- **File**: `backend/prisma/schema.prisma` — model `Employee`
+- **Domain**: Performance
+- **Issue**: The `Employee` model has six FK fields with no `@@index`. `companyId` is the primary list filter on virtually every employee query, and `branchId` / `departmentId` are used in filter queries (payroll, reports, leave). Missing indexes cause full table scans on the largest table in the schema.
+- **Fix**: Add `@@index([companyId])`, `@@index([clientId])`, `@@index([branchId])`, `@@index([departmentId])`, `@@index([gradeId])`, `@@index([necGradeId])` to `Employee`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `PayrollRun.companyId`, `PayrollRun.payrollCalendarId`
+- **File**: `backend/prisma/schema.prisma` — model `PayrollRun`
+- **Domain**: Performance
+- **Issue**: `PayrollRun.companyId` is used in nearly every payroll list/filter query (e.g. `findMany({ where: { companyId } })`), but has no index. `payrollCalendarId` is used to join runs to calendar periods.
+- **Fix**: Add `@@index([companyId])` and `@@index([payrollCalendarId])` to `PayrollRun`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `PayrollTransaction.employeeId`, `PayrollTransaction.payrollRunId`, `PayrollTransaction.transactionCodeId`
+- **File**: `backend/prisma/schema.prisma` — model `PayrollTransaction`
+- **Domain**: Performance
+- **Issue**: All three FK fields on `PayrollTransaction` lack indexes. This table grows as O(employees × runs × transactions per employee) and is queried by `payrollRunId` for payslip generation and by `employeeId` for per-employee transaction history.
+- **Fix**: Add `@@index([payrollRunId])`, `@@index([employeeId])`, `@@index([transactionCodeId])` to `PayrollTransaction`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `PayrollInput.employeeId`, `PayrollInput.payrollRunId`, `PayrollInput.transactionCodeId`
+- **File**: `backend/prisma/schema.prisma` — model `PayrollInput`
+- **Domain**: Performance
+- **Issue**: `PayrollInput` is fetched by `employeeId` and `payrollRunId` during every payroll run, but neither field has an index.
+- **Fix**: Add `@@index([employeeId])`, `@@index([payrollRunId])`, `@@index([transactionCodeId])` to `PayrollInput`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `Payslip.employeeId`, `Payslip.payrollRunId`
+- **File**: `backend/prisma/schema.prisma` — model `Payslip`
+- **Domain**: Performance
+- **Issue**: `Payslip` is the most frequently queried table across reports, statutory exports, bank files, and PDF generation. Both `employeeId` and `payrollRunId` are used heavily in `WHERE` clauses but neither has an `@@index`.
+- **Fix**: Add `@@index([payrollRunId])` and `@@index([employeeId])` to `Payslip`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `LoanRepayment.loanId`, `LoanRepayment.payrollRunId`
+- **File**: `backend/prisma/schema.prisma` — model `LoanRepayment`
+- **Domain**: Performance
+- **Issue**: `LoanRepayment.loanId` and `payrollRunId` have no indexes. The payroll engine queries unpaid repayments by loan, and the loan detail page queries repayments by `loanId`.
+- **Fix**: Add `@@index([loanId])` and `@@index([payrollRunId])` to `LoanRepayment`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `Loan.employeeId`
+- **File**: `backend/prisma/schema.prisma` — model `Loan`
+- **Domain**: Performance
+- **Issue**: `Loan.employeeId` has no `@@index`. Loan list queries filter by employee and the payroll engine's `findMany({ where: { employeeId: { in: [...] } } })` will scan the full table.
+- **Fix**: Add `@@index([employeeId])` to `Loan`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `LeaveRecord.employeeId`, `LeaveRequest.employeeId`
+- **File**: `backend/prisma/schema.prisma` — models `LeaveRecord`, `LeaveRequest`
+- **Domain**: Performance
+- **Issue**: Both `LeaveRecord.employeeId` and `LeaveRequest.employeeId` are used as primary filter criteria in leave lookups but have no `@@index`.
+- **Fix**: Add `@@index([employeeId])` to both `LeaveRecord` and `LeaveRequest`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `EmployeeBankAccount.employeeId`, `EmployeeDocument.employeeId`, `LeaveEncashment.employeeId`/`leaveBalanceId`, `LeaveBalance.leavePolicyId`
+- **File**: `backend/prisma/schema.prisma` — models `EmployeeBankAccount`, `EmployeeDocument`, `LeaveEncashment`, `LeaveBalance`
+- **Domain**: Performance
+- **Issue**: These models are accessed by their FK fields (e.g. bank accounts loaded per employee during payroll, documents listed per employee) but have no `@@index` on those FK columns.
+- **Fix**: Add `@@index([employeeId])` to `EmployeeBankAccount`, `EmployeeDocument`, `LeaveEncashment`; add `@@index([leavePolicyId])` and `@@index([companyId])` to `LeaveBalance`; add `@@index([leaveBalanceId])` to `LeaveEncashment`. `MANUAL` — requires `prisma migrate dev`.
+
+### [Medium/MANUAL] Unindexed FK: `AttendanceRecord.shiftId`, `TaxBracket.taxTableId`, `NecGrade.necTableId`, `TransactionCodeRule.transactionCodeId`
+- **File**: `backend/prisma/schema.prisma` — models `AttendanceRecord`, `TaxBracket`, `NecGrade`, `TransactionCodeRule`
+- **Domain**: Performance
+- **Issue**: `AttendanceRecord.shiftId` (joined when computing OT), `TaxBracket.taxTableId` (loaded for every payroll run), `NecGrade.necTableId` (filtered when listing NEC grades), and `TransactionCodeRule.transactionCodeId` (joined during payroll) all lack `@@index` declarations.
+- **Fix**: Add `@@index([shiftId])` to `AttendanceRecord`; `@@index([taxTableId])` to `TaxBracket`; `@@index([necTableId])` to `NecGrade`; `@@index([transactionCodeId])` to `TransactionCodeRule`. `MANUAL` — requires `prisma migrate dev`.
