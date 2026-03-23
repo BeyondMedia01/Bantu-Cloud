@@ -594,7 +594,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
   doc.pipe(stream);
 
   const { companyName, period, currency: ccy = 'USD', groups = [] } = data;
-  const fmtN = (n) => Number(n || 0).toFixed(2);
+  const fmtN = (n) => (Number(n) > 0 || Number(n) < 0) ? Number(n).toFixed(2) : '—';
   const NAVY = '#1a2e4a', GREY = '#64748b', RED = '#dc2626', GREEN = '#059669', LINE = '#cbd5e1';
 
   // ── Header ──────────────────────────────────────────────────────────────────

@@ -1826,10 +1826,10 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
     });
   });
 
-  // Add Statutory rows with YTD
-  lines.push({ name: 'PAYE', allowance: 0, deduction: payslip.paye, employer: 0, ytd: ytdStat.paye });
-  lines.push({ name: 'AIDS Levy', allowance: 0, deduction: payslip.aidsLevy, employer: 0, ytd: ytdStat.aidsLevy });
-  lines.push({ name: 'NSSA Employee', allowance: 0, deduction: payslip.nssaEmployee, employer: 0, ytd: ytdStat.nssaEmployee });
+  // Add Statutory rows with YTD (Only if non-zero)
+  if (payslip.paye > 0) lines.push({ name: 'PAYE', allowance: 0, deduction: payslip.paye, employer: 0, ytd: ytdStat.paye });
+  if (payslip.aidsLevy > 0) lines.push({ name: 'AIDS Levy', allowance: 0, deduction: payslip.aidsLevy, employer: 0, ytd: ytdStat.aidsLevy });
+  if (payslip.nssaEmployee > 0) lines.push({ name: 'NSSA Employee', allowance: 0, deduction: payslip.nssaEmployee, employer: 0, ytd: ytdStat.nssaEmployee });
   
   if (payslip.nssaEmployer > 0) {
     lines.push({ name: 'NSSA Employer', allowance: 0, deduction: 0, employer: payslip.nssaEmployer, ytd: ytdStat.nssaEmployer });
