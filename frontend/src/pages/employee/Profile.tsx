@@ -85,6 +85,7 @@ const EmployeeProfile: React.FC = () => {
             ['Hire Date', profile?.hireDate ? new Date(profile.hireDate).toLocaleDateString() : '—'],
             ['Employment Type', profile?.employmentType || '—'],
             ['Base Rate', profile?.baseRate ? `${profile.currency || 'USD'} ${profile.baseRate}` : '—'],
+            ['Leave Balance', profile?.leaveBalance != null ? `${profile.leaveBalance.toFixed(1)} days` : '—'],
             ['Tax Number', profile?.taxNumber || '—'],
           ].map(([k, v]) => (
             <div key={k}>

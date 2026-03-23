@@ -80,7 +80,7 @@ async function payslipToBuffer(payslipId) {
   const payslip = await prisma.payslip.findUnique({
     where: { id: payslipId },
     include: {
-      employee: { include: { user: true } },
+      employee: { include: { user: true, department: true } },
       payrollRun: { include: { company: true } },
     },
   });
@@ -124,13 +124,23 @@ async function payslipToBuffer(payslipId) {
   const basicSalary = payslip.basicSalaryApplied > 0 ? payslip.basicSalaryApplied : (payslip.employee.baseRate ?? 0);
   const lineItems = buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary });
 
+  const leaveBal = await prisma.leaveBalance.findFirst({
+    where: { employeeId: payslip.employeeId, leaveType: 'ANNUAL', year: yearStart.getFullYear() },
+    select: { balance: true, taken: true }
+  });
+
   const pdfData = {
     companyName: payslip.payrollRun.company.name,
     period: `${payslip.payrollRun.startDate.toLocaleDateString()} – ${payslip.payrollRun.endDate.toLocaleDateString()}`,
     employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
     employeeCode: payslip.employee.employeeCode || '',
-    nationalId: payslip.employee.idPassport || '',
+    nationalId: payslip.employee.idPassport || payslip.employee.nationalId || '',
     jobTitle: payslip.employee.position || '',
+    department: payslip.employee.department?.name || '',
+    costCenter: payslip.employee.costCenter || '',
+    paymentMethod: payslip.employee.paymentMethod || 'BANK',
+    bankName: payslip.employee.bankName || '',
+    accountNumber: payslip.employee.accountNumber || '',
     currency: payslip.payrollRun.currency,
     lineItems,
     grossPay: payslip.gross,
@@ -138,6 +148,8 @@ async function payslipToBuffer(payslipId) {
     netSalary: payslip.netPay,
     netPayUSD: payslip.netPayUSD,
     netPayZIG: payslip.netPayZIG,
+    leaveBalance: leaveBal?.balance ?? (payslip.employee.leaveBalance || 0),
+    leaveTaken: leaveBal?.taken ?? (payslip.employee.leaveTaken || 0),
   };
 
   const buffer = await generatePayslipBuffer(pdfData);
