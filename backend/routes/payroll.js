@@ -25,7 +25,10 @@ router.get('/', async (req, res) => {
           companyId: req.companyId,
           ...(status && { status }),
         },
-        include: { _count: { select: { payslips: true } } },
+        include: { 
+          _count: { select: { payslips: true } },
+          payrollCalendar: true
+        },
         orderBy: { runDate: 'desc' },
       }),
       prisma.employee.count({ where: { companyId: req.companyId } }),
@@ -1529,6 +1532,7 @@ router.get('/:runId', async (req, res) => {
           include: { employee: { select: { firstName: true, lastName: true, position: true } } },
         },
         _count: { select: { payslips: true } },
+        payrollCalendar: true,
       },
     });
     if (!run) return res.status(404).json({ message: 'Payroll run not found' });

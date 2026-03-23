@@ -201,6 +201,26 @@ const PayrollSummary: React.FC = () => {
         {/* Export buttons */}
         {run?.status === 'COMPLETED' && (
           <div className="flex items-center gap-2 flex-wrap">
+            {!run.payrollCalendar?.isClosed && (
+              <button
+                onClick={async () => {
+                  setExporting('rerun');
+                  try {
+                    await PayrollAPI.process(runId!);
+                    showToast('Payroll rerun successful', 'success');
+                    window.location.reload();
+                  } catch (err: any) {
+                    showToast(err.response?.data?.message || 'Rerun failed', 'error');
+                  } finally {
+                    setExporting('');
+                  }
+                }}
+                disabled={!!exporting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-bold hover:bg-indigo-500 disabled:opacity-50"
+              >
+                <TrendingUp size={14} /> {exporting === 'rerun' ? 'Processing…' : 'Rerun Payroll'}
+              </button>
+            )}
             <button
               onClick={handlePdfDownload}
               disabled={!!exporting}

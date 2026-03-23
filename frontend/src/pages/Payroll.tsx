@@ -203,6 +203,16 @@ const Payroll: React.FC = () => {
                           <Play size={12} /> Process
                         </button>
                       )}
+                      {run.status === 'COMPLETED' && !run.payrollCalendar?.isClosed && (
+                        <button
+                          onClick={(e) => handleAction(e, 'process', run.id)}
+                          disabled={actionLoading === run.id + 'process'}
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-indigo-50 text-indigo-700 rounded-full hover:bg-indigo-100 disabled:opacity-50"
+                          title="Rerun Payroll"
+                        >
+                          <Play size={12} /> Rerun
+                        </button>
+                      )}
                       {run.status === 'COMPLETED' && (<>
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate(`/payroll/${run.id}/summary`); }}
