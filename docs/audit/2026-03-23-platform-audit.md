@@ -637,3 +637,141 @@
 - **Domain**: Performance
 - **Issue**: `AttendanceRecord.shiftId` (joined when computing OT), `TaxBracket.taxTableId` (loaded for every payroll run), `NecGrade.necTableId` (filtered when listing NEC grades), and `TransactionCodeRule.transactionCodeId` (joined during payroll) all lack `@@index` declarations.
 - **Fix**: Add `@@index([shiftId])` to `AttendanceRecord`; `@@index([taxTableId])` to `TaxBracket`; `@@index([necTableId])` to `NecGrade`; `@@index([transactionCodeId])` to `TransactionCodeRule`. `MANUAL` — requires `prisma migrate dev`.
+
+---
+
+<!-- Task 7: Frontend security and quality sweep — 2026-03-23 -->
+
+## Frontend Findings (Task 7)
+
+### [Low] `EmployeeEdit.tsx` — 834 lines (split candidate)
+- **File**: `frontend/src/pages/EmployeeEdit.tsx`
+- **Domain**: Code Quality
+- **Issue**: The file is 834 lines, combining employee profile editing, document management, and salary structure in a single monolithic component. Individual sections are hard to test, review, and maintain.
+- **Fix**: Extract each tab (Profile, Documents, Salary Structure) into dedicated sub-components under `frontend/src/pages/employee-edit/` and import them from the parent page.
+
+### [Low] `PayslipInput.tsx` — 826 lines (split candidate)
+- **File**: `frontend/src/pages/PayslipInput.tsx`
+- **Domain**: Code Quality
+- **Issue**: 826 lines mixing payslip input form logic, TC line management, and preview rendering in one component.
+- **Fix**: Split into `PayslipInputForm.tsx`, `PayslipTCLines.tsx`, and `PayslipPreview.tsx`; the parent should only compose them and handle routing state.
+
+### [Low] `utilities/Transactions.tsx` — 772 lines (split candidate)
+- **File**: `frontend/src/pages/utilities/Transactions.tsx`
+- **Domain**: Code Quality
+- **Issue**: 772 lines blending transaction listing, filtering, form entry, and export logic in a single module.
+- **Fix**: Extract the transaction form and export section into separate components, targeting each sub-concern at under 200 lines.
+
+### [Low] `PayrollInputGrid.tsx` — 693 lines (split candidate)
+- **File**: `frontend/src/pages/PayrollInputGrid.tsx`
+- **Domain**: Code Quality
+- **Issue**: 693-line page combining inline grid editing, TC mapping, and summary calculations.
+- **Fix**: Extract the grid body, TC column renderer, and action toolbar into separate components.
+
+### [Low] `utilities/BackPay.tsx` — 630 lines (split candidate)
+- **File**: `frontend/src/pages/utilities/BackPay.tsx`
+- **Domain**: Code Quality
+- **Issue**: 630 lines mixing back-pay calculation form, employee selection, and preview table.
+- **Fix**: Split into `BackPayForm.tsx` and `BackPayPreview.tsx` with a thin orchestrator parent.
+
+### [Low] `NecTables.tsx` — 599 lines (split candidate)
+- **File**: `frontend/src/pages/NecTables.tsx`
+- **Domain**: Code Quality
+- **Issue**: 599 lines with NEC table listing, inline row editing, and bulk upload all in one file.
+- **Fix**: Extract the edit modal and upload panel into `NecTableEditModal.tsx` and `NecTableUpload.tsx`.
+
+### [Low] `EmployeeNew.tsx` — 566 lines (split candidate)
+- **File**: `frontend/src/pages/EmployeeNew.tsx`
+- **Domain**: Code Quality
+- **Issue**: 566 lines for a new-employee wizard with multiple field groups.
+- **Fix**: Break form sections into field-group sub-components (PersonalFields, EmploymentFields, BankFields) and import them into the parent page.
+
+### [Low] `PayrollInputs.tsx` — 556 lines (split candidate)
+- **File**: `frontend/src/pages/PayrollInputs.tsx`
+- **Domain**: Code Quality
+- **Issue**: 556 lines combining list, filter, and edit-in-place logic for payroll inputs.
+- **Fix**: Extract the inputs table and inline edit form into dedicated components.
+
+### [Low] `utilities/PayrollCalendar.tsx` — 475 lines (split candidate)
+- **File**: `frontend/src/pages/utilities/PayrollCalendar.tsx`
+- **Domain**: Code Quality
+- **Issue**: 475 lines mixing calendar rendering, period management, and close-period workflow.
+- **Fix**: Split into `PayrollCalendarGrid.tsx` and `PeriodCloseModal.tsx`.
+
+### [Low] `TaxTableSettings.tsx` — 447 lines (split candidate)
+- **File**: `frontend/src/pages/TaxTableSettings.tsx`
+- **Domain**: Code Quality
+- **Issue**: 447 lines combining tax table list, band editing, and bracket management.
+- **Fix**: Extract `TaxBandEditor.tsx` as a standalone component.
+
+### [Low] `PayrollSummary.tsx` — 432 lines (split candidate)
+- **File**: `frontend/src/pages/PayrollSummary.tsx`
+- **Domain**: Code Quality
+- **Issue**: 432 lines blending summary statistics, employee breakdown table, and export controls.
+- **Fix**: Extract breakdown table and export actions into `PayrollSummaryTable.tsx` and `PayrollSummaryExports.tsx`.
+
+### [Medium] `PayslipExports.tsx` — silent fetch failure, no user-facing error state
+- **File**: `frontend/src/pages/PayslipExports.tsx`
+- **Domain**: Code Quality
+- **Issue**: The `useEffect` fetch catches errors with only `console.error`. The page renders silently empty on failure, indistinguishable from an empty dataset.
+- **Fix**: Add an `error` state variable. On catch, set it and render a visible inline error banner so the user knows the load failed and can retry.
+
+### [Medium] `TaxConfiguration.tsx` — silent fetch failure, no user-facing error state
+- **File**: `frontend/src/pages/TaxConfiguration.tsx`
+- **Domain**: Code Quality
+- **Issue**: Tax-bands fetch errors are swallowed with `console.error`. The user sees a blank page with no feedback.
+- **Fix**: Add error state and render an inline error banner on failure.
+
+### [Medium] `PayrollUsers.tsx` — silent fetch failure, no user-facing error state
+- **File**: `frontend/src/pages/PayrollUsers.tsx`
+- **Domain**: Code Quality
+- **Issue**: Users list fetch errors are swallowed with only `console.error`. The table stays empty with no feedback.
+- **Fix**: Add error state and render a visible error message on fetch failure.
+
+### [Medium] `Employees.tsx` — silent fetch failure for employees and filter dependencies
+- **File**: `frontend/src/pages/Employees.tsx:50,72`
+- **Domain**: Code Quality
+- **Issue**: Both `fetchDependencies` and `fetchEmployees` swallow errors with `console.error`. A failed employee load shows a blank table indistinguishable from an empty result. Branch/department failures silently prevent filters from populating.
+- **Fix**: Add a top-level `fetchError` state; set it in both catch blocks and render an alert banner above the table. Consider a separate state for dependency failures to allow degraded-but-functional operation.
+
+### [Medium] `SystemSettings.tsx` — silent fetch failure, no user-facing error state
+- **File**: `frontend/src/pages/SystemSettings.tsx`
+- **Domain**: Code Quality
+- **Issue**: System settings fetch errors are swallowed via `console.error`. The user sees a blank settings form with no feedback.
+- **Fix**: Add error state and render an inline error message.
+
+### [Medium] `PayrollCore.tsx` — silent fetch failure, no user-facing error state
+- **File**: `frontend/src/pages/PayrollCore.tsx:14`
+- **Domain**: Code Quality
+- **Issue**: `fetchCores` catches errors with only `console.error`. The table silently stays empty on failure, indistinguishable from an empty dataset.
+- **Fix**: Add error state and surface a visible error message. Empty-state and error-state should use different UI treatments.
+
+### [Medium] `CurrencyRates.tsx` — silent fetch failure, no user-facing error state
+- **File**: `frontend/src/pages/CurrencyRates.tsx`
+- **Domain**: Code Quality
+- **Issue**: Currency rates fetch errors are swallowed with `console.error`.
+- **Fix**: Add error state and render a visible error message on failure.
+
+### [Medium] `EmployeeModal.tsx` — untyped `onSave` callback and `initialData` prop
+- **File**: `frontend/src/components/EmployeeModal.tsx:5-6`
+- **Domain**: Code Quality
+- **Issue**: `EmployeeModalProps` declares `onSave: (data: any) => void` and `initialData?: any`, losing all type safety for the data shape passed between parent and modal.
+- **Fix**: Define a concrete `EmployeeFormData` interface (or reuse the existing `Employee` type from `types/employee.ts`) and replace both `any` usages with it.
+
+### [Medium] `EmployeeFilters.tsx` — untyped `branches` and `departments` props
+- **File**: `frontend/src/components/employees/EmployeeFilters.tsx:8-9`
+- **Domain**: Code Quality
+- **Issue**: `branches: any[]` and `departments: any[]` lose type safety. The existing `Branch` and `Department` types from `types/common.ts` already describe these shapes.
+- **Fix**: Import `Branch` and `Department` from `../../types/common` and replace `any[]` with the concrete types.
+
+### [Medium] `tax/NewTaxTableModal.tsx` — untyped `onSuccess` callback prop
+- **File**: `frontend/src/components/tax/NewTaxTableModal.tsx:7`
+- **Domain**: Code Quality
+- **Issue**: `onSuccess: (newTable: any) => void` loses the shape of the newly created tax table returned from the API.
+- **Fix**: Define or import a `TaxTable` interface and replace `any` with it.
+
+### [Medium] `attendance/Attendance.tsx` — untyped `employees` and `onSave` props in internal sub-component
+- **File**: `frontend/src/pages/attendance/Attendance.tsx:37-39`
+- **Domain**: Code Quality
+- **Issue**: The internal attendance form component declares `employees: any[]` and `onSave: (data: any) => Promise<void>`, removing compile-time validation of attendance form data.
+- **Fix**: Define an `AttendanceFormData` interface and an `EmployeeSummary` type to replace the `any` usages.
