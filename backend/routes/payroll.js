@@ -1804,7 +1804,9 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
       const displayLines = buildPayslipLineItems({ 
         payslip: ps, 
         transactions: ps.transactions,
-        basicSalary
+        basicSalary,
+        ytdStat: {}, 
+        ytdMap: {}
       }); 
 
       groupsMap[gName].push({
