@@ -2,17 +2,17 @@
 **Date:** 2026-03-23
 **Status:** IN PROGRESS
 **Sweep target:** 191
-**Files reviewed:** 33
+**Files reviewed:** 68
 
 ## Summary
 
 | Severity | Security | Business Logic | Code Quality | Performance | Total |
 |---|---|---|---|---|---|
-| Critical | 0 | 0 | 0 | 0 | 0 |
-| High | 2 | 0 | 0 | 0 | 2 |
-| Medium | 2 | 0 | 0 | 0 | 2 |
-| Low | 1 | 0 | 0 | 0 | 1 |
-| **Total** | 5 | 0 | 0 | 0 | **5** |
+| Critical | 1 | 0 | 0 | 0 | 1 |
+| High | 17 | 0 | 0 | 0 | 17 |
+| Medium | 8 | 0 | 0 | 0 | 8 |
+| Low | 6 | 0 | 0 | 0 | 6 |
+| **Total** | 32 | 0 | 0 | 0 | **32** |
 
 *Update this table after each sweep batch.*
 
@@ -231,3 +231,137 @@
 - **Domain**: Security
 - **Issue**: The `GET /` list endpoint has no `requirePermission` call. Employee filtering is applied inside the handler for the `EMPLOYEE` role, but users with non-EMPLOYEE roles (e.g., HR viewer with no `manage_loans` permission) can enumerate all loan records across the company.
 - **Fix**: Add `requirePermission('view_loans')` (or `manage_loans`) as route middleware, consistent with the `POST`, `PUT`, and `DELETE` handlers on the same router. `MANUAL` — confirm intended access model.
+
+<!-- Task 3 Batches C-E: Statutory, Admin, Supporting routes sweep — 2026-03-23 -->
+
+### [Critical] `systemSettings.js` — all routes have no `authenticateToken` or permission guard
+- **File**: `backend/routes/systemSettings.js:7`
+- **Domain**: Security
+- **Issue**: `systemSettings.js` instantiates its own `new PrismaClient()` and registers four routes (`GET /`, `POST /`, `PATCH /:id`, `DELETE /:id`) with zero authentication or authorisation middleware. Any unauthenticated HTTP request can read all system settings, create new settings, mutate existing ones (including rate values and flags used by the payroll engine), or delete them outright. This is the most critical finding in the codebase — a fully open admin data endpoint.
+- **Fix**: Add `authenticateToken` and `requireRole('PLATFORM_ADMIN')` (or at minimum `requirePermission('update_settings')`) to all four handlers, matching the pattern in `admin.js`. Also replace the local `new PrismaClient()` instance with the shared `require('../lib/prisma')` singleton.
+
+### [High] `taxBands.js` — all routes have no authentication or authorisation middleware
+- **File**: `backend/routes/taxBands.js:7`
+- **Domain**: Security
+- **Issue**: All four handlers (`GET /`, `POST /`, `PUT /:id`, `DELETE /:id`) are registered with no `authenticateToken` or permission check. Any unauthenticated caller can read, create, update, or delete tax band configuration that directly feeds the payroll tax engine. The file also instantiates its own `new PrismaClient()` rather than the shared singleton.
+- **Fix**: Add `authenticateToken` at router level and `requirePermission('update_settings')` on the mutation handlers, consistent with `taxTables.js`. Replace `new PrismaClient()` with `require('../lib/prisma')`.
+
+### [High] `auditLogs.js` — all routes have no authentication or authorisation middleware
+- **File**: `backend/routes/auditLogs.js:7`
+- **Domain**: Security
+- **Issue**: Both `GET /` and `POST /` handlers have no `authenticateToken` or permission middleware. Any unauthenticated caller can read all multi-currency audit log entries for any company (by supplying `x-company-id` header), or inject arbitrary audit log records. The file also creates its own `new PrismaClient()` instance.
+- **Fix**: Add `authenticateToken` and at minimum `requirePermission('view_reports')` on `GET /`. Restrict or remove `POST /` from the public API surface — audit entries should only be created internally by the application.
+
+### [High] `payrollUsers.js` — all routes have no authentication or authorisation middleware
+- **File**: `backend/routes/payrollUsers.js:7`
+- **Domain**: Security
+- **Issue**: All four handlers (`GET /`, `POST /`, `PATCH /:id`, `DELETE /:id`) have no `authenticateToken` or permission check. Any unauthenticated caller can enumerate payroll user accounts for any company, create new payroll users with ADMIN role and all permissions, or delete existing users. The file uses its own `new PrismaClient()` instance.
+- **Fix**: Add `authenticateToken` at router level and `requirePermission('manage_companies')` (or equivalent) on all mutation handlers. Replace the local `new PrismaClient()` instance with the shared singleton.
+
+### [High] `backup.js` `POST /restore` — upserts entire payload directly from `req.body` with no field validation, enabling overwrite of arbitrary records across models
+- **File**: `backend/routes/backup.js:87`
+- **Domain**: Security
+- **Issue**: The restore handler iterates over models in `backupData.data` and calls `tx[model].upsert({ where: { id: item.id }, update: item, create: item })` — passing each item directly from the client-supplied JSON payload with no field whitelisting or schema validation. An attacker with `manage_company` permission can supply a crafted backup JSON that creates or overwrites Employee records, PayrollRun records, Payslips, or any other linked model with arbitrary field values (including `companyId` reassignment). There is also no check that the IDs being restored actually belong to the requesting company.
+- **Fix**: Validate every item against a strict schema before upsert. Assert that each record's `companyId` (or `clientId`) matches `req.companyId`/`req.clientId`. Do not pass raw `item` objects directly — whitelist permitted fields for each model type.
+
+### [High] `taxBands.js` `PUT /:id` and `DELETE /:id` — no ownership check; any authenticated user can modify any tax band
+- **File**: `backend/routes/taxBands.js:34`
+- **Domain**: Security
+- **Issue**: Same IDOR pattern as employees.js: `PUT /:id` and `DELETE /:id` operate directly by ID with no check that the band belongs to the caller's client scope.
+- **Fix**: After adding auth (see Critical finding above), fetch the band first and assert ownership before mutating.
+
+### [High] `taxTables.js` `GET /:id` and bracket sub-routes — no ownership check
+- **File**: `backend/routes/taxTables.js:82`
+- **Domain**: Security
+- **Issue**: `GET /:id` fetches any tax table by ID with no `clientId` assertion. The bracket endpoints (`GET /:id/brackets`, `PUT /:tableId/brackets/:bracketId`, `DELETE /:tableId/brackets/:bracketId`) similarly operate on arbitrary IDs. `PUT /:tableId/brackets/:bracketId` and `DELETE /:tableId/brackets/:bracketId` do not verify the bracket's parent table belongs to the caller.
+- **Fix**: For `GET /:id`, assert `table.clientId === req.clientId`. For bracket mutation endpoints, first look up the bracket, traverse to its `taxTableId`, verify that table's `clientId` matches.
+
+### [High] `nssaContributions.js` — no `authenticateToken` middleware visible
+- **File**: `backend/routes/nssaContributions.js:12`
+- **Domain**: Security
+- **Issue**: The single `GET /` route handler uses `req.companyId` (which implies `companyContext` middleware) but no `requirePermission` call is present. Depending on how the router is mounted, any authenticated user — including EMPLOYEE role — can enumerate NSSA contribution amounts, employee names, and gross salary data for every employee in the company.
+- **Fix**: Add `requirePermission('view_reports')` to the `GET /` handler.
+
+### [High] `subCompanies.js` `PUT /:id` and `DELETE /:id` — no ownership check
+- **File**: `backend/routes/subCompanies.js:39`
+- **Domain**: Security
+- **Issue**: Same IDOR pattern as employees.js: both mutation handlers operate directly on ID without verifying the sub-company's `clientId` matches `req.clientId`.
+- **Fix**: Fetch the record first, assert `sub.clientId === req.clientId`, return 403 on mismatch.
+
+### [High] `payrollCalendar.js` `PUT /:id` and `DELETE /:id` — no ownership check
+- **File**: `backend/routes/payrollCalendar.js:88`
+- **Domain**: Security
+- **Issue**: Same IDOR pattern: `PUT /:id` fetches the existing calendar for the closed-check but does not assert `calendar.clientId === req.clientId`. `DELETE /:id` does the same. `GET /:id` (line 73) also has no ownership check. `POST /:id/close` (line 115) has no ownership check either.
+- **Fix**: Assert `calendar.clientId === req.clientId` in all four handlers before proceeding.
+
+### [High] `publicHolidays.js` `DELETE /:id` — no ownership check
+- **File**: `backend/routes/publicHolidays.js:69`
+- **Domain**: Security
+- **Issue**: `prisma.publicHoliday.delete({ where: { id: req.params.id } })` is called without verifying the holiday record belongs to the caller's scope. Any `update_settings` user can delete any public holiday record.
+- **Fix**: Fetch the holiday first and verify it before deleting. If public holidays are global (not per-client), add a `PLATFORM_ADMIN` guard instead.
+
+### [Medium] `taxBands.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
+- **File**: `backend/routes/taxBands.js:21`
+- **Domain**: Security
+- **Issue**: `data: { ...req.body, effectiveFrom: ... }` passes the entire body to `prisma.taxBand.create`. Any field on the `TaxBand` model (including internal IDs or flags) can be set by the caller.
+- **Fix**: Destructure only the expected fields (`bandNumber`, `description`, `lowerLimit`, `upperLimit`, `rate`, `fixedAmount`, `effectiveFrom`) from `req.body`.
+
+### [Medium] `auditLogs.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
+- **File**: `backend/routes/auditLogs.js:27`
+- **Domain**: Security
+- **Issue**: `data: { ...req.body, companyId, payPeriod, timestamp }` — the full request body is spread in, meaning a caller can set arbitrary `MultiCurrencyAuditLog` fields including internal relations.
+- **Fix**: Whitelist the expected fields from `req.body` before creating. Ideally remove this public `POST /` endpoint entirely and create audit log entries only from server-side logic.
+
+### [Medium] `systemSettings.js` `PATCH /:id` accepts `lastUpdatedBy` from `req.body` — caller can spoof audit attribution
+- **File**: `backend/routes/systemSettings.js:55`
+- **Domain**: Security
+- **Issue**: `lastUpdatedBy` is read directly from `req.body` and written to the record. Any caller (even unauthenticated, given the lack of auth middleware) can set this field to an arbitrary string, spoofing the attribution of the change in the audit trail.
+- **Fix**: Derive `lastUpdatedBy` from `req.user?.email || req.user?.userId` (server-side), never from the request body.
+
+### [Medium] `payrollUsers.js` `POST /` — `createdBy` field accepted from `req.body`, enabling audit spoofing
+- **File**: `backend/routes/payrollUsers.js:38`
+- **Domain**: Security
+- **Issue**: `createdBy` is extracted from `req.body` and written directly to the new `PayrollUser` record. Even if auth were added, a caller could supply any string as the creator identity.
+- **Fix**: Derive `createdBy` from `req.user?.email || req.user?.userId` server-side.
+
+### [Medium] `intelligence.js` middleware checks `req.user.clientId` but individual handlers allow `companyId` override via query string
+- **File**: `backend/routes/intelligence.js:35`
+- **Domain**: Security
+- **Issue**: The `/fraud` and `/cashflow` handlers use `req.companyId || req.query.companyId` — the query string fallback bypasses the `companyContext` middleware's validated company binding, allowing any authenticated user with a `clientId` to query fraud flags and cashflow forecasts for a company they do not belong to by supplying `?companyId=<other-id>`.
+- **Fix**: Remove the `req.query.companyId` fallback from all three handlers. Enforce `req.companyId` exclusively, which is already validated by `companyContext`.
+
+### [Medium] `backup.js` export sends response before logging the audit event, meaning the audit write may be skipped on error
+- **File**: `backend/routes/backup.js:74`
+- **Domain**: Code Quality
+- **Issue**: `res.json(backupData)` is called at line 74, and then `await audit(...)` is called at line 76 — after the response is already sent. If the `audit()` call throws, the error is caught by the outer `catch` block but the response has already been flushed. The same pattern occurs in the restore handler (line 163/165). The audit write is effectively fire-and-forget with no guarantee.
+- **Fix**: Move the `audit()` call before `res.json(...)`, or handle audit failures separately without silently swallowing them.
+
+### [Low] `taxBands.js` / `auditLogs.js` / `payrollUsers.js` — each instantiates its own `new PrismaClient()` instead of using the shared singleton
+- **File**: `backend/routes/taxBands.js:3`, `backend/routes/auditLogs.js:2`, `backend/routes/payrollUsers.js:3`
+- **Domain**: Code Quality
+- **Issue**: Creating a new `PrismaClient` per module leads to multiple connection pools, increasing database connection overhead and potentially exhausting pool limits under load.
+- **Fix**: Replace `new PrismaClient()` with `const prisma = require('../lib/prisma')` in all three files.
+
+### [Low] `licenseValidate.js` — async handler has no try/catch; `validateLicense` throwing would cause unhandled rejection
+- **File**: `backend/routes/licenseValidate.js:7`
+- **Domain**: Code Quality
+- **Issue**: The `POST /` handler calls `await validateLicense(token)` with no `try/catch`. If `validateLicense` throws (e.g., DB error), the promise rejection is unhandled and will crash the process in Node ≥ 15.
+- **Fix**: Wrap the handler body in `try { ... } catch (err) { res.status(500).json({ message: 'Internal server error' }); }`.
+
+### [Low] `setup.js` — public `POST /api/setup` is not rate-limited; susceptible to enumeration or timing attacks
+- **File**: `backend/routes/setup.js:22`
+- **Domain**: Security
+- **Issue**: The one-time setup endpoint is publicly accessible with no rate limiter. While it only creates an admin if none exists, repeated requests can be used to probe the initialization state of the platform, and the endpoint itself accepts and hashes passwords — a target for timing-based reconnaissance.
+- **Fix**: Apply a strict rate limiter (e.g., 5 requests per hour per IP) to `POST /api/setup` in `index.js`, and/or disable the route after setup is complete.
+
+### [Low] `biometric.js` `POST /zkteco` — device lookup uses unverified `SN` query parameter; no secret validation on ZKTeco push
+- **File**: `backend/routes/biometric.js:71`
+- **Domain**: Security
+- **Issue**: The ZKTeco ADMS push handler (`POST /zkteco`) only looks up the device by serial number (`SN`) from the query string with no shared-secret verification. Any caller who knows or guesses a device serial number can inject arbitrary attendance log entries for any company. The `webhookKey` authentication that protects the Hikvision and import endpoints is absent for ZKTeco.
+- **Fix**: Require a `key` query parameter or HTTP header on the ZKTeco endpoints and validate it against `device.webhookKey`, matching the Hikvision authentication model. Return 401/403 if the key is missing or invalid.
+
+### [Low] `nssaContributions.js` — payslip `findMany` returns employee `firstName`/`lastName` in list without pagination, potential PII bulk-export
+- **File**: `backend/routes/nssaContributions.js:26`
+- **Domain**: Security
+- **Issue**: The `findMany` query fetches all payslips for a company for an entire year with no `take`/`skip` pagination. For large companies this could be a significant payload of salary and employee name data. Combined with the missing `requirePermission` guard, this represents a bulk PII export risk.
+- **Fix**: Add `requirePermission('view_reports')`, and add pagination parameters (`page`, `limit`) to the query.
