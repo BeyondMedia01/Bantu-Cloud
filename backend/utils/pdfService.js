@@ -875,11 +875,119 @@ const generatePayslipSummaryPDF = (data, res) => {
   doc.end();
 };
 
+const generatePayslipSummaryBuffer = (data) => {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 30, size: 'A4' });
+    const chunks = [];
+    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+    
+    const { companyName, period, groups = [], date = new Date().toLocaleDateString(), time = new Date().toLocaleTimeString() } = data;
+    const LEFT = 30, RIGHT = 565, WIDTH = RIGHT - LEFT;
+    const BLUE = '#1a2e4a', GREY = '#64748b', RED = '#dc2626';
+    const fmt = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // ── Header ──────────────────────────────────────────────────────────────────
+    doc.font('Helvetica-Bold').fontSize(14).fillColor(RED).text('PAYSLIP SUMMARY', 0, 40, { align: 'center' });
+    doc.fontSize(10).fillColor(BLUE).text(companyName, 0, 60, { align: 'center' });
+
+    doc.font('Helvetica').fontSize(9).fillColor(BLUE);
+    doc.text(`DATE`, LEFT, 75);      doc.text(`: ${date}`, LEFT + 70, 75);
+    doc.text(`TIME`, LEFT, 88);      doc.text(`: ${time}`, LEFT + 70, 88);
+    doc.text(`START PERIOD`, LEFT, 105); doc.text(`: ${period}`, LEFT + 70, 105);
+    doc.text(`END PERIOD`, LEFT, 118);   doc.text(`: ${period}`, LEFT + 70, 118);
+    drawPlatformLogo(doc, RIGHT - 50, 75, 40);
+
+    let y = 145;
+    doc.rect(LEFT, y, WIDTH, 18).fill('#f8fafc');
+    doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(9);
+    doc.text('EARNINGS', LEFT + 5, y + 4);
+    doc.text('AMOUNT', LEFT + 140, y + 4);
+    doc.text('UNITS', LEFT + 200, y + 4);
+    doc.text('DEDUCTIONS', LEFT + 260, y + 4);
+    doc.text('AMOUNT', LEFT + 380, y + 4);
+    doc.text('UNITS', LEFT + 440, y + 4);
+    doc.text('EMPLOYER', LEFT + 485, y + 2, { align: 'right', width: 75 });
+    doc.text('CONTRIBUTIONS', LEFT + 485, y + 10, { align: 'right', width: 75 });
+    doc.lineWidth(1).strokeColor(BLUE);
+    doc.moveTo(LEFT, y).lineTo(RIGHT, y).stroke();
+    doc.moveTo(LEFT, y + 25).lineTo(RIGHT, y + 25).stroke();
+    y += 35;
+
+    groups.forEach(group => {
+      if (y > 750) { doc.addPage(); y = 50; }
+      doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(10).text(group.name.toUpperCase(), LEFT, y);
+      y += 20;
+
+      group.payslips.forEach(p => {
+        if (y > 700) { doc.addPage(); y = 50; }
+        const emp = p.employee || {};
+        const lines = p.displayLines || []; 
+        doc.font('Helvetica-Bold').fontSize(8.5).fillColor(BLUE);
+        doc.text(`CODE: ${emp.employeeCode || ''}`, LEFT, y);
+        doc.text(`NAME:  ${emp.lastName || ''}`, LEFT + 120, y);
+        doc.text(`${emp.firstName || ''}`, LEFT + 190, y);
+        doc.text(`DEPARTMENT:   ${group.name}`, LEFT + 350, y);
+        y += 15;
+
+        const earnings = lines.filter(l => l.allowance > 0);
+        const deductions = lines.filter(l => l.deduction > 0);
+        const employers = lines.filter(l => l.employer > 0);
+        const maxLines = Math.max(earnings.length, deductions.length, employers.length);
+        
+        doc.font('Helvetica').fontSize(8.5).fillColor(BLUE);
+        for (let i = 0; i < maxLines; i++) {
+          const e = earnings[i] || {};
+          const d = deductions[i] || {};
+          const r = employers[i] || {};
+          if (e.name) {
+            doc.text(e.name, LEFT, y, { width: 130 });
+            doc.text(fmt(e.allowance), LEFT + 140, y, { width: 50, align: 'right' });
+            doc.text(e.units || '0.00', LEFT + 200, y, { width: 40, align: 'right' });
+          }
+          if (d.name) {
+            doc.text(d.name, LEFT + 260, y, { width: 110 });
+            doc.text(fmt(d.deduction), LEFT + 380, y, { width: 50, align: 'right' });
+            doc.text(d.units || '0.00', LEFT + 440, y, { width: 40, align: 'right' });
+          }
+          if (r.name) {
+            doc.text(fmt(r.employer), LEFT + 490, y, { width: 70, align: 'right' });
+          }
+          y += 12;
+        }
+        y += 5;
+        doc.lineWidth(0.5).strokeColor(BLUE);
+        doc.moveTo(LEFT + 140, y).lineTo(LEFT + 190, y).stroke();
+        doc.moveTo(LEFT + 380, y).lineTo(LEFT + 430, y).stroke();
+        doc.moveTo(LEFT + 500, y).lineTo(RIGHT, y).stroke();
+        y += 4;
+        
+        const totalAllow = earnings.reduce((s, e) => s + e.allowance, 0);
+        const totalDed = deductions.reduce((s, d) => s + d.deduction, 0);
+        const totalEmpr = employers.reduce((s, r) => s + r.employer, 0);
+
+        doc.font('Helvetica-Bold');
+        doc.text(fmt(totalAllow), LEFT + 140, y, { width: 50, align: 'right' });
+        doc.text(fmt(totalDed), LEFT + 380, y, { width: 50, align: 'right' });
+        doc.text(fmt(totalEmpr), LEFT + 490, y, { width: 70, align: 'right' });
+        
+        y += 15;
+        doc.moveTo(LEFT, y).lineTo(RIGHT, y).lineWidth(0.5).strokeColor('#e2e8f0');
+        y += 15;
+      });
+    });
+
+    doc.end();
+  });
+};
+
 module.exports = {
   generatePayslipPDF,
   _drawPayslip,
   generatePayrollSummaryPDF,
   generatePayslipSummaryPDF,
+  generatePayslipSummaryBuffer,
   generatePayslipBuffer,
   generateP16PDF,
   generateNSSA_P4A,
