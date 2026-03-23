@@ -36,7 +36,7 @@ function drawPlatformLogo(doc, x, y, size = 30) {
 
 function _drawPayslip(doc, data) {
   const ccy = data.currency || 'USD';
-  const fmt = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const LEFT = 40;
   const PAGE_WIDTH = 555;
   const RIGHT = PAGE_WIDTH - 40;
@@ -220,13 +220,17 @@ const generatePayslipPDF = (data, stream) => {
  */
 function generatePayslipBuffer(data) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 0, size: 'A4' });
-    const chunks = [];
-    doc.on('data', (chunk) => chunks.push(chunk));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
-    _drawPayslip(doc, data);
-    doc.end();
+    try {
+      const doc = new PDFDocument({ margin: 40, size: 'A4' });
+      const chunks = [];
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+      _drawPayslip(doc, data);
+      doc.end();
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
