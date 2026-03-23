@@ -1953,7 +1953,15 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
       const gName = ps.employee.department?.name || ps.employee.costCenter || 'General';
       if (!groupsMap[gName]) groupsMap[gName] = [];
       
-      const displayLines = await buildPayslipLineItems(ps, prisma); 
+      const basicSalary = (ps.basicSalaryApplied > 0)
+        ? ps.basicSalaryApplied
+        : (ps.employee.baseRate ?? 0);
+
+      const displayLines = buildPayslipLineItems({ 
+        payslip: ps, 
+        transactions: ps.transactions,
+        basicSalary
+      }); 
 
       groupsMap[gName].push({
         ...ps,
