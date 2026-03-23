@@ -2,7 +2,7 @@
 **Date:** 2026-03-23
 **Status:** IN PROGRESS
 **Sweep target:** 191
-**Files reviewed:** 79
+**Files reviewed:** 83
 
 ## Summary
 
@@ -453,3 +453,59 @@
 - **Domain**: Code Quality
 - **Issue**: `const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient();` creates an additional connection pool, inconsistent with the rest of the codebase which uses `require('../lib/prisma')`.
 - **Fix**: Replace with `const prisma = require('../lib/prisma');`.
+
+<!-- Task 6: Backend code quality sweep — 2026-03-23 -->
+
+### [Medium] `payroll.js` is a critical split candidate at 2143 lines
+- **File**: `backend/routes/payroll.js` (2143 lines)
+- **Domain**: Code Quality
+- **Issue**: At 2143 lines, `payroll.js` is the largest file in the codebase by a wide margin — more than double the next largest route file (`reports.js` at 936 lines). It mixes payroll run lifecycle (CRUD, submit, approve, process), payslip PDF generation, email dispatch, variance reporting, statutory exports, and reconciliation into a single module. This makes the file hard to navigate, test, or modify without risk of unintended side effects.
+- **Fix**: Split into at minimum four sub-modules: `payrollRuns.js` (CRUD + lifecycle), `payrollProcessing.js` (preview + process engine calls), `payslips.js` (PDF + email endpoints), and `payrollReports.js` (variance, reconciliation, export). Register each sub-router under `/api/payroll` in `index.js`.
+
+### [Medium] `reports.js` exceeds the 300-line route threshold at 936 lines
+- **File**: `backend/routes/reports.js` (936 lines)
+- **Domain**: Code Quality
+- **Issue**: `reports.js` at 936 lines bundles employee lists, payslip history, loan summaries, department roll-ups, statutory transaction exports, and a custom headcount/dashboard summary endpoint into a single file. Each report type has distinct query logic and pagination handling, making this module a maintenance liability and a frequent merge-conflict source.
+- **Fix**: Break into domain-focused report files: `reports/payroll.js`, `reports/employees.js`, `reports/loans.js`, `reports/statutory.js`. A thin `reports/index.js` can re-export them under the same prefix.
+
+### [Medium] `employees.js` exceeds the 300-line route threshold at 814 lines
+- **File**: `backend/routes/employees.js` (814 lines)
+- **Domain**: Code Quality
+- **Issue**: Employee CRUD, CSV/XLSX bulk import (with its own column mapping and validation logic), termination handling, and audit-log retrieval all live in one 814-line file. The import handler alone spans ~160 lines (lines 359–519) and contains business logic (column normalisation, field defaults, `checkEmployeeCap`) that belongs in a service layer.
+- **Fix**: Extract the bulk import logic into `services/employeeImport.js` (or `utils/employeeImport.js`), and split termination into its own `routes/employeeTermination.js`. This brings `employees.js` under 400 lines.
+
+### [Medium] `backPay.js` exceeds the 300-line route threshold at 461 lines
+- **File**: `backend/routes/backPay.js` (461 lines)
+- **Domain**: Code Quality
+- **Issue**: Back-pay calculation, approval workflow, and payroll-input generation are all handled inline within route handlers rather than in a dedicated service. The file is above the 300-line flag threshold and the core calculation at lines ~80–292 is business logic embedded inside a request handler.
+- **Fix**: Extract the back-pay calculation and payroll-input generation into `services/backPayService.js`, leaving the route file as a thin HTTP adapter.
+
+### [Medium] `attendance.js` exceeds the 300-line route threshold at 411 lines
+- **File**: `backend/routes/attendance.js` (411 lines)
+- **Domain**: Code Quality
+- **Issue**: The route file contains multi-step attendance processing logic (fetch → group by employee/date → call `attendanceEngine` → upsert records) inline from lines 195–283. This is orchestration logic that belongs in a service layer, not a route handler.
+- **Fix**: Move the processing pipeline into `services/attendanceService.js` and reduce the route handler to input validation, service invocation, and response serialisation.
+
+### [Medium] Inconsistent response envelope shapes across routes — more than 2 distinct shapes in use
+- **File**: `backend/routes/*.js`
+- **Domain**: Code Quality
+- **Issue**: Routes return at least five structurally distinct JSON shapes: (1) raw model object (`res.json(user)`), (2) raw array (`res.json(employees)`), (3) `{ data, total, page, limit }` paginated envelope (attendance), (4) named root key without pagination (`{ clients, users, employees, aidsLevyRate }`), (5) `{ message }` plain string responses. Frontend consumers must handle each shape individually, and adding a new consumer (e.g., a mobile app or public API) requires reverse-engineering the contract for every endpoint. Shapes 3–5 represent three distinct variants beyond the first two, qualifying as a Medium finding each; consolidated here as one finding.
+- **Fix**: Adopt a single envelope contract — e.g. `{ data, meta: { total, page, limit } }` for collections and `{ data }` for single-resource responses — and roll it out route-by-route. A small helper `sendOk(res, data, meta)` avoids boilerplate. Document the contract in the API README.
+
+### [Medium] `jobProcessor.js` — no try/catch around async operations; errors propagate unhandled to the worker caller
+- **File**: `backend/lib/jobProcessor.js`
+- **Domain**: Code Quality
+- **Issue**: `processJob` and `processEmailPayslip` are async functions with no try/catch. Any error from `payslipToBuffer` or `mailer.sendPayslip` (network failure, PDF generation crash, missing Prisma record) will throw an unhandled rejection that propagates to the worker. Whether the worker catches it depends entirely on the call site. If the job queue worker lacks a top-level catch, the Node process will emit an `unhandledRejection` and the job will be silently retried or dropped depending on the queue implementation.
+- **Fix**: Wrap the body of `processJob` (or each `process*` helper) in try/catch. On catch, log the error with `job.id` and rethrow a structured error so the queue can mark the job as failed and apply retry/dead-letter logic.
+
+### [Low] `hikvisionClient.js` — `getDeviceInfo` and `fetchAttendanceEvents` have no try/catch; network errors are unguarded
+- **File**: `backend/lib/hikvisionClient.js`
+- **Domain**: Code Quality
+- **Issue**: Both `getDeviceInfo` (line 118) and `fetchAttendanceEvents` (line 138) are async functions that `await digestGet(...)` with no surrounding try/catch. If the device is unreachable, returns an unexpected status, or the JSON parse fails, the error bubbles up raw to the calling route handler. The route handlers in `devices.js` and `biometric.js` do have their own try/catch, but `attendanceEngine` callers may not, so the guard is call-site-dependent rather than enforced at the library level.
+- **Fix**: Wrap the `digestGet` calls in try/catch inside each exported function, enrich the error message with device IP and path context, then rethrow. This makes the library self-documenting about what can fail.
+
+### [Low] `attendanceEngine.js` — `matchEmployeeByPin` is async with no try/catch; Prisma errors surface as unhandled rejections at call sites
+- **File**: `backend/lib/attendanceEngine.js` (line 205)
+- **Domain**: Code Quality
+- **Issue**: `matchEmployeeByPin` performs two sequential `prisma.employee.findFirst` calls with no error handling. Any Prisma connectivity or query error will throw at the call site. The sync functions `processDailyLogs` and `buildPayrollInputsFromAttendance` are pure computation and are correctly unguarded, but the async DB lookup should be self-protecting.
+- **Fix**: Add a try/catch to `matchEmployeeByPin` that catches Prisma errors, logs them with `pin` and `companyId` context, and returns `null` so callers degrade gracefully rather than crashing the processing loop.
