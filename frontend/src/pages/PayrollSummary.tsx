@@ -83,7 +83,19 @@ const PayrollSummary: React.FC = () => {
       const a = document.createElement('a');
       a.href = url; a.download = `payroll-summary-${runId}.pdf`; a.click();
       URL.revokeObjectURL(url);
-    } catch { showToast('Failed to generate PDF', 'error'); }
+    } finally { setExporting(''); }
+  };
+
+  const handlePayslipSummaryDownload = async () => {
+    if (!runId) return;
+    setExporting('summary-detailed');
+    try {
+      const res = await PayrollAPI.downloadPayslipSummaryPdf(runId);
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = `payslip-summary-${runId}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } catch { showToast('Failed to generate Detailed Summary', 'error'); }
     finally { setExporting(''); }
   };
 
@@ -194,7 +206,14 @@ const PayrollSummary: React.FC = () => {
               disabled={!!exporting}
               className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 text-white rounded-full text-sm font-bold hover:bg-slate-700 disabled:opacity-50"
             >
-              <FileText size={14} /> {exporting === 'pdf' ? 'Generating…' : 'Download PDF'}
+              <FileText size={14} /> {exporting === 'pdf' ? 'Generating…' : 'Master Roll'}
+            </button>
+            <button
+              onClick={handlePayslipSummaryDownload}
+              disabled={!!exporting}
+              className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-full text-sm font-bold hover:bg-red-500 disabled:opacity-50"
+            >
+              <FileText size={14} /> {exporting === 'summary-detailed' ? 'Generating…' : 'Payslip Summary'}
             </button>
             <button
               onClick={() => handleExport('csv')}

@@ -1930,6 +1930,57 @@ router.get('/:runId/summary/pdf', requirePermission('export_reports'), async (re
   }
 });
 
+// ─── GET /api/payroll/:runId/payslip-summary ─────────────────────────────
+router.get('/:runId/payslip-summary', requirePermission('export_reports'), async (req, res) => {
+  try {
+    const run = await prisma.payrollRun.findUnique({
+      where: { id: req.params.runId },
+      include: { company: true },
+    });
+    if (!run) return res.status(404).json({ message: 'Payroll run not found' });
+
+    const payslips = await prisma.payslip.findMany({
+      where: { payrollRunId: run.id },
+      include: {
+        employee: { include: { department: true } },
+        transactions: { include: { transactionCode: true } }
+      },
+      orderBy: { employee: { lastName: 'asc' } },
+    });
+
+    const groupsMap = {};
+    for (const ps of payslips) {
+      const gName = ps.employee.department?.name || ps.employee.costCenter || 'General';
+      if (!groupsMap[gName]) groupsMap[gName] = [];
+      
+      const displayLines = await buildPayslipLineItems(ps, prisma); 
+
+      groupsMap[gName].push({
+        ...ps,
+        displayLines
+      });
+    }
+
+    const sortedGroups = Object.keys(groupsMap).sort().map(name => ({
+      name,
+      payslips: groupsMap[name]
+    }));
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Payslip-Summary-${run.id}.pdf`);
+
+    generatePayslipSummaryPDF({
+      companyName: run.company?.name || 'Bantu - HR & Payroll',
+      period: `${run.startDate.getFullYear()}/${(run.startDate.getMonth() + 1).toString().padStart(2, '0')}`,
+      groups: sortedGroups,
+    }, res);
+
+  } catch (error) {
+    console.error('Payslip Summary error:', error);
+    if (!res.headersSent) res.status(500).json({ message: 'Failed to generate PDF' });
+  }
+});
+
 // ─── GET /api/payroll/:runId/export — CSV ────────────────────────────────────
 
 router.get('/:runId/export', requirePermission('export_reports'), async (req, res) => {

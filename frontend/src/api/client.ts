@@ -236,6 +236,8 @@ export const PayrollAPI = {
     api.get(`/payroll/${runId}/export`, { responseType: 'blob' }),
   downloadSummaryPdf: (runId: string) =>
     api.get(`/payroll/${runId}/summary/pdf`, { responseType: 'blob' }),
+  downloadPayslipSummaryPdf: (runId: string) =>
+    api.get(`/payroll/${runId}/payslip-summary`, { responseType: 'blob' }),
   downloadPayslipPdf: (runId: string, payslipId: string) =>
     api.get(`/payroll/${runId}/payslips/${payslipId}/pdf`, { responseType: 'blob' }),
   sendPayslip: (runId: string, payslipId: string) =>
