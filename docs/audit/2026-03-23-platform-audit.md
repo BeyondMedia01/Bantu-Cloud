@@ -2,17 +2,17 @@
 **Date:** 2026-03-23
 **Status:** IN PROGRESS
 **Sweep target:** 191
-**Files reviewed:** 73
+**Files reviewed:** 79
 
 ## Summary
 
 | Severity | Security | Business Logic | Code Quality | Performance | Total |
 |---|---|---|---|---|---|
 | Critical | 1 | 0 | 0 | 0 | 1 |
-| High | 17 | 2 | 0 | 0 | 19 |
-| Medium | 8 | 1 | 0 | 0 | 9 |
-| Low | 6 | 1 | 0 | 0 | 7 |
-| **Total** | 32 | 4 | 0 | 0 | **36** |
+| High | 20 | 4 | 0 | 0 | 24 |
+| Medium | 9 | 2 | 0 | 0 | 11 |
+| Low | 7 | 2 | 0 | 0 | 9 |
+| **Total** | 37 | 8 | 0 | 0 | **45** |
 
 *Update this table after each sweep batch.*
 
@@ -391,3 +391,65 @@
 - **Domain**: Security
 - **Issue**: The `findMany` query fetches all payslips for a company for an entire year with no `take`/`skip` pagination. For large companies this could be a significant payload of salary and employee name data. Combined with the missing `requirePermission` guard, this represents a bulk PII export risk.
 - **Fix**: Add `requirePermission('view_reports')`, and add pagination parameters (`page`, `limit`) to the query.
+
+<!-- Task 5: Payslip mapping and leave logic sweep — 2026-03-23 -->
+
+### [High] `pdfService.js` `_drawPayslip` — `data.companyName.toUpperCase()` will throw if `companyName` is undefined
+- **File**: `backend/utils/pdfService.js:63`
+- **Domain**: Business Logic
+- **Issue**: `data.companyName.toUpperCase()` is called unconditionally. `companyName` is populated in `payslipFormatter.js` from `payslip.payrollRun.company.name` with no null guard. If the company record has no name (or the relation is not loaded), this call throws `TypeError: Cannot read properties of undefined (reading 'toUpperCase')`, crashing the PDF generation promise and leaving the employee without a payslip.
+- **Fix**: Replace with `(data.companyName || 'Unknown Company').toUpperCase()` in `_drawPayslip`, or assert `companyName` is present before calling `generatePayslipBuffer` in `payslipFormatter.js`.
+
+### [High] `payslipTransactions.js` `DELETE /:id` — no ownership check; any company user can delete any transaction by ID
+- **File**: `backend/routes/payslipTransactions.js:49`
+- **Domain**: Security
+- **Issue**: `prisma.payslipTransaction.delete({ where: { id: req.params.id } })` is called with only a `companyId` guard on the route-level check (`if (!req.companyId)`), but the actual delete is performed without verifying that the target `payslipTransaction` record belongs to `req.companyId`. A user from Company A who knows a transaction UUID from Company B can delete it.
+- **Fix**: Change the delete to `prisma.payslipTransaction.deleteMany({ where: { id: req.params.id, companyId: req.companyId } })` and return 404 if count is 0, or fetch the record first and assert ownership.
+
+### [High] `payslipTransactions.js` `POST /` — `req.body` spread into Prisma `create` allows mass-assignment; caller can override `companyId`
+- **File**: `backend/routes/payslipTransactions.js:32`
+- **Domain**: Security
+- **Issue**: `data: { ...req.body, companyId: req.companyId, ... }` spreads the full request body before the trusted fields. Because object spread merges left-to-right, the `companyId` override at the end does correctly win — but all other `PayslipTransaction` model fields (including internal relations like `employeeId`, `transactionId`, `payPeriod`, and any internal flags) can be set to arbitrary values by the caller with no validation.
+- **Fix**: Destructure only the expected fields from `req.body` (`employeeId`, `transactionId`, `amountOriginal`, `rateToUSD`, `currency`, `payPeriod`, `notes`) before creating the record.
+
+### [High] `leave.js` `PUT /:id` — no ownership check on update; any `manage_leave` user can update leave records from other companies
+- **File**: `backend/routes/leave.js:148`
+- **Domain**: Security
+- **Issue**: `PUT /:id` calls `prisma.leaveRecord.update({ where: { id: req.params.id }, data: ... })` with no prior fetch to verify the record belongs to `req.companyId`. A `manage_leave` user from Company A who knows a `LeaveRecord` UUID from Company B can modify that record's dates, type, totalDays, or status.
+- **Fix**: Before the update, fetch `prisma.leaveRecord.findUnique({ where: { id: req.params.id }, select: { employee: { select: { companyId: true } } } })` and assert `employee.companyId === req.companyId`, returning 403 on mismatch.
+
+### [High] `leave.js` `DELETE /:id` — no ownership check on delete; same IDOR as PUT
+- **File**: `backend/routes/leave.js:276`
+- **Domain**: Security
+- **Issue**: `prisma.leaveRecord.delete({ where: { id: req.params.id } })` is called without verifying the record belongs to the requesting company. Identical IDOR exposure as the `PUT /:id` handler.
+- **Fix**: Apply the same ownership pre-fetch and company assertion as recommended for `PUT /:id` before executing the delete.
+
+### [High] `leave.js` `POST /` — negative balance possible via `Employee.leaveBalance` legacy fallback; no floor guard
+- **File**: `backend/routes/leave.js:86`
+- **Domain**: Business Logic
+- **Issue**: The balance check uses `availableBalance < days_f` and rejects insufficient balance — but only before the transaction. Inside `$transaction`, `employee.leaveBalance` is decremented with `{ decrement: days_f }` with no DB-level floor constraint. If two concurrent requests race (both pass the pre-check with the same balance), both decrements commit and `leaveBalance` goes negative. The `LeaveBalance` model path has the same race condition. A negative balance is not caught anywhere downstream and will render as a negative number on the payslip leave section.
+- **Fix**: Add a DB-level check constraint on `Employee.leaveBalance >= 0`, or use a `WHERE leaveBalance >= days_f` condition in the update and check `count` to detect the race. At minimum, guard the payslip display with `Math.max(0, leaveBal?.balance ?? ...)`.
+
+### [Medium] `leave.js` approval flow re-approves an already-approved request without idempotency check
+- **File**: `backend/routes/leave.js:171`
+- **Domain**: Business Logic
+- **Issue**: `PUT /request/:id/approve` calls `prisma.leaveRequest.update(...)` to set status `APPROVED` unconditionally, then creates a new `LeaveRecord` and decrements the balance. If the endpoint is called twice for the same request (double-click, retry), a second `LeaveRecord` is created and the balance is decremented a second time. There is no check that `request.status !== 'APPROVED'` before proceeding.
+- **Fix**: After fetching the updated request, check `if (request.status === 'APPROVED' && alreadyProcessed)` — or more robustly, move the status update inside the transaction and add a pre-check: fetch the request first, return 409 if it is already `APPROVED`.
+
+### [Medium] `leaveBalances.js` accrual — `credit` value uses raw float `policy.accrualRate` with no rounding, accumulates drift across months
+- **File**: `backend/routes/leaveBalances.js:114`
+- **Domain**: Business Logic
+- **Issue**: `const credit = Math.min(policy.accrualRate, room)` uses the raw accrual rate (e.g. `1.6667` days/month) with no rounding before incrementing `accrued` and `balance`. After 12 months a balance of `20.0004` or similar can appear on payslips instead of the expected `20.0`. Leave balance rounding is inconsistent — `leave.js` uses plain `parseFloat` arithmetic, while the accrual engine applies no rounding at all.
+- **Fix**: Apply `Math.round(credit * 100) / 100` (2dp) before the update, and standardise all leave arithmetic to the same rounding strategy. Leave rounding is **mixed** (no consistent `Math.floor`, `Math.round`, or similar applied across the codebase).
+
+### [Low] `payslipFormatter.js` — `payslip.employee.leaveBalance` and `leaveTaken` fallbacks read deprecated `Employee` fields; could silently return 0 if field removed
+- **File**: `backend/utils/payslipFormatter.js:151`
+- **Domain**: Business Logic
+- **Issue**: `leaveBalance: leaveBal?.balance ?? (payslip.employee.leaveBalance || 0)` and `leaveTaken: leaveBal?.taken ?? (payslip.employee.leaveTaken || 0)` fall back to legacy `Employee` columns. If the migration to `LeaveBalance` is complete and the legacy columns are eventually removed from the schema, this fallback silently returns `0` rather than signalling a missing balance. The payslip would then show `0.0 days` leave balance without any error.
+- **Fix**: Once `LeaveBalance` is the sole source of truth, remove the legacy fallbacks and instead log a warning (or surface an error to the caller) when `leaveBal` is null, so missing balance records are detected at generation time.
+
+### [Low] `payslipTransactions.js` uses a separate `new PrismaClient()` instance instead of the shared singleton
+- **File**: `backend/routes/payslipTransactions.js:2`
+- **Domain**: Code Quality
+- **Issue**: `const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient();` creates an additional connection pool, inconsistent with the rest of the codebase which uses `require('../lib/prisma')`.
+- **Fix**: Replace with `const prisma = require('../lib/prisma');`.
