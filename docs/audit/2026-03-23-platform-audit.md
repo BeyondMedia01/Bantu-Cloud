@@ -2,7 +2,7 @@
 **Date:** 2026-03-23
 **Status:** IN PROGRESS
 **Sweep target:** 191
-**Files reviewed:** 22
+**Files reviewed:** 33
 
 ## Summary
 
@@ -127,3 +127,107 @@
 - **Domain**: Security
 - **Issue**: `multer({ storage: multer.memoryStorage() })` stores the entire uploaded file in memory with no size limit. An attacker (or misconfigured client) can upload a very large file to the `/api/payroll-inputs/import` endpoint, causing the process to consume excessive heap memory.
 - **Fix**: Add a `limits` option to multer: `multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })` (5 MB is generous for a CSV/XLSX import).
+
+<!-- Task 3 Batch B: Employee & HR routes sweep — 2026-03-23 -->
+
+### [High] `GET /api/employees` and `GET /api/employees/:id` return full employee records including TIN, passport number, bank details, and SSN without field selection
+- **File**: `backend/routes/employees.js:186`
+- **Domain**: Security
+- **Issue**: Both the list query (`findMany`) and the single-record query (`findUnique`) use no `select` clause, returning the entire Employee row. This includes highly sensitive PII fields: `tin`, `passportNumber`, `nationalId`, `socialSecurityNum`, `accountNumber`, `bankName`, `bankBranch`, `taxDirective`, `taxDirectivePerc`, and any future columns added to the model. The employee self-service path at line 148 also returns all fields for the requesting employee.
+- **Fix**: Add explicit `select` or use a safe projection helper in all employee read queries. Fields such as `tin`, `passportNumber`, `socialSecurityNum`, `taxDirective*` should be excluded from list responses and only returned in the individual profile endpoint when the requester has `manage_employees` permission. `MANUAL` — confirm which fields each consumer requires.
+
+### [High] `GET /api/employee/profile` (employeeSelf.js) returns the full employee record including TIN, passport, bank details, and SSN
+- **File**: `backend/routes/employeeSelf.js:10`
+- **Domain**: Security
+- **Issue**: `prisma.employee.findUnique({ where: { userId: req.user.userId }, include: { company: ..., branch: ..., department: ... } })` has no `select` clause on the Employee model itself, so the full row is returned including `tin`, `passportNumber`, `nationalId`, `socialSecurityNum`, `accountNumber`, `taxDirective`, and all salary fields. While an employee may legitimately see their own profile, returning raw TIN and full bank account numbers in an API response without masking increases exposure if the channel is compromised.
+- **Fix**: Add a `select` clause that returns only the fields needed by the self-service UI. Mask `accountNumber` (show last 4 digits). Consider omitting `tin` from this endpoint entirely. `MANUAL` — agree on safe field list with product team.
+
+### [High] `PUT /api/leave/:id` has no ownership check — any company user can update any leave record by ID
+- **File**: `backend/routes/leave.js:148`
+- **Domain**: Security
+- **Issue**: The `PUT /:id` handler calls `prisma.leaveRecord.update({ where: { id: req.params.id }, data: {...} })` directly without first fetching the record to verify `record.employee.companyId === req.companyId`. An authenticated user from Company A who knows a leave record ID belonging to Company B can modify that record's status, dates, or reason.
+- **Fix**: Before the update, fetch the record with `include: { employee: { select: { companyId: true } } }` and assert ownership: `if (req.companyId && record.employee.companyId !== req.companyId) return res.status(403).json(...)`.
+
+### [High] `PUT /api/leave/request/:id/approve` and `PUT /api/leave/request/:id/reject` have no ownership check on the leave request
+- **File**: `backend/routes/leave.js:171`
+- **Domain**: Security
+- **Issue**: Both approval and rejection handlers call `prisma.leaveRequest.update({ where: { id: req.params.id }, ... })` without first verifying the request belongs to the caller's company. Any `approve_leave` / `reject_leave` user at any company can approve or reject another company's employees' leave requests by guessing a request ID, and the subsequent balance deduction will affect that other company's employee.
+- **Fix**: Fetch the leave request first (with `include: { employee: { select: { companyId: true } } }`), assert `employee.companyId === req.companyId`, and return 403 on mismatch before proceeding with the update and financial transaction.
+
+### [High] `DELETE /api/leave/:id` has no ownership check — cross-company leave record deletion possible
+- **File**: `backend/routes/leave.js:276`
+- **Domain**: Security
+- **Issue**: `prisma.leaveRecord.delete({ where: { id: req.params.id } })` is called without an ownership check. Any user with `manage_leave` permission at any company can delete a leave record belonging to another company.
+- **Fix**: Fetch the record first with `include: { employee: { select: { companyId: true } } }` and assert `employee.companyId === req.companyId` before deleting.
+
+### [High] `PATCH /api/loans/repayments/:id` has no ownership check — any company can mark any repayment as paid
+- **File**: `backend/routes/loans.js:188`
+- **Domain**: Security
+- **Issue**: The `PATCH /repayments/:id` handler directly updates a `LoanRepayment` record without first verifying it belongs to the caller's company. An attacker with `manage_loans` permission at any company can mark any loan repayment as paid by guessing or enumerating its ID.
+- **Fix**: Fetch the repayment including its loan and the loan's employee (`include: { loan: { include: { employee: { select: { companyId: true } } } } }`), assert `companyId === req.companyId`, and return 403 on mismatch.
+
+### [High] `PUT /api/grades/:id` and `DELETE /api/grades/:id` have no ownership check
+- **File**: `backend/routes/grades.js:66`
+- **Domain**: Security
+- **Issue**: Both `PUT /:id` and `DELETE /:id` call `prisma.grade.update/delete({ where: { id: req.params.id } })` without first verifying the grade's `clientId` matches `req.clientId`. Any user with `update_settings` permission at any client can modify or delete another client's grade definitions.
+- **Fix**: Fetch the grade first, assert `grade.clientId === req.clientId`, and return 403 on mismatch before mutating.
+
+### [High] `PUT /api/departments/:id` has no ownership check — cross-company department modification possible
+- **File**: `backend/routes/departments.js:61`
+- **Domain**: Security
+- **Issue**: `prisma.department.update({ where: { id: req.params.id }, data: { name, branchId } })` is called without fetching the record to verify ownership. Any `manage_companies` user can rename or reassign any department at any company by knowing its ID. `DELETE /:id` has the same problem.
+- **Fix**: Fetch the department first, assert `dept.companyId === req.companyId`, return 403 on mismatch. Apply the same pattern to `DELETE /:id`.
+
+### [High] `PUT /api/branches/:id` and `DELETE /api/branches/:id` have no ownership checks
+- **File**: `backend/routes/branches.js:60`
+- **Domain**: Security
+- **Issue**: Both mutation handlers call Prisma directly by ID without a prior ownership check, allowing any `manage_companies` user to rename or delete a branch belonging to any other company.
+- **Fix**: Fetch the branch first, assert `branch.companyId === req.companyId`, return 403 on mismatch before mutating.
+
+### [Medium] `POST /api/departments` and `POST /api/branches` accept `companyId` from `req.body` without validating it matches `req.companyId`
+- **File**: `backend/routes/departments.js:30`, `backend/routes/branches.js:29`
+- **Domain**: Security
+- **Issue**: Both creation handlers take `companyId` directly from the request body: `const { companyId, ... } = req.body` and then pass it straight to `prisma.department.create({ data: { companyId, ... } })`. An authenticated user with `manage_companies` permission can supply any `companyId` and create departments or branches under a company they do not belong to.
+- **Fix**: Ignore the body `companyId` and always use `req.companyId` (from `companyContext` middleware): `const companyId = req.companyId;`. Return 400 if `req.companyId` is not set.
+
+### [Medium] `GET /api/leave` has no `requirePermission` guard — any authenticated user can list all leave records for their company
+- **File**: `backend/routes/leave.js:9`
+- **Domain**: Security
+- **Issue**: The `GET /` handler has no `requirePermission` middleware. Employees are filtered by the `EMPLOYEE` role check inside the handler, but users with non-EMPLOYEE roles (e.g., `VIEWER` or custom roles without `manage_leave`) can see all leave records and requests across the entire company unfiltered.
+- **Fix**: Add `requirePermission('view_leave')` (or equivalent) as route middleware, or at minimum document that read access is intentionally unrestricted. `MANUAL` — confirm intended access control model.
+
+### [Medium] `POST /api/loans` does not verify the target `employeeId` belongs to the caller's company
+- **File**: `backend/routes/loans.js:36`
+- **Domain**: Security
+- **Issue**: The loan creation handler validates presence of `employeeId` but does not look up the employee to confirm they belong to `req.companyId`. An attacker with `manage_loans` permission can create a loan record against an employee in a different company.
+- **Fix**: After extracting `employeeId` from the body, fetch `prisma.employee.findUnique({ where: { id: employeeId }, select: { companyId: true } })` and assert `employee.companyId === req.companyId` before creating the loan.
+
+### [Medium] `employeeSelf.js` `PUT /profile` response returns the full employee row including sensitive fields
+- **File**: `backend/routes/employeeSelf.js:30`
+- **Domain**: Security
+- **Issue**: `prisma.employee.update(...)` is called with no `select` clause, so the response includes all employee fields — TIN, passport number, SSN, full salary data, tax configuration, etc. — even though the handler is only meant to update personal contact details.
+- **Fix**: Add `select: { id: true, homeAddress: true, nextOfKin: true, bankName: true, accountNumber: true }` (or a safe profile projection) to the `update` call.
+
+### [Medium] `leaveBalances.js` `GET /:employeeId` exposes the full `leavePolicy` object via `include: { leavePolicy: true }`
+- **File**: `backend/routes/leaveBalances.js:63`
+- **Domain**: Security
+- **Issue**: The employee-specific balance endpoint uses `include: { leavePolicy: true }` with no `select`, returning all columns of the linked LeavePolicy record. While the policy itself is not highly sensitive, this is inconsistent with the list endpoint (which does use a limited `select`) and could expose internal policy IDs and configuration fields to employee-role users.
+- **Fix**: Replace `include: { leavePolicy: true }` with `include: { leavePolicy: { select: { leaveType: true, accrualRate: true, maxAccumulation: true, carryOverLimit: true, encashable: true, encashCap: true } } }`.
+
+### [Low] `employeeTransactions.js` `GET /:empId/salary-structure` — ownership check is outside try/catch, async crash not handled
+- **File**: `backend/routes/employeeTransactions.js:31`
+- **Domain**: Code Quality
+- **Issue**: `const emp = await getEmployee(empId, req.companyId)` on line 35 is called outside the `try` block that starts on line 38. If `getEmployee` throws (e.g., DB connection failure), the error is unhandled and will crash the process or leave the request hanging.
+- **Fix**: Move the `getEmployee` call inside the `try` block, or wrap the entire handler in a single try/catch.
+
+### [Low] `leave.js` `POST /` — no `requirePermission` guard on CLIENT_ADMIN direct-create path; relies on role check inside handler
+- **File**: `backend/routes/leave.js:46`
+- **Domain**: Security
+- **Issue**: The `POST /` handler applies no middleware-level permission check. Admin-side direct creation of a `LeaveRecord` is gated only by `req.user.role !== 'EMPLOYEE'` inside the handler. A user with a non-standard role that is not `EMPLOYEE` but also lacks explicit leave management rights can create leave records directly.
+- **Fix**: Add `requirePermission('manage_leave')` to the route or restructure into separate endpoints: one for `EMPLOYEE` self-service (no permission needed beyond `requireRole('EMPLOYEE')`) and one for admins (`requirePermission('manage_leave')`).
+
+### [Low] `loans.js` `GET /` — no `requirePermission` guard; any authenticated user can list all company loans
+- **File**: `backend/routes/loans.js:9`
+- **Domain**: Security
+- **Issue**: The `GET /` list endpoint has no `requirePermission` call. Employee filtering is applied inside the handler for the `EMPLOYEE` role, but users with non-EMPLOYEE roles (e.g., HR viewer with no `manage_loans` permission) can enumerate all loan records across the company.
+- **Fix**: Add `requirePermission('view_loans')` (or `manage_loans`) as route middleware, consistent with the `POST`, `PUT`, and `DELETE` handlers on the same router. `MANUAL` — confirm intended access model.
