@@ -1816,27 +1816,58 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
       orderBy: { employee: { lastName: 'asc' } },
     });
 
+    // Helper to safely convert Prisma Decimal to Number
+    const num = (v) => Number(v ?? 0);
+
     const groupsMap = {};
     for (const ps of payslips) {
-      const gName = ps.employee.department?.name || ps.employee.costCenter || 'General';
-      if (!groupsMap[gName]) groupsMap[gName] = [];
-      
-      const basicSalary = Number((ps.basicSalaryApplied > 0)
-        ? ps.basicSalaryApplied
-        : (ps.employee.baseRate ?? 0));
+      try {
+        const gName = ps.employee?.department?.name || ps.employee?.costCenter || 'General';
+        if (!groupsMap[gName]) groupsMap[gName] = [];
+        
+        const basicSalary = num(ps.basicSalaryApplied) > 0
+          ? num(ps.basicSalaryApplied)
+          : num(ps.employee?.baseRate);
 
-      const displayLines = buildPayslipLineItems({ 
-        payslip: ps, 
-        transactions: ps.transactions,
-        basicSalary,
-        ytdStat: {}, 
-        ytdMap: {}
-      }); 
+        // Normalise payslip numeric fields from Prisma Decimal to plain Number
+        const normPs = {
+          ...ps,
+          paye: num(ps.paye),
+          aidsLevy: num(ps.aidsLevy),
+          nssaEmployee: num(ps.nssaEmployee),
+          nssaEmployer: num(ps.nssaEmployer),
+          wcifEmployer: num(ps.wcifEmployer),
+          sdfContribution: num(ps.sdfContribution),
+          zimdefEmployer: num(ps.zimdefEmployer),
+          necLevy: num(ps.necLevy),
+          necEmployer: num(ps.necEmployer),
+          loanDeductions: num(ps.loanDeductions),
+          netPay: num(ps.netPay),
+          gross: num(ps.gross),
+        };
 
-      groupsMap[gName].push({
-        ...ps,
-        displayLines
-      });
+        // Normalise transaction amounts
+        const normTxs = (ps.transactions || []).filter(t => t.transactionCode).map(t => ({
+          ...t,
+          amount: num(t.amount),
+        }));
+
+        const displayLines = buildPayslipLineItems({ 
+          payslip: normPs, 
+          transactions: normTxs,
+          basicSalary,
+          ytdStat: {}, 
+          ytdMap: {}
+        }); 
+
+        groupsMap[gName].push({
+          ...normPs,
+          displayLines,
+          currency: run.currency,
+        });
+      } catch (lineErr) {
+        console.error('Skipping payslip in summary:', ps.id, lineErr.message);
+      }
     }
 
     const sortedGroups = Object.keys(groupsMap).sort().map(name => ({
@@ -1856,7 +1887,7 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
 
   } catch (error) {
     console.error('Payslip Summary error:', error);
-    if (!res.headersSent) res.status(500).json({ message: 'Failed to generate PDF' });
+    if (!res.headersSent) res.status(500).json({ message: error.message || 'Failed to generate PDF' });
   }
 });
 

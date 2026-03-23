@@ -16,6 +16,7 @@ const PayrollSummary: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [bankDropdown, setBankDropdown] = useState(false);
   const [exporting, setExporting] = useState('');
+  const [rerunSuccess, setRerunSuccess] = useState(false);
 
   useEffect(() => {
     if (!runId) return;
@@ -205,10 +206,18 @@ const PayrollSummary: React.FC = () => {
               <button
                 onClick={async () => {
                   setExporting('rerun');
+                  setRerunSuccess(false);
                   try {
                     await PayrollAPI.process(runId!);
-                    showToast('Payroll rerun successful', 'success');
-                    window.location.reload();
+                    // Refetch data instead of reloading the page
+                    const [r, p] = await Promise.all([
+                      PayrollAPI.getById(runId!),
+                      PayrollAPI.getPayslips(runId!),
+                    ]);
+                    setRun(r.data);
+                    setPayslips(p.data);
+                    setRerunSuccess(true);
+                    showToast('Payroll rerun completed successfully!', 'success');
                   } catch (err: any) {
                     showToast(err.response?.data?.message || 'Rerun failed', 'error');
                   } finally {
@@ -281,6 +290,20 @@ const PayrollSummary: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Rerun success banner */}
+      {rerunSuccess && (
+        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl animate-fade-in">
+          <div className="flex-shrink-0 w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+            <TrendingUp size={16} className="text-emerald-600" />
+          </div>
+          <div>
+            <p className="font-bold text-emerald-800 text-sm">Payroll Rerun Complete</p>
+            <p className="text-xs text-emerald-600">All payslips have been recalculated. The summary below reflects the updated figures.</p>
+          </div>
+          <button onClick={() => setRerunSuccess(false)} className="ml-auto text-emerald-400 hover:text-emerald-600 text-sm font-bold">✕</button>
+        </div>
+      )}
 
       {/* Summary cards */}
       {totals && (
