@@ -1807,14 +1807,28 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
     });
     if (!run) return res.status(404).json({ message: 'Payroll run not found' });
 
+    // Fetch payslips (NO transactions relation on Payslip model)
     const payslips = await prisma.payslip.findMany({
       where: { payrollRunId: run.id },
       include: {
         employee: { include: { department: true } },
-        transactions: { include: { transactionCode: true } }
       },
       orderBy: { employee: { lastName: 'asc' } },
     });
+
+    // Fetch transactions separately via PayrollTransaction model
+    const allTransactions = await prisma.payrollTransaction.findMany({
+      where: { payrollRunId: run.id },
+      include: { transactionCode: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // Group transactions by employeeId for quick lookup
+    const txByEmployee = {};
+    for (const tx of allTransactions) {
+      if (!txByEmployee[tx.employeeId]) txByEmployee[tx.employeeId] = [];
+      txByEmployee[tx.employeeId].push(tx);
+    }
 
     // Helper to safely convert Prisma Decimal to Number
     const num = (v) => Number(v ?? 0);
@@ -1829,7 +1843,7 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
           ? num(ps.basicSalaryApplied)
           : num(ps.employee?.baseRate);
 
-        // Normalise payslip numeric fields from Prisma Decimal to plain Number
+        // Normalise payslip numeric fields
         const normPs = {
           ...ps,
           paye: num(ps.paye),
@@ -1846,15 +1860,14 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
           gross: num(ps.gross),
         };
 
-        // Normalise transaction amounts
-        const normTxs = (ps.transactions || []).filter(t => t.transactionCode).map(t => ({
-          ...t,
-          amount: num(t.amount),
-        }));
+        // Get transactions for this employee and normalise amounts
+        const empTxs = (txByEmployee[ps.employeeId] || [])
+          .filter(t => t.transactionCode)
+          .map(t => ({ ...t, amount: num(t.amount) }));
 
         const displayLines = buildPayslipLineItems({ 
           payslip: normPs, 
-          transactions: normTxs,
+          transactions: empTxs,
           basicSalary,
           ytdStat: {}, 
           ytdMap: {}
