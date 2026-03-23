@@ -1821,9 +1821,9 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
       const gName = ps.employee.department?.name || ps.employee.costCenter || 'General';
       if (!groupsMap[gName]) groupsMap[gName] = [];
       
-      const basicSalary = (ps.basicSalaryApplied > 0)
+      const basicSalary = Number((ps.basicSalaryApplied > 0)
         ? ps.basicSalaryApplied
-        : (ps.employee.baseRate ?? 0);
+        : (ps.employee.baseRate ?? 0));
 
       const displayLines = buildPayslipLineItems({ 
         payslip: ps, 
