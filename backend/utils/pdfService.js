@@ -97,9 +97,6 @@ function _drawPayslip(doc, data) {
   const TABLE_TOP = currY;
   const TABLE_HDR_H = 30;
   
-  doc.rect(LEFT, TABLE_TOP, CONTENT_W, TABLE_HDR_H).fill(DARK_NAVY);
-  doc.fillColor('white').font('Helvetica-Bold').fontSize(9);
-  
   const cols = [
     { label: 'Description', x: LEFT + 20, w: 200, align: 'left' },
     { label: 'Earnings', x: LEFT + 230, w: 80, align: 'right' },
@@ -108,22 +105,36 @@ function _drawPayslip(doc, data) {
     { label: 'YTD', x: LEFT + 470, w: CONTENT_W - 490, align: 'right' }
   ];
 
-  cols.forEach(c => {
-    doc.text(c.label.toUpperCase(), c.x, TABLE_TOP + 10, { width: c.w, align: c.align });
-  });
+  const PAGE_SAFE_BOTTOM = 750;
 
-  currY += TABLE_HDR_H;
+  const drawTableHeader = (startY) => {
+    doc.rect(LEFT, startY, CONTENT_W, TABLE_HDR_H).fill(DARK_NAVY);
+    doc.fillColor('white').font('Helvetica-Bold').fontSize(9);
+    cols.forEach(c => {
+      doc.text(c.label.toUpperCase(), c.x, startY + 10, { width: c.w, align: c.align });
+    });
+    return startY + TABLE_HDR_H;
+  };
+
+  currY = drawTableHeader(TABLE_TOP);
   const lineItems = data.lineItems || [];
-  
-  lineItems.forEach((item, i) => {
-    const rowY = currY + (i * 22);
-    if (i % 2 === 0) {
+
+  let rowIndex = 0;
+  lineItems.forEach((item) => {
+    if (currY + 22 > PAGE_SAFE_BOTTOM) {
+      doc.addPage({ size: 'A4', margin: 0 });
+      currY = drawTableHeader(40);
+      rowIndex = 0;
+    }
+    const rowY = currY;
+    if (rowIndex % 2 === 0) {
       doc.rect(LEFT, rowY, CONTENT_W, 22).fill('#fafafa');
     }
-    
+    rowIndex++;
+
     doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9);
     doc.text(item.name, cols[0].x, rowY + 7);
-    
+
     doc.font('Helvetica-Bold');
     if (item.allowance > 0) {
       doc.fillColor('#059669').text(fmt(item.allowance), cols[1].x, rowY + 7, { width: cols[1].w, align: 'right' });
@@ -131,7 +142,7 @@ function _drawPayslip(doc, data) {
     if (item.deduction > 0) {
       doc.fillColor('#e11d48').text(fmt(item.deduction), cols[2].x, rowY + 7, { width: cols[2].w, align: 'right' });
     }
-    
+
     doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(8.5);
     if (item.employer > 0) {
       doc.text(fmt(item.employer), cols[3].x, rowY + 7, { width: cols[3].w, align: 'right' });
@@ -139,11 +150,12 @@ function _drawPayslip(doc, data) {
     if (item.ytd) {
       doc.text(fmt(item.ytd), cols[4].x, rowY + 7, { width: cols[4].w, align: 'right' });
     }
+
+    currY += 22;
   });
 
   // ── Summary Totals ────────────────────────────────────────────────────────
-  const FOOTER_START = 650; // Anchor to bottom
-  currY = Math.max(currY + (lineItems.length * 22) + 25, FOOTER_START);
+  currY += 25;
 
   doc.rect(LEFT, currY, CONTENT_W, 70).fill(DARK_NAVY);
   
@@ -169,7 +181,7 @@ function _drawPayslip(doc, data) {
   }
 
   // ── Leave Balances ────────────────────────────────────────────────────────
-  currY += 90;
+  currY += 100;
   doc.roundedRect(LEFT, currY, CONTENT_W, 45, 8).fill(BG_LIGHT);
   doc.strokeColor(BORDER_COLOR).stroke();
 
@@ -181,7 +193,7 @@ function _drawPayslip(doc, data) {
   doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(12).text(`${(data.leaveTaken || 0).toFixed(1)} days`, LEFT + 20 + leaveW, currY + 24);
 
   // ── Branding Footer ──────────────────────────────────────────────────────
-  const footerY = 810;
+  const footerY = Math.min(currY + 60, 820);
   doc.moveTo(LEFT, footerY).lineTo(RIGHT, footerY).lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
   
   doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(8)
