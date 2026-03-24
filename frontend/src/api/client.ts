@@ -463,9 +463,9 @@ export interface AuditLog {
 // ─── Reports ──────────────────────────────────────────────────────────────────
 
 export const ReportsAPI = {
-  payslips: (params: Record<string, string>) => api.get('/reports/payslips', { params }),
-  tax: (params: Record<string, string>) => api.get('/reports/tax', { params }),
-  p2: (params: { month: string; year: string; companyId?: string }) => 
+  payslips: (params: Record<string, string>) => api.get('/reports/payslips', { params, responseType: 'blob' }),
+  tax: (params: Record<string, string>) => api.get('/reports/tax', { params, responseType: 'blob' }),
+  p2: (params: { month: string; year: string; companyId?: string }) =>
     api.get('/reports/p2', { params, responseType: 'blob' }),
   nssaP4a: (params: { month: string; year: string; companyId?: string }) =>
     api.get('/reports/nssa-p4a', { params, responseType: 'blob' }),
@@ -473,12 +473,12 @@ export const ReportsAPI = {
     api.get('/reports/nssa-p4a-excel', { params, responseType: 'blob' }),
   tarmsPayeExcel: (params: { month: string; year: string }) =>
     api.get('/reports/tarms-paye-excel', { params, responseType: 'blob' }),
-  eft: (params: { runId: string }) => 
+  eft: (params: { runId: string }) =>
     api.get('/reports/eft', { params, responseType: 'blob' }),
-  leave: (params?: Record<string, string>) => api.get('/reports/leave', { params }),
-  loans: (params?: Record<string, string>) => api.get('/reports/loans', { params }),
-  departments: () => api.get('/reports/departments'),
-  journals: (params: Record<string, string>) => api.get('/reports/journals', { params }),
+  leave: (params?: Record<string, string>) => api.get('/reports/leave', { params, responseType: 'blob' }),
+  loans: (params?: Record<string, string>) => api.get('/reports/loans', { params, responseType: 'blob' }),
+  departments: () => api.get('/reports/departments', { responseType: 'blob' }),
+  journals: (params: Record<string, string>) => api.get('/reports/journals', { params, responseType: 'blob' }),
   summary: () => api.get<DashboardSummary>('/reports/summary'),
   payrollTrend: () => api.get<{ name: string; netPay: number; grossPay: number; headcount: number }[]>('/reports/payroll-trend'),
   it7: (employeeId: string, year: number) => 

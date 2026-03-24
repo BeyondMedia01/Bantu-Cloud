@@ -78,7 +78,18 @@ router.get('/departments', requirePermission('view_reports'), async (req, res) =
       orderBy: { name: 'asc' },
     });
 
-    res.json({ data: departments });
+    const rows = departments.map(d => [
+      d.company?.name ?? '',
+      d.branch?.name ?? '',
+      d.name,
+      d._count.employees,
+    ]);
+    const header = 'Company,Branch,Department,Headcount';
+    const csv = [header, ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=headcount-report.csv');
+    return res.send(csv);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
