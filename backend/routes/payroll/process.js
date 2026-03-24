@@ -346,7 +346,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           { payrollRunId: null, period: { lte: runPeriod }, processed: false }, // unattached, not yet processed
         ],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true } } },
     });
     const inputsByEmployee = {};
     for (const inp of allInputs) {
@@ -364,7 +364,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         effectiveFrom: { lte: run.endDate },
         OR: [{ effectiveTo: null }, { effectiveTo: { gte: run.startDate } }],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true } } },
     });
 
     // Build a set of (employeeId:transactionCodeId) already covered by explicit payroll inputs for this run
@@ -585,6 +585,21 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         if (i.transactionCode.code === '201' && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
           const dayRate = emp.baseRate / (workingDaysPerMonth || 22);
           const amt = round2(dayRate * i.units);
+          if (emp.currency === 'ZiG') i.employeeZiG = amt;
+          else i.employeeUSD = amt;
+        }
+      }
+
+      // Auto-calculate OVERTIME TCs if hours (units) are entered but monetary amounts are zero.
+      // hourlyRate = dayRate / 8  (assumes 8-hour working day).
+      // The overtime multiplier is taken from tc.defaultValue (e.g. 1.5 for time-and-a-half);
+      // defaults to 1.5 if not configured on the transaction code.
+      for (const i of empInputs) {
+        if (i.transactionCode.incomeCategory === 'OVERTIME' && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
+          const dayRate = emp.baseRate / (workingDaysPerMonth || 22);
+          const hourlyRate = dayRate / 8;
+          const multiplier = i.transactionCode.defaultValue || 1.5;
+          const amt = round2(hourlyRate * multiplier * i.units);
           if (emp.currency === 'ZiG') i.employeeZiG = amt;
           else i.employeeUSD = amt;
         }

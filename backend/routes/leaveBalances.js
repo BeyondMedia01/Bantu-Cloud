@@ -89,7 +89,7 @@ router.post('/accrue', requirePermission('manage_leave'), async (req, res) => {
     }
 
     const employees = await prisma.employee.findMany({
-      where: { companyId: req.companyId, status: 'ACTIVE' },
+      where: { companyId: req.companyId, dischargeDate: null },
       select: { id: true },
     });
 
