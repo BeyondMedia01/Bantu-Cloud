@@ -922,9 +922,9 @@ function _drawPayslipSummary(doc, data) {
   doc.fillColor('white').font('Helvetica-Bold').fontSize(10);
   const gtCcy = (groups[0]?.payslips[0]?.currency) || 'USD';
   doc.text('GRAND TOTALS', LEFT + 5, y);
-  doc.text(`${gtCcy} ${fmt(grandTotalEarnings)}`,   LEFT + 65,   y, { width: 105, align: 'right' });
-  doc.text(`${gtCcy} ${fmt(grandTotalDeductions)}`, LEFT + 255,  y, { width: 105, align: 'right' });
-  doc.text(`${gtCcy} ${fmt(grandTotalNetPay)}`,     RIGHT - 100, y, { width: 100, align: 'right' });
+  doc.text(`${gtCcy} ${fmt(grandTotalEarnings)}`,   LEFT + 75,  y, { width: 95, align: 'right' });
+  doc.text(`${gtCcy} ${fmt(grandTotalDeductions)}`, LEFT + 295, y, { width: 95, align: 'right' });
+  doc.text(`${gtCcy} ${fmt(grandTotalNetPay)}`,     RIGHT - 95, y, { width: 95, align: 'right' });
   drawFooter();
 }
 
