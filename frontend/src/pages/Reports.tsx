@@ -71,8 +71,14 @@ const Reports: React.FC = () => {
   const downloadP2 = () =>
     download('p2', () => ReportsAPI.p2({ month: String(selectedMonth), year: String(selectedYear) }), `ZIMRA_P2_${selectedMonth}_${selectedYear}.pdf`);
 
+  const downloadTarmsExcel = () =>
+    download('tarms-excel', () => ReportsAPI.tarmsPayeExcel({ month: String(selectedMonth), year: String(selectedYear) }), `ZIMRA_TaRMS_PAYE_${selectedMonth}_${selectedYear}.xlsx`);
+
   const downloadNssa = () =>
     download('nssa', () => ReportsAPI.nssaP4a({ month: String(selectedMonth), year: String(selectedYear) }), `NSSA_P4A_${selectedMonth}_${selectedYear}.pdf`);
+
+  const downloadNssaExcel = () =>
+    download('nssa-excel', () => ReportsAPI.nssaP4aExcel({ month: String(selectedMonth), year: String(selectedYear) }), `NSSA_P4A_${selectedMonth}_${selectedYear}.xlsx`);
 
   const downloadEft = () => {
     if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
@@ -157,15 +163,15 @@ const Reports: React.FC = () => {
                 </button>
               </div>
 
-              {/* ZIMRA P2 */}
+              {/* ZIMRA P2 / TaRMS */}
               <div className="bg-primary rounded-2xl border border-border shadow-sm p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
                     <FileText size={22} />
                   </div>
                   <div>
-                    <p className="font-bold text-sm">ZIMRA P2 Monthly Return</p>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Income Tax Remittance</p>
+                    <p className="font-bold text-sm">ZIMRA Monthly PAYE Return</p>
+                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">P2 PDF &nbsp;·&nbsp; TaRMS Excel Upload</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -179,9 +185,17 @@ const Reports: React.FC = () => {
                   <button
                     disabled={disabled || isDownloading('p2')}
                     onClick={downloadP2}
-                    className="bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
+                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
                   >
-                    <Download size={15} /> {isDownloading('p2') ? '…' : 'Export P2'}
+                    <Download size={15} /> {isDownloading('p2') ? '…' : 'P2 PDF'}
+                  </button>
+                  <button
+                    disabled={disabled || isDownloading('tarms-excel')}
+                    onClick={downloadTarmsExcel}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
+                    title="Export 52-column TaRMS bulk upload Excel"
+                  >
+                    <FileSpreadsheet size={15} /> {isDownloading('tarms-excel') ? '…' : 'TaRMS Excel'}
                   </button>
                 </div>
               </div>
@@ -197,13 +211,23 @@ const Reports: React.FC = () => {
                     <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Social Security Remittance</p>
                   </div>
                 </div>
-                <button
-                  disabled={disabled || isDownloading('nssa')}
-                  onClick={downloadNssa}
-                  className="bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40 shrink-0"
-                >
-                  <Download size={15} /> {isDownloading('nssa') ? 'Generating…' : 'Export P4A'}
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    disabled={disabled || isDownloading('nssa')}
+                    onClick={downloadNssa}
+                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
+                  >
+                    <Download size={15} /> {isDownloading('nssa') ? 'Generating…' : 'PDF'}
+                  </button>
+                  <button
+                    disabled={disabled || isDownloading('nssa-excel')}
+                    onClick={downloadNssaExcel}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
+                    title="Export detailed P4A per-employee Excel (NSSA upload format)"
+                  >
+                    <FileSpreadsheet size={15} /> {isDownloading('nssa-excel') ? 'Generating…' : 'Excel'}
+                  </button>
+                </div>
               </div>
 
               {/* Pension Fund Exports */}

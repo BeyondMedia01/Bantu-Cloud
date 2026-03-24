@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Send, Loader2, CheckCircle2, Eye, X } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { PayrollAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -19,6 +19,9 @@ const Payslips: React.FC = () => {
   const [sentIds, setSentIds] = useState<Set<string>>(new Set());
   const [sendingAll, setSendingAll] = useState(false);
   const [confirmSendAll, setConfirmSendAll] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewName, setPreviewName] = useState<string>('');
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     if (!runId) return;
@@ -49,6 +52,33 @@ const Payslips: React.FC = () => {
     }
     return [...seen.entries()].map(([tcId, meta]) => ({ tcId, ...meta }));
   }, [payslips]);
+
+  const handlePreview = async (payslipId: string, lastName: string, firstName: string) => {
+    if (!runId) return;
+    setPreviewLoading(true);
+    setPreviewName(`payslip-${lastName}-${firstName}.pdf`);
+    try {
+      const res = await PayrollAPI.downloadPayslipPdf(runId, payslipId);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      setPreviewUrl(url);
+    } catch { showToast('Failed to load payslip preview', 'error'); }
+    finally { setPreviewLoading(false); }
+  };
+
+  const closePreview = () => {
+    if (previewUrl) window.URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewName('');
+  };
+
+  const downloadFromPreview = () => {
+    if (!previewUrl) return;
+    const a = document.createElement('a');
+    a.href = previewUrl;
+    a.download = previewName;
+    a.click();
+  };
 
   const handlePdf = async (payslipId: string, lastName: string, firstName: string) => {
     if (!runId) return;
@@ -319,6 +349,13 @@ const Payslips: React.FC = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <button
+                            onClick={() => handlePreview(p.id, p.employee?.lastName || '', p.employee?.firstName || '')}
+                            className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-navy"
+                            title="Preview payslip"
+                          >
+                            <Eye size={14} /> Preview
+                          </button>
+                          <button
                             onClick={() => handlePdf(p.id, p.employee?.lastName || '', p.employee?.firstName || '')}
                             className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:underline"
                           >
@@ -349,6 +386,51 @@ const Payslips: React.FC = () => {
             </table>
           </div>
         </>
+      )}
+      {/* ── PDF Preview Modal ──────────────────────────────────────────── */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={closePreview}
+        >
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ width: '90vw', maxWidth: 900, height: '90vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-5 py-3 bg-[#1a2e4a] text-white shrink-0">
+              <span className="font-bold text-sm truncate">{previewName}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={downloadFromPreview}
+                  className="flex items-center gap-1.5 bg-[#B2DB64] text-[#1a2e4a] px-3 py-1.5 rounded-full text-xs font-bold hover:opacity-90"
+                >
+                  <Download size={13} /> Download
+                </button>
+                <button onClick={closePreview} className="p-1.5 rounded-full hover:bg-white/10">
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            {/* PDF iframe */}
+            <iframe
+              src={previewUrl}
+              title="Payslip Preview"
+              className="flex-1 w-full border-0"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Loading overlay for preview fetch */}
+      {previewLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-3 shadow-2xl">
+            <Loader2 size={32} className="animate-spin text-[#1a2e4a]" />
+            <p className="text-sm font-semibold text-slate-600">Loading preview…</p>
+          </div>
+        </div>
       )}
     </div>
   );

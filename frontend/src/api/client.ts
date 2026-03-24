@@ -467,8 +467,12 @@ export const ReportsAPI = {
   tax: (params: Record<string, string>) => api.get('/reports/tax', { params }),
   p2: (params: { month: string; year: string; companyId?: string }) => 
     api.get('/reports/p2', { params, responseType: 'blob' }),
-  nssaP4a: (params: { month: string; year: string; companyId?: string }) => 
+  nssaP4a: (params: { month: string; year: string; companyId?: string }) =>
     api.get('/reports/nssa-p4a', { params, responseType: 'blob' }),
+  nssaP4aExcel: (params: { month: string; year: string }) =>
+    api.get('/reports/nssa-p4a-excel', { params, responseType: 'blob' }),
+  tarmsPayeExcel: (params: { month: string; year: string }) =>
+    api.get('/reports/tarms-paye-excel', { params, responseType: 'blob' }),
   eft: (params: { runId: string }) => 
     api.get('/reports/eft', { params, responseType: 'blob' }),
   leave: (params?: Record<string, string>) => api.get('/reports/leave', { params }),
