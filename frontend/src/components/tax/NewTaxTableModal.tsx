@@ -2,9 +2,22 @@ import React, { useState } from 'react';
 import { X, Save, Loader, AlertCircle } from 'lucide-react';
 import { TaxTableAPI } from '../../api/client';
 
+interface TaxTable {
+  id: string;
+  clientId: string;
+  name: string;
+  currency: string;
+  effectiveDate: string;
+  expiryDate: string | null;
+  isAnnual: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface NewTaxTableModalProps {
   onClose: () => void;
-  onSuccess: (newTable: any) => void;
+  onSuccess: (newTable: TaxTable) => void;
 }
 
 const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess }) => {
@@ -28,8 +41,9 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
         isAnnual,
       });
       onSuccess(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create tax table');
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e.response?.data?.message || 'Failed to create tax table');
       setLoading(false);
     }
   };

@@ -445,7 +445,7 @@
 - **Issue**: `PUT /request/:id/approve` calls `prisma.leaveRequest.update(...)` to set status `APPROVED` unconditionally, then creates a new `LeaveRecord` and decrements the balance. If the endpoint is called twice for the same request (double-click, retry), a second `LeaveRecord` is created and the balance is decremented a second time. There is no check that `request.status !== 'APPROVED'` before proceeding.
 - **Fix**: After fetching the updated request, check `if (request.status === 'APPROVED' && alreadyProcessed)` — or more robustly, move the status update inside the transaction and add a pre-check: fetch the request first, return 409 if it is already `APPROVED`.
 
-### [Medium] `leaveBalances.js` accrual — `credit` value uses raw float `policy.accrualRate` with no rounding, accumulates drift across months
+### [Medium][FIXED] `leaveBalances.js` accrual — `credit` value uses raw float `policy.accrualRate` with no rounding, accumulates drift across months
 - **File**: `backend/routes/leaveBalances.js:114`
 - **Domain**: Business Logic
 - **Issue**: `const credit = Math.min(policy.accrualRate, room)` uses the raw accrual rate (e.g. `1.6667` days/month) with no rounding before incrementing `accrued` and `balance`. After 12 months a balance of `20.0004` or similar can appear on payslips instead of the expected `20.0`. Leave balance rounding is inconsistent — `leave.js` uses plain `parseFloat` arithmetic, while the accrual engine applies no rounding at all.
@@ -495,13 +495,14 @@
 - **Issue**: The route file contains multi-step attendance processing logic (fetch → group by employee/date → call `attendanceEngine` → upsert records) inline from lines 195–283. This is orchestration logic that belongs in a service layer, not a route handler.
 - **Fix**: Move the processing pipeline into `services/attendanceService.js` and reduce the route handler to input validation, service invocation, and response serialisation.
 
-### [Medium] Inconsistent response envelope shapes across routes — more than 2 distinct shapes in use
+### [Medium][MANUAL] Inconsistent response envelope shapes across routes — more than 2 distinct shapes in use
 - **File**: `backend/routes/*.js`
 - **Domain**: Code Quality
 - **Issue**: Routes return at least five structurally distinct JSON shapes: (1) raw model object (`res.json(user)`), (2) raw array (`res.json(employees)`), (3) `{ data, total, page, limit }` paginated envelope (attendance), (4) named root key without pagination (`{ clients, users, employees, aidsLevyRate }`), (5) `{ message }` plain string responses. Frontend consumers must handle each shape individually, and adding a new consumer (e.g., a mobile app or public API) requires reverse-engineering the contract for every endpoint. Shapes 3–5 represent three distinct variants beyond the first two, qualifying as a Medium finding each; consolidated here as one finding.
 - **Fix**: Adopt a single envelope contract — e.g. `{ data, meta: { total, page, limit } }` for collections and `{ data }` for single-resource responses — and roll it out route-by-route. A small helper `sendOk(res, data, meta)` avoids boilerplate. Document the contract in the API README.
+- **Note**: `MANUAL` — Changing envelope shapes is a breaking change — requires coordinated frontend+backend update.
 
-### [Medium] `jobProcessor.js` — no try/catch around async operations; errors propagate unhandled to the worker caller
+### [Medium][FIXED] `jobProcessor.js` — no try/catch around async operations; errors propagate unhandled to the worker caller
 - **File**: `backend/lib/jobProcessor.js`
 - **Domain**: Code Quality
 - **Issue**: `processJob` and `processEmailPayslip` are async functions with no try/catch. Any error from `payslipToBuffer` or `mailer.sendPayslip` (network failure, PDF generation crash, missing Prisma record) will throw an unhandled rejection that propagates to the worker. Whether the worker catches it depends entirely on the call site. If the job queue worker lacks a top-level catch, the Node process will emit an `unhandledRejection` and the job will be silently retried or dropped depending on the queue implementation.
@@ -513,7 +514,7 @@
 - **Issue**: Both `getDeviceInfo` (line 118) and `fetchAttendanceEvents` (line 138) are async functions that `await digestGet(...)` with no surrounding try/catch. If the device is unreachable, returns an unexpected status, or the JSON parse fails, the error bubbles up raw to the calling route handler. The route handlers in `devices.js` and `biometric.js` do have their own try/catch, but `attendanceEngine` callers may not, so the guard is call-site-dependent rather than enforced at the library level.
 - **Fix**: Wrap the `digestGet` calls in try/catch inside each exported function, enrich the error message with device IP and path context, then rethrow. This makes the library self-documenting about what can fail.
 
-### [Low] `attendanceEngine.js` — `matchEmployeeByPin` is async with no try/catch; Prisma errors surface as unhandled rejections at call sites
+### [Low][FIXED] `attendanceEngine.js` — `matchEmployeeByPin` is async with no try/catch; Prisma errors surface as unhandled rejections at call sites
 - **File**: `backend/lib/attendanceEngine.js` (line 205)
 - **Domain**: Code Quality
 - **Issue**: `matchEmployeeByPin` performs two sequential `prisma.employee.findFirst` calls with no error handling. Any Prisma connectivity or query error will throw at the call site. The sync functions `processDailyLogs` and `buildPayrollInputsFromAttendance` are pure computation and are correctly unguarded, but the async DB lookup should be self-protecting.
@@ -761,19 +762,19 @@
 - **Issue**: Currency rates fetch errors are swallowed with `console.error`.
 - **Fix**: Add error state and render a visible error message on failure.
 
-### [Medium] `EmployeeModal.tsx` — untyped `onSave` callback and `initialData` prop
+### [Medium][FIXED] `EmployeeModal.tsx` — untyped `onSave` callback and `initialData` prop
 - **File**: `frontend/src/components/EmployeeModal.tsx:5-6`
 - **Domain**: Code Quality
 - **Issue**: `EmployeeModalProps` declares `onSave: (data: any) => void` and `initialData?: any`, losing all type safety for the data shape passed between parent and modal.
 - **Fix**: Define a concrete `EmployeeFormData` interface (or reuse the existing `Employee` type from `types/employee.ts`) and replace both `any` usages with it.
 
-### [Medium] `EmployeeFilters.tsx` — untyped `branches` and `departments` props
+### [Medium][FIXED] `EmployeeFilters.tsx` — untyped `branches` and `departments` props
 - **File**: `frontend/src/components/employees/EmployeeFilters.tsx:8-9`
 - **Domain**: Code Quality
 - **Issue**: `branches: any[]` and `departments: any[]` lose type safety. The existing `Branch` and `Department` types from `types/common.ts` already describe these shapes.
 - **Fix**: Import `Branch` and `Department` from `../../types/common` and replace `any[]` with the concrete types.
 
-### [Medium] `tax/NewTaxTableModal.tsx` — untyped `onSuccess` callback prop
+### [Medium][FIXED] `tax/NewTaxTableModal.tsx` — untyped `onSuccess` callback prop
 - **File**: `frontend/src/components/tax/NewTaxTableModal.tsx:7`
 - **Domain**: Code Quality
 - **Issue**: `onSuccess: (newTable: any) => void` loses the shape of the newly created tax table returned from the API.

@@ -8,12 +8,17 @@ const mailer = require('./mailer');
 async function processJob(job) {
   console.log(`[worker] Processing job ${job.id} (type: ${job.type})`);
 
-  switch (job.type) {
-    case 'EMAIL_PAYSLIP':
-      await processEmailPayslip(job);
-      break;
-    default:
-      throw new Error(`Unknown job type: ${job.type}`);
+  try {
+    switch (job.type) {
+      case 'EMAIL_PAYSLIP':
+        await processEmailPayslip(job);
+        break;
+      default:
+        throw new Error(`Unknown job type: ${job.type}`);
+    }
+  } catch (err) {
+    console.error(`[worker] Job ${job.id} failed (type: ${job.type}):`, err);
+    throw err;
   }
 }
 
