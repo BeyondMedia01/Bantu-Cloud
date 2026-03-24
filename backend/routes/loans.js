@@ -6,7 +6,7 @@ const { audit } = require('../lib/audit');
 const router = express.Router();
 
 // GET /api/loans
-router.get('/', requirePermission('manage_loans'), async (req, res) => {
+router.get('/', requirePermission('view_loans'), async (req, res) => {
   const { employeeId, status } = req.query;
   try {
     const where = {
