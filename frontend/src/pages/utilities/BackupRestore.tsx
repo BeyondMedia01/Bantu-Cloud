@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { Download, Upload, AlertTriangle, CheckCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BackupAPI } from '../../api/client';
-import ConfirmModal from '../../components/common/ConfirmModal';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 const BackupRestore: React.FC = () => {
   const navigate = useNavigate();
@@ -17,8 +25,7 @@ const BackupRestore: React.FC = () => {
     setSuccess('');
     try {
       const res = await BackupAPI.export();
-      const data = res.data;
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -26,59 +33,62 @@ const BackupRestore: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
       setSuccess('Backup generated and downloaded successfully.');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate backup');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to generate backup';
+      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRestore = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setPendingFile(file);
-    // reset input so same file can be re-selected
-    e.target.value = '';
+    e.target.value = ''; // allow re-selecting the same file
   };
 
   const confirmRestore = async () => {
     if (!pendingFile) return;
+    const file = pendingFile;
     setPendingFile(null);
     setLoading(true);
     setError('');
     setSuccess('');
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const backupData = JSON.parse(event.target?.result as string);
-          await BackupAPI.restore(backupData);
-          setSuccess('Data restored successfully. Please refresh the page to see changes.');
-        } catch (err: any) {
-          setError(err.response?.data?.message || 'Invalid backup file or restore failed');
-        } finally {
-          setLoading(false);
-        }
-      };
-      reader.readAsText(pendingFile);
-    } catch {
-      setError('Failed to read backup file');
+      const text = await file.text();
+      const backupData = JSON.parse(text);
+      await BackupAPI.restore(backupData);
+      setSuccess('Data restored successfully. Please refresh the page to see changes.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Invalid backup file or restore failed';
+      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? msg);
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
-      {pendingFile && (
-        <ConfirmModal
-          title="Restore from Backup"
-          message="WARNING: Restoring from a backup will overwrite or merge data. This action is irreversible. Are you sure you want to proceed?"
-          confirmLabel="Restore"
-          onConfirm={confirmRestore}
-          onCancel={() => setPendingFile(null)}
-        />
-      )}
+      {/* Restore confirmation dialog */}
+      <Dialog open={!!pendingFile} onOpenChange={(open) => { if (!open) setPendingFile(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restore from Backup</DialogTitle>
+            <DialogDescription>
+              <span className="font-semibold text-destructive">WARNING:</span> Restoring from a backup
+              will overwrite or merge data. This action is irreversible. Are you sure you want to proceed?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingFile(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmRestore}>Restore</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <button
         onClick={() => navigate('/utilities')}
         aria-label="Go back"
@@ -101,17 +111,17 @@ const BackupRestore: React.FC = () => {
           </div>
           <h2 className="text-xl font-bold text-navy mb-2">Export Data</h2>
           <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
-            Download a complete snapshot of your company's data in JSON format. 
+            Download a complete snapshot of your company's data in JSON format.
             This includes employees, payroll history, loans, and settings.
           </p>
-          <button
+          <Button
             onClick={handleExport}
             disabled={loading}
-            className="w-full bg-navy text-white rounded-xl py-3 font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-navy text-white rounded-xl hover:bg-slate-800 gap-2"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
             Generate Backup
-          </button>
+          </Button>
         </div>
 
         {/* Restore Card */}
@@ -121,15 +131,15 @@ const BackupRestore: React.FC = () => {
           </div>
           <h2 className="text-xl font-bold text-navy mb-2">Restore Data</h2>
           <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
-            Upload a previously generated backup file to restore your data. 
-            <span className="text-orange-600"> This will update or add records to your current database.</span>
+            Upload a previously generated backup file to restore your data.{' '}
+            <span className="text-orange-600">This will update or add records to your current database.</span>
           </p>
           <label className="cursor-pointer block">
             <input
               type="file"
               accept=".json"
               className="hidden"
-              onChange={handleRestore}
+              onChange={handleFileSelect}
               disabled={loading}
             />
             <div className="w-full bg-white border-2 border-dashed border-slate-300 rounded-xl py-3 font-semibold text-slate-600 hover:border-navy hover:text-navy transition-all flex items-center justify-center gap-2">
@@ -140,7 +150,7 @@ const BackupRestore: React.FC = () => {
         </div>
       </div>
 
-      {/* Status Messages */}
+      {/* Status messages */}
       {error && (
         <div className="mt-8 bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-start gap-3">
           <AlertTriangle className="shrink-0 mt-0.5" size={20} />
@@ -161,7 +171,7 @@ const BackupRestore: React.FC = () => {
         </div>
       )}
 
-      {/* Safety Warning */}
+      {/* Safety notice */}
       <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
         <div className="flex items-center gap-2 text-navy font-bold mb-3 text-sm italic">
           <AlertTriangle size={16} />
