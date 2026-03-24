@@ -163,6 +163,10 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
     const taxBrackets = taxTable?.brackets ?? [];
     const annualBrackets = taxBrackets.length > 0 && (taxTable?.isAnnual ?? true);
 
+    if (!taxBrackets || taxBrackets.length === 0) {
+      return res.status(422).json({ error: 'No tax brackets configured for this company' })
+    }
+
     const previewAidsLevyRate = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
     const previewMedicalAidCreditRate = await getSettingAsNumber('MEDICAL_AID_CREDIT_RATE', 50) / 100;
     const previewNssaEmployeeRate = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;

@@ -46,7 +46,7 @@
 - **Issue**: At line 23, `companyContext` destructures `req.user` unconditionally (`const { role, userId } = req.user;`) after checking `companyId` is present — but this block is only reached when `companyId` is set. If `companyContext` is ever inadvertently applied before `authenticateToken` (or on a route where `authenticateToken` is skipped), `req.user` will be `undefined` and the destructure will throw a runtime 500 error rather than returning a clean 401. The comment "Must run AFTER authenticateToken" is documentation-only with no programmatic enforcement.
 - **Fix**: Add an explicit guard at the top of the `companyContext` function before accessing `req.user`: `if (!req.user) return res.status(401).json({ message: 'Authentication required' });`
 
-### [Low] authLimiter window is 20 requests per 15 minutes — may be too permissive for login
+### [Low][MANUAL] authLimiter window is 20 requests per 15 minutes — may be too permissive for login
 - **File**: `backend/index.js:37`
 - **Domain**: Security
 - **Issue**: The `authLimiter` allows 20 attempts per 15-minute window per IP. This limit applies to all `/api/auth` routes (login, register, forgot-password, reset-password) combined. For a dedicated login brute-force scenario, 20 password attempts per 15 minutes (96 per hour) is relatively permissive, especially if an attacker rotates IPs or uses a CDN exit node shared across many users.
@@ -123,7 +123,7 @@
 - **Issue**: The list endpoint returns `employee.bankAccountUSD` and `employee.bankAccountZiG` as part of every export record. Full bank account numbers should not be returned in a list API response; they should be masked or excluded unless specifically needed for a detail view.
 - **Fix**: Remove `bankAccountUSD` and `bankAccountZiG` from the `select` in the list query, or replace with masked values (last 4 digits only).
 
-### [Low] `payrollInputs.js` import endpoint does not validate file size — potential memory exhaustion
+### [Low][FIXED] `payrollInputs.js` import endpoint does not validate file size — potential memory exhaustion
 - **File**: `backend/routes/payrollInputs.js:207`
 - **Domain**: Security
 - **Issue**: `multer({ storage: multer.memoryStorage() })` stores the entire uploaded file in memory with no size limit. An attacker (or misconfigured client) can upload a very large file to the `/api/payroll-inputs/import` endpoint, causing the process to consume excessive heap memory.
@@ -253,7 +253,7 @@
 - **Issue**: `calculatePaye` performs all intermediate and final calculations in raw floating-point with no `Math.round` applied to any output field (`nssaEmployee`, `payeBeforeLevy`, `aidsLevy`, `totalPaye`, `netSalary`, etc.). The `payroll.js` process route applies `round2` only to currency-conversion results, not to the tax engine outputs before they are stored. ZIMRA requires figures to 2 decimal places per the FDS specification (noted in a comment at line 471 of `payroll.js`). Accumulated float errors across a large headcount can produce payslip values like `123.450000000001` and small discrepancies between individual payslip totals and payroll run summations.
 - **Fix**: Apply `round2` (or equivalent) to all returned monetary fields inside `calculatePaye` before the return statement, or apply rounding in the caller immediately after `calculatePaye` returns and before writing to `payslipData`. Ensure rounding strategy is consistent (banker's rounding, as already used in `round2`).
 
-### [Low] `normaliseBrackets` silently returns an empty array when `taxBrackets` is null or empty — zero PAYE with no warning
+### [Low][FIXED] `normaliseBrackets` silently returns an empty array when `taxBrackets` is null or empty — zero PAYE with no warning
 - **File**: `backend/utils/taxEngine.js:117`
 - **Domain**: Business Logic
 - **Issue**: `const bands = (taxBrackets && taxBrackets.length > 0) ? normaliseBrackets(taxBrackets) : [];` — if no tax brackets are supplied, `bands` is `[]`, the loop produces zero PAYE, and the function returns normally with `totalPaye: 0`. The process route (`payroll.js:396`) now guards against this with an HTTP 422 response, but the `/preview` route does not perform the same guard and will silently return zero PAYE if the active tax table has no brackets.
@@ -654,67 +654,78 @@
 
 ## Frontend Findings (Task 7)
 
-### [Low] `EmployeeEdit.tsx` — 834 lines (split candidate)
+### [Low][DEFERRED] `EmployeeEdit.tsx` — 834 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/EmployeeEdit.tsx`
 - **Domain**: Code Quality
 - **Issue**: The file is 834 lines, combining employee profile editing, document management, and salary structure in a single monolithic component. Individual sections are hard to test, review, and maintain.
 - **Fix**: Extract each tab (Profile, Documents, Salary Structure) into dedicated sub-components under `frontend/src/pages/employee-edit/` and import them from the parent page.
 
-### [Low] `PayslipInput.tsx` — 826 lines (split candidate)
+### [Low][DEFERRED] `PayslipInput.tsx` — 826 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/PayslipInput.tsx`
 - **Domain**: Code Quality
 - **Issue**: 826 lines mixing payslip input form logic, TC line management, and preview rendering in one component.
 - **Fix**: Split into `PayslipInputForm.tsx`, `PayslipTCLines.tsx`, and `PayslipPreview.tsx`; the parent should only compose them and handle routing state.
 
-### [Low] `utilities/Transactions.tsx` — 772 lines (split candidate)
+### [Low][DEFERRED] `utilities/Transactions.tsx` — 772 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/utilities/Transactions.tsx`
 - **Domain**: Code Quality
 - **Issue**: 772 lines blending transaction listing, filtering, form entry, and export logic in a single module.
 - **Fix**: Extract the transaction form and export section into separate components, targeting each sub-concern at under 200 lines.
 
-### [Low] `PayrollInputGrid.tsx` — 693 lines (split candidate)
+### [Low][DEFERRED] `PayrollInputGrid.tsx` — 693 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/PayrollInputGrid.tsx`
 - **Domain**: Code Quality
 - **Issue**: 693-line page combining inline grid editing, TC mapping, and summary calculations.
 - **Fix**: Extract the grid body, TC column renderer, and action toolbar into separate components.
 
-### [Low] `utilities/BackPay.tsx` — 630 lines (split candidate)
+### [Low][DEFERRED] `utilities/BackPay.tsx` — 630 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/utilities/BackPay.tsx`
 - **Domain**: Code Quality
 - **Issue**: 630 lines mixing back-pay calculation form, employee selection, and preview table.
 - **Fix**: Split into `BackPayForm.tsx` and `BackPayPreview.tsx` with a thin orchestrator parent.
 
-### [Low] `NecTables.tsx` — 599 lines (split candidate)
+### [Low][DEFERRED] `NecTables.tsx` — 599 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/NecTables.tsx`
 - **Domain**: Code Quality
 - **Issue**: 599 lines with NEC table listing, inline row editing, and bulk upload all in one file.
 - **Fix**: Extract the edit modal and upload panel into `NecTableEditModal.tsx` and `NecTableUpload.tsx`.
 
-### [Low] `EmployeeNew.tsx` — 566 lines (split candidate)
+### [Low][DEFERRED] `EmployeeNew.tsx` — 566 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/EmployeeNew.tsx`
 - **Domain**: Code Quality
 - **Issue**: 566 lines for a new-employee wizard with multiple field groups.
 - **Fix**: Break form sections into field-group sub-components (PersonalFields, EmploymentFields, BankFields) and import them into the parent page.
 
-### [Low] `PayrollInputs.tsx` — 556 lines (split candidate)
+### [Low][DEFERRED] `PayrollInputs.tsx` — 556 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/PayrollInputs.tsx`
 - **Domain**: Code Quality
 - **Issue**: 556 lines combining list, filter, and edit-in-place logic for payroll inputs.
 - **Fix**: Extract the inputs table and inline edit form into dedicated components.
 
-### [Low] `utilities/PayrollCalendar.tsx` — 475 lines (split candidate)
+### [Low][DEFERRED] `utilities/PayrollCalendar.tsx` — 475 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/utilities/PayrollCalendar.tsx`
 - **Domain**: Code Quality
 - **Issue**: 475 lines mixing calendar rendering, period management, and close-period workflow.
 - **Fix**: Split into `PayrollCalendarGrid.tsx` and `PeriodCloseModal.tsx`.
 
-### [Low] `TaxTableSettings.tsx` — 447 lines (split candidate)
+### [Low][DEFERRED] `TaxTableSettings.tsx` — 447 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/TaxTableSettings.tsx`
 - **Domain**: Code Quality
 - **Issue**: 447 lines combining tax table list, band editing, and bracket management.
 - **Fix**: Extract `TaxBandEditor.tsx` as a standalone component.
 
-### [Low] `PayrollSummary.tsx` — 432 lines (split candidate)
+### [Low][DEFERRED] `PayrollSummary.tsx` — 432 lines (split candidate)
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/pages/PayrollSummary.tsx`
 - **Domain**: Code Quality
 - **Issue**: 432 lines blending summary statistics, employee breakdown table, and export controls.
@@ -790,13 +801,15 @@
 
 ## Task 9: Frontend Performance Audit
 
-### [Low] React Query installed but not used — all data fetching via manual useEffect+axios
+### [Low][DEFERRED] React Query installed but not used — all data fetching via manual useEffect+axios
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/package.json:15`
 - **Domain**: Performance
 - **Issue**: @tanstack/react-query is a dependency but is unused. Every page uses manual useEffect+axios patterns with no caching, deduplication, or stale-while-revalidate. Component remounts cause re-fetches; sibling pages requesting the same data each fire independent requests with no sharing.
 - **Fix**: Migrate data fetching to useQuery hooks for automatic caching, deduplication, background refetches, and stale data replay. This is a medium-term refactor (not a hotfix) affecting dozens of pages.
 
-### [Low] Large page components statically imported with no code splitting
+### [Low][DEFERRED] Large page components statically imported with no code splitting
+<!-- DEFERRED: Medium-term refactor — not a hotfix. -->
 - **File**: `frontend/src/App.tsx:1-102`
 - **Domain**: Performance
 - **Issue**: All 78+ page routes are static `import` statements. Large components (EmployeeEdit 834 lines, PayslipInput 826 lines, PayrollInputGrid 693 lines, etc.) are bundled into the initial js payload regardless of route. Users on `/employees` download bundles for payroll, leave, reports, admin pages, and utilities they may never visit.
