@@ -15,6 +15,8 @@ router.get('/', requirePermission('view_reports'), async (req, res) => {
 
   const year  = parseInt(req.query.year  || new Date().getFullYear());
   const month = req.query.month ? parseInt(req.query.month) : null;
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(500, parseInt(req.query.limit) || 200);
 
   const startDate = month
     ? new Date(year, month - 1, 1)
@@ -61,6 +63,8 @@ router.get('/', requirePermission('view_reports'), async (req, res) => {
         },
       },
       orderBy: [{ payrollRun: { startDate: 'desc' } }, { employee: { lastName: 'asc' } }],
+      take: limit,
+      skip: (page - 1) * limit,
     });
 
     // Group by payroll run for a summary view

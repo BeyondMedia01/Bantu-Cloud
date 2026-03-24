@@ -7,6 +7,9 @@
  * The STATUTORY_RATES constants below serve as fallback defaults only.
  */
 
+/** Round to 2 decimal places to prevent floating-point drift across employees */
+const r2 = (n) => Math.round(n * 100) / 100;
+
 const STATUTORY_RATES = {
   AIDS_LEVY: 0.03,
   NSSA_EMPLOYEE: 0.045,
@@ -203,24 +206,24 @@ function calculatePaye({
   const netSalary       = cashEarnings - totalDeductions;
 
   return {
-    grossSalary: cashEarnings,
-    taxableBenefits,
-    exemptBonus,
-    exemptSeverance,
-    pensionApplied: effectivePension,
-    nssaBasis,
-    nssaEmployee,
-    nssaEmployer,
-    wcifEmployer,
-    zimdefEmployer,
-    sdfContribution,
-    taxableIncome,
-    payeBeforeLevy: finalPayeNet,
-    medicalAidCredit,
-    aidsLevy: finalAidsLevy,
-    taxCreditsApplied: payeBeforeLevy > 0 ? (payeBeforeLevy + (payeBeforeLevy * aidsLevyRate) - finalTotalPaye) : (medicalAidCredit + taxCredits),
-    totalPaye: finalTotalPaye,
-    netSalary,
+    grossSalary:      r2(cashEarnings),
+    taxableBenefits:  r2(taxableBenefits),
+    exemptBonus:      r2(exemptBonus),
+    exemptSeverance:  r2(exemptSeverance),
+    pensionApplied:   r2(effectivePension),
+    nssaBasis:        r2(nssaBasis),
+    nssaEmployee:     r2(nssaEmployee),
+    nssaEmployer:     r2(nssaEmployer),
+    wcifEmployer:     r2(wcifEmployer),
+    zimdefEmployer:   r2(zimdefEmployer),
+    sdfContribution:  r2(sdfContribution),
+    taxableIncome:    r2(taxableIncome),
+    payeBeforeLevy:   r2(finalPayeNet),
+    medicalAidCredit: r2(medicalAidCredit),
+    aidsLevy:         r2(finalAidsLevy),
+    taxCreditsApplied: r2(payeBeforeLevy > 0 ? (payeBeforeLevy + (payeBeforeLevy * aidsLevyRate) - finalTotalPaye) : (medicalAidCredit + taxCredits)),
+    totalPaye:        r2(finalTotalPaye),
+    netSalary:        r2(netSalary),
   };
 }
 

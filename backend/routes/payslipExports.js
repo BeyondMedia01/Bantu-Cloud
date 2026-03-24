@@ -15,8 +15,7 @@ router.get('/', async (req, res) => {
           select: {
             fullName: true,
             employeeID: true,
-            bankAccountUSD: true,
-            bankAccountZiG: true,
+            // Bank account numbers excluded from list — too sensitive for bulk exposure
           }
         }
       },
@@ -75,9 +74,14 @@ router.post('/', async (req, res) => {
 // Update export status (e.g. mark as exported or failed)
 router.patch('/:id', async (req, res) => {
   const { id } = req.params;
+  const companyId = req.companyId;
   const { exportStatus, notes, exportedBy } = req.body;
 
   try {
+    const record = await prisma.payslipExport.findUnique({ where: { id }, select: { companyId: true } });
+    if (!record) return res.status(404).json({ error: 'Export record not found' });
+    if (companyId && record.companyId !== companyId) return res.status(403).json({ error: 'Forbidden' });
+
     const updated = await prisma.payslipExport.update({
       where: { id },
       data: {
@@ -96,8 +100,13 @@ router.patch('/:id', async (req, res) => {
 // Delete an export record
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  const companyId = req.companyId;
 
   try {
+    const record = await prisma.payslipExport.findUnique({ where: { id }, select: { companyId: true } });
+    if (!record) return res.status(404).json({ error: 'Export record not found' });
+    if (companyId && record.companyId !== companyId) return res.status(403).json({ error: 'Forbidden' });
+
     await prisma.payslipExport.delete({ where: { id } });
     res.status(204).send();
   } catch (error) {

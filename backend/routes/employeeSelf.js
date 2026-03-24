@@ -46,6 +46,12 @@ router.put('/profile', requireRole('EMPLOYEE'), async (req, res) => {
     const employee = await prisma.employee.update({
       where: { userId: req.user.userId },
       data: { homeAddress, nextOfKin, bankName, accountNumber },
+      select: {
+        id: true, firstName: true, lastName: true, employeeCode: true,
+        homeAddress: true, nextOfKin: true,
+        bankName: true, accountNumber: true,
+        updatedAt: true,
+      },
     });
     res.json(employee);
   } catch (error) {

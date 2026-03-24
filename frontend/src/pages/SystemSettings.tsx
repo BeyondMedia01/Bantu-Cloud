@@ -9,13 +9,16 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchSettings = async () => {
     try {
+      setFetchError(null);
       const response = await SystemSettingsAPI.getAll();
       setSettings(response.data);
     } catch (error) {
       console.error('Failed to fetch system settings');
+      setFetchError('Failed to load system configurations. Please try again.');
     }
   };
 
@@ -111,6 +114,13 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
             </p>
          </div>
       </div>
+
+      {fetchError && (
+        <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <XCircle size={20} className="text-red-500 shrink-0" />
+          <p className="text-sm font-medium">{fetchError}</p>
+        </div>
+      )}
 
       {/* Settings List */}
       <div className="bg-primary rounded-3xl border border-border shadow-sm overflow-hidden">

@@ -34,7 +34,7 @@
 - **Issue**: `/api/webhooks` (Stripe webhooks) is mounted with no rate limiter. While Stripe signs its payloads, an attacker can flood this endpoint with invalid requests, causing unnecessary CPU and DB load or triggering denial-of-service conditions.
 - **Fix**: Apply a rate limiter to `/api/webhooks`: `app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookLimiter, require('./routes/webhooks'));`. A generous limit (e.g., 200 req/15 min per IP) is sufficient to protect against floods while not blocking legitimate Stripe delivery retries.
 
-### [Medium] CORS origin falls back to localhost if FRONTEND_URL is unset
+### [Medium][FIXED] CORS origin falls back to localhost if FRONTEND_URL is unset
 - **File**: `backend/index.js:23`
 - **Domain**: Security
 - **Issue**: `origin: process.env.FRONTEND_URL || 'http://localhost:5173'` means that if `FRONTEND_URL` is not set in a production environment, CORS will only allow `localhost:5173`. While this restricts rather than opens access, a misconfigured deployment would silently break the frontend and an operator might be tempted to switch to `origin: '*'` as a quick fix, which would be critical.
@@ -109,14 +109,14 @@
 - **Issue**: `POST` uses `data: { ...req.body, companyId }` and `PUT /:id` uses `data: req.body` with no field whitelist. The `PUT` also has no ownership check — any company user can overwrite any `PayTransaction` record by ID. The `DELETE /:id` also has no ownership check.
 - **Fix**: Whitelist permitted fields for both mutation handlers. Add ownership checks in `PUT /:id` and `DELETE /:id` (fetch record, assert `record.companyId === req.companyId`).
 
-### [Medium] `payslipExports.js` PATCH and DELETE have no ownership checks
+### [Medium][FIXED] `payslipExports.js` PATCH and DELETE have no ownership checks
 <!-- [included in higher tier — see [High] finding above: payslipExports GET/POST/PATCH bypass companyContext middleware] -->
 - **File**: `backend/routes/payslipExports.js:77`
 - **Domain**: Security
 - **Issue**: `PATCH /:id` and `DELETE /:id` do not verify that the targeted `PayslipExport` record belongs to the requesting company. Any authenticated user (with any company context) can mutate or delete another company's export record if they know its ID.
 - **Fix**: Before updating/deleting, look up the record and assert `record.companyId === req.companyId`, returning 403 on mismatch.
 
-### [Medium] `payslipExports.js` GET returns `bankAccountUSD` and `bankAccountZiG` for all employees in the list
+### [Medium][FIXED] `payslipExports.js` GET returns `bankAccountUSD` and `bankAccountZiG` for all employees in the list
 <!-- [included in higher tier — see [High] finding above: payslipExports GET/POST/PATCH bypass companyContext middleware] -->
 - **File**: `backend/routes/payslipExports.js:17`
 - **Domain**: Security
@@ -191,7 +191,7 @@
 - **Issue**: Both creation handlers take `companyId` directly from the request body: `const { companyId, ... } = req.body` and then pass it straight to `prisma.department.create({ data: { companyId, ... } })`. An authenticated user with `manage_companies` permission can supply any `companyId` and create departments or branches under a company they do not belong to.
 - **Fix**: Ignore the body `companyId` and always use `req.companyId` (from `companyContext` middleware): `const companyId = req.companyId;`. Return 400 if `req.companyId` is not set.
 
-### [Medium] `GET /api/leave` has no `requirePermission` guard — any authenticated user can list all leave records for their company
+### [Medium][FIXED] `GET /api/leave` has no `requirePermission` guard — any authenticated user can list all leave records for their company
 - **File**: `backend/routes/leave.js:9`
 - **Domain**: Security
 - **Issue**: The `GET /` handler has no `requirePermission` middleware. Employees are filtered by the `EMPLOYEE` role check inside the handler, but users with non-EMPLOYEE roles (e.g., `VIEWER` or custom roles without `manage_leave`) can see all leave records and requests across the entire company unfiltered.
@@ -203,31 +203,31 @@
 - **Issue**: The loan creation handler validates presence of `employeeId` but does not look up the employee to confirm they belong to `req.companyId`. An attacker with `manage_loans` permission can create a loan record against an employee in a different company.
 - **Fix**: After extracting `employeeId` from the body, fetch `prisma.employee.findUnique({ where: { id: employeeId }, select: { companyId: true } })` and assert `employee.companyId === req.companyId` before creating the loan.
 
-### [Medium] `employeeSelf.js` `PUT /profile` response returns the full employee row including sensitive fields
+### [Medium][FIXED] `employeeSelf.js` `PUT /profile` response returns the full employee row including sensitive fields
 - **File**: `backend/routes/employeeSelf.js:30`
 - **Domain**: Security
 - **Issue**: `prisma.employee.update(...)` is called with no `select` clause, so the response includes all employee fields — TIN, passport number, SSN, full salary data, tax configuration, etc. — even though the handler is only meant to update personal contact details.
 - **Fix**: Add `select: { id: true, homeAddress: true, nextOfKin: true, bankName: true, accountNumber: true }` (or a safe profile projection) to the `update` call.
 
-### [Medium] `leaveBalances.js` `GET /:employeeId` exposes the full `leavePolicy` object via `include: { leavePolicy: true }`
+### [Medium][FIXED] `leaveBalances.js` `GET /:employeeId` exposes the full `leavePolicy` object via `include: { leavePolicy: true }`
 - **File**: `backend/routes/leaveBalances.js:63`
 - **Domain**: Security
 - **Issue**: The employee-specific balance endpoint uses `include: { leavePolicy: true }` with no `select`, returning all columns of the linked LeavePolicy record. While the policy itself is not highly sensitive, this is inconsistent with the list endpoint (which does use a limited `select`) and could expose internal policy IDs and configuration fields to employee-role users.
 - **Fix**: Replace `include: { leavePolicy: true }` with `include: { leavePolicy: { select: { leaveType: true, accrualRate: true, maxAccumulation: true, carryOverLimit: true, encashable: true, encashCap: true } } }`.
 
-### [Low] `employeeTransactions.js` `GET /:empId/salary-structure` — ownership check is outside try/catch, async crash not handled
+### [Low][FIXED] `employeeTransactions.js` `GET /:empId/salary-structure` — ownership check is outside try/catch, async crash not handled
 - **File**: `backend/routes/employeeTransactions.js:31`
 - **Domain**: Code Quality
 - **Issue**: `const emp = await getEmployee(empId, req.companyId)` on line 35 is called outside the `try` block that starts on line 38. If `getEmployee` throws (e.g., DB connection failure), the error is unhandled and will crash the process or leave the request hanging.
 - **Fix**: Move the `getEmployee` call inside the `try` block, or wrap the entire handler in a single try/catch.
 
-### [Low] `leave.js` `POST /` — no `requirePermission` guard on CLIENT_ADMIN direct-create path; relies on role check inside handler
+### [Low][FIXED] `leave.js` `POST /` — no `requirePermission` guard on CLIENT_ADMIN direct-create path; relies on role check inside handler
 - **File**: `backend/routes/leave.js:46`
 - **Domain**: Security
 - **Issue**: The `POST /` handler applies no middleware-level permission check. Admin-side direct creation of a `LeaveRecord` is gated only by `req.user.role !== 'EMPLOYEE'` inside the handler. A user with a non-standard role that is not `EMPLOYEE` but also lacks explicit leave management rights can create leave records directly.
 - **Fix**: Add `requirePermission('manage_leave')` to the route or restructure into separate endpoints: one for `EMPLOYEE` self-service (no permission needed beyond `requireRole('EMPLOYEE')`) and one for admins (`requirePermission('manage_leave')`).
 
-### [Low] `loans.js` `GET /` — no `requirePermission` guard; any authenticated user can list all company loans
+### [Low][FIXED] `loans.js` `GET /` — no `requirePermission` guard; any authenticated user can list all company loans
 - **File**: `backend/routes/loans.js:9`
 - **Domain**: Security
 - **Issue**: The `GET /` list endpoint has no `requirePermission` call. Employee filtering is applied inside the handler for the `EMPLOYEE` role, but users with non-EMPLOYEE roles (e.g., HR viewer with no `manage_loans` permission) can enumerate all loan records across the company.
@@ -249,7 +249,7 @@
 - **Fix**: In the `/preview` handler, also read `NSSA_CEILING_ZIG` from SystemSettings and pass the appropriate value based on `currency`. For the engine default, document prominently that `DEFAULT_NSSA_CEILING` must be updated whenever ZIMRA revises the ceiling. `MANUAL` — verify current statutory NSSA ceiling values against latest ZIMRA circular.
 - **Resolution (2026-03-24)**: In the `/preview` route, ZiG NSSA ceiling is now computed dynamically as `NSSA_CEILING_USD × most recent USD→ZiG rate` from the `CurrencyRate` table (for the company, ordered by `effectiveDate` desc). Falls back to the `NSSA_CEILING_ZIG` SystemSetting if no rate record exists. Hardcoded 20,000 ZiG value is no longer used in preview.
 
-### [Medium] Tax engine applies no rounding to PAYE, AIDS levy, or NSSA outputs — floating-point drift accumulates across employees
+### [Medium][FIXED] Tax engine applies no rounding to PAYE, AIDS levy, or NSSA outputs — floating-point drift accumulates across employees
 - **File**: `backend/utils/taxEngine.js:171-224`
 - **Domain**: Business Logic
 - **Issue**: `calculatePaye` performs all intermediate and final calculations in raw floating-point with no `Math.round` applied to any output field (`nssaEmployee`, `payeBeforeLevy`, `aidsLevy`, `totalPaye`, `netSalary`, etc.). The `payroll.js` process route applies `round2` only to currency-conversion results, not to the tax engine outputs before they are stored. ZIMRA requires figures to 2 decimal places per the FDS specification (noted in a comment at line 471 of `payroll.js`). Accumulated float errors across a large headcount can produce payslip values like `123.450000000001` and small discrepancies between individual payslip totals and payroll run summations.
@@ -363,38 +363,38 @@
 - **Issue**: The `/fraud` and `/cashflow` handlers use `req.companyId || req.query.companyId` — the query string fallback bypasses the `companyContext` middleware's validated company binding, allowing any authenticated user with a `clientId` to query fraud flags and cashflow forecasts for a company they do not belong to by supplying `?companyId=<other-id>`.
 - **Fix**: Remove the `req.query.companyId` fallback from all three handlers. Enforce `req.companyId` exclusively, which is already validated by `companyContext`.
 
-### [Medium] `backup.js` export sends response before logging the audit event, meaning the audit write may be skipped on error
+### [Medium][FIXED] `backup.js` export sends response before logging the audit event, meaning the audit write may be skipped on error
 <!-- [included in higher tier — see [High] finding above: backup.js POST /restore upserts entire payload from req.body] -->
 - **File**: `backend/routes/backup.js:74`
 - **Domain**: Code Quality
 - **Issue**: `res.json(backupData)` is called at line 74, and then `await audit(...)` is called at line 76 — after the response is already sent. If the `audit()` call throws, the error is caught by the outer `catch` block but the response has already been flushed. The same pattern occurs in the restore handler (line 163/165). The audit write is effectively fire-and-forget with no guarantee.
 - **Fix**: Move the `audit()` call before `res.json(...)`, or handle audit failures separately without silently swallowing them.
 
-### [Low] `taxBands.js` / `auditLogs.js` / `payrollUsers.js` — each instantiates its own `new PrismaClient()` instead of using the shared singleton
+### [Low][FIXED] `taxBands.js` / `auditLogs.js` / `payrollUsers.js` — each instantiates its own `new PrismaClient()` instead of using the shared singleton
 - **File**: `backend/routes/taxBands.js:3`, `backend/routes/auditLogs.js:2`, `backend/routes/payrollUsers.js:3`
 - **Domain**: Code Quality
 - **Issue**: Creating a new `PrismaClient` per module leads to multiple connection pools, increasing database connection overhead and potentially exhausting pool limits under load.
 - **Fix**: Replace `new PrismaClient()` with `const prisma = require('../lib/prisma')` in all three files.
 
-### [Low] `licenseValidate.js` — async handler has no try/catch; `validateLicense` throwing would cause unhandled rejection
+### [Low][FIXED] `licenseValidate.js` — async handler has no try/catch; `validateLicense` throwing would cause unhandled rejection
 - **File**: `backend/routes/licenseValidate.js:7`
 - **Domain**: Code Quality
 - **Issue**: The `POST /` handler calls `await validateLicense(token)` with no `try/catch`. If `validateLicense` throws (e.g., DB error), the promise rejection is unhandled and will crash the process in Node ≥ 15.
 - **Fix**: Wrap the handler body in `try { ... } catch (err) { res.status(500).json({ message: 'Internal server error' }); }`.
 
-### [Low] `setup.js` — public `POST /api/setup` is not rate-limited; susceptible to enumeration or timing attacks
+### [Low][FIXED] `setup.js` — public `POST /api/setup` is not rate-limited; susceptible to enumeration or timing attacks
 - **File**: `backend/routes/setup.js:22`
 - **Domain**: Security
 - **Issue**: The one-time setup endpoint is publicly accessible with no rate limiter. While it only creates an admin if none exists, repeated requests can be used to probe the initialization state of the platform, and the endpoint itself accepts and hashes passwords — a target for timing-based reconnaissance.
 - **Fix**: Apply a strict rate limiter (e.g., 5 requests per hour per IP) to `POST /api/setup` in `index.js`, and/or disable the route after setup is complete.
 
-### [Low] `biometric.js` `POST /zkteco` — device lookup uses unverified `SN` query parameter; no secret validation on ZKTeco push
+### [Low][FIXED] `biometric.js` `POST /zkteco` — device lookup uses unverified `SN` query parameter; no secret validation on ZKTeco push
 - **File**: `backend/routes/biometric.js:71`
 - **Domain**: Security
 - **Issue**: The ZKTeco ADMS push handler (`POST /zkteco`) only looks up the device by serial number (`SN`) from the query string with no shared-secret verification. Any caller who knows or guesses a device serial number can inject arbitrary attendance log entries for any company. The `webhookKey` authentication that protects the Hikvision and import endpoints is absent for ZKTeco.
 - **Fix**: Require a `key` query parameter or HTTP header on the ZKTeco endpoints and validate it against `device.webhookKey`, matching the Hikvision authentication model. Return 401/403 if the key is missing or invalid.
 
-### [Low] `nssaContributions.js` — payslip `findMany` returns employee `firstName`/`lastName` in list without pagination, potential PII bulk-export
+### [Low][FIXED] `nssaContributions.js` — payslip `findMany` returns employee `firstName`/`lastName` in list without pagination, potential PII bulk-export
 - **File**: `backend/routes/nssaContributions.js:26`
 - **Domain**: Security
 - **Issue**: The `findMany` query fetches all payslips for a company for an entire year with no `take`/`skip` pagination. For large companies this could be a significant payload of salary and employee name data. Combined with the missing `requirePermission` guard, this represents a bulk PII export risk.
@@ -440,7 +440,7 @@
 - **Issue**: The balance check uses `availableBalance < days_f` and rejects insufficient balance — but only before the transaction. Inside `$transaction`, `employee.leaveBalance` is decremented with `{ decrement: days_f }` with no DB-level floor constraint. If two concurrent requests race (both pass the pre-check with the same balance), both decrements commit and `leaveBalance` goes negative. The `LeaveBalance` model path has the same race condition. A negative balance is not caught anywhere downstream and will render as a negative number on the payslip leave section.
 - **Fix**: Add a DB-level check constraint on `Employee.leaveBalance >= 0`, or use a `WHERE leaveBalance >= days_f` condition in the update and check `count` to detect the race. At minimum, guard the payslip display with `Math.max(0, leaveBal?.balance ?? ...)`.
 
-### [Medium] `leave.js` approval flow re-approves an already-approved request without idempotency check
+### [Medium][FIXED] `leave.js` approval flow re-approves an already-approved request without idempotency check
 <!-- [included in higher tier — see [High] finding above: PUT /api/leave/request/:id/approve and reject have no ownership check] -->
 - **File**: `backend/routes/leave.js:171`
 - **Domain**: Business Logic
@@ -453,13 +453,13 @@
 - **Issue**: `const credit = Math.min(policy.accrualRate, room)` uses the raw accrual rate (e.g. `1.6667` days/month) with no rounding before incrementing `accrued` and `balance`. After 12 months a balance of `20.0004` or similar can appear on payslips instead of the expected `20.0`. Leave balance rounding is inconsistent — `leave.js` uses plain `parseFloat` arithmetic, while the accrual engine applies no rounding at all.
 - **Fix**: Apply `Math.round(credit * 100) / 100` (2dp) before the update, and standardise all leave arithmetic to the same rounding strategy. Leave rounding is **mixed** (no consistent `Math.floor`, `Math.round`, or similar applied across the codebase).
 
-### [Low] `payslipFormatter.js` — `payslip.employee.leaveBalance` and `leaveTaken` fallbacks read deprecated `Employee` fields; could silently return 0 if field removed
+### [Low][FIXED] `payslipFormatter.js` — `payslip.employee.leaveBalance` and `leaveTaken` fallbacks read deprecated `Employee` fields; could silently return 0 if field removed
 - **File**: `backend/utils/payslipFormatter.js:151`
 - **Domain**: Business Logic
 - **Issue**: `leaveBalance: leaveBal?.balance ?? (payslip.employee.leaveBalance || 0)` and `leaveTaken: leaveBal?.taken ?? (payslip.employee.leaveTaken || 0)` fall back to legacy `Employee` columns. If the migration to `LeaveBalance` is complete and the legacy columns are eventually removed from the schema, this fallback silently returns `0` rather than signalling a missing balance. The payslip would then show `0.0 days` leave balance without any error.
 - **Fix**: Once `LeaveBalance` is the sole source of truth, remove the legacy fallbacks and instead log a warning (or surface an error to the caller) when `leaveBal` is null, so missing balance records are detected at generation time.
 
-### [Low] `payslipTransactions.js` uses a separate `new PrismaClient()` instance instead of the shared singleton
+### [Low][FIXED] `payslipTransactions.js` uses a separate `new PrismaClient()` instance instead of the shared singleton
 - **File**: `backend/routes/payslipTransactions.js:2`
 - **Domain**: Code Quality
 - **Issue**: `const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient();` creates an additional connection pool, inconsistent with the rest of the codebase which uses `require('../lib/prisma')`.
@@ -467,31 +467,31 @@
 
 <!-- Task 6: Backend code quality sweep — 2026-03-23 -->
 
-### [Medium] `payroll.js` is a critical split candidate at 2143 lines
+### [Medium][FIXED] `payroll.js` is a critical split candidate at 2143 lines
 - **File**: `backend/routes/payroll.js` (2143 lines)
 - **Domain**: Code Quality
 - **Issue**: At 2143 lines, `payroll.js` is the largest file in the codebase by a wide margin — more than double the next largest route file (`reports.js` at 936 lines). It mixes payroll run lifecycle (CRUD, submit, approve, process), payslip PDF generation, email dispatch, variance reporting, statutory exports, and reconciliation into a single module. This makes the file hard to navigate, test, or modify without risk of unintended side effects.
 - **Fix**: Split into at minimum four sub-modules: `payrollRuns.js` (CRUD + lifecycle), `payrollProcessing.js` (preview + process engine calls), `payslips.js` (PDF + email endpoints), and `payrollReports.js` (variance, reconciliation, export). Register each sub-router under `/api/payroll` in `index.js`.
 
-### [Medium] `reports.js` exceeds the 300-line route threshold at 936 lines
+### [Medium][FIXED] `reports.js` exceeds the 300-line route threshold at 936 lines
 - **File**: `backend/routes/reports.js` (936 lines)
 - **Domain**: Code Quality
 - **Issue**: `reports.js` at 936 lines bundles employee lists, payslip history, loan summaries, department roll-ups, statutory transaction exports, and a custom headcount/dashboard summary endpoint into a single file. Each report type has distinct query logic and pagination handling, making this module a maintenance liability and a frequent merge-conflict source.
 - **Fix**: Break into domain-focused report files: `reports/payroll.js`, `reports/employees.js`, `reports/loans.js`, `reports/statutory.js`. A thin `reports/index.js` can re-export them under the same prefix.
 
-### [Medium] `employees.js` exceeds the 300-line route threshold at 814 lines
+### [Medium][FIXED] `employees.js` exceeds the 300-line route threshold at 814 lines
 - **File**: `backend/routes/employees.js` (814 lines)
 - **Domain**: Code Quality
 - **Issue**: Employee CRUD, CSV/XLSX bulk import (with its own column mapping and validation logic), termination handling, and audit-log retrieval all live in one 814-line file. The import handler alone spans ~160 lines (lines 359–519) and contains business logic (column normalisation, field defaults, `checkEmployeeCap`) that belongs in a service layer.
 - **Fix**: Extract the bulk import logic into `services/employeeImport.js` (or `utils/employeeImport.js`), and split termination into its own `routes/employeeTermination.js`. This brings `employees.js` under 400 lines.
 
-### [Medium] `backPay.js` exceeds the 300-line route threshold at 461 lines
+### [Medium][FIXED] `backPay.js` exceeds the 300-line route threshold at 461 lines
 - **File**: `backend/routes/backPay.js` (461 lines)
 - **Domain**: Code Quality
 - **Issue**: Back-pay calculation, approval workflow, and payroll-input generation are all handled inline within route handlers rather than in a dedicated service. The file is above the 300-line flag threshold and the core calculation at lines ~80–292 is business logic embedded inside a request handler.
 - **Fix**: Extract the back-pay calculation and payroll-input generation into `services/backPayService.js`, leaving the route file as a thin HTTP adapter.
 
-### [Medium] `attendance.js` exceeds the 300-line route threshold at 411 lines
+### [Medium][FIXED] `attendance.js` exceeds the 300-line route threshold at 411 lines
 - **File**: `backend/routes/attendance.js` (411 lines)
 - **Domain**: Code Quality
 - **Issue**: The route file contains multi-step attendance processing logic (fetch → group by employee/date → call `attendanceEngine` → upsert records) inline from lines 195–283. This is orchestration logic that belongs in a service layer, not a route handler.
@@ -548,103 +548,103 @@
 - **Issue**: `autoSeedTransactionCodes` fetches all clients with `findMany()` (no `select`, returning all columns), then for each client iterates over 8 transaction codes issuing one `prisma.transactionCode.upsert` per iteration — O(clients × 8) sequential round-trips. This runs at startup, adding latency proportional to client count.
 - **Fix**: Add `select: { id: true }` to the `client.findMany()` call. Collect all upsert payloads and execute them in a `prisma.$transaction([...])` batch, or use `createMany` with `skipDuplicates: true` for the creates and a single update pass only when needed.
 
-### [Medium] findMany without select on Employee model — payroll run
+### [Medium][FIXED] findMany without select on Employee model — payroll run
 - **File**: `backend/routes/payroll.js:459`
 - **Domain**: Performance
 - **Issue**: `prisma.employee.findMany({ where: { companyId: run.companyId }, include: { necGrade: true } })` returns all ~40 columns of `Employee` plus the related `NecGrade` for every employee. The payroll engine only uses a subset of these fields (baseRate, taxMethod, currency, etc.) but hydrates the full model on every payroll run.
 - **Fix**: Add a `select` clause scoped to the fields actually consumed by the payroll calculation loop (e.g. `id`, `baseRate`, `currency`, `taxMethod`, `taxDirectivePerc`, `taxDirectiveAmt`, `hoursPerPeriod`, `daysPerPeriod`, `paymentBasis`, `rateSource`, `necGradeId`, `gradeId`, `splitUsdPercent`, `motorVehicleBenefit`, plus `necGrade: { select: { minRate, necLevyRate } }`).
 
-### [Medium] findMany without select on Employee model — dashboard
+### [Medium][FIXED] findMany without select on Employee model — dashboard
 - **File**: `backend/routes/dashboard.js:25`
 - **Domain**: Performance
 - **Issue**: `prisma.employee.findMany(...)` with no `select` clause returns all columns of the `Employee` model for every active employee, used only to derive counts and aggregated stats for the dashboard.
 - **Fix**: Add `select: { id: true, status: true, departmentId: true, branchId: true, baseRate: true, currency: true }` (or whatever subset the dashboard logic actually reads).
 
-### [Medium] findMany without select on Payslip model — reports (multiple)
+### [Medium][FIXED] findMany without select on Payslip model — reports (multiple)
 - **File**: `backend/routes/reports.js:26`, `backend/routes/reports.js:72`, `backend/routes/reports.js:377`, `backend/routes/reports.js:440`, `backend/routes/reports.js:501`
 - **Domain**: Performance
 - **Issue**: Multiple report endpoints call `prisma.payslip.findMany(...)` without a `select` clause. The `Payslip` model has ~30 columns including several nullable dual-currency Float fields. Report endpoints that only aggregate totals (PAYE, NSSA, gross, net) hydrate far more data than needed.
 - **Fix**: Add `select` clauses limited to the columns read by each report. For example the payroll summary report only needs `{ gross, paye, aidsLevy, nssaEmployee, nssaEmployer, netPay, employeeId, payrollRunId }`.
 
-### [Medium] Unbounded findMany on PayslipTransaction — no take/skip
+### [Medium][FIXED] Unbounded findMany on PayslipTransaction — no take/skip
 - **File**: `backend/routes/payslipTransactions.js:10`
 - **Domain**: Performance
 - **Issue**: `prisma.payslipTransaction.findMany({ where: { companyId } })` has no `take` or `skip`. This is a GET list endpoint that could return unbounded rows as transaction history grows.
 - **Fix**: Add `take` defaulting to 200 (or a pagination pattern) and expose `page`/`limit` query params. Return `total` alongside `data` for the client to paginate.
 
-### [Medium] Unbounded findMany on AuditLog — admin endpoint
+### [Medium][FIXED] Unbounded findMany on AuditLog — admin endpoint
 - **File**: `backend/routes/admin.js:195`
 - **Domain**: Performance
 - **Issue**: `prisma.auditLog.findMany(...)` inside the admin audit-log endpoint has no `take` / pagination guard visible in the surrounding lines. AuditLog rows accumulate indefinitely and this endpoint will degrade with scale.
 - **Fix**: Add `take: parseInt(limit) || 100` and `skip` / `cursor`-based pagination. Return `total` count from a parallel `prisma.auditLog.count({ where })`.
 
-### [Medium/MANUAL] Unindexed FK: `Session.userId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `Session.userId`
 - **File**: `backend/prisma/schema.prisma` — model `Session`
 - **Domain**: Performance
 - **Issue**: `Session.userId` references `User` and is used in auth lookups (find session by token, then access user), but has no `@@index([userId])`. Queries filtering by `userId` (e.g. "list all sessions for this user") perform a full table scan.
 - **Fix**: Add `@@index([userId])` to the `Session` model. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `ClientAdmin.clientId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `ClientAdmin.clientId`
 - **File**: `backend/prisma/schema.prisma` — model `ClientAdmin`
 - **Domain**: Performance
 - **Issue**: `ClientAdmin.clientId` has no `@@index`. Lookups like "find admins for this client" scan the full table.
 - **Fix**: Add `@@index([clientId])` to `ClientAdmin`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `Employee.clientId`, `Employee.companyId`, `Employee.branchId`, `Employee.departmentId`, `Employee.gradeId`, `Employee.necGradeId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `Employee.clientId`, `Employee.companyId`, `Employee.branchId`, `Employee.departmentId`, `Employee.gradeId`, `Employee.necGradeId`
 - **File**: `backend/prisma/schema.prisma` — model `Employee`
 - **Domain**: Performance
 - **Issue**: The `Employee` model has six FK fields with no `@@index`. `companyId` is the primary list filter on virtually every employee query, and `branchId` / `departmentId` are used in filter queries (payroll, reports, leave). Missing indexes cause full table scans on the largest table in the schema.
 - **Fix**: Add `@@index([companyId])`, `@@index([clientId])`, `@@index([branchId])`, `@@index([departmentId])`, `@@index([gradeId])`, `@@index([necGradeId])` to `Employee`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `PayrollRun.companyId`, `PayrollRun.payrollCalendarId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `PayrollRun.companyId`, `PayrollRun.payrollCalendarId`
 - **File**: `backend/prisma/schema.prisma` — model `PayrollRun`
 - **Domain**: Performance
 - **Issue**: `PayrollRun.companyId` is used in nearly every payroll list/filter query (e.g. `findMany({ where: { companyId } })`), but has no index. `payrollCalendarId` is used to join runs to calendar periods.
 - **Fix**: Add `@@index([companyId])` and `@@index([payrollCalendarId])` to `PayrollRun`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `PayrollTransaction.employeeId`, `PayrollTransaction.payrollRunId`, `PayrollTransaction.transactionCodeId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `PayrollTransaction.employeeId`, `PayrollTransaction.payrollRunId`, `PayrollTransaction.transactionCodeId`
 - **File**: `backend/prisma/schema.prisma` — model `PayrollTransaction`
 - **Domain**: Performance
 - **Issue**: All three FK fields on `PayrollTransaction` lack indexes. This table grows as O(employees × runs × transactions per employee) and is queried by `payrollRunId` for payslip generation and by `employeeId` for per-employee transaction history.
 - **Fix**: Add `@@index([payrollRunId])`, `@@index([employeeId])`, `@@index([transactionCodeId])` to `PayrollTransaction`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `PayrollInput.employeeId`, `PayrollInput.payrollRunId`, `PayrollInput.transactionCodeId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `PayrollInput.employeeId`, `PayrollInput.payrollRunId`, `PayrollInput.transactionCodeId`
 - **File**: `backend/prisma/schema.prisma` — model `PayrollInput`
 - **Domain**: Performance
 - **Issue**: `PayrollInput` is fetched by `employeeId` and `payrollRunId` during every payroll run, but neither field has an index.
 - **Fix**: Add `@@index([employeeId])`, `@@index([payrollRunId])`, `@@index([transactionCodeId])` to `PayrollInput`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `Payslip.employeeId`, `Payslip.payrollRunId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `Payslip.employeeId`, `Payslip.payrollRunId`
 - **File**: `backend/prisma/schema.prisma` — model `Payslip`
 - **Domain**: Performance
 - **Issue**: `Payslip` is the most frequently queried table across reports, statutory exports, bank files, and PDF generation. Both `employeeId` and `payrollRunId` are used heavily in `WHERE` clauses but neither has an `@@index`.
 - **Fix**: Add `@@index([payrollRunId])` and `@@index([employeeId])` to `Payslip`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `LoanRepayment.loanId`, `LoanRepayment.payrollRunId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `LoanRepayment.loanId`, `LoanRepayment.payrollRunId`
 - **File**: `backend/prisma/schema.prisma` — model `LoanRepayment`
 - **Domain**: Performance
 - **Issue**: `LoanRepayment.loanId` and `payrollRunId` have no indexes. The payroll engine queries unpaid repayments by loan, and the loan detail page queries repayments by `loanId`.
 - **Fix**: Add `@@index([loanId])` and `@@index([payrollRunId])` to `LoanRepayment`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `Loan.employeeId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `Loan.employeeId`
 - **File**: `backend/prisma/schema.prisma` — model `Loan`
 - **Domain**: Performance
 - **Issue**: `Loan.employeeId` has no `@@index`. Loan list queries filter by employee and the payroll engine's `findMany({ where: { employeeId: { in: [...] } } })` will scan the full table.
 - **Fix**: Add `@@index([employeeId])` to `Loan`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `LeaveRecord.employeeId`, `LeaveRequest.employeeId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `LeaveRecord.employeeId`, `LeaveRequest.employeeId`
 - **File**: `backend/prisma/schema.prisma` — models `LeaveRecord`, `LeaveRequest`
 - **Domain**: Performance
 - **Issue**: Both `LeaveRecord.employeeId` and `LeaveRequest.employeeId` are used as primary filter criteria in leave lookups but have no `@@index`.
 - **Fix**: Add `@@index([employeeId])` to both `LeaveRecord` and `LeaveRequest`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `EmployeeBankAccount.employeeId`, `EmployeeDocument.employeeId`, `LeaveEncashment.employeeId`/`leaveBalanceId`, `LeaveBalance.leavePolicyId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `EmployeeBankAccount.employeeId`, `EmployeeDocument.employeeId`, `LeaveEncashment.employeeId`/`leaveBalanceId`, `LeaveBalance.leavePolicyId`
 - **File**: `backend/prisma/schema.prisma` — models `EmployeeBankAccount`, `EmployeeDocument`, `LeaveEncashment`, `LeaveBalance`
 - **Domain**: Performance
 - **Issue**: These models are accessed by their FK fields (e.g. bank accounts loaded per employee during payroll, documents listed per employee) but have no `@@index` on those FK columns.
 - **Fix**: Add `@@index([employeeId])` to `EmployeeBankAccount`, `EmployeeDocument`, `LeaveEncashment`; add `@@index([leavePolicyId])` and `@@index([companyId])` to `LeaveBalance`; add `@@index([leaveBalanceId])` to `LeaveEncashment`. `MANUAL` — requires `prisma migrate dev`.
 
-### [Medium/MANUAL] Unindexed FK: `AttendanceRecord.shiftId`, `TaxBracket.taxTableId`, `NecGrade.necTableId`, `TransactionCodeRule.transactionCodeId`
+### [Medium/MANUAL][FIXED] Unindexed FK: `AttendanceRecord.shiftId`, `TaxBracket.taxTableId`, `NecGrade.necTableId`, `TransactionCodeRule.transactionCodeId`
 - **File**: `backend/prisma/schema.prisma` — models `AttendanceRecord`, `TaxBracket`, `NecGrade`, `TransactionCodeRule`
 - **Domain**: Performance
 - **Issue**: `AttendanceRecord.shiftId` (joined when computing OT), `TaxBracket.taxTableId` (loaded for every payroll run), `NecGrade.necTableId` (filtered when listing NEC grades), and `TransactionCodeRule.transactionCodeId` (joined during payroll) all lack `@@index` declarations.
@@ -733,43 +733,43 @@
 - **Issue**: 432 lines blending summary statistics, employee breakdown table, and export controls.
 - **Fix**: Extract breakdown table and export actions into `PayrollSummaryTable.tsx` and `PayrollSummaryExports.tsx`.
 
-### [Medium] `PayslipExports.tsx` — silent fetch failure, no user-facing error state
+### [Medium][FIXED] `PayslipExports.tsx` — silent fetch failure, no user-facing error state
 - **File**: `frontend/src/pages/PayslipExports.tsx`
 - **Domain**: Code Quality
 - **Issue**: The `useEffect` fetch catches errors with only `console.error`. The page renders silently empty on failure, indistinguishable from an empty dataset.
 - **Fix**: Add an `error` state variable. On catch, set it and render a visible inline error banner so the user knows the load failed and can retry.
 
-### [Medium] `TaxConfiguration.tsx` — silent fetch failure, no user-facing error state
+### [Medium][FIXED] `TaxConfiguration.tsx` — silent fetch failure, no user-facing error state
 - **File**: `frontend/src/pages/TaxConfiguration.tsx`
 - **Domain**: Code Quality
 - **Issue**: Tax-bands fetch errors are swallowed with `console.error`. The user sees a blank page with no feedback.
 - **Fix**: Add error state and render an inline error banner on failure.
 
-### [Medium] `PayrollUsers.tsx` — silent fetch failure, no user-facing error state
+### [Medium][FIXED] `PayrollUsers.tsx` — silent fetch failure, no user-facing error state
 - **File**: `frontend/src/pages/PayrollUsers.tsx`
 - **Domain**: Code Quality
 - **Issue**: Users list fetch errors are swallowed with only `console.error`. The table stays empty with no feedback.
 - **Fix**: Add error state and render a visible error message on fetch failure.
 
-### [Medium] `Employees.tsx` — silent fetch failure for employees and filter dependencies
+### [Medium][FIXED] `Employees.tsx` — silent fetch failure for employees and filter dependencies
 - **File**: `frontend/src/pages/Employees.tsx:50,72`
 - **Domain**: Code Quality
 - **Issue**: Both `fetchDependencies` and `fetchEmployees` swallow errors with `console.error`. A failed employee load shows a blank table indistinguishable from an empty result. Branch/department failures silently prevent filters from populating.
 - **Fix**: Add a top-level `fetchError` state; set it in both catch blocks and render an alert banner above the table. Consider a separate state for dependency failures to allow degraded-but-functional operation.
 
-### [Medium] `SystemSettings.tsx` — silent fetch failure, no user-facing error state
+### [Medium][FIXED] `SystemSettings.tsx` — silent fetch failure, no user-facing error state
 - **File**: `frontend/src/pages/SystemSettings.tsx`
 - **Domain**: Code Quality
 - **Issue**: System settings fetch errors are swallowed via `console.error`. The user sees a blank settings form with no feedback.
 - **Fix**: Add error state and render an inline error message.
 
-### [Medium] `PayrollCore.tsx` — silent fetch failure, no user-facing error state
+### [Medium][FIXED] `PayrollCore.tsx` — silent fetch failure, no user-facing error state
 - **File**: `frontend/src/pages/PayrollCore.tsx:14`
 - **Domain**: Code Quality
 - **Issue**: `fetchCores` catches errors with only `console.error`. The table silently stays empty on failure, indistinguishable from an empty dataset.
 - **Fix**: Add error state and surface a visible error message. Empty-state and error-state should use different UI treatments.
 
-### [Medium] `CurrencyRates.tsx` — silent fetch failure, no user-facing error state
+### [Medium][FIXED] `CurrencyRates.tsx` — silent fetch failure, no user-facing error state
 - **File**: `frontend/src/pages/CurrencyRates.tsx`
 - **Domain**: Code Quality
 - **Issue**: Currency rates fetch errors are swallowed with `console.error`.
@@ -793,7 +793,7 @@
 - **Issue**: `onSuccess: (newTable: any) => void` loses the shape of the newly created tax table returned from the API.
 - **Fix**: Define or import a `TaxTable` interface and replace `any` with it.
 
-### [Medium] `attendance/Attendance.tsx` — untyped `employees` and `onSave` props in internal sub-component
+### [Medium][FIXED] `attendance/Attendance.tsx` — untyped `employees` and `onSave` props in internal sub-component
 - **File**: `frontend/src/pages/attendance/Attendance.tsx:37-39`
 - **Domain**: Code Quality
 - **Issue**: The internal attendance form component declares `employees: any[]` and `onSave: (data: any) => Promise<void>`, removing compile-time validation of attendance form data.

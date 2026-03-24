@@ -6,13 +6,17 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(500, parseInt(req.query.limit) || 200);
     const transactions = await prisma.payslipTransaction.findMany({
       where: { companyId: req.companyId },
       include: {
         employee: { select: { fullName: true, employeeID: true } },
         transaction: { select: { description: true, type: true } }
       },
-      orderBy: { payPeriod: 'desc' }
+      orderBy: { payPeriod: 'desc' },
+      take: limit,
+      skip: (page - 1) * limit,
     });
     res.json(transactions);
   } catch (error) {

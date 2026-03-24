@@ -1,10 +1,19 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const prisma = require('../lib/prisma');
 const { signToken } = require('../lib/auth');
 const { issueLicense } = require('../lib/license');
 
 const router = express.Router();
+
+const setupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many setup attempts, please try again later.' },
+});
 
 // GET /api/setup — Check if platform setup is required.
 router.get('/', async (req, res) => {
@@ -19,7 +28,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/setup — One-time PLATFORM_ADMIN creation.
 // Fails if a PLATFORM_ADMIN already exists.
-router.post('/', async (req, res) => {
+router.post('/', setupLimiter, async (req, res) => {
   const { name, email, password, clientName } = req.body;
 
   if (!name || !email || !password || !clientName) {

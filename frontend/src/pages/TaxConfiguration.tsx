@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash, Info, Calendar, Percent, Hash } from 'lucide-react';
+import { Plus, Edit, Trash, Info, Calendar, Percent, Hash, XCircle } from 'lucide-react';
 import { TaxBandAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
@@ -10,13 +10,16 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBand, setEditingBand] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchBands = async () => {
     try {
+      setFetchError(null);
       const response = await TaxBandAPI.getAll();
       setBands(response.data);
     } catch (error) {
       console.error('Failed to fetch tax bands');
+      setFetchError('Failed to load tax bands. Please check your connection and try again.');
     }
   };
 
@@ -76,6 +79,13 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
           </p>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <XCircle size={20} className="text-red-500 shrink-0" />
+          <p className="text-sm font-medium">{fetchError}</p>
+        </div>
+      )}
 
       {/* Bands Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash, History, TrendingUp, Anchor, Calendar, Info, Globe, X, Check } from 'lucide-react';
+import { Plus, Trash, History, TrendingUp, Anchor, Calendar, Info, Globe, X, Check, XCircle } from 'lucide-react';
 import { CurrencyRateAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
@@ -16,13 +16,16 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
   const [saving, setSaving]     = useState(false);
   const [formError, setFormError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchRates = async () => {
     try {
+      setFetchError(null);
       const response = await CurrencyRateAPI.getAll();
       setRates(response.data);
     } catch (error) {
       console.error('Failed to fetch currency rates');
+      setFetchError('Failed to load exchange rates. Please check your connection.');
     }
   };
 
@@ -91,6 +94,13 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
           <Plus size={20} /> New Rate
         </button>
       </header>
+
+      {fetchError && (
+        <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <XCircle size={20} className="text-red-500 shrink-0" />
+          <p className="text-sm font-medium">{fetchError}</p>
+        </div>
+      )}
 
       {/* Hero Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

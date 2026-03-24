@@ -6,7 +6,7 @@ const { audit } = require('../lib/audit');
 const router = express.Router();
 
 // GET /api/leave
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('view_leave'), async (req, res) => {
   const { employeeId, status, type } = req.query;
   try {
     const where = {
@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/leave — create a leave record (CLIENT_ADMIN) or request (EMPLOYEE)
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('manage_leave'), async (req, res) => {
   const { employeeId, type, startDate, endDate, totalDays, days, reason } = req.body;
   const daysValue = parseFloat(days || totalDays);
 
@@ -197,6 +197,9 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), async (re
     if (!leaveReq) return res.status(404).json({ message: 'Leave request not found' });
     if (req.companyId && leaveReq.employee?.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
+    }
+    if (leaveReq.status === 'APPROVED') {
+      return res.status(409).json({ message: 'Leave request is already approved' });
     }
 
     const request = await prisma.leaveRequest.update({

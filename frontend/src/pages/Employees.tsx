@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { XCircle } from 'lucide-react';
 import { EmployeeAPI, BranchAPI, DepartmentAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import type { Employee, EmployeeFilters as IFilters } from '../types/employee';
@@ -22,6 +23,7 @@ const Employees: React.FC = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [page, setPage] = useState(1);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<IFilters>({
     search: '',
     branch: '',
@@ -40,6 +42,7 @@ const Employees: React.FC = () => {
   const fetchDependencies = useCallback(async () => {
     if (!companyId) return;
     try {
+      setFetchError(null);
       const [bRes, dRes] = await Promise.all([
         BranchAPI.getAll({ companyId }),
         DepartmentAPI.getAll({ companyId }),
@@ -48,6 +51,7 @@ const Employees: React.FC = () => {
       setDepartments(dRes.data);
     } catch (error) {
       console.error('Failed to fetch dependencies', error);
+      setFetchError('Failed to load filter dependencies. Please refresh the page.');
     }
   }, [companyId]);
 
@@ -55,6 +59,7 @@ const Employees: React.FC = () => {
     if (!companyId) return;
     setLoading(true);
     try {
+      setFetchError(null);
       const params: Record<string, string> = {
         companyId,
         page: String(page),
@@ -70,6 +75,7 @@ const Employees: React.FC = () => {
       setTotal(response.data.total);
     } catch (error) {
       console.error('Failed to fetch employees', error);
+      setFetchError('Failed to load employee directory. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -117,6 +123,14 @@ const Employees: React.FC = () => {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {fetchError && (
+        <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm mb-2">
+          <XCircle size={20} className="text-red-500 shrink-0" />
+          <p className="text-sm font-medium">{fetchError}</p>
+        </div>
+      )}
+
       <EmployeeActions total={total} />
       <EmployeeFilters
         filters={filters}

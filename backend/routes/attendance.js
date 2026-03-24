@@ -17,6 +17,7 @@ const express = require('express');
 const prisma   = require('../lib/prisma');
 const { requirePermission }            = require('../lib/permissions');
 const { processDailyLogs, buildPayrollInputsFromAttendance, toMidnight } = require('../lib/attendanceEngine');
+const { processAttendanceLogs } = require('../services/attendanceService');
 
 const router = express.Router();
 
@@ -176,111 +177,16 @@ router.post('/process', requirePermission('process_payroll'), async (req, res) =
   const { startDate, endDate, employeeIds } = req.body;
   if (!startDate || !endDate) return res.status(400).json({ message: 'startDate and endDate are required' });
 
-  const start = new Date(startDate);
-  const end   = new Date(endDate);
-
   try {
-    // Fetch all unprocessed logs in range
-    const logs = await prisma.attendanceLog.findMany({
-      where: {
-        companyId: req.companyId,
-        processed: false,
-        punchTime: { gte: start, lte: end },
-        employeeId: { not: null },
-        ...(employeeIds?.length && { employeeId: { in: employeeIds } }),
-      },
-      orderBy: { punchTime: 'asc' },
+    const { processed } = await processAttendanceLogs({
+      companyId: req.companyId,
+      start: new Date(startDate),
+      end:   new Date(endDate),
+      employeeIds,
     });
 
-    if (logs.length === 0) return res.json({ message: 'No unprocessed logs in range', processed: 0 });
-
-    // Fetch active shift assignments for employees in range (to determine shift times)
-    const empIds = [...new Set(logs.map((l) => l.employeeId))];
-    const assignments = await prisma.shiftAssignment.findMany({
-      where: {
-        employeeId: { in: empIds },
-        companyId:  req.companyId,
-        isActive:   true,
-        startDate:  { lte: end },
-        OR: [{ endDate: null }, { endDate: { gte: start } }],
-      },
-      include: { shift: true },
-    });
-
-    // Group logs by employee → by date
-    const grouped = {};
-    for (const log of logs) {
-      const empId = log.employeeId;
-      const date  = toMidnight(new Date(log.punchTime)).toISOString();
-      const key   = `${empId}::${date}`;
-      (grouped[key] = grouped[key] || { empId, date: new Date(date), logs: [] }).logs.push(log);
-    }
-
-    // Helper: find the applicable shift for an employee on a date
-    const findShift = (empId, date) => {
-      const dayOfWeek = date.getDay();
-      for (const asgn of assignments) {
-        if (asgn.employeeId !== empId) continue;
-        if (new Date(asgn.startDate) > date) continue;
-        if (asgn.endDate && new Date(asgn.endDate) < date) continue;
-        const days = JSON.parse(asgn.daysOfWeek || '[1,2,3,4,5]');
-        if (days.includes(dayOfWeek)) return asgn.shift;
-      }
-      return null;
-    };
-
-    let processedCount = 0;
-    const processedLogIds = [];
-
-    for (const { empId, date, logs: dayLogs } of Object.values(grouped)) {
-      const shift  = findShift(empId, date);
-      const result = processDailyLogs(dayLogs, shift, date, {});
-      if (!result) continue;
-
-      // Upsert the attendance record
-      await prisma.attendanceRecord.upsert({
-        where:  { employeeId_date: { employeeId: empId, date } },
-        update: {
-          clockIn:      result.clockIn,
-          clockOut:     result.clockOut,
-          breakMinutes: result.breakMinutes,
-          totalMinutes: result.totalMinutes,
-          normalMinutes: result.normalMinutes,
-          ot1Minutes:   result.ot1Minutes,
-          ot2Minutes:   result.ot2Minutes,
-          status:       result.status,
-          shiftId:      shift?.id || null,
-          isManualOverride: false,
-        },
-        create: {
-          employeeId:   empId,
-          companyId:    req.companyId,
-          date,
-          clockIn:      result.clockIn,
-          clockOut:     result.clockOut,
-          breakMinutes: result.breakMinutes,
-          totalMinutes: result.totalMinutes,
-          normalMinutes: result.normalMinutes,
-          ot1Minutes:   result.ot1Minutes,
-          ot2Minutes:   result.ot2Minutes,
-          status:       result.status,
-          shiftId:      shift?.id || null,
-        },
-      });
-
-      dayLogs.forEach((l) => processedLogIds.push(l.id));
-      processedCount++;
-    }
-
-    // Mark logs as processed
-    if (processedLogIds.length > 0) {
-      await prisma.attendanceLog.updateMany({
-        where: { id: { in: processedLogIds } },
-        data:  { processed: true },
-      });
-    }
-
-    res.json({ message: `Processed ${processedCount} employee-day records`, processed: processedCount });
+    if (processed === 0) return res.json({ message: 'No unprocessed logs in range', processed: 0 });
+    res.json({ message: `Processed ${processed} employee-day records`, processed });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 });
 

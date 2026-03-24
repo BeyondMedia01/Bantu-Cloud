@@ -69,18 +69,22 @@ router.get('/zkteco', async (req, res) => {
 // ─── ZKTeco ADMS — Attendance Push (POST) ─────────────────────────────────────
 
 router.post('/zkteco', express.text({ type: '*/*', limit: '1mb' }), async (req, res) => {
-  const { SN } = req.query;
+  const { SN, key } = req.query;
   if (!SN) return res.status(400).send('SN required');
 
-  // Find device
-  const device = await prisma.biometricDevice.findFirst({ where: { serialNumber: SN } });
+  // Authenticate: require webhookKey matching the registered device secret
+  const providedKey = key || req.headers['x-webhook-key'];
+  const device = providedKey
+    ? await prisma.biometricDevice.findFirst({ where: { serialNumber: SN, webhookKey: providedKey } })
+    : null;
+  if (!device) return res.status(401).send('Unauthorized');
 
   try {
     const { records } = parseAdmsPayload(typeof req.body === 'string' ? req.body : '', SN);
 
     let saved = 0;
     for (const r of records) {
-      const companyId = device?.companyId;
+      const companyId = device.companyId;
       if (!companyId) continue;
 
       const emp = await matchEmployeeByPin(prisma, companyId, r.deviceUserId);
@@ -93,7 +97,7 @@ router.post('/zkteco', express.text({ type: '*/*', limit: '1mb' }), async (req, 
         await prisma.attendanceLog.create({
           data: {
             companyId,
-            deviceId:     device?.id  || null,
+            deviceId:     device.id,
             employeeId:   emp?.id     || null,
             deviceUserId: r.deviceUserId,
             punchTime:    r.punchTime,
@@ -106,12 +110,10 @@ router.post('/zkteco', express.text({ type: '*/*', limit: '1mb' }), async (req, 
       } catch { /* skip duplicate punches */ }
     }
 
-    if (device) {
-      await prisma.biometricDevice.update({
-        where: { id: device.id },
-        data: { lastSyncAt: new Date(), lastSyncStatus: `OK — ${saved} records` },
-      });
-    }
+    await prisma.biometricDevice.update({
+      where: { id: device.id },
+      data: { lastSyncAt: new Date(), lastSyncStatus: `OK — ${saved} records` },
+    });
 
     // ZKTeco ADMS protocol requires this specific response format
     res.set('Content-Type', 'text/plain');

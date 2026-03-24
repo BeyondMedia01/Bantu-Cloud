@@ -71,11 +71,11 @@ router.get('/export', requirePermission('manage_company'), async (req, res) => {
       where: { clientId }
     });
 
-    res.json(backupData);
-    
     await audit({
       userId: req.userId, clientId, action: 'EXPORT_BACKUP', resource: 'Backup', details: { companyId }
     });
+
+    res.json(backupData);
 
   } catch (error) {
     console.error('Backup export error:', error);
@@ -164,11 +164,11 @@ router.post('/restore', requirePermission('manage_company'), async (req, res) =>
       timeout: 30000 // Extended timeout for large restores
     });
 
-    res.json({ message: 'Restore completed successfully' });
-
     await audit({
       userId: req.userId, clientId: req.clientId, action: 'RESTORE_BACKUP', resource: 'Backup', details: { companyId }
     });
+
+    res.json({ message: 'Restore completed successfully' });
 
   } catch (error) {
     console.error('Backup restore error:', error);

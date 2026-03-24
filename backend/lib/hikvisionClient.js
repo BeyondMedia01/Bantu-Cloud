@@ -116,15 +116,19 @@ function buildDigestAuth(wwwAuth, username, password, method, uri) {
  * @returns {Promise<{ serialNumber, model }>}
  */
 async function getDeviceInfo(device) {
-  const data = await digestGet({
-    ip: device.ipAddress, port: device.port || 80,
-    username: device.username, password: device.password,
-    path: '/ISAPI/System/deviceInfo',
-  });
-  return {
-    serialNumber: data?.DeviceInfo?.serialNumber || '',
-    model:        data?.DeviceInfo?.model         || '',
-  };
+  try {
+    const data = await digestGet({
+      ip: device.ipAddress, port: device.port || 80,
+      username: device.username, password: device.password,
+      path: '/ISAPI/System/deviceInfo',
+    });
+    return {
+      serialNumber: data?.DeviceInfo?.serialNumber || '',
+      model:        data?.DeviceInfo?.model         || '',
+    };
+  } catch (err) {
+    throw new Error(`getDeviceInfo failed for ${device.ipAddress}: ${err.message}`);
+  }
 }
 
 /**
@@ -139,10 +143,15 @@ async function fetchAttendanceEvents(device, startTime, endTime) {
   const fmt = (d) => d.toISOString().replace(/\.\d{3}Z$/, '+00:00');
   const path = `/ISAPI/AccessControl/AcsEvent?format=json&startTime=${fmt(startTime)}&endTime=${fmt(endTime)}&major=5&minor=75&maxResults=1000`;
 
-  const data = await digestGet({
-    ip: device.ipAddress, port: device.port || 80,
-    username: device.username, password: device.password, path,
-  });
+  let data;
+  try {
+    data = await digestGet({
+      ip: device.ipAddress, port: device.port || 80,
+      username: device.username, password: device.password, path,
+    });
+  } catch (err) {
+    throw new Error(`fetchAttendanceEvents failed for ${device.ipAddress}: ${err.message}`);
+  }
 
   const events = data?.AcsEvent?.InfoList || [];
   const records = [];

@@ -155,6 +155,8 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Client {
@@ -185,6 +187,8 @@ model ClientAdmin {
   createdAt DateTime @default(now())
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
 }
 
 // ─── Org Structure ────────────────────────────────────────────────────────────
@@ -355,6 +359,12 @@ model Employee {
   documents            EmployeeDocument[]
 
   @@unique([clientId, employeeCode])
+  @@index([companyId])
+  @@index([clientId])
+  @@index([branchId])
+  @@index([departmentId])
+  @@index([gradeId])
+  @@index([necGradeId])
 }
 
 model EmployeeBankAccount {
@@ -372,6 +382,8 @@ model EmployeeBankAccount {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
 }
 
 model EmployeeDocument {
@@ -385,6 +397,8 @@ model EmployeeDocument {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
 }
 
 // ─── Payroll Core (point-in-time snapshots for bank exports / currency config) ─
@@ -453,6 +467,9 @@ model PayrollRun {
   payslips          Payslip[]
   payrollInputs     PayrollInput[]
   loanRepayments    LoanRepayment[]
+
+  @@index([companyId])
+  @@index([payrollCalendarId])
 }
 
 model PayrollTransaction {
@@ -467,6 +484,10 @@ model PayrollTransaction {
   employee          Employee        @relation(fields: [employeeId], references: [id])
   payrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
   transactionCode   TransactionCode @relation(fields: [transactionCodeId], references: [id])
+
+  @@index([payrollRunId])
+  @@index([employeeId])
+  @@index([transactionCodeId])
 }
 
 model PayrollInput {
@@ -497,6 +518,10 @@ model PayrollInput {
   employee          Employee        @relation(fields: [employeeId], references: [id])
   payrollRun        PayrollRun?     @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
   transactionCode   TransactionCode @relation(fields: [transactionCodeId], references: [id])
+
+  @@index([employeeId])
+  @@index([payrollRunId])
+  @@index([transactionCodeId])
 }
 
 model Payslip {
@@ -541,6 +566,9 @@ model Payslip {
   createdAt       DateTime   @default(now())
   employee        Employee   @relation(fields: [employeeId], references: [id])
   payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([payrollRunId])
 }
 
 // ─── Transaction Codes ────────────────────────────────────────────────────────
@@ -592,6 +620,8 @@ model TransactionCodeRule {
   isActive            Boolean         @default(true)
   createdAt           DateTime        @default(now())
   transactionCode     TransactionCode @relation(fields: [transactionCodeId], references: [id], onDelete: Cascade)
+
+  @@index([transactionCodeId])
 }
 
 // ─── Employee Salary Structure (recurring defaults with effective dating) ──────
@@ -642,6 +672,8 @@ model TaxBracket {
   fixedAmount Float    @default(0)
   createdAt   DateTime @default(now())
   taxTable    TaxTable @relation(fields: [taxTableId], references: [id], onDelete: Cascade)
+
+  @@index([taxTableId])
 }
 
 // ─── Grades ───────────────────────────────────────────────────────────────────
@@ -686,6 +718,8 @@ model NecGrade {
   updatedAt   DateTime  @updatedAt
   necTable    NecTable  @relation(fields: [necTableId], references: [id], onDelete: Cascade)
   employees   Employee[]
+
+  @@index([necTableId])
 }
 
 // ─── Shift & Roster ───────────────────────────────────────────────────────────
@@ -800,6 +834,7 @@ model AttendanceRecord {
 
   @@unique([employeeId, date])
   @@index([companyId, date])
+  @@index([shiftId])
 }
 
 // ─── Leave ────────────────────────────────────────────────────────────────────
@@ -848,6 +883,8 @@ model LeaveBalance {
   encashments     LeaveEncashment[]
 
   @@unique([employeeId, leaveType, year])
+  @@index([companyId])
+  @@index([leavePolicyId])
 }
 
 // ─── Leave Encashments (convert leave days → payable earning) ────────────────
@@ -872,6 +909,9 @@ model LeaveEncashment {
   employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveBalance   LeaveBalance @relation(fields: [leaveBalanceId], references: [id])
   company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([leaveBalanceId])
 }
 
 model LeaveRecord {
@@ -887,6 +927,8 @@ model LeaveRecord {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   employee   Employee    @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId])
 }
 
 model LeaveRequest {
@@ -903,6 +945,8 @@ model LeaveRequest {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   employee   Employee    @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId])
 }
 
 // ─── Loans ────────────────────────────────────────────────────────────────────
@@ -921,6 +965,8 @@ model Loan {
   updatedAt        DateTime    @updatedAt
   employee         Employee    @relation(fields: [employeeId], references: [id])
   repayments       LoanRepayment[]
+
+  @@index([employeeId])
 }
 
 model LoanRepayment {
@@ -935,6 +981,9 @@ model LoanRepayment {
   updatedAt    DateTime        @updatedAt
   loan         Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
   payrollRun   PayrollRun?     @relation(fields: [payrollRunId], references: [id])
+
+  @@index([loanId])
+  @@index([payrollRunId])
 }
 
 // ─── License & Subscription ───────────────────────────────────────────────────

@@ -4,6 +4,23 @@ import { AttendanceAPI, EmployeeAPI } from '../../api/client';
 
 type Tab = 'records' | 'logs';
 
+interface EmployeeSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  employeeCode?: string;
+}
+
+interface AttendanceFormData {
+  employeeId: string;
+  date: string;
+  clockIn: string;
+  clockOut: string;
+  breakMinutes: number;
+  status: string;
+  notes: string;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   PRESENT:   'bg-emerald-100 text-emerald-700',
   ABSENT:    'bg-red-100 text-red-700',
@@ -34,9 +51,9 @@ function fmtMins(m: number) {
 }
 
 const ManualEntryModal: React.FC<{
-  employees: any[];
+  employees: EmployeeSummary[];
   onClose: () => void;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: AttendanceFormData) => Promise<void>;
 }> = ({ employees, onClose, onSave }) => {
   const [form, setForm] = useState({
     employeeId: '',

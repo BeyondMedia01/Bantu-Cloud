@@ -12,6 +12,12 @@ const companyContext = require('./middleware/companyContext');
 const app = express();
 const PORT = process.env.PORT || 5005;
 
+// Fail fast if required env vars are missing in production
+if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
+  console.error('FATAL: FRONTEND_URL must be set in production');
+  process.exit(1);
+}
+
 // ─── Stripe Webhook (raw body — must come before express.json()) ──────────────
 // Stripe requires the raw request body to verify the signature.
 

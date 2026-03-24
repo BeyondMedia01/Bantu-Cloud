@@ -305,7 +305,20 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const employees = await prisma.employee.findMany({
       where: { companyId: run.companyId },
-      include: { necGrade: true },
+      select: {
+        id: true, employeeCode: true, firstName: true, lastName: true,
+        baseRate: true, currency: true, taxMethod: true,
+        taxDirectivePerc: true, taxDirectiveAmt: true,
+        hoursPerPeriod: true, daysPerPeriod: true,
+        paymentBasis: true, rateSource: true,
+        necGradeId: true, gradeId: true,
+        splitUsdPercent: true, motorVehicleBenefit: true,
+        bonus: true, severanceAmount: true,
+        leaveBalance: true, leaveTaken: true,
+        pension: true, pensionType: true, pensionCap: true,
+        medicalAid: true,
+        necGrade: { select: { id: true, minRate: true, necLevyRate: true } },
+      },
     });
 
     if (employees.length === 0) {

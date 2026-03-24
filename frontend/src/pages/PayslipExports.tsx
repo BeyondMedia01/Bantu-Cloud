@@ -6,13 +6,16 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
   const [exports, setExports] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('ALL');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchExports = async () => {
     try {
+      setFetchError(null);
       const response = await PayslipExportAPI.getAll();
       setExports(response.data);
     } catch (error) {
       console.error('Failed to fetch export records');
+      setFetchError('Failed to load export records. Please try again later.');
     }
   };
 
@@ -72,6 +75,13 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
           </p>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <XCircle size={20} className="text-red-500 shrink-0" />
+          <p className="text-sm font-medium">{fetchError}</p>
+        </div>
+      )}
 
       {/* Filters & Search */}
       <div className="flex flex-col md:flex-row gap-4">

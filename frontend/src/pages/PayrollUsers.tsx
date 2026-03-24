@@ -1,4 +1,4 @@
-import { Search, UserPlus, Trash, Users as UsersIcon, Eye, Calculator, Download as DownloadIcon, Check, X, Key, ShieldAlert } from 'lucide-react';
+import { Search, UserPlus, Trash, Users as UsersIcon, Eye, Calculator, Download as DownloadIcon, Check, X, Key, ShieldAlert, XCircle } from 'lucide-react';
 import { PayrollUserAPI } from '../api/client';
 import { useState, useEffect } from 'react';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -9,13 +9,16 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
   const [users, setUsers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
+      setFetchError(null);
       const response = await PayrollUserAPI.getAll();
       setUsers(response.data);
     } catch (error) {
       console.error('Failed to fetch payroll users');
+      setFetchError('Failed to load payroll users. Please check your connection.');
     }
   };
 
@@ -97,6 +100,13 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
           </p>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <XCircle size={20} className="text-red-500 shrink-0" />
+          <p className="text-sm font-medium">{fetchError}</p>
+        </div>
+      )}
 
       {/* Table Section */}
       <div className="bg-primary rounded-3xl border border-border shadow-sm overflow-hidden">

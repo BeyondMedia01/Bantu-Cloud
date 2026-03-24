@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash, Search, Database, Coins } from 'lucide-react';
+import { Plus, Edit, Trash, Search, Database, Coins, XCircle } from 'lucide-react';
 import { PayrollCoreAPI } from '../api/client';
 
 const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
   const [cores, setCores] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchCores = async () => {
     try {
+      setFetchError(null);
       const response = await PayrollCoreAPI.getAll();
       setCores(response.data);
     } catch (error) {
       console.error('Failed to fetch PayrollCore entries');
+      setFetchError('Failed to load foundational payroll records. Please try again.');
     }
   };
 
@@ -37,6 +40,13 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
           <Plus size={20} /> Add Foundational Entry
         </button>
       </header>
+
+      {fetchError && (
+        <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <XCircle size={20} className="text-red-500 shrink-0" />
+          <p className="text-sm font-medium">{fetchError}</p>
+        </div>
+      )}
 
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

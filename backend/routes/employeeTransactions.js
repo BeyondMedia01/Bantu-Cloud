@@ -32,10 +32,9 @@ router.get('/:empId/salary-structure', requirePermission('manage_employees'), as
   const { empId } = req.params;
   const { active } = req.query; // ?active=true|false
 
-  const emp = await getEmployee(empId, req.companyId);
-  if (!emp) return res.status(404).json({ message: 'Employee not found' });
-
   try {
+    const emp = await getEmployee(empId, req.companyId);
+    if (!emp) return res.status(404).json({ message: 'Employee not found' });
     const now = new Date();
     const where = { employeeId: empId };
 
@@ -79,19 +78,18 @@ router.post('/:empId/salary-structure', requirePermission('manage_employees'), a
     return res.status(400).json({ message: 'effectiveFrom is required' });
   }
 
-  const emp = await getEmployee(empId, req.companyId);
-  if (!emp) return res.status(404).json({ message: 'Employee not found' });
-
-  // Verify the transaction code belongs to the same client
-  if (req.clientId) {
-    const tc = await prisma.transactionCode.findFirst({
-      where: { id: req.body.transactionCodeId, clientId: req.clientId },
-      select: { id: true },
-    });
-    if (!tc) return res.status(400).json({ message: 'Transaction code not found or not accessible' });
-  }
-
   try {
+    const emp = await getEmployee(empId, req.companyId);
+    if (!emp) return res.status(404).json({ message: 'Employee not found' });
+
+    // Verify the transaction code belongs to the same client
+    if (req.clientId) {
+      const tc = await prisma.transactionCode.findFirst({
+        where: { id: req.body.transactionCodeId, clientId: req.clientId },
+        select: { id: true },
+      });
+      if (!tc) return res.status(400).json({ message: 'Transaction code not found or not accessible' });
+    }
     const data = pick(req.body);
     if (data.effectiveTo && data.effectiveTo <= data.effectiveFrom) {
       return res.status(400).json({ message: 'effectiveTo must be after effectiveFrom' });
@@ -126,10 +124,9 @@ router.post('/:empId/salary-structure', requirePermission('manage_employees'), a
 router.put('/:empId/salary-structure/:id', requirePermission('manage_employees'), async (req, res) => {
   const { empId, id } = req.params;
 
-  const emp = await getEmployee(empId, req.companyId);
-  if (!emp) return res.status(404).json({ message: 'Employee not found' });
-
   try {
+    const emp = await getEmployee(empId, req.companyId);
+    if (!emp) return res.status(404).json({ message: 'Employee not found' });
     const existing = await prisma.employeeTransaction.findFirst({ where: { id, employeeId: empId } });
     if (!existing) return res.status(404).json({ message: 'Record not found' });
 
@@ -177,10 +174,9 @@ router.delete('/:empId/salary-structure/:id', requirePermission('manage_employee
   const { empId, id } = req.params;
   const softEnd = req.query.endDate === 'true';
 
-  const emp = await getEmployee(empId, req.companyId);
-  if (!emp) return res.status(404).json({ message: 'Employee not found' });
-
   try {
+    const emp = await getEmployee(empId, req.companyId);
+    if (!emp) return res.status(404).json({ message: 'Employee not found' });
     const existing = await prisma.employeeTransaction.findFirst({ where: { id, employeeId: empId } });
     if (!existing) return res.status(404).json({ message: 'Record not found' });
 
