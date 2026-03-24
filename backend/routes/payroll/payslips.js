@@ -105,8 +105,8 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
     );
     res.send(result.buffer);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[PDF] payslip PDF generation failed:', error?.message || error);
+    res.status(500).json({ message: error?.message || 'Internal server error' });
   }
 });
 

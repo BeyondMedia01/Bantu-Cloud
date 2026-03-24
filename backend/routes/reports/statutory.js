@@ -1,9 +1,10 @@
 const express = require('express');
+const ExcelJS = require('exceljs');
 const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
-const { 
-  generateP16PDF, 
-  generateP2PDF, 
+const {
+  generateP16PDF,
+  generateP2PDF,
   generateNSSA_P4A,
   generateIT7PDF
 } = require('../../utils/pdfService');
@@ -459,5 +460,601 @@ router.get('/pension-export', requirePermission('view_reports'), async (req, res
   }
 });
 
+
+// ─── ZIMRA TaRMS Monthly PAYE Return (Excel) ─────────────────────────────────
+// GET /api/reports/tarms-paye-excel?month=&year=
+//
+// Generates the 52-column TaRMS bulk upload template pre-populated with payroll
+// data for the selected period.
+
+router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req, res) => {
+  const { month, year } = req.query;
+  const companyId = req.companyId;
+  if (!companyId || !month || !year) {
+    return res.status(400).json({ message: 'month and year are required' });
+  }
+
+  try {
+    // ── 1. Fetch payslips + employee + transactions ───────────────────────────
+    const payslips = await prisma.payslip.findMany({
+      where: {
+        payrollRun: {
+          companyId,
+          payrollCalendar: { year: parseInt(year), month: parseInt(month) },
+          status: 'COMPLETED',
+        },
+      },
+      include: {
+        employee: { select: { tin: true, idPassport: true, firstName: true, lastName: true, currency: true } },
+        payrollRun: { select: { id: true, startDate: true, dualCurrency: true, currency: true } },
+      },
+      orderBy: { employee: { lastName: 'asc' } },
+    });
+
+    if (payslips.length === 0) {
+      return res.status(404).json({ message: 'No completed payroll data for this period' });
+    }
+
+    // Collect all run IDs so we can fetch transactions in one query
+    const runIds = [...new Set(payslips.map(p => p.payrollRunId))];
+    const employeeIds = payslips.map(p => p.employeeId);
+
+    const transactions = await prisma.payrollTransaction.findMany({
+      where: { payrollRunId: { in: runIds }, employeeId: { in: employeeIds } },
+      include: {
+        transactionCode: {
+          select: { code: true, name: true, type: true, preTax: true, incomeCategory: true, isExempt: true },
+        },
+      },
+    });
+
+    // Group transactions by employeeId
+    const txByEmployee = transactions.reduce((acc, t) => {
+      if (!acc[t.employeeId]) acc[t.employeeId] = [];
+      acc[t.employeeId].push(t);
+      return acc;
+    }, {});
+
+    // ── 2. Fetch prior-period cumulative bonus (YTD excl. current run) ────────
+    // We look at completed runs earlier in the same tax year (April 1 start)
+    const refDate = payslips[0].payrollRun.startDate;
+    const taxYearStart = new Date(refDate) >= new Date(refDate.getFullYear(), 3, 1)
+      ? new Date(refDate.getFullYear(), 3, 1)      // Apr 1 this year
+      : new Date(refDate.getFullYear() - 1, 3, 1); // Apr 1 prior year
+
+    const priorBonusTxs = await prisma.payrollTransaction.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+        payrollRun: {
+          companyId,
+          status: 'COMPLETED',
+          startDate: { gte: taxYearStart, lt: refDate },
+        },
+        transactionCode: {
+          OR: [
+            { incomeCategory: 'BONUS' },
+            { incomeCategory: 'GRATUITY' },
+            { name: { contains: 'bonus', mode: 'insensitive' } },
+          ],
+        },
+      },
+      select: { employeeId: true, amount: true },
+    });
+
+    const priorBonusByEmployee = priorBonusTxs.reduce((acc, t) => {
+      acc[t.employeeId] = (acc[t.employeeId] || 0) + (t.amount || 0);
+      return acc;
+    }, {});
+
+    // ── 3. Helper: split amount into USD / ZWG based on run currency ──────────
+    const split = (ps, amount) => {
+      if (!amount) return { usd: 0, zwg: 0 };
+      const isUSD = (ps.payrollRun.currency || 'USD').toUpperCase() === 'USD';
+      return ps.payrollRun.dualCurrency
+        ? { usd: amount, zwg: 0 }           // dual-currency runs store USD amounts
+        : isUSD
+          ? { usd: amount, zwg: 0 }
+          : { usd: 0, zwg: amount };
+    };
+
+    // ── 4. Categorise transactions per employee ───────────────────────────────
+    const categorise = (txs, ps) => {
+      const s = split;
+      const r = {
+        otherExemptions: { usd: 0, zwg: 0 },
+        overtime:        { usd: 0, zwg: 0 },
+        bonus:           { usd: 0, zwg: 0 },
+        commission:      { usd: 0, zwg: 0 },
+        otherIrregular:  { usd: 0, zwg: 0 },
+        severanceExempt: { usd: 0, zwg: 0 },
+        gratuityNoExempt:{ usd: 0, zwg: 0 },
+        housingBenefit:  { usd: 0, zwg: 0 },
+        vehicleBenefit:  { usd: 0, zwg: 0 },
+        educationBenefit:{ usd: 0, zwg: 0 },
+        otherBenefits:   { usd: 0, zwg: 0 },
+        nonTaxable:      { usd: 0, zwg: 0 },
+        pension:         { usd: 0, zwg: 0 },
+        retirementAnnuity:{ usd: 0, zwg: 0 },
+        otherDeductions: { usd: 0, zwg: 0 },
+        medicalExpenses: { usd: 0, zwg: 0 },
+        blindCredit:     { usd: 0, zwg: 0 },
+        disabledCredit:  { usd: 0, zwg: 0 },
+        elderlyCredit:   { usd: 0, zwg: 0 },
+      };
+
+      const add = (bucket, amt) => {
+        const { usd, zwg } = s(ps, amt);
+        bucket.usd += usd;
+        bucket.zwg += zwg;
+      };
+
+      for (const t of txs) {
+        const tc = t.transactionCode;
+        const cat = tc?.incomeCategory;
+        const code = (tc?.code || '').toUpperCase();
+        const name = (tc?.name || '').toUpperCase();
+        const amt = Math.abs(t.amount || 0);
+        const isExempt = tc?.isExempt;
+
+        if (tc?.type === 'EARNING' || tc?.type === 'BENEFIT') {
+          if (cat === 'OVERTIME' || name.includes('OVERTIME') || code.includes('OT'))
+            add(r.overtime, amt);
+          else if (cat === 'BONUS')
+            add(r.bonus, amt);
+          else if (cat === 'GRATUITY')
+            isExempt ? add(r.severanceExempt, amt) : add(r.gratuityNoExempt, amt);
+          else if (cat === 'COMMISSION')
+            add(r.commission, amt);
+          else if (tc?.type === 'BENEFIT') {
+            if (name.includes('HOUS') || code.includes('HOUS'))      add(r.housingBenefit, amt);
+            else if (name.includes('VEH') || code.includes('VEH'))   add(r.vehicleBenefit, amt);
+            else if (name.includes('EDU') || code.includes('EDU'))   add(r.educationBenefit, amt);
+            else                                                       add(r.otherBenefits, amt);
+          }
+          else if (cat === 'ALLOWANCE' && isExempt)                  add(r.otherExemptions, amt);
+          else if (cat === 'ALLOWANCE')                               add(r.otherIrregular, amt);
+          else                                                         add(r.nonTaxable, amt);
+        } else if (tc?.type === 'DEDUCTION') {
+          if (cat === 'PENSION' || name.includes('PENSION'))           add(r.pension, amt);
+          else if (name.includes('RETIREM') || name.includes('ANNUITY')) add(r.retirementAnnuity, amt);
+          else if (name.includes('MED') && name.includes('EXP'))       add(r.medicalExpenses, amt);
+          else if (name.includes('BLIND'))                             add(r.blindCredit, amt);
+          else if (name.includes('DISAB'))                             add(r.disabledCredit, amt);
+          else if (name.includes('ELDER'))                             add(r.elderlyCredit, amt);
+          else                                                          add(r.otherDeductions, amt);
+        }
+      }
+      return r;
+    };
+
+    // ── 5. Define the 52 columns ──────────────────────────────────────────────
+    const DARK_BLUE  = 'FF1A2E4A';
+    const LIGHT_BLUE = 'FFD6E4F7';
+    const LIGHT_GREEN= 'FFD6F0D6';
+    const WHITE_FONT = 'FFFFFFFF';
+
+    // [header, key, currency? 'usd'|'zwg'|null]
+    const COL_DEF = [
+      ['TIN',                                        'tin',               null],
+      ['ID/Passport Number',                         'id',                null],
+      ['Employee Name',                              'name',              null],
+      ['Currency',                                   'currency',          null],
+      ['Current Salary... USD',                      'salaryUSD',         'usd'],
+      ['Current Salary... ZWG',                      'salaryZWG',         'zwg'],
+      ['Other Exemptions... USD',                    'exemptUSD',         'usd'],
+      ['Other Exemptions... ZWG',                    'exemptZWG',         'zwg'],
+      ['Current Overtime USD',                       'overtimeUSD',       'usd'],
+      ['Current Overtime ZWG',                       'overtimeZWG',       'zwg'],
+      ['Current Bonus USD',                          'bonusUSD',          'usd'],
+      ['Current Bonus ZWG',                          'bonusZWG',          'zwg'],
+      ['Current Irregular Commission USD',           'commissionUSD',     'usd'],
+      ['Current Irregular Commission ZWG',           'commissionZWG',     'zwg'],
+      ['Current Other Irregular earnings USD',       'otherIrregUSD',     'usd'],
+      ['Current Other Irregular earnings ZWG',       'otherIrregZWG',     'zwg'],
+      ['Current Severance/Gratuity (Exempt) USD',    'sevExemptUSD',      'usd'],
+      ['Current Severance/Gratuity (Exempt) ZWG',    'sevExemptZWG',      'zwg'],
+      ['Current Gratuity (No Exemption) USD',        'gratNoExemptUSD',   'usd'],
+      ['Current Gratuity (No Exemption) ZWG',        'gratNoExemptZWG',   'zwg'],
+      ['Current Housing Benefit USD',                'housingUSD',        'usd'],
+      ['Current Housing Benefit ZWG',                'housingZWG',        'zwg'],
+      ['Current Vehicle Benefit USD',                'vehicleUSD',        'usd'],
+      ['Current Vehicle Benefit ZWG',                'vehicleZWG',        'zwg'],
+      ['Current Education Benefit USD',              'educationUSD',      'usd'],
+      ['Current Education Benefit ZWG',              'educationZWG',      'zwg'],
+      ['Current Other Benefits USD',                 'otherBenUSD',       'usd'],
+      ['Current Other Benefits ZWG',                 'otherBenZWG',       'zwg'],
+      ['Current Non-Taxable Earnings USD',           'nonTaxUSD',         'usd'],
+      ['Current Non-taxable earnings ZWG',           'nonTaxZWG',         'zwg'],
+      ['Current Pension Contributions USD',          'pensionUSD',        'usd'],
+      ['Current Pension Contributions ZWG',          'pensionZWG',        'zwg'],
+      ['Current NSSA Contributions USD',             'nssaUSD',           'usd'],
+      ['Current NSSA Contributions ZWG',             'nssaZWG',           'zwg'],
+      ['Current Retirement Annuity USD',             'retirementUSD',     'usd'],
+      ['Current Retirement Annuity ZWG',             'retirementZWG',     'zwg'],
+      ['Current NEC/Subscriptions USD',              'necUSD',            'usd'],
+      ['Current NEC/Subscriptions ZWG',              'necZWG',            'zwg'],
+      ['Current Other Deductions USD',               'otherDedUSD',       'usd'],
+      ['Current Other Deductions ZWG',               'otherDedZWG',       'zwg'],
+      ['Current Medical Aid USD',                    'medAidUSD',         'usd'],
+      ['Current Medical Aid ZWG',                    'medAidZWG',         'zwg'],
+      ['Current Medical Expenses USD',               'medExpUSD',         'usd'],
+      ['Current Medical Expenses ZWG',               'medExpZWG',         'zwg'],
+      ['Current Blind persons credit USD',           'blindUSD',          'usd'],
+      ['Current Blind persons credit ZWG',           'blindZWG',          'zwg'],
+      ['Current Disabled persons credit USD',        'disabledUSD',       'usd'],
+      ['Current Disabled persons credit ZWG',        'disabledZWG',       'zwg'],
+      ['Current Elderly person credit USD',          'elderlyUSD',        'usd'],
+      ['Current Elderly person credit ZWG',          'elderlyZWG',        'zwg'],
+      ['Cumulative Bonus (Last Period) USD',         'cumBonusUSD',       'usd'],
+      ['Cumulative Bonus (Last Period) ZWG',         'cumBonusZWG',       'zwg'],
+    ];
+
+    // ── 6. Build workbook ─────────────────────────────────────────────────────
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Bantu HR';
+    wb.created = new Date();
+    const ws = wb.addWorksheet('TaRMS PAYE', {
+      pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
+    });
+
+    // Column widths
+    ws.columns = COL_DEF.map(([header, key], i) => ({
+      key,
+      width: i < 4 ? 22 : 20,
+      header,
+    }));
+
+    // ── 7. Style header row ───────────────────────────────────────────────────
+    const headerRow = ws.getRow(1);
+    headerRow.height = 45;
+    COL_DEF.forEach(([, , ccyType], i) => {
+      const cell = headerRow.getCell(i + 1);
+      cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
+      cell.font   = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = { bottom: { style: 'medium', color: { argb: 'FF4472C4' } } };
+    });
+
+    // ── 8. Add data rows (2 – N) ──────────────────────────────────────────────
+    const NUM_FMT = '#,##0.00';
+
+    payslips.forEach((ps) => {
+      const emp = ps.employee;
+      const txs = txByEmployee[ps.employeeId] || [];
+      const cats = categorise(txs, ps);
+      const isDual = ps.payrollRun.dualCurrency;
+      const isUSD  = (ps.payrollRun.currency || 'USD').toUpperCase() === 'USD';
+
+      const nssaUSD = isDual ? (ps.nssaUSD ?? ps.nssaEmployee) : (isUSD ? ps.nssaEmployee : 0);
+      const nssaZWG = isDual ? (ps.nssaZIG ?? 0) : (!isUSD ? ps.nssaEmployee : 0);
+      const medAidUSD = isDual ? (ps.medicalAidCredit ?? 0) : (isUSD ? (ps.medicalAidCredit ?? 0) : 0);
+      const medAidZWG = isDual ? 0 : (!isUSD ? (ps.medicalAidCredit ?? 0) : 0);
+      const priorBonus = priorBonusByEmployee[ps.employeeId] || 0;
+
+      const salUSD = isDual ? (ps.grossUSD ?? 0) : (isUSD ? (ps.basicSalaryApplied || 0) : 0);
+      const salZWG = isDual ? (ps.grossZIG ?? 0) : (!isUSD ? (ps.basicSalaryApplied || 0) : 0);
+
+      const rowValues = {
+        tin:            emp.tin || '',
+        id:             emp.idPassport || '',
+        name:           `${emp.firstName} ${emp.lastName}`,
+        currency:       ps.payrollRun.currency || 'USD',
+        salaryUSD:      salUSD,
+        salaryZWG:      salZWG,
+        exemptUSD:      cats.otherExemptions.usd,
+        exemptZWG:      cats.otherExemptions.zwg,
+        overtimeUSD:    cats.overtime.usd,
+        overtimeZWG:    cats.overtime.zwg,
+        bonusUSD:       cats.bonus.usd,
+        bonusZWG:       cats.bonus.zwg,
+        commissionUSD:  cats.commission.usd,
+        commissionZWG:  cats.commission.zwg,
+        otherIrregUSD:  cats.otherIrregular.usd,
+        otherIrregZWG:  cats.otherIrregular.zwg,
+        sevExemptUSD:   cats.severanceExempt.usd,
+        sevExemptZWG:   cats.severanceExempt.zwg,
+        gratNoExemptUSD:cats.gratuityNoExempt.usd,
+        gratNoExemptZWG:cats.gratuityNoExempt.zwg,
+        housingUSD:     cats.housingBenefit.usd,
+        housingZWG:     cats.housingBenefit.zwg,
+        vehicleUSD:     cats.vehicleBenefit.usd,
+        vehicleZWG:     cats.vehicleBenefit.zwg,
+        educationUSD:   cats.educationBenefit.usd,
+        educationZWG:   cats.educationBenefit.zwg,
+        otherBenUSD:    cats.otherBenefits.usd,
+        otherBenZWG:    cats.otherBenefits.zwg,
+        nonTaxUSD:      cats.nonTaxable.usd,
+        nonTaxZWG:      cats.nonTaxable.zwg,
+        pensionUSD:     isDual ? (ps.pensionApplied ?? 0) : (isUSD ? (ps.pensionApplied ?? 0) : 0),
+        pensionZWG:     !isDual && !isUSD ? (ps.pensionApplied ?? 0) : (cats.pension.zwg),
+        nssaUSD,
+        nssaZWG,
+        retirementUSD:  cats.retirementAnnuity.usd,
+        retirementZWG:  cats.retirementAnnuity.zwg,
+        necUSD:         isDual ? (ps.necLevy ?? 0) : (isUSD ? (ps.necLevy ?? 0) : 0),
+        necZWG:         !isDual && !isUSD ? (ps.necLevy ?? 0) : 0,
+        otherDedUSD:    cats.otherDeductions.usd,
+        otherDedZWG:    cats.otherDeductions.zwg,
+        medAidUSD,
+        medAidZWG,
+        medExpUSD:      cats.medicalExpenses.usd,
+        medExpZWG:      cats.medicalExpenses.zwg,
+        blindUSD:       cats.blindCredit.usd,
+        blindZWG:       cats.blindCredit.zwg,
+        disabledUSD:    cats.disabledCredit.usd,
+        disabledZWG:    cats.disabledCredit.zwg,
+        elderlyUSD:     cats.elderlyCredit.usd,
+        elderlyZWG:     cats.elderlyCredit.zwg,
+        cumBonusUSD:    isUSD ? priorBonus : 0,
+        cumBonusZWG:    !isUSD ? priorBonus : 0,
+      };
+
+      const row = ws.addRow(rowValues);
+
+      // Apply currency fill + number format to financial columns (5–52)
+      COL_DEF.forEach(([, , ccyType], i) => {
+        if (!ccyType) return;
+        const cell = row.getCell(i + 1);
+        cell.fill = {
+          type: 'pattern', pattern: 'solid',
+          fgColor: { argb: ccyType === 'usd' ? LIGHT_BLUE : LIGHT_GREEN },
+        };
+        cell.numFmt = NUM_FMT;
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+        cell.font = { size: 10, name: 'Calibri' };
+      });
+      // Style the first 4 identifier columns
+      for (let i = 1; i <= 4; i++) {
+        const cell = row.getCell(i);
+        cell.font = { size: 10, name: 'Calibri' };
+        cell.alignment = { vertical: 'middle' };
+      }
+      row.height = 18;
+    });
+
+    // ── 9. Totals row (Row 101 or first row after data) ───────────────────────
+    const dataStart = 2;
+    const dataEnd   = payslips.length + 1;
+    const totalsRow = ws.addRow({});
+    totalsRow.height = 22;
+
+    // Label in col 3 (Employee Name)
+    totalsRow.getCell(3).value = 'TOTALS';
+    totalsRow.getCell(3).font  = { bold: true, size: 10, name: 'Calibri' };
+
+    // SUBTOTAL formulas for cols 5–52
+    COL_DEF.forEach(([, key, ccyType], i) => {
+      if (!ccyType) return;
+      const colLetter = ws.getColumn(i + 1).letter;
+      const cell = totalsRow.getCell(i + 1);
+      cell.value  = { formula: `SUBTOTAL(9,${colLetter}${dataStart}:${colLetter}${dataEnd})` };
+      cell.numFmt = NUM_FMT;
+      cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
+      cell.font   = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
+      cell.alignment = { horizontal: 'right', vertical: 'middle' };
+    });
+    // Style the label cells
+    for (let i = 1; i <= 4; i++) {
+      const cell = totalsRow.getCell(i);
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
+      cell.font = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
+      cell.alignment = { vertical: 'middle' };
+    }
+
+    // ── 10. Freeze first 3 columns + header ──────────────────────────────────
+    ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 1, topLeftCell: 'D2' }];
+
+    // ── 11. Auto-filter on header row ─────────────────────────────────────────
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: COL_DEF.length } };
+
+    // ── 12. Stream ────────────────────────────────────────────────────────────
+    const mm   = String(month).padStart(2, '0');
+    const filename = `ZIMRA-TaRMS-PAYE-${year}-${mm}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('TaRMS PAYE Excel error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// ─── NSSA P4A Excel (detailed per-employee) ──────────────────────────────────
+// GET /api/reports/nssa-p4a-excel?month=&year=
+
+router.get('/nssa-p4a-excel', requirePermission('export_reports'), async (req, res) => {
+  const { month, year } = req.query;
+  const targetCompanyId = req.companyId;
+  if (!targetCompanyId || !month || !year) {
+    return res.status(400).json({ message: 'month and year are required' });
+  }
+
+  try {
+    const company = await prisma.company.findUnique({
+      where: { id: targetCompanyId },
+      select: { name: true, registrationNumber: true },
+    });
+
+    const payslips = await prisma.payslip.findMany({
+      where: {
+        payrollRun: {
+          companyId: targetCompanyId,
+          payrollCalendar: {
+            year: parseInt(year),
+            month: parseInt(month),
+          },
+          status: 'COMPLETED',
+        },
+      },
+      include: {
+        employee: {
+          select: {
+            employeeCode: true,
+            socialSecurityNum: true,
+            idPassport: true,
+            dateOfBirth: true,
+            lastName: true,
+            firstName: true,
+            startDate: true,
+            endDate: true,
+            baseRate: true,
+          },
+        },
+        payrollRun: {
+          select: { startDate: true, endDate: true },
+        },
+      },
+      orderBy: { employee: { lastName: 'asc' } },
+    });
+
+    if (payslips.length === 0) {
+      return res.status(404).json({ message: 'No completed payroll data for this period' });
+    }
+
+    const ssrNumber = company?.registrationNumber || '';
+    const periodStr = `${String(month).padStart(2, '0')}/${year}`;
+
+    // ── Build workbook ────────────────────────────────────────────────────────
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Bantu HR';
+    wb.created = new Date();
+    const ws = wb.addWorksheet('NSSA P4A', {
+      pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
+    });
+
+    const COLUMNS = [
+      { header: 'SsrNumber',               key: 'ssrNumber',             width: 18 },
+      { header: 'WorksNumber',              key: 'worksNumber',           width: 16 },
+      { header: 'SSNNumber',                key: 'ssnNumber',             width: 18 },
+      { header: 'NationalIDNumber',         key: 'nationalIdNumber',      width: 20 },
+      { header: 'Period',                   key: 'period',                width: 12 },
+      { header: 'BirthDate',               key: 'birthDate',             width: 14, numFmt: 'DD/MM/YYYY' },
+      { header: 'Surname',                  key: 'surname',               width: 20 },
+      { header: 'Firstname',               key: 'firstname',             width: 20 },
+      { header: 'StartDate',               key: 'startDate',             width: 14, numFmt: 'DD/MM/YYYY' },
+      { header: 'EndDate',                 key: 'endDate',               width: 14, numFmt: 'DD/MM/YYYY' },
+      { header: 'POBSInsurableEarnings',   key: 'pobsInsurableEarnings', width: 24, numFmt: '#,##0.00' },
+      { header: 'POBSContributions',       key: 'pobsContributions',     width: 22, numFmt: '#,##0.00' },
+      { header: 'BasicAPWCS',              key: 'basicAPWCS',            width: 18, numFmt: '#,##0.00' },
+      { header: 'ActualInsurableEarnings', key: 'actualInsurableEarnings', width: 26, numFmt: '#,##0.00' },
+    ];
+
+    ws.columns = COLUMNS.map(c => ({ key: c.key, width: c.width, header: c.header }));
+
+    // ── Style header row ─────────────────────────────────────────────────────
+    const headerRow = ws.getRow(1);
+    headerRow.eachCell(cell => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A2E4A' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10, name: 'Calibri' };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = {
+        bottom: { style: 'thin', color: { argb: 'FFB2DB64' } },
+      };
+    });
+    headerRow.height = 30;
+
+    // ── Data rows ─────────────────────────────────────────────────────────────
+    const LIGHT_GRAY = 'FFF5F5F5';
+    const WHITE = 'FFFFFFFF';
+    const financialKeys = new Set([
+      'pobsInsurableEarnings', 'pobsContributions', 'basicAPWCS', 'actualInsurableEarnings',
+    ]);
+    const dateKeys = new Set(['birthDate', 'startDate', 'endDate']);
+
+    payslips.forEach((ps, idx) => {
+      const emp = ps.employee;
+      const isEven = idx % 2 === 0;
+      const rowBg = isEven ? WHITE : LIGHT_GRAY;
+
+      const pobsInsurable = ps.nssaBasis != null && ps.nssaBasis > 0 ? ps.nssaBasis : ps.gross;
+      const pobsContribs  = (ps.nssaEmployee || 0) + (ps.nssaEmployer || ps.nssaEmployee || 0);
+      const basicSalary   = ps.basicSalaryApplied > 0 ? ps.basicSalaryApplied : (emp.baseRate || 0);
+
+      const rowData = {
+        ssrNumber:              ssrNumber,
+        worksNumber:            emp.employeeCode || '',
+        ssnNumber:              emp.socialSecurityNum || '',
+        nationalIdNumber:       emp.idPassport || '',
+        period:                 periodStr,
+        birthDate:              emp.dateOfBirth ? new Date(emp.dateOfBirth) : null,
+        surname:                emp.lastName || '',
+        firstname:              emp.firstName || '',
+        startDate:              emp.startDate ? new Date(emp.startDate) : null,
+        endDate:                emp.endDate ? new Date(emp.endDate) : null,
+        pobsInsurableEarnings:  pobsInsurable,
+        pobsContributions:      pobsContribs,
+        basicAPWCS:             basicSalary,
+        actualInsurableEarnings: ps.gross || 0,
+      };
+
+      const row = ws.addRow(rowData);
+
+      row.eachCell((cell, colNumber) => {
+        const colKey = COLUMNS[colNumber - 1]?.key;
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+        cell.font = { size: 10, name: 'Calibri' };
+        cell.alignment = { vertical: 'middle' };
+
+        if (financialKeys.has(colKey)) {
+          cell.numFmt = '#,##0.00';
+          cell.alignment = { vertical: 'middle', horizontal: 'right' };
+        }
+        if (dateKeys.has(colKey)) {
+          cell.numFmt = 'DD/MM/YYYY';
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        }
+      });
+      row.height = 20;
+    });
+
+    // ── Totals row ─────────────────────────────────────────────────────────────
+    const dataRowStart = 2;
+    const dataRowEnd   = payslips.length + 1;
+
+    const totalsRow = ws.addRow({
+      ssrNumber:               'TOTALS',
+      worksNumber:             '',
+      ssnNumber:               '',
+      nationalIdNumber:        '',
+      period:                  '',
+      birthDate:               null,
+      surname:                 '',
+      firstname:               '',
+      startDate:               null,
+      endDate:                 null,
+      pobsInsurableEarnings:   { formula: `SUM(K${dataRowStart}:K${dataRowEnd})` },
+      pobsContributions:       { formula: `SUM(L${dataRowStart}:L${dataRowEnd})` },
+      basicAPWCS:              { formula: `SUM(M${dataRowStart}:M${dataRowEnd})` },
+      actualInsurableEarnings: { formula: `SUM(N${dataRowStart}:N${dataRowEnd})` },
+    });
+
+    totalsRow.eachCell(cell => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A2E4A' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10, name: 'Calibri' };
+      cell.alignment = { vertical: 'middle' };
+    });
+    // Format financial cells in totals row
+    ['K', 'L', 'M', 'N'].forEach(col => {
+      const cell = totalsRow.getCell(col);
+      cell.numFmt = '#,##0.00';
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
+    });
+    totalsRow.height = 22;
+
+    // ── Freeze header ─────────────────────────────────────────────────────────
+    ws.views = [{ state: 'frozen', ySplit: 1 }];
+
+    // ── Stream to response ────────────────────────────────────────────────────
+    const filename = `NSSA-P4A-${year}-${String(month).padStart(2, '0')}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('NSSA P4A Excel error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;
