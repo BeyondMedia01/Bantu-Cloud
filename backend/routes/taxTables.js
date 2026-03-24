@@ -86,6 +86,9 @@ router.get('/:id', async (req, res) => {
       include: { brackets: { orderBy: { lowerBound: 'asc' } } },
     });
     if (!table) return res.status(404).json({ message: 'Tax table not found' });
+    if (req.clientId && table.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     res.json(table);
   } catch (error) {
     console.error(error);
@@ -209,6 +212,12 @@ router.delete('/:id', requirePermission('update_settings'), async (req, res) => 
 // GET /api/tax-tables/:id/brackets
 router.get('/:id/brackets', async (req, res) => {
   try {
+    // Ownership: verify the parent table belongs to the caller's client
+    if (req.clientId) {
+      const parentTable = await prisma.taxTable.findUnique({ where: { id: req.params.id }, select: { clientId: true } });
+      if (!parentTable) return res.status(404).json({ message: 'Tax table not found' });
+      if (parentTable.clientId !== req.clientId) return res.status(403).json({ message: 'Access denied' });
+    }
     const brackets = await prisma.taxBracket.findMany({
       where: { taxTableId: req.params.id },
       orderBy: { lowerBound: 'asc' },
@@ -248,6 +257,12 @@ router.post('/:id/brackets', requirePermission('update_settings'), async (req, r
 router.put('/:tableId/brackets/:bracketId', requirePermission('update_settings'), async (req, res) => {
   const { lowerBound, upperBound, rate, fixedAmount } = req.body;
   try {
+    // Ownership: verify the parent table belongs to the caller's client
+    if (req.clientId) {
+      const parentTable = await prisma.taxTable.findUnique({ where: { id: req.params.tableId }, select: { clientId: true } });
+      if (!parentTable) return res.status(404).json({ message: 'Tax table not found' });
+      if (parentTable.clientId !== req.clientId) return res.status(403).json({ message: 'Access denied' });
+    }
     const bracket = await prisma.taxBracket.update({
       where: { id: req.params.bracketId },
       data: {
@@ -268,6 +283,12 @@ router.put('/:tableId/brackets/:bracketId', requirePermission('update_settings')
 // DELETE /api/tax-tables/:tableId/brackets/:bracketId
 router.delete('/:tableId/brackets/:bracketId', requirePermission('update_settings'), async (req, res) => {
   try {
+    // Ownership: verify the parent table belongs to the caller's client
+    if (req.clientId) {
+      const parentTable = await prisma.taxTable.findUnique({ where: { id: req.params.tableId }, select: { clientId: true } });
+      if (!parentTable) return res.status(404).json({ message: 'Tax table not found' });
+      if (parentTable.clientId !== req.clientId) return res.status(403).json({ message: 'Access denied' });
+    }
     await prisma.taxBracket.delete({ where: { id: req.params.bracketId } });
     res.status(204).send();
   } catch (error) {

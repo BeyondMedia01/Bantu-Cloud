@@ -22,13 +22,13 @@
 
 <!-- Task 2: Auth infrastructure sweep — 2026-03-23 -->
 
-### [High] Biometric route has no authentication or rate limiting
+### [High][FIXED] Biometric route has no authentication or rate limiting
 - **File**: `backend/index.js:57`
 - **Domain**: Security
 - **Issue**: `/api/biometric` is mounted before the global `authenticateToken` middleware and has no rate limiter applied. The comment states devices authenticate via "serial + webhookKey", but this custom auth is entirely inside the route handler — if that check is absent or bypassable, the endpoint is fully open. There is also no rate limiting to prevent brute-force or flooding attacks against the biometric webhook.
 - **Fix**: Apply `authLimiter` (or a dedicated device limiter) to `/api/biometric` in `index.js`: `app.use('/api/biometric', deviceLimiter, require('./routes/biometric'));`. Ensure the route handler enforces the serial + webhookKey check on every handler and returns 401 on failure.
 
-### [High] Webhook route has no rate limiting
+### [High][FIXED] Webhook route has no rate limiting
 - **File**: `backend/index.js:18`
 - **Domain**: Security
 - **Issue**: `/api/webhooks` (Stripe webhooks) is mounted with no rate limiter. While Stripe signs its payloads, an attacker can flood this endpoint with invalid requests, causing unnecessary CPU and DB load or triggering denial-of-service conditions.
@@ -72,7 +72,7 @@
 - **Issue**: Both handlers read `const companyId = req.headers['x-company-id']` instead of `req.companyId`. An authenticated user from any company can read all audit log entries for any other company by setting a different header value, and can also write spoofed log entries under an arbitrary company ID.
 - **Fix**: Replace `req.headers['x-company-id']` with `req.companyId` in both handlers. For the POST handler also consider restricting log creation to server-side internal calls rather than exposing it as a public API endpoint.
 
-### [High] `payslips.js` GET `/:id` returns the full `employee` object (no field selection) — may expose sensitive employee data
+### [High][FIXED] `payslips.js` GET `/:id` returns the full `employee` object (no field selection) — may expose sensitive employee data
 - **File**: `backend/routes/payslips.js:49`
 - **Domain**: Security
 - **Issue**: The `GET /api/payslips/:id` handler uses `include: { employee: true }` with no `select` clause. This returns every column on the Employee record including personal fields such as `idPassport`, `tin`, `socialSecurityNum`, `bankAccountUSD`, `bankAccountZiG`, and potentially any future sensitive fields added to the model, to any authenticated user with access to that payslip.
@@ -235,13 +235,13 @@
 
 <!-- Task 4: Tax engine and payroll logic sweep — 2026-03-23 -->
 
-### [High] YTD boundary uses calendar year (January 1) instead of Zimbabwe tax year (April 1)
+### [High][MANUAL] YTD boundary uses calendar year (January 1) instead of Zimbabwe tax year (April 1)
 - **File**: `backend/utils/payslipFormatter.js:96`, `backend/routes/payroll.js:618`
 - **Domain**: Business Logic
 - **Issue**: The YTD accumulation window is anchored to `new Date(year, 0, 1)` — January 1 of the calendar year — in both `payslipFormatter.js` (YTD on printed payslips) and `payroll.js` (FDS_AVERAGE gross accumulation). Zimbabwe's tax year runs April 1 – March 31. Using a January 1 reset means Q1 payslips (Jan–Mar) carry forward tax-year amounts from the prior April–December into the new calendar year's YTD, and FDS_AVERAGE employees' running average resets three months early. This produces incorrect cumulative PAYE figures on payslips and an incorrect average PAYE base for FDS_AVERAGE employees in January–March.
 - **Fix**: Replace `new Date(year, 0, 1)` with a helper that computes the Zimbabwe tax year start: if the run month is January–March, the tax year started April 1 of the previous year; otherwise April 1 of the current year. Apply the same fix to both call sites. `MANUAL` — confirm with client whether any companies operate under a non-April tax year (ZIMRA allows alternate fiscal year applications).
 
-### [High] NSSA ceiling hardcoded fallback in `taxEngine.js` — no external config enforced at engine level
+### [High][MANUAL] NSSA ceiling hardcoded fallback in `taxEngine.js` — no external config enforced at engine level
 - **File**: `backend/utils/taxEngine.js:18`
 - **Domain**: Business Logic
 - **Issue**: `DEFAULT_NSSA_CEILING = { USD: 700, ZiG: 20000 }` is hardcoded in the engine as a last-resort fallback. If a caller omits `nssaCeiling` (e.g., a future integration or unit test that does not pass all SystemSettings values), the engine silently uses the hardcoded value regardless of the current statutory ceiling. The `payroll.js` process route does correctly read `NSSA_CEILING_USD`/`NSSA_CEILING_ZIG` from SystemSettings and pass them through, but the preview route (`/preview`) only reads `NSSA_CEILING_USD` and passes no ZiG ceiling. If a ZiG preview is run, the engine falls back to the hardcoded 20,000 ZiG ceiling.
@@ -297,19 +297,19 @@
 - **Issue**: Same IDOR pattern as employees.js: `PUT /:id` and `DELETE /:id` operate directly by ID with no check that the band belongs to the caller's client scope.
 - **Fix**: After adding auth (see Critical finding above), fetch the band first and assert ownership before mutating.
 
-### [High] `taxTables.js` `GET /:id` and bracket sub-routes — no ownership check
+### [High][FIXED] `taxTables.js` `GET /:id` and bracket sub-routes — no ownership check
 - **File**: `backend/routes/taxTables.js:82`
 - **Domain**: Security
 - **Issue**: `GET /:id` fetches any tax table by ID with no `clientId` assertion. The bracket endpoints (`GET /:id/brackets`, `PUT /:tableId/brackets/:bracketId`, `DELETE /:tableId/brackets/:bracketId`) similarly operate on arbitrary IDs. `PUT /:tableId/brackets/:bracketId` and `DELETE /:tableId/brackets/:bracketId` do not verify the bracket's parent table belongs to the caller.
 - **Fix**: For `GET /:id`, assert `table.clientId === req.clientId`. For bracket mutation endpoints, first look up the bracket, traverse to its `taxTableId`, verify that table's `clientId` matches.
 
-### [High] `nssaContributions.js` — no `authenticateToken` middleware visible
+### [High][FIXED] `nssaContributions.js` — no `authenticateToken` middleware visible
 - **File**: `backend/routes/nssaContributions.js:12`
 - **Domain**: Security
 - **Issue**: The single `GET /` route handler uses `req.companyId` (which implies `companyContext` middleware) but no `requirePermission` call is present. Depending on how the router is mounted, any authenticated user — including EMPLOYEE role — can enumerate NSSA contribution amounts, employee names, and gross salary data for every employee in the company.
 - **Fix**: Add `requirePermission('view_reports')` to the `GET /` handler.
 
-### [High] `subCompanies.js` `PUT /:id` and `DELETE /:id` — no ownership check
+### [High][FIXED] `subCompanies.js` `PUT /:id` and `DELETE /:id` — no ownership check
 - **File**: `backend/routes/subCompanies.js:39`
 - **Domain**: Security
 - **Issue**: Same IDOR pattern as employees.js: both mutation handlers operate directly on ID without verifying the sub-company's `clientId` matches `req.clientId`.
@@ -321,7 +321,7 @@
 - **Issue**: Same IDOR pattern: `PUT /:id` fetches the existing calendar for the closed-check but does not assert `calendar.clientId === req.clientId`. `DELETE /:id` does the same. `GET /:id` (line 73) also has no ownership check. `POST /:id/close` (line 115) has no ownership check either.
 - **Fix**: Assert `calendar.clientId === req.clientId` in all four handlers before proceeding.
 
-### [High] `publicHolidays.js` `DELETE /:id` — no ownership check
+### [High][FIXED] `publicHolidays.js` `DELETE /:id` — no ownership check
 - **File**: `backend/routes/publicHolidays.js:69`
 - **Domain**: Security
 - **Issue**: `prisma.publicHoliday.delete({ where: { id: req.params.id } })` is called without verifying the holiday record belongs to the caller's scope. Any `update_settings` user can delete any public holiday record.
@@ -412,20 +412,20 @@
 - **Issue**: `prisma.payslipTransaction.delete({ where: { id: req.params.id } })` is called with only a `companyId` guard on the route-level check (`if (!req.companyId)`), but the actual delete is performed without verifying that the target `payslipTransaction` record belongs to `req.companyId`. A user from Company A who knows a transaction UUID from Company B can delete it.
 - **Fix**: Change the delete to `prisma.payslipTransaction.deleteMany({ where: { id: req.params.id, companyId: req.companyId } })` and return 404 if count is 0, or fetch the record first and assert ownership.
 
-### [High] `payslipTransactions.js` `POST /` — `req.body` spread into Prisma `create` allows mass-assignment; caller can override `companyId`
+### [High][FIXED] `payslipTransactions.js` `POST /` — `req.body` spread into Prisma `create` allows mass-assignment; caller can override `companyId`
 - **File**: `backend/routes/payslipTransactions.js:32`
 - **Domain**: Security
 - **Issue**: `data: { ...req.body, companyId: req.companyId, ... }` spreads the full request body before the trusted fields. Because object spread merges left-to-right, the `companyId` override at the end does correctly win — but all other `PayslipTransaction` model fields (including internal relations like `employeeId`, `transactionId`, `payPeriod`, and any internal flags) can be set to arbitrary values by the caller with no validation.
 - **Fix**: Destructure only the expected fields from `req.body` (`employeeId`, `transactionId`, `amountOriginal`, `rateToUSD`, `currency`, `payPeriod`, `notes`) before creating the record.
 
-### [High] `leave.js` `PUT /:id` — no ownership check on update; any `manage_leave` user can update leave records from other companies
+### [High][FIXED] `leave.js` `PUT /:id` — no ownership check on update; any `manage_leave` user can update leave records from other companies
 <!-- [included in higher tier — see [High] finding in Task 3 Batch B: PUT /api/leave/:id has no ownership check] -->
 - **File**: `backend/routes/leave.js:148`
 - **Domain**: Security
 - **Issue**: `PUT /:id` calls `prisma.leaveRecord.update({ where: { id: req.params.id }, data: ... })` with no prior fetch to verify the record belongs to `req.companyId`. A `manage_leave` user from Company A who knows a `LeaveRecord` UUID from Company B can modify that record's dates, type, totalDays, or status.
 - **Fix**: Before the update, fetch `prisma.leaveRecord.findUnique({ where: { id: req.params.id }, select: { employee: { select: { companyId: true } } } })` and assert `employee.companyId === req.companyId`, returning 403 on mismatch.
 
-### [High] `leave.js` `DELETE /:id` — no ownership check on delete; same IDOR as PUT
+### [High][FIXED] `leave.js` `DELETE /:id` — no ownership check on delete; same IDOR as PUT
 <!-- [included in higher tier — see [High] finding in Task 3 Batch B: DELETE /api/leave/:id has no ownership check] -->
 - **File**: `backend/routes/leave.js:276`
 - **Domain**: Security
@@ -521,25 +521,25 @@
 
 <!-- Task 8: Backend performance sweep — 2026-03-23 -->
 
-### [High] N+1: leaveBalances accrual loop issues individual UPDATE per employee×policy
+### [High][FIXED] N+1: leaveBalances accrual loop issues individual UPDATE per employee×policy
 - **File**: `backend/routes/leaveBalances.js:99`
 - **Domain**: Performance
 - **Issue**: The `POST /api/leave-balances/accrue` handler fetches all active employees and all policies, then in a nested `for (emp) / for (policy)` loop calls `getOrCreateBalance(...)` (which itself issues a `findUnique` + optional `create`) and then `prisma.leaveBalance.update(...)` individually. For a company with 200 employees and 5 policies that is 2,000 Prisma round-trips per accrual run.
 - **Fix**: Pre-fetch all existing balances for the company/year in one `findMany`, build an in-memory map, then use `prisma.$transaction([...])` with a single batched `createMany` / `updateMany` or a chunked `Promise.all`. Remove the inner per-row DB calls.
 
-### [High] N+1: leaveBalances year-end issues individual upsert per balance row
+### [High][FIXED] N+1: leaveBalances year-end issues individual upsert per balance row
 - **File**: `backend/routes/leaveBalances.js:164`
 - **Domain**: Performance
 - **Issue**: The `POST /api/leave-balances/year-end` handler iterates over every balance for the closing year, issuing a `prisma.leaveBalance.update` and (conditionally) a `prisma.leaveBalance.upsert` for each row — 2× DB calls per balance, unbounded by employee count.
 - **Fix**: Batch the updates using `prisma.$transaction`. Collect all update payloads and new-year upsert payloads in arrays, then execute them together or via `updateMany` with matching `where` clauses.
 
-### [High] N+1: backup restore issues individual upsert per record across 12+ models
+### [High][FIXED] N+1: backup restore issues individual upsert per record across 12+ models
 - **File**: `backend/routes/backup.js:104`
 - **Domain**: Performance
 - **Issue**: The restore path iterates over `TransactionCode`, `Grade`, `Branch`, `Department`, `Employee`, `PayrollRun`, and then 12 relational tables in `RELATIONAL_TABLES`, issuing one `tx.*.upsert(...)` per record. A company backup with 300 employees, 12 months of payroll, and associated transactions can easily produce 5,000–10,000 sequential upserts inside a single transaction, causing multi-minute lock times and risk of transaction timeout.
 - **Fix**: Replace the per-record upsert loops with chunked `createMany(..., { skipDuplicates: true })` followed by targeted updates, or use PostgreSQL `ON CONFLICT DO UPDATE` via raw SQL for large tables. Split the transaction into per-model sub-transactions to limit lock scope.
 
-### [High] N+1: transactionCodes seed issues individual upsert per TC per client
+### [High][FIXED] N+1: transactionCodes seed issues individual upsert per TC per client
 - **File**: `backend/utils/transactionCodes.js:105`
 - **Domain**: Performance
 - **Issue**: `autoSeedTransactionCodes` fetches all clients with `findMany()` (no `select`, returning all columns), then for each client iterates over 8 transaction codes issuing one `prisma.transactionCode.upsert` per iteration — O(clients × 8) sequential round-trips. This runs at startup, adding latency proportional to client count.

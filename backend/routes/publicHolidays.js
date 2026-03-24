@@ -65,9 +65,16 @@ router.post('/', requirePermission('update_settings'), async (req, res) => {
 });
 
 // ─── DELETE /api/public-holidays/:id ─────────────────────────────────────────
+// Public holidays are global (not per-client), so only PLATFORM_ADMIN may delete them.
 
 router.delete('/:id', requirePermission('update_settings'), async (req, res) => {
   try {
+    // Only PLATFORM_ADMIN may delete global public holiday records
+    if (req.user.role !== 'PLATFORM_ADMIN') {
+      return res.status(403).json({ message: 'Only platform administrators can delete public holidays' });
+    }
+    const holiday = await prisma.publicHoliday.findUnique({ where: { id: req.params.id } });
+    if (!holiday) return res.status(404).json({ message: 'Holiday not found' });
     await prisma.publicHoliday.delete({ where: { id: req.params.id } });
     res.json({ message: 'Holiday deleted' });
   } catch (err) {

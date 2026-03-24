@@ -39,6 +39,12 @@ router.post('/', requirePermission('manage_companies'), async (req, res) => {
 router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
   const { name } = req.body;
   try {
+    const existing = await prisma.subCompany.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'SubCompany not found' });
+    const callerClientId = req.clientId || req.user.clientId;
+    if (callerClientId && existing.clientId !== callerClientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     const sub = await prisma.subCompany.update({ where: { id: req.params.id }, data: { name } });
     res.json(sub);
   } catch (error) {
@@ -51,6 +57,12 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
 // DELETE /api/sub-companies/:id
 router.delete('/:id', requirePermission('manage_companies'), async (req, res) => {
   try {
+    const existing = await prisma.subCompany.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'SubCompany not found' });
+    const callerClientId = req.clientId || req.user.clientId;
+    if (callerClientId && existing.clientId !== callerClientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     await prisma.subCompany.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {

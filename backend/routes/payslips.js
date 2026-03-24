@@ -46,8 +46,28 @@ router.get('/:id', async (req, res) => {
     const payslip = await prisma.payslip.findUnique({
       where: { id: req.params.id },
       include: {
-        employee: true,
-        payrollRun: { include: { company: true } },
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            employeeCode: true,
+            position: true,
+            department: { select: { name: true } },
+          },
+        },
+        payrollRun: {
+          include: {
+            company: {
+              select: {
+                id: true,
+                name: true,
+                tradingName: true,
+                registrationNumber: true,
+                currency: true,
+              },
+            },
+          },
+        },
       },
     });
 
