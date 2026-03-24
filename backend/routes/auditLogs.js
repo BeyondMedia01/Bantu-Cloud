@@ -1,10 +1,14 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const router = express.Router();
+const { authenticateToken } = require('../lib/auth');
+const { requirePermission } = require('../lib/permissions');
+
+// All audit log routes require authentication
+router.use(authenticateToken);
 
 // GET all Audit Logs for the company
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('view_reports'), async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
     const logs = await prisma.multiCurrencyAuditLog.findMany({

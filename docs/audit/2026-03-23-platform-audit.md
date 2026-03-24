@@ -261,25 +261,25 @@
 
 <!-- Task 3 Batches C-E: Statutory, Admin, Supporting routes sweep — 2026-03-23 -->
 
-### [Critical] `systemSettings.js` — all routes have no `authenticateToken` or permission guard
+### [Critical][FIXED] `systemSettings.js` — all routes have no `authenticateToken` or permission guard
 - **File**: `backend/routes/systemSettings.js:7`
 - **Domain**: Security
 - **Issue**: `systemSettings.js` instantiates its own `new PrismaClient()` and registers four routes (`GET /`, `POST /`, `PATCH /:id`, `DELETE /:id`) with zero authentication or authorisation middleware. Any unauthenticated HTTP request can read all system settings, create new settings, mutate existing ones (including rate values and flags used by the payroll engine), or delete them outright. This is the most critical finding in the codebase — a fully open admin data endpoint.
 - **Fix**: Add `authenticateToken` and `requireRole('PLATFORM_ADMIN')` (or at minimum `requirePermission('update_settings')`) to all four handlers, matching the pattern in `admin.js`. Also replace the local `new PrismaClient()` instance with the shared `require('../lib/prisma')` singleton.
 
-### [High] `taxBands.js` — all routes have no authentication or authorisation middleware
+### [High][FIXED] `taxBands.js` — all routes have no authentication or authorisation middleware
 - **File**: `backend/routes/taxBands.js:7`
 - **Domain**: Security
 - **Issue**: All four handlers (`GET /`, `POST /`, `PUT /:id`, `DELETE /:id`) are registered with no `authenticateToken` or permission check. Any unauthenticated caller can read, create, update, or delete tax band configuration that directly feeds the payroll tax engine. The file also instantiates its own `new PrismaClient()` rather than the shared singleton.
 - **Fix**: Add `authenticateToken` at router level and `requirePermission('update_settings')` on the mutation handlers, consistent with `taxTables.js`. Replace `new PrismaClient()` with `require('../lib/prisma')`.
 
-### [High] `auditLogs.js` — all routes have no authentication or authorisation middleware
+### [High][FIXED] `auditLogs.js` — all routes have no authentication or authorisation middleware
 - **File**: `backend/routes/auditLogs.js:7`
 - **Domain**: Security
 - **Issue**: Both `GET /` and `POST /` handlers have no `authenticateToken` or permission middleware. Any unauthenticated caller can read all multi-currency audit log entries for any company (by supplying `x-company-id` header), or inject arbitrary audit log records. The file also creates its own `new PrismaClient()` instance.
 - **Fix**: Add `authenticateToken` and at minimum `requirePermission('view_reports')` on `GET /`. Restrict or remove `POST /` from the public API surface — audit entries should only be created internally by the application.
 
-### [High] `payrollUsers.js` — all routes have no authentication or authorisation middleware
+### [High][FIXED] `payrollUsers.js` — all routes have no authentication or authorisation middleware
 - **File**: `backend/routes/payrollUsers.js:7`
 - **Domain**: Security
 - **Issue**: All four handlers (`GET /`, `POST /`, `PATCH /:id`, `DELETE /:id`) have no `authenticateToken` or permission check. Any unauthenticated caller can enumerate payroll user accounts for any company, create new payroll users with ADMIN role and all permissions, or delete existing users. The file uses its own `new PrismaClient()` instance.

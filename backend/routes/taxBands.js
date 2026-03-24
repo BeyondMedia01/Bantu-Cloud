@@ -1,7 +1,11 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const router = express.Router();
+const { authenticateToken } = require('../lib/auth');
+const { requirePermission } = require('../lib/permissions');
+
+// All tax band routes require authentication
+router.use(authenticateToken);
 
 // GET all TaxBands
 router.get('/', async (req, res) => {
@@ -16,7 +20,7 @@ router.get('/', async (req, res) => {
 });
 
 // CREATE a new TaxBand
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('update_settings'), async (req, res) => {
   try {
     const band = await prisma.taxBand.create({
       data: {
@@ -31,7 +35,7 @@ router.post('/', async (req, res) => {
 });
 
 // UPDATE a TaxBand
-router.put('/:id', async (req, res) => {
+router.put('/:id', requirePermission('update_settings'), async (req, res) => {
   try {
     const band = await prisma.taxBand.update({
       where: { id: req.params.id },
@@ -47,7 +51,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE a TaxBand
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('update_settings'), async (req, res) => {
   try {
     await prisma.taxBand.delete({
       where: { id: req.params.id }
