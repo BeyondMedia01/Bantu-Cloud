@@ -58,8 +58,21 @@ const Reports: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
       showToast(`${filename} generated successfully`, 'success');
-    } catch {
-      showToast('Failed to generate report.', 'error');
+    } catch (err: unknown) {
+      // When responseType:'blob', error response bodies arrive as Blobs — read them back to JSON
+      const axiosErr = err as { response?: { data?: Blob | { message?: string } } };
+      const errData = axiosErr?.response?.data;
+      if (errData instanceof Blob) {
+        try {
+          const text = await errData.text();
+          const json = JSON.parse(text);
+          showToast(json.message || 'Failed to generate report.', 'error');
+        } catch {
+          showToast('Failed to generate report.', 'error');
+        }
+      } else {
+        showToast(errData?.message || 'Failed to generate report.', 'error');
+      }
     } finally {
       setDownloading(null);
     }

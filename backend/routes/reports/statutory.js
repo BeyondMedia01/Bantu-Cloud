@@ -16,6 +16,39 @@ const {
 
 const router = express.Router({ mergeParams: true });
 
+// ─── Shared helper ────────────────────────────────────────────────────────────
+// Build a Prisma payrollRun filter that matches by payrollCalendar year/month
+// OR (for runs not linked to a calendar) by startDate falling in that month.
+// This prevents 404s when runs were created without a PayrollCalendar link.
+function runPeriodFilter(companyId, year, month) {
+  const y = parseInt(year);
+  const m = parseInt(month);
+  const periodStart = new Date(y, m - 1, 1);   // first day of month
+  const periodEnd   = new Date(y, m, 1);        // first day of next month
+  return {
+    companyId,
+    status: 'COMPLETED',
+    OR: [
+      { payrollCalendar: { year: y, month: m } },
+      { payrollCalendarId: null, startDate: { gte: periodStart, lt: periodEnd } },
+    ],
+  };
+}
+
+function yearPeriodFilter(companyId, year) {
+  const y = parseInt(year);
+  const yearStart = new Date(y, 0, 1);
+  const yearEnd   = new Date(y + 1, 0, 1);
+  return {
+    companyId,
+    status: 'COMPLETED',
+    OR: [
+      { payrollCalendar: { year: y } },
+      { payrollCalendarId: null, startDate: { gte: yearStart, lt: yearEnd } },
+    ],
+  };
+}
+
 // ─── Tax Report (P16) ─────────────────────────────────────────────────────────
 
 // GET /api/reports/tax?year=&format=pdf|json
@@ -27,13 +60,7 @@ router.get('/tax', requirePermission('export_reports'), async (req, res) => {
   try {
     const payslips = await prisma.payslip.findMany({
       where: {
-        payrollRun: {
-          companyId: targetCompanyId,
-          payrollCalendar: {
-            year: parseInt(year) || new Date().getFullYear(),
-          },
-          status: 'COMPLETED',
-        },
+        payrollRun: yearPeriodFilter(targetCompanyId, year || new Date().getFullYear()),
       },
       include: {
         employee: true,
@@ -98,14 +125,7 @@ router.get('/p2', requirePermission('export_reports'), async (req, res) => {
   try {
     const payslips = await prisma.payslip.findMany({
       where: {
-        payrollRun: {
-          companyId: targetCompanyId,
-          payrollCalendar: {
-            year: parseInt(year),
-            month: parseInt(month),
-          },
-          status: 'COMPLETED',
-        },
+        payrollRun: runPeriodFilter(targetCompanyId, year, month),
       },
       include: { payrollRun: { include: { company: true } } },
     });
@@ -113,7 +133,7 @@ router.get('/p2', requirePermission('export_reports'), async (req, res) => {
     if (payslips.length === 0) return res.status(404).json({ message: 'No completed payroll data for this period' });
 
     const company = payslips[0].payrollRun.company;
-    
+
     // Group totals by currency
     const byCurrency = payslips.reduce((acc, ps) => {
       const curr = ps.currency || 'USD';
@@ -161,14 +181,7 @@ router.get('/nssa-p4a', requirePermission('export_reports'), async (req, res) =>
   try {
     const payslips = await prisma.payslip.findMany({
       where: {
-        payrollRun: {
-          companyId: targetCompanyId,
-          payrollCalendar: {
-            year: parseInt(year),
-            month: parseInt(month),
-          },
-          status: 'COMPLETED',
-        },
+        payrollRun: runPeriodFilter(targetCompanyId, year, month),
       },
       include: { payrollRun: { include: { company: true } } },
     });
@@ -478,11 +491,7 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req,
     // ── 1. Fetch payslips + employee + transactions ───────────────────────────
     const payslips = await prisma.payslip.findMany({
       where: {
-        payrollRun: {
-          companyId,
-          payrollCalendar: { year: parseInt(year), month: parseInt(month) },
-          status: 'COMPLETED',
-        },
+        payrollRun: runPeriodFilter(companyId, year, month),
       },
       include: {
         employee: { select: { tin: true, idPassport: true, firstName: true, lastName: true, currency: true } },
@@ -878,14 +887,7 @@ router.get('/nssa-p4a-excel', requirePermission('export_reports'), async (req, r
 
     const payslips = await prisma.payslip.findMany({
       where: {
-        payrollRun: {
-          companyId: targetCompanyId,
-          payrollCalendar: {
-            year: parseInt(year),
-            month: parseInt(month),
-          },
-          status: 'COMPLETED',
-        },
+        payrollRun: runPeriodFilter(targetCompanyId, year, month),
       },
       include: {
         employee: {
