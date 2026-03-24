@@ -235,17 +235,19 @@
 
 <!-- Task 4: Tax engine and payroll logic sweep — 2026-03-23 -->
 
-### [High][MANUAL] YTD boundary uses calendar year (January 1) instead of Zimbabwe tax year (April 1)
+### [High][MANUAL][FIXED] YTD boundary uses calendar year (January 1) instead of Zimbabwe tax year (April 1)
 - **File**: `backend/utils/payslipFormatter.js:96`, `backend/routes/payroll.js:618`
 - **Domain**: Business Logic
 - **Issue**: The YTD accumulation window is anchored to `new Date(year, 0, 1)` — January 1 of the calendar year — in both `payslipFormatter.js` (YTD on printed payslips) and `payroll.js` (FDS_AVERAGE gross accumulation). Zimbabwe's tax year runs April 1 – March 31. Using a January 1 reset means Q1 payslips (Jan–Mar) carry forward tax-year amounts from the prior April–December into the new calendar year's YTD, and FDS_AVERAGE employees' running average resets three months early. This produces incorrect cumulative PAYE figures on payslips and an incorrect average PAYE base for FDS_AVERAGE employees in January–March.
 - **Fix**: Replace `new Date(year, 0, 1)` with a helper that computes the Zimbabwe tax year start: if the run month is January–March, the tax year started April 1 of the previous year; otherwise April 1 of the current year. Apply the same fix to both call sites. `MANUAL` — confirm with client whether any companies operate under a non-April tax year (ZIMRA allows alternate fiscal year applications).
+- **Resolution (2026-03-24)**: Added `getYtdStartDate(payrollRunDate, companyFirstPayrollDate)` to `ytdCalculator.js`. YTD window = MAX(April 1 of current Zimbabwe tax year, company's earliest payroll run date). Applied to both `payslipFormatter.js` (payslip YTD) and the FDS_AVERAGE accumulation in `payroll.js` `/process` route.
 
-### [High][MANUAL] NSSA ceiling hardcoded fallback in `taxEngine.js` — no external config enforced at engine level
+### [High][MANUAL][FIXED] NSSA ceiling hardcoded fallback in `taxEngine.js` — no external config enforced at engine level
 - **File**: `backend/utils/taxEngine.js:18`
 - **Domain**: Business Logic
 - **Issue**: `DEFAULT_NSSA_CEILING = { USD: 700, ZiG: 20000 }` is hardcoded in the engine as a last-resort fallback. If a caller omits `nssaCeiling` (e.g., a future integration or unit test that does not pass all SystemSettings values), the engine silently uses the hardcoded value regardless of the current statutory ceiling. The `payroll.js` process route does correctly read `NSSA_CEILING_USD`/`NSSA_CEILING_ZIG` from SystemSettings and pass them through, but the preview route (`/preview`) only reads `NSSA_CEILING_USD` and passes no ZiG ceiling. If a ZiG preview is run, the engine falls back to the hardcoded 20,000 ZiG ceiling.
 - **Fix**: In the `/preview` handler, also read `NSSA_CEILING_ZIG` from SystemSettings and pass the appropriate value based on `currency`. For the engine default, document prominently that `DEFAULT_NSSA_CEILING` must be updated whenever ZIMRA revises the ceiling. `MANUAL` — verify current statutory NSSA ceiling values against latest ZIMRA circular.
+- **Resolution (2026-03-24)**: In the `/preview` route, ZiG NSSA ceiling is now computed dynamically as `NSSA_CEILING_USD × most recent USD→ZiG rate` from the `CurrencyRate` table (for the company, ordered by `effectiveDate` desc). Falls back to the `NSSA_CEILING_ZIG` SystemSetting if no rate record exists. Hardcoded 20,000 ZiG value is no longer used in preview.
 
 ### [Medium] Tax engine applies no rounding to PAYE, AIDS levy, or NSSA outputs — floating-point drift accumulates across employees
 - **File**: `backend/utils/taxEngine.js:171-224`

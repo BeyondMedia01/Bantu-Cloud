@@ -7,7 +7,7 @@ const { getSettingAsNumber } = require('../lib/systemSettings');
 const { audit } = require('../lib/audit');
 const { validateBody } = require('../lib/validate');
 const { sendPayslip } = require('../lib/mailer');
-const { calculateYTD } = require('../utils/ytdCalculator');
+const { getYtdStartDate } = require('../utils/ytdCalculator');
 const { payslipToBuffer, buildPayslipLineItems } = require('../utils/payslipFormatter');
 
 const router = express.Router();
@@ -170,7 +170,30 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
     const previewAidsLevyRate = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
     const previewMedicalAidCreditRate = await getSettingAsNumber('MEDICAL_AID_CREDIT_RATE', 50) / 100;
     const previewNssaEmployeeRate = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;
-    const previewNssaCeiling = await getSettingAsNumber('NSSA_CEILING_USD', 700);
+    const previewNssaCeilingUSD = await getSettingAsNumber('NSSA_CEILING_USD', 700);
+
+    // For ZiG payrolls, derive the NSSA ceiling dynamically from the RBZ prevailing rate:
+    // ZiG ceiling = USD ceiling (700) × most recent USD→ZiG rate for this company.
+    // This mirrors the logic used in the /process route (which reads from SystemSettings)
+    // but uses the live CurrencyRate table so that the preview always reflects today's rate.
+    let previewNssaCeiling = previewNssaCeilingUSD;
+    if (currency === 'ZiG' && req.companyId) {
+      const latestRate = await prisma.currencyRate.findFirst({
+        where: {
+          companyId: req.companyId,
+          fromCurrency: 'USD',
+          toCurrency: 'ZiG',
+          effectiveDate: { lte: new Date() },
+        },
+        orderBy: { effectiveDate: 'desc' },
+      });
+      if (latestRate) {
+        previewNssaCeiling = previewNssaCeilingUSD * latestRate.rate;
+      } else {
+        // Fall back to the stored ZiG ceiling setting if no rate record exists
+        previewNssaCeiling = await getSettingAsNumber('NSSA_CEILING_ZIG', 20000);
+      }
+    }
 
     const byEmployee = {};
     for (const inp of inputs) {
@@ -617,8 +640,13 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const fdsYtdByEmployee = {};
     if (fdsAvgEmpIds.length > 0) {
-      const taxYear = new Date(run.startDate).getFullYear();
-      const yearStart = new Date(taxYear, 0, 1);
+      // Use Zimbabwe tax year boundary (April 1), adjusted for mid-year company starts
+      const firstRunRecord = await prisma.payrollRun.findFirst({
+        where: { companyId: run.companyId },
+        orderBy: { startDate: 'asc' },
+        select: { startDate: true },
+      });
+      const yearStart = getYtdStartDate(run.startDate, firstRunRecord?.startDate ?? null);
       const ytdPayslips = await prisma.payslip.findMany({
         where: {
           employeeId: { in: fdsAvgEmpIds },
