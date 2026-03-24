@@ -83,7 +83,7 @@ router.get('/:id', async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    res.json(payslip);
+    res.json({ data: payslip });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

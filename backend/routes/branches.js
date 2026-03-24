@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
       include: { departments: true, _count: { select: { employees: true } } },
       orderBy: { name: 'asc' },
     });
-    res.json(branches);
+    res.json({ data: branches });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
     if (req.companyId && branch.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json(branch);
+    res.json({ data: branch });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -69,7 +69,7 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
     }
 
     const branch = await prisma.branch.update({ where: { id: req.params.id }, data: { name, subCompanyId } });
-    res.json(branch);
+    res.json({ data: branch });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Branch not found' });
     console.error(error);

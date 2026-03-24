@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
       }),
       prisma.employee.count({ where: { companyId: req.companyId } }),
     ]);
-    res.json(runs.map((r) => ({ ...r, employeeCount })));
+    res.json({ data: runs.map((r) => ({ ...r, employeeCount })) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -113,7 +113,7 @@ router.post(
 
 router.post('/preview', requirePermission('process_payroll'), async (req, res) => {
   const { inputs, currency = 'USD' } = req.body;
-  if (!inputs?.length) return res.json([]);
+  if (!inputs?.length) return res.json({ data: [] });
 
   try {
     // Period-lock check (date-based fallback)
@@ -249,7 +249,7 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
       });
     }
 
-    res.json(results);
+    res.json({ data: results });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -1568,7 +1568,7 @@ router.get('/:runId', async (req, res) => {
     });
     if (!run) return res.status(404).json({ message: 'Payroll run not found' });
     if (req.companyId && run.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
-    res.json(run);
+    res.json({ data: run });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -1626,7 +1626,7 @@ router.put('/:runId', requirePermission('approve_payroll'), async (req, res) => 
       await audit({ req, action: `PAYROLL_STATUS_${status}`, resource: 'payroll_run', resourceId: run.id });
     }
 
-    res.json(updated);
+    res.json({ data: updated });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Payroll run not found' });
     console.error(error);
@@ -1708,7 +1708,7 @@ router.get('/:runId/payslips', async (req, res) => {
       };
     });
 
-    res.json(result);
+    res.json({ data: result });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

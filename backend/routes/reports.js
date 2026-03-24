@@ -53,7 +53,7 @@ router.get('/payslips', requirePermission('view_reports'), async (req, res) => {
       return res.send(header + rows);
     }
 
-    res.json(payslips);
+    res.json({ data: payslips });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -122,7 +122,7 @@ router.get('/tax', requirePermission('export_reports'), async (req, res) => {
       return generateP16PDF({ company: firstCompany, year: year || new Date().getFullYear(), rows: data }, res);
     }
 
-    res.json(data);
+    res.json({ data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -168,7 +168,7 @@ router.get('/leave', requirePermission('view_reports'), async (req, res) => {
       return res.send(header + rows);
     }
 
-    res.json(records);
+    res.json({ data: records });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -214,7 +214,7 @@ router.get('/loans', requirePermission('view_reports'), async (req, res) => {
       return res.send(header + rows);
     }
 
-    res.json(loans);
+    res.json({ data: loans });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -238,7 +238,7 @@ router.get('/departments', requirePermission('view_reports'), async (req, res) =
       orderBy: { name: 'asc' },
     });
 
-    res.json(departments);
+    res.json({ data: departments });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -280,7 +280,7 @@ router.get('/journals', requirePermission('view_reports'), async (req, res) => {
       return res.send(header + rows);
     }
 
-    res.json(transactions);
+    res.json({ data: transactions });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -321,7 +321,7 @@ router.get('/summary', requirePermission('view_reports'), async (req, res) => {
       currentRun.name = `${getFormattedDate(currentRun.startDate)} - ${getFormattedDate(currentRun.endDate)}`;
     }
 
-    res.json({ employeeCount, lastRun, pendingLeave, activeLoans, currentRun, noTinCount, noBankCount });
+    res.json({ data: { employeeCount, lastRun, pendingLeave, activeLoans, currentRun, noTinCount, noBankCount } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -356,7 +356,7 @@ router.get('/payroll-trend', requirePermission('view_reports'), async (req, res)
       };
     });
 
-    res.json(data);
+    res.json({ data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -925,7 +925,7 @@ router.get('/variance', requirePermission('view_reports'), async (req, res) => {
       return res.send(header + rows);
     }
 
-    res.json(data);
+    res.json({ data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

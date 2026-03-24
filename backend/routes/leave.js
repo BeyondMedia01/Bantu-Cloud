@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
       }),
     ]);
 
-    res.json({ records, requests });
+    res.json({ data: { records, requests } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -148,7 +148,7 @@ router.get('/:id', async (req, res) => {
     if (req.companyId && record.employee?.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json(record);
+    res.json({ data: record });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -179,7 +179,7 @@ router.put('/:id', requirePermission('manage_leave'), async (req, res) => {
         ...(status && { status }),
       },
     });
-    res.json(record);
+    res.json({ data: record });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Leave record not found' });
     console.error(error);
@@ -265,7 +265,7 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), async (re
       details: { employeeId: request.employeeId, days: request.days },
     });
 
-    res.json(request);
+    res.json({ data: request });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Leave request not found' });
     if (error.statusCode === 400) return res.status(400).json({ message: error.message });
@@ -299,7 +299,7 @@ router.put('/request/:id/reject', requirePermission('reject_leave'), async (req,
       details: { employeeId: request.employeeId, note: req.body.note },
     });
 
-    res.json(request);
+    res.json({ data: request });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Leave request not found' });
     console.error(error);

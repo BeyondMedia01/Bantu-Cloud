@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
       include: { _count: { select: { employees: true } } },
       orderBy: { name: 'asc' },
     });
-    res.json(departments);
+    res.json({ data: departments });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -52,7 +52,7 @@ router.get('/:id', async (req, res) => {
     if (req.companyId && dept.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json(dept);
+    res.json({ data: dept });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -70,7 +70,7 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
     }
 
     const dept = await prisma.department.update({ where: { id: req.params.id }, data: { name, branchId } });
-    res.json(dept);
+    res.json({ data: dept });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Department not found' });
     console.error(error);

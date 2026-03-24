@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(loans);
+    res.json({ data: loans });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -101,7 +101,7 @@ router.get('/:id', async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    res.json(loan);
+    res.json({ data: loan });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -138,7 +138,7 @@ router.put('/:id', requirePermission('manage_loans'), async (req, res) => {
       details: { status, repaymentMethod },
     });
 
-    res.json(loan);
+    res.json({ data: loan });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Loan not found' });
     console.error(error);
@@ -183,7 +183,7 @@ router.get('/:id/repayments', async (req, res) => {
       where: { loanId: req.params.id },
       orderBy: { dueDate: 'asc' },
     });
-    res.json(repayments);
+    res.json({ data: repayments });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -206,7 +206,7 @@ router.patch('/repayments/:id', requirePermission('manage_loans'), async (req, r
       where: { id: req.params.id },
       data: { status: 'PAID', paidDate: new Date() },
     });
-    res.json(repayment);
+    res.json({ data: repayment });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Repayment not found' });
     console.error(error);

@@ -497,11 +497,11 @@
 - **Issue**: The route file contains multi-step attendance processing logic (fetch → group by employee/date → call `attendanceEngine` → upsert records) inline from lines 195–283. This is orchestration logic that belongs in a service layer, not a route handler.
 - **Fix**: Move the processing pipeline into `services/attendanceService.js` and reduce the route handler to input validation, service invocation, and response serialisation.
 
-### [Medium][MANUAL] Inconsistent response envelope shapes across routes — more than 2 distinct shapes in use
+### [Medium][FIXED] Inconsistent response envelope shapes across routes — more than 2 distinct shapes in use
 - **File**: `backend/routes/*.js`
 - **Domain**: Code Quality
 - **Issue**: Routes return at least five structurally distinct JSON shapes: (1) raw model object (`res.json(user)`), (2) raw array (`res.json(employees)`), (3) `{ data, total, page, limit }` paginated envelope (attendance), (4) named root key without pagination (`{ clients, users, employees, aidsLevyRate }`), (5) `{ message }` plain string responses. Frontend consumers must handle each shape individually, and adding a new consumer (e.g., a mobile app or public API) requires reverse-engineering the contract for every endpoint. Shapes 3–5 represent three distinct variants beyond the first two, qualifying as a Medium finding each; consolidated here as one finding.
-- **Fix**: Adopt a single envelope contract — e.g. `{ data, meta: { total, page, limit } }` for collections and `{ data }` for single-resource responses — and roll it out route-by-route. A small helper `sendOk(res, data, meta)` avoids boilerplate. Document the contract in the API README.
+- **Fix**: Adopted a single envelope contract: `{ data }` for single resources and non-paginated lists, `{ data, total, page, limit }` for paginated lists, `{ success: true }` for DELETE mutations. Updated 12 priority route files (`employees`, `payroll`, `payslips`, `leave`, `loans`, `reports`, `companies`, `departments`, `branches`, `grades`, `transactions`, `dashboard`). Added an axios response interceptor in `frontend/src/api/client.ts` that automatically unwraps `{ data: X }` envelopes so all existing call sites remain unchanged.
 - **Note**: `MANUAL` — Changing envelope shapes is a breaking change — requires coordinated frontend+backend update.
 
 ### [Medium][FIXED] `jobProcessor.js` — no try/catch around async operations; errors propagate unhandled to the worker caller

@@ -89,10 +89,10 @@ router.get('/reminders', requirePermission('view_reports'), async (req, res) => 
       return getDist(a.date) - getDist(b.date);
     };
 
-    res.json({
+    res.json({ data: {
       birthdays: upcomingBirthdays.sort(sortReminders),
       anniversaries: upcomingAnniversaries.sort(sortReminders),
-    });
+    } });
   } catch (error) {
     console.error('Failed to fetch dashboard reminders:', error);
     res.status(500).json({ message: 'Internal server error' });
