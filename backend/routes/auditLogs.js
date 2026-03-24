@@ -28,11 +28,19 @@ router.get('/', requirePermission('view_reports'), async (req, res) => {
 router.post('/', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const { employeeId, payPeriod, action, currencyFrom, currencyTo, rateUsed, amountOriginal, amountConverted, notes } = req.body;
     const log = await prisma.multiCurrencyAuditLog.create({
       data: {
-        ...req.body,
+        employeeId,
+        action,
+        currencyFrom,
+        currencyTo,
+        rateUsed,
+        amountOriginal,
+        amountConverted,
+        notes,
         companyId: req.companyId,
-        payPeriod: new Date(req.body.payPeriod),
+        payPeriod: new Date(payPeriod),
         timestamp: new Date()
       }
     });

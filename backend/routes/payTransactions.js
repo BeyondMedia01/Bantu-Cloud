@@ -21,9 +21,17 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const { code, description, type, amount, currency, employeeId, payPeriod, notes } = req.body;
     const transaction = await prisma.payTransaction.create({
       data: {
-        ...req.body,
+        code,
+        description,
+        type,
+        amount,
+        currency,
+        employeeId,
+        payPeriod,
+        notes,
         companyId: req.companyId,
       }
     });
@@ -37,9 +45,24 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const existing = await prisma.payTransaction.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Transaction not found' });
+    if (existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const { code, description, type, amount, currency, payPeriod, notes } = req.body;
     const transaction = await prisma.payTransaction.update({
       where: { id: req.params.id },
-      data: req.body
+      data: {
+        ...(code !== undefined && { code }),
+        ...(description !== undefined && { description }),
+        ...(type !== undefined && { type }),
+        ...(amount !== undefined && { amount }),
+        ...(currency !== undefined && { currency }),
+        ...(payPeriod !== undefined && { payPeriod }),
+        ...(notes !== undefined && { notes }),
+      }
     });
     res.json(transaction);
   } catch (error) {
@@ -51,6 +74,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const existing = await prisma.payTransaction.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Transaction not found' });
+    if (existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.payTransaction.delete({
       where: { id: req.params.id }
     });

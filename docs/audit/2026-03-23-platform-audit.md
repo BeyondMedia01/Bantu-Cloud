@@ -40,7 +40,7 @@
 - **Issue**: `origin: process.env.FRONTEND_URL || 'http://localhost:5173'` means that if `FRONTEND_URL` is not set in a production environment, CORS will only allow `localhost:5173`. While this restricts rather than opens access, a misconfigured deployment would silently break the frontend and an operator might be tempted to switch to `origin: '*'` as a quick fix, which would be critical.
 - **Fix**: Add a startup assertion that `FRONTEND_URL` is set in non-development environments: `if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) { console.error('FATAL: FRONTEND_URL must be set in production'); process.exit(1); }`. Tag: `MANUAL` — confirm the correct production URL.
 
-### [Medium] companyContext permits unauthenticated access to req.user properties without guard
+### [Medium][FIXED] companyContext permits unauthenticated access to req.user properties without guard
 - **File**: `backend/middleware/companyContext.js:23`
 - **Domain**: Security
 - **Issue**: At line 23, `companyContext` destructures `req.user` unconditionally (`const { role, userId } = req.user;`) after checking `companyId` is present — but this block is only reached when `companyId` is set. If `companyContext` is ever inadvertently applied before `authenticateToken` (or on a route where `authenticateToken` is skipped), `req.user` will be `undefined` and the destructure will throw a runtime 500 error rather than returning a clean 401. The comment "Must run AFTER authenticateToken" is documentation-only with no programmatic enforcement.
@@ -90,20 +90,20 @@
 - **Issue**: Same pattern as `/tax`: `const targetCompanyId = companyId || req.companyId` with no ownership validation. The P2 return contains gross salary, PAYE, and AIDS levy figures for every employee in the target company — highly sensitive payroll financial data.
 - **Fix**: Same fix as `/tax` — drop the `companyId` query param and enforce `req.companyId`.
 
-### [Medium] `payslipTransactions.js` POST spreads `req.body` directly into Prisma `create` — mass-assignment risk
+### [Medium][FIXED] `payslipTransactions.js` POST spreads `req.body` directly into Prisma `create` — mass-assignment risk
 <!-- [included in higher tier — see [High] finding in Task 5: payslipTransactions.js POST mass-assignment] -->
 - **File**: `backend/routes/payslipTransactions.js:33`
 - **Domain**: Security
 - **Issue**: `data: { ...req.body, companyId: req.companyId, ... }` passes the entire request body to `prisma.payslipTransaction.create`. An attacker can inject unexpected fields (e.g., `id`, `companyId` overrides, internal flags) that Prisma will attempt to write if they exist on the model. The supplied `companyId` override at the end partially mitigates this for `companyId`, but all other fields are uncontrolled.
 - **Fix**: Destructure only the expected fields from `req.body` and build the `data` object explicitly, matching the pattern used in `payrollCore.js`.
 
-### [Medium] `payslipSummaries.js` POST/PUT spread `req.body` directly — mass-assignment risk
+### [Medium][FIXED] `payslipSummaries.js` POST/PUT spread `req.body` directly — mass-assignment risk
 - **File**: `backend/routes/payslipSummaries.js:28`
 - **Domain**: Security
 - **Issue**: `POST` uses `data: { ...req.body, companyId, payPeriod }` and `PUT` uses `data: req.body` with no field filtering. The `PUT /:id` handler additionally performs no ownership check — any authenticated user with `companyId` header can update any `PayslipSummary` record by ID regardless of which company it belongs to.
 - **Fix**: Whitelist fields in both handlers. Add an ownership lookup in `PUT /:id`: fetch the record, verify `record.companyId === req.companyId`, and return 403 if not.
 
-### [Medium] `payTransactions.js` POST/PUT spread `req.body` with no validation — mass-assignment risk
+### [Medium][FIXED] `payTransactions.js` POST/PUT spread `req.body` with no validation — mass-assignment risk
 - **File**: `backend/routes/payTransactions.js:26`
 - **Domain**: Security
 - **Issue**: `POST` uses `data: { ...req.body, companyId }` and `PUT /:id` uses `data: req.body` with no field whitelist. The `PUT` also has no ownership check — any company user can overwrite any `PayTransaction` record by ID. The `DELETE /:id` also has no ownership check.
@@ -327,28 +327,28 @@
 - **Issue**: `prisma.publicHoliday.delete({ where: { id: req.params.id } })` is called without verifying the holiday record belongs to the caller's scope. Any `update_settings` user can delete any public holiday record.
 - **Fix**: Fetch the holiday first and verify it before deleting. If public holidays are global (not per-client), add a `PLATFORM_ADMIN` guard instead.
 
-### [Medium] `taxBands.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
+### [Medium][FIXED] `taxBands.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
 <!-- [included in higher tier — see [High] finding above: taxBands.js all routes have no authentication or authorisation middleware] -->
 - **File**: `backend/routes/taxBands.js:21`
 - **Domain**: Security
 - **Issue**: `data: { ...req.body, effectiveFrom: ... }` passes the entire body to `prisma.taxBand.create`. Any field on the `TaxBand` model (including internal IDs or flags) can be set by the caller.
 - **Fix**: Destructure only the expected fields (`bandNumber`, `description`, `lowerLimit`, `upperLimit`, `rate`, `fixedAmount`, `effectiveFrom`) from `req.body`.
 
-### [Medium] `auditLogs.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
+### [Medium][FIXED] `auditLogs.js` `POST /` spreads `req.body` into Prisma `create` — mass-assignment
 <!-- [included in higher tier — see [High] finding above: auditLogs.js all routes have no authentication or authorisation middleware] -->
 - **File**: `backend/routes/auditLogs.js:27`
 - **Domain**: Security
 - **Issue**: `data: { ...req.body, companyId, payPeriod, timestamp }` — the full request body is spread in, meaning a caller can set arbitrary `MultiCurrencyAuditLog` fields including internal relations.
 - **Fix**: Whitelist the expected fields from `req.body` before creating. Ideally remove this public `POST /` endpoint entirely and create audit log entries only from server-side logic.
 
-### [Medium] `systemSettings.js` `PATCH /:id` accepts `lastUpdatedBy` from `req.body` — caller can spoof audit attribution
+### [Medium][FIXED] `systemSettings.js` `PATCH /:id` accepts `lastUpdatedBy` from `req.body` — caller can spoof audit attribution
 <!-- [included in higher tier — see [Critical] finding above: systemSettings.js all routes have no authenticateToken or permission guard] -->
 - **File**: `backend/routes/systemSettings.js:55`
 - **Domain**: Security
 - **Issue**: `lastUpdatedBy` is read directly from `req.body` and written to the record. Any caller (even unauthenticated, given the lack of auth middleware) can set this field to an arbitrary string, spoofing the attribution of the change in the audit trail.
 - **Fix**: Derive `lastUpdatedBy` from `req.user?.email || req.user?.userId` (server-side), never from the request body.
 
-### [Medium] `payrollUsers.js` `POST /` — `createdBy` field accepted from `req.body`, enabling audit spoofing
+### [Medium][FIXED] `payrollUsers.js` `POST /` — `createdBy` field accepted from `req.body`, enabling audit spoofing
 <!-- [included in higher tier — see [High] finding above: payrollUsers.js all routes have no authentication or authorisation middleware] -->
 - **File**: `backend/routes/payrollUsers.js:38`
 - **Domain**: Security

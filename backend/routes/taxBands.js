@@ -22,10 +22,16 @@ router.get('/', async (req, res) => {
 // CREATE a new TaxBand
 router.post('/', requirePermission('update_settings'), async (req, res) => {
   try {
+    const { bandNumber, description, lowerLimit, upperLimit, rate, fixedAmount, effectiveFrom } = req.body;
     const band = await prisma.taxBand.create({
       data: {
-        ...req.body,
-        effectiveFrom: req.body.effectiveFrom ? new Date(req.body.effectiveFrom) : undefined
+        bandNumber,
+        description,
+        lowerLimit,
+        upperLimit,
+        rate,
+        fixedAmount,
+        effectiveFrom: effectiveFrom ? new Date(effectiveFrom) : undefined
       }
     });
     res.json(band);

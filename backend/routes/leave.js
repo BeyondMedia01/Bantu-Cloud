@@ -45,6 +45,17 @@ router.get('/', async (req, res) => {
 // POST /api/leave — create a leave record (CLIENT_ADMIN) or request (EMPLOYEE)
 router.post('/', async (req, res) => {
   const { employeeId, type, startDate, endDate, totalDays, days, reason } = req.body;
+  const daysValue = parseFloat(days || totalDays);
+
+  // Validate required fields for EMPLOYEE self-service path
+  if (req.user.role === 'EMPLOYEE') {
+    if (!startDate || !endDate || (!days && !totalDays)) {
+      return res.status(400).json({ error: 'Missing required fields: startDate, endDate, days' });
+    }
+    if (isNaN(daysValue) || daysValue <= 0) {
+      return res.status(400).json({ error: 'days must be a positive number' });
+    }
+  }
 
   try {
     if (req.user.role === 'EMPLOYEE') {
@@ -58,7 +69,7 @@ router.post('/', async (req, res) => {
           type: type || 'ANNUAL',
           startDate: new Date(startDate),
           endDate: new Date(endDate),
-          days: parseFloat(days || totalDays),
+          days: daysValue,
           reason,
         },
       });

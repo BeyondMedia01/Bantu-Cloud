@@ -62,7 +62,6 @@ router.patch('/:id', requirePermission('update_settings'), async (req, res) => {
     settingValue,
     isActive,
     description,
-    lastUpdatedBy
   } = req.body;
 
   try {
@@ -71,13 +70,15 @@ router.patch('/:id', requirePermission('update_settings'), async (req, res) => {
       return res.status(404).json({ error: 'Setting not found' });
     }
 
+    const lastUpdatedBy = req.user?.email || req.user?.userId || 'system';
+
     const updatedSetting = await prisma.systemSetting.update({
       where: { id },
       data: {
         ...(settingValue !== undefined && { settingValue: String(settingValue) }),
         ...(isActive !== undefined && { isActive }),
         ...(description !== undefined && { description }),
-        ...(lastUpdatedBy !== undefined && { lastUpdatedBy }),
+        lastUpdatedBy,
       }
     });
     res.json(updatedSetting);

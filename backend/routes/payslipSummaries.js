@@ -24,11 +24,19 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const { employeeId, payPeriod, grossSalary, netSalary, totalDeductions, totalEarnings, currency, status, notes } = req.body;
     const summary = await prisma.payslipSummary.create({
       data: {
-        ...req.body,
+        employeeId,
+        grossSalary,
+        netSalary,
+        totalDeductions,
+        totalEarnings,
+        currency,
+        status,
+        notes,
         companyId: req.companyId,
-        payPeriod: new Date(req.body.payPeriod)
+        payPeriod: new Date(payPeriod)
       }
     });
     res.json(summary);
@@ -41,9 +49,24 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const existing = await prisma.payslipSummary.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Summary not found' });
+    if (existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const { grossSalary, netSalary, totalDeductions, totalEarnings, currency, status, notes } = req.body;
     const summary = await prisma.payslipSummary.update({
       where: { id: req.params.id },
-      data: req.body
+      data: {
+        ...(grossSalary !== undefined && { grossSalary }),
+        ...(netSalary !== undefined && { netSalary }),
+        ...(totalDeductions !== undefined && { totalDeductions }),
+        ...(totalEarnings !== undefined && { totalEarnings }),
+        ...(currency !== undefined && { currency }),
+        ...(status !== undefined && { status }),
+        ...(notes !== undefined && { notes }),
+      }
     });
     res.json(summary);
   } catch (error) {

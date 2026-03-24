@@ -39,9 +39,10 @@ router.post('/', requirePermission('manage_users'), async (req, res) => {
     canEditEmployees,
     canViewReports,
     canExportData,
-    createdBy,
     notes
   } = req.body;
+
+  const createdBy = req.user?.email || req.user?.userId || 'system';
 
   // If role is ADMIN, force all permissions to true
   const isAdmin = role === 'ADMIN';
