@@ -1,5 +1,6 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
+const { requirePermission } = require('../lib/permissions');
 const router = express.Router();
 
 /**
@@ -9,7 +10,7 @@ const router = express.Router();
  *
  * Query params: year, month (1-12), companyId (optional override)
  */
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('view_reports'), async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
 
   const year  = parseInt(req.query.year  || new Date().getFullYear());

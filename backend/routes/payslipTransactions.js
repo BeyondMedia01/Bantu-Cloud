@@ -25,18 +25,23 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    // Destructure only expected fields to prevent mass-assignment
+    const { employeeId, transactionId, currency, payPeriod, notes } = req.body;
     const amountOriginal = parseFloat(req.body.amountOriginal);
     const rateToUSD = parseFloat(req.body.rateToUSD);
     const amountInUSD = amountOriginal * rateToUSD;
 
     const transaction = await prisma.payslipTransaction.create({
       data: {
-        ...req.body,
         companyId: req.companyId,
+        employeeId,
+        transactionId,
+        currency,
         amountOriginal,
         rateToUSD,
         amountInUSD,
-        payPeriod: new Date(req.body.payPeriod)
+        payPeriod: new Date(payPeriod),
+        notes,
       }
     });
     res.json(transaction);
@@ -49,6 +54,12 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const existing = await prisma.payslipTransaction.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Transaction not found' });
+    if (existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.payslipTransaction.delete({
       where: { id: req.params.id }
     });

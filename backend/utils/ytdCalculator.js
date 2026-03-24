@@ -1,6 +1,6 @@
 /**
  * Calculates Year-To-Date (YTD) totals for a payslip and its transactions.
- * 
+ *
  * @param {Object} params
  * @param {Object} params.currentPayslip - Current payslip record
  * @param {Array} params.historicalPayslips - Previous payslips in the same tax year
@@ -9,7 +9,7 @@
  */
 function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions, historicalTransactions }) {
   const ytdMap = {};
-  
+
   const ytdStat = {
     basicSalary: currentPayslip.basicSalaryApplied || 0,
     paye: currentPayslip.paye || 0,
@@ -51,4 +51,41 @@ function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions,
   return { ytdMap, ytdStat };
 }
 
-module.exports = { calculateYTD };
+/**
+ * Returns the YTD window start date for Zimbabwe payroll.
+ *
+ * Business rule (confirmed with client):
+ *   - Zimbabwe tax year starts April 1.
+ *   - If a company's first payroll run was after April 1 (e.g. a company that
+ *     started mid-year), YTD accumulates from that first run date — not from
+ *     April 1 — to avoid phantom zero months.
+ *   - YTD start = MAX(April 1 of the current tax year, companyFirstPayrollDate)
+ *
+ * @param {Date|string} payrollRunDate       - The startDate of the current payroll run.
+ * @param {Date|string|null} companyFirstPayrollDate - The earliest payroll run startDate
+ *                                             for this company (may be null for legacy data).
+ * @returns {Date}
+ */
+function getYtdStartDate(payrollRunDate, companyFirstPayrollDate) {
+  const runDate = new Date(payrollRunDate);
+
+  // April 1 of the Zimbabwe tax year that contains runDate.
+  // Jan–Mar belong to the tax year that started the previous April.
+  let taxYearStart = new Date(runDate.getFullYear(), 3, 1); // April 1 of current calendar year
+  if (runDate < taxYearStart) {
+    // We're in Jan–Mar: tax year started April 1 of last calendar year
+    taxYearStart = new Date(runDate.getFullYear() - 1, 3, 1);
+  }
+
+  if (companyFirstPayrollDate) {
+    const firstRun = new Date(companyFirstPayrollDate);
+    // If the company's first run was after the tax year start, use that date
+    if (firstRun > taxYearStart) {
+      return firstRun;
+    }
+  }
+
+  return taxYearStart;
+}
+
+module.exports = { calculateYTD, getYtdStartDate };

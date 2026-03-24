@@ -7,7 +7,7 @@ const { getSettingAsNumber } = require('../lib/systemSettings');
 const { audit } = require('../lib/audit');
 const { validateBody } = require('../lib/validate');
 const { sendPayslip } = require('../lib/mailer');
-const { calculateYTD } = require('../utils/ytdCalculator');
+const { getYtdStartDate } = require('../utils/ytdCalculator');
 const { payslipToBuffer, buildPayslipLineItems } = require('../utils/payslipFormatter');
 
 const router = express.Router();
@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
       }),
       prisma.employee.count({ where: { companyId: req.companyId } }),
     ]);
-    res.json(runs.map((r) => ({ ...r, employeeCount })));
+    res.json({ data: runs.map((r) => ({ ...r, employeeCount })) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -112,25 +112,24 @@ router.post(
 // Note: must be declared BEFORE /:runId routes so "preview" isn't treated as a runId.
 
 router.post('/preview', requirePermission('process_payroll'), async (req, res) => {
-  // Period-lock check (date-based fallback)
-  const overlappingClosedCal = await prisma.payrollCalendar.findFirst({
-    where: {
-      clientId: req.clientId,
-      isClosed: true,
-      startDate: { lte: new Date() }, // Preview is usually for current date, but we don't have a fixed period in body always
-      // If period is provided in body, use it.
-      ...(req.body.period && {
-        startDate: { lte: new Date(req.body.period + '-31') },
-        endDate: { gte: new Date(req.body.period + '-01') },
-      })
-    },
-  });
-  if (overlappingClosedCal) return res.status(400).json({ message: 'This period is closed' });
-
   const { inputs, currency = 'USD' } = req.body;
-  if (!inputs?.length) return res.json([]);
+  if (!inputs?.length) return res.json({ data: [] });
 
   try {
+    // Period-lock check (date-based fallback)
+    const overlappingClosedCal = await prisma.payrollCalendar.findFirst({
+      where: {
+        clientId: req.clientId,
+        isClosed: true,
+        startDate: { lte: new Date() }, // Preview is usually for current date, but we don't have a fixed period in body always
+        // If period is provided in body, use it.
+        ...(req.body.period && {
+          startDate: { lte: new Date(req.body.period + '-31') },
+          endDate: { gte: new Date(req.body.period + '-01') },
+        })
+      },
+    });
+    if (overlappingClosedCal) return res.status(400).json({ message: 'This period is closed' });
     const tcIds = [...new Set(inputs.map((i) => i.transactionCodeId))];
     const tcs = await prisma.transactionCode.findMany({
       where: { id: { in: tcIds } },
@@ -164,10 +163,37 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
     const taxBrackets = taxTable?.brackets ?? [];
     const annualBrackets = taxBrackets.length > 0 && (taxTable?.isAnnual ?? true);
 
+    if (!taxBrackets || taxBrackets.length === 0) {
+      return res.status(422).json({ error: 'No tax brackets configured for this company' })
+    }
+
     const previewAidsLevyRate = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
     const previewMedicalAidCreditRate = await getSettingAsNumber('MEDICAL_AID_CREDIT_RATE', 50) / 100;
     const previewNssaEmployeeRate = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;
-    const previewNssaCeiling = await getSettingAsNumber('NSSA_CEILING_USD', 700);
+    const previewNssaCeilingUSD = await getSettingAsNumber('NSSA_CEILING_USD', 700);
+
+    // For ZiG payrolls, derive the NSSA ceiling dynamically from the RBZ prevailing rate:
+    // ZiG ceiling = USD ceiling (700) × most recent USD→ZiG rate for this company.
+    // This mirrors the logic used in the /process route (which reads from SystemSettings)
+    // but uses the live CurrencyRate table so that the preview always reflects today's rate.
+    let previewNssaCeiling = previewNssaCeilingUSD;
+    if (currency === 'ZiG' && req.companyId) {
+      const latestRate = await prisma.currencyRate.findFirst({
+        where: {
+          companyId: req.companyId,
+          fromCurrency: 'USD',
+          toCurrency: 'ZiG',
+          effectiveDate: { lte: new Date() },
+        },
+        orderBy: { effectiveDate: 'desc' },
+      });
+      if (latestRate) {
+        previewNssaCeiling = previewNssaCeilingUSD * latestRate.rate;
+      } else {
+        // Fall back to the stored ZiG ceiling setting if no rate record exists
+        previewNssaCeiling = await getSettingAsNumber('NSSA_CEILING_ZIG', 20000);
+      }
+    }
 
     const byEmployee = {};
     for (const inp of inputs) {
@@ -223,7 +249,7 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
       });
     }
 
-    res.json(results);
+    res.json({ data: results });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -614,8 +640,13 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const fdsYtdByEmployee = {};
     if (fdsAvgEmpIds.length > 0) {
-      const taxYear = new Date(run.startDate).getFullYear();
-      const yearStart = new Date(taxYear, 0, 1);
+      // Use Zimbabwe tax year boundary (April 1), adjusted for mid-year company starts
+      const firstRunRecord = await prisma.payrollRun.findFirst({
+        where: { companyId: run.companyId },
+        orderBy: { startDate: 'asc' },
+        select: { startDate: true },
+      });
+      const yearStart = getYtdStartDate(run.startDate, firstRunRecord?.startDate ?? null);
       const ytdPayslips = await prisma.payslip.findMany({
         where: {
           employeeId: { in: fdsAvgEmpIds },
@@ -1537,7 +1568,7 @@ router.get('/:runId', async (req, res) => {
     });
     if (!run) return res.status(404).json({ message: 'Payroll run not found' });
     if (req.companyId && run.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
-    res.json(run);
+    res.json({ data: run });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -1595,7 +1626,7 @@ router.put('/:runId', requirePermission('approve_payroll'), async (req, res) => 
       await audit({ req, action: `PAYROLL_STATUS_${status}`, resource: 'payroll_run', resourceId: run.id });
     }
 
-    res.json(updated);
+    res.json({ data: updated });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Payroll run not found' });
     console.error(error);
@@ -1677,7 +1708,7 @@ router.get('/:runId/payslips', async (req, res) => {
       };
     });
 
-    res.json(result);
+    res.json({ data: result });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

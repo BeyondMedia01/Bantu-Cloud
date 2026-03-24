@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 // List all exports for a company
 router.get('/', async (req, res) => {
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
   if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
 
   try {
@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
 
 // Create a new export record
 router.post('/', async (req, res) => {
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
   if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
 
   const {

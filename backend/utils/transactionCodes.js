@@ -2,7 +2,7 @@ const prisma = require('../lib/prisma');
 
 async function autoSeedTransactionCodes() {
   try {
-    const clients = await prisma.client.findMany();
+    const clients = await prisma.client.findMany({ select: { id: true } });
     
     if (clients.length === 0) {
       console.log('No clients found, skipping transaction code seeding.');
@@ -101,34 +101,31 @@ async function autoSeedTransactionCodes() {
       },
     ];
 
+    // Batch all upserts into a single transaction to avoid O(clients × codes) round-trips
     let totalUpserted = 0;
+    const upsertOps = [];
     for (const client of clients) {
       for (const tc of transactionCodes) {
-        await prisma.transactionCode.upsert({
-          where: {
-            clientId_code: {
-              clientId: client.id,
-              code: tc.code,
+        upsertOps.push(
+          prisma.transactionCode.upsert({
+            where: { clientId_code: { clientId: client.id, code: tc.code } },
+            update: {
+              name: tc.name,
+              incomeCategory: tc.incomeCategory,
+              taxable: tc.taxable,
+              pensionable: tc.pensionable,
+              preTax: tc.preTax || false,
+              affectsPaye: tc.affectsPaye,
+              affectsNssa: tc.affectsNssa,
+              affectsAidsLevy: tc.affectsAidsLevy,
             },
-          },
-          update: {
-            name: tc.name, // ensure name/category stays updated
-            incomeCategory: tc.incomeCategory,
-            taxable: tc.taxable,
-            pensionable: tc.pensionable,
-            preTax: tc.preTax || false,
-            affectsPaye: tc.affectsPaye,
-            affectsNssa: tc.affectsNssa,
-            affectsAidsLevy: tc.affectsAidsLevy,
-          },
-          create: {
-            ...tc,
-            clientId: client.id,
-          },
-        });
+            create: { ...tc, clientId: client.id },
+          })
+        );
         totalUpserted++;
       }
     }
+    await prisma.$transaction(upsertOps);
 
     if (totalUpserted > 0) {
       console.log(`Auto-seeded ${totalUpserted} transaction codes across ${clients.length} clients.`);

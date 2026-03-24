@@ -83,6 +83,16 @@ router.get('/export', requirePermission('manage_company'), async (req, res) => {
   }
 });
 
+// Allowed models for restore — explicit whitelist prevents untrusted mass-upsert
+const ALLOWED_RESTORE_MODELS = [
+  'TransactionCode', 'Grade', 'Branch', 'Department',
+  'Employee', 'PayrollRun',
+  'EmployeeBankAccount', 'EmployeeTransaction', 'LeaveRecord',
+  'LeaveRequest', 'LeaveBalance', 'Loan', 'AttendanceRecord',
+  'EmployeeDocument', 'Payslip', 'PayrollTransaction', 'PayrollInput',
+  'LoanRepayment'
+];
+
 // POST /api/backup/restore
 router.post('/restore', requirePermission('manage_company'), async (req, res) => {
   const companyId = req.companyId;
@@ -97,48 +107,46 @@ router.post('/restore', requirePermission('manage_company'), async (req, res) =>
       return res.status(400).json({ message: 'Invalid backup format' });
     }
 
+    // Reject any model key in the backup that is not in the whitelist
+    for (const model of Object.keys(backupData.data)) {
+      if (!ALLOWED_RESTORE_MODELS.includes(model)) {
+        return res.status(400).json({ error: `Model ${model} is not restorable` });
+      }
+    }
+
+    // Helper: batch upserts for a model in parallel chunks (reduces sequential round-trips)
+    async function batchUpsert(tx, prismaModelName, items, chunkSize = 50) {
+      if (!items || items.length === 0) return;
+      for (let i = 0; i < items.length; i += chunkSize) {
+        const chunk = items.slice(i, i + chunkSize);
+        await Promise.all(
+          chunk.map((item) => tx[prismaModelName].upsert({ where: { id: item.id }, update: item, create: item }))
+        );
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       // ORDER MATTERS due to foreign keys
-      
-      // 1. Transaction Codes & Grades
-      for (const tc of (backupData.data.TransactionCode || [])) {
-        await tx.transactionCode.upsert({
-          where: { id: tc.id }, update: tc, create: tc
-        });
-      }
-      for (const grade of (backupData.data.Grade || [])) {
-        await tx.grade.upsert({
-          where: { id: grade.id }, update: grade, create: grade
-        });
-      }
 
-      // 2. Org Structure
-      for (const branch of (backupData.data.Branch || [])) {
-        await tx.branch.upsert({
-          where: { id: branch.id }, update: branch, create: branch
-        });
-      }
-      for (const dept of (backupData.data.Department || [])) {
-        await tx.department.upsert({
-          where: { id: dept.id }, update: dept, create: dept
-        });
-      }
+      // 1. Transaction Codes & Grades (can run in parallel — no FK between them)
+      await Promise.all([
+        batchUpsert(tx, 'transactionCode', backupData.data.TransactionCode),
+        batchUpsert(tx, 'grade', backupData.data.Grade),
+      ]);
+
+      // 2. Org Structure (Branch & Department can run in parallel)
+      await Promise.all([
+        batchUpsert(tx, 'branch', backupData.data.Branch),
+        batchUpsert(tx, 'department', backupData.data.Department),
+      ]);
 
       // 3. Employees
-      for (const emp of (backupData.data.Employee || [])) {
-        await tx.employee.upsert({
-          where: { id: emp.id }, update: emp, create: emp
-        });
-      }
+      await batchUpsert(tx, 'employee', backupData.data.Employee);
 
       // 4. Payroll Runs
-      for (const run of (backupData.data.PayrollRun || [])) {
-        await tx.payrollRun.upsert({
-          where: { id: run.id }, update: run, create: run
-        });
-      }
+      await batchUpsert(tx, 'payrollRun', backupData.data.PayrollRun);
 
-      // 5. The rest (unordered)
+      // 5. The rest (whitelisted relational tables only)
       const RELATIONAL_TABLES = [
         'EmployeeBankAccount', 'EmployeeTransaction', 'LeaveRecord',
         'LeaveRequest', 'LeaveBalance', 'Loan', 'AttendanceRecord',
@@ -150,11 +158,7 @@ router.post('/restore', requirePermission('manage_company'), async (req, res) =>
         const items = backupData.data[model];
         if (!items) continue;
         const prismaModel = model.charAt(0).toLowerCase() + model.slice(1);
-        for (const item of items) {
-          await tx[prismaModel].upsert({
-            where: { id: item.id }, update: item, create: item
-          });
-        }
+        await batchUpsert(tx, prismaModel, items);
       }
     }, {
       timeout: 30000 // Extended timeout for large restores

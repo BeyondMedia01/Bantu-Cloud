@@ -90,6 +90,9 @@ router.put('/:id', requirePermission('manage_payroll'), async (req, res) => {
   try {
     const existing = await prisma.payrollCalendar.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ message: 'Payroll calendar not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     if (existing.isClosed) return res.status(400).json({ message: 'Cannot update a closed payroll calendar' });
 
     const calendar = await prisma.payrollCalendar.update({
@@ -131,6 +134,9 @@ router.delete('/:id', requirePermission('manage_payroll'), async (req, res) => {
   try {
     const existing = await prisma.payrollCalendar.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ message: 'Payroll calendar not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     if (existing.isClosed) return res.status(400).json({ message: 'Cannot delete a closed payroll calendar' });
 
     await prisma.payrollCalendar.delete({ where: { id: req.params.id } });

@@ -205,12 +205,17 @@ function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
 async function matchEmployeeByPin(prisma, companyId, pin) {
   if (!pin) return null;
   const where = { companyId };
-  // Try employeeCode first
-  let emp = await prisma.employee.findFirst({ where: { ...where, employeeCode: pin } });
-  if (emp) return emp;
-  // Try pin as a string in socialSecurityNum
-  emp = await prisma.employee.findFirst({ where: { ...where, socialSecurityNum: pin } });
-  return emp || null;
+  try {
+    // Try employeeCode first
+    let emp = await prisma.employee.findFirst({ where: { ...where, employeeCode: pin } });
+    if (emp) return emp;
+    // Try pin as a string in socialSecurityNum
+    emp = await prisma.employee.findFirst({ where: { ...where, socialSecurityNum: pin } });
+    return emp || null;
+  } catch (err) {
+    console.error(`[attendanceEngine] matchEmployeeByPin failed (companyId=${companyId}, pin=${pin}):`, err);
+    return null;
+  }
 }
 
 module.exports = { processDailyLogs, buildPayrollInputsFromAttendance, matchEmployeeByPin, toMidnight };

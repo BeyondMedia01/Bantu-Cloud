@@ -1,5 +1,5 @@
 const prisma = require('../lib/prisma');
-const { calculateYTD } = require('./ytdCalculator');
+const { calculateYTD, getYtdStartDate } = require('./ytdCalculator');
 const { generatePayslipBuffer } = require('./pdfService');
 
 /**
@@ -92,13 +92,20 @@ async function payslipToBuffer(payslipId) {
     orderBy: { createdAt: 'asc' },
   });
 
-  // Calculate YTD data
-  const yearStart = new Date(new Date(payslip.payrollRun.startDate).getFullYear(), 0, 1);
+  // Calculate YTD data using Zimbabwe tax year boundary
+  // Find the company's earliest payroll run to handle mid-year company starts
+  const firstRunRecord = await prisma.payrollRun.findFirst({
+    where: { companyId: payslip.payrollRun.companyId },
+    orderBy: { startDate: 'asc' },
+    select: { startDate: true },
+  });
+  const ytdStart = getYtdStartDate(payslip.payrollRun.startDate, firstRunRecord?.startDate ?? null);
+
   const historicRunIds = (await prisma.payrollRun.findMany({
     where: {
       companyId: payslip.payrollRun.companyId,
       status: 'COMPLETED',
-      startDate: { gte: yearStart, lte: payslip.payrollRun.startDate },
+      startDate: { gte: ytdStart, lte: payslip.payrollRun.startDate },
       id: { not: payslip.payrollRunId }
     },
     select: { id: true }

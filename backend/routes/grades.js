@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
       where,
       orderBy: { name: 'asc' },
     });
-    res.json(grades);
+    res.json({ data: grades });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -55,7 +55,7 @@ router.get('/:id', async (req, res) => {
     if (req.clientId && grade.clientId !== req.clientId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json(grade);
+    res.json({ data: grade });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -66,6 +66,12 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', requirePermission('update_settings'), async (req, res) => {
   const { name, description, minSalary, maxSalary } = req.body;
   try {
+    const existing = await prisma.grade.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Grade not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const grade = await prisma.grade.update({
       where: { id: req.params.id },
       data: {
@@ -75,7 +81,7 @@ router.put('/:id', requirePermission('update_settings'), async (req, res) => {
         ...(maxSalary !== undefined && { maxSalary: maxSalary ? parseFloat(maxSalary) : null }),
       },
     });
-    res.json(grade);
+    res.json({ data: grade });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Grade not found' });
     console.error(error);
@@ -86,6 +92,12 @@ router.put('/:id', requirePermission('update_settings'), async (req, res) => {
 // DELETE /api/grades/:id
 router.delete('/:id', requirePermission('update_settings'), async (req, res) => {
   try {
+    const existing = await prisma.grade.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Grade not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.grade.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {

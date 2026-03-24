@@ -5,7 +5,7 @@ const { parse: parseCSV } = require('csv-parse/sync');
 const prisma = require('../lib/prisma');
 const { requirePermission } = require('../lib/permissions');
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const router = express.Router();
 

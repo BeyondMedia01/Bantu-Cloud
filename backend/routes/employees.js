@@ -148,7 +148,25 @@ router.get('/', async (req, res) => {
     try {
       const employee = await prisma.employee.findUnique({
         where: { id: req.employeeId },
-        include: {
+        select: {
+          id: true, employeeCode: true, title: true,
+          firstName: true, lastName: true, maidenName: true,
+          email: true, phone: true,
+          nationality: true, nationalId: true,
+          dateOfBirth: true, gender: true, maritalStatus: true,
+          homeAddress: true, postalAddress: true,
+          nextOfKin: true, nextOfKinName: true, nextOfKinContact: true,
+          occupation: true, position: true, employmentType: true,
+          startDate: true, dischargeDate: true, dischargeReason: true,
+          costCenter: true, status: true, isActive: true,
+          paymentMethod: true, paymentBasis: true, baseRate: true,
+          currency: true, rateSource: true,
+          hoursPerPeriod: true, daysPerPeriod: true,
+          bankName: true, bankBranch: true, accountNumber: true,
+          taxMethod: true, taxTable: true,
+          leaveBalance: true, leaveTaken: true, leaveEntitlement: true,
+          companyId: true, clientId: true, branchId: true, departmentId: true, gradeId: true,
+          createdAt: true, updatedAt: true,
           branch: { select: { name: true } },
           department: { select: { name: true } },
         },
@@ -186,9 +204,28 @@ router.get('/', async (req, res) => {
     const [employees, total] = await Promise.all([
       prisma.employee.findMany({
         where,
-        include: {
+        select: {
+          id: true, employeeCode: true, title: true,
+          firstName: true, lastName: true, maidenName: true,
+          email: true, phone: true,
+          nationality: true, nationalId: true,
+          dateOfBirth: true, gender: true, maritalStatus: true,
+          homeAddress: true, postalAddress: true,
+          nextOfKin: true, nextOfKinName: true, nextOfKinContact: true,
+          occupation: true, position: true, employmentType: true,
+          startDate: true, dischargeDate: true, dischargeReason: true,
+          costCenter: true, status: true, isActive: true,
+          paymentMethod: true, paymentBasis: true, baseRate: true,
+          currency: true, rateSource: true,
+          hoursPerPeriod: true, daysPerPeriod: true,
+          bankName: true, bankBranch: true, accountNumber: true,
+          taxMethod: true, taxTable: true,
+          leaveBalance: true, leaveTaken: true, leaveEntitlement: true,
+          companyId: true, clientId: true, branchId: true, departmentId: true, gradeId: true,
+          createdAt: true, updatedAt: true,
           branch: { select: { name: true } },
           department: { select: { name: true } },
+          // Excluded: tin, idPassport, socialSecurityNum, bankAccountUSD, bankAccountZiG, bankRoutingUSD, bankRoutingZiG
         },
         skip,
         take: parseInt(limit),
@@ -580,7 +617,7 @@ router.get('/:id/termination', requirePermission('manage_employees'), async (req
 
     const totalGross = proRataSalary + noticePay + leavePayment;
 
-    res.json({
+    res.json({ data: {
       employeeId:      employee.id,
       name:            `${employee.firstName} ${employee.lastName}`,
       employeeCode:    employee.employeeCode,
@@ -597,7 +634,7 @@ router.get('/:id/termination', requirePermission('manage_employees'), async (req
       leavePayment:    parseFloat(leavePayment.toFixed(2)),
       totalGross:      parseFloat(totalGross.toFixed(2)),
       note: 'Tax on termination payments should be computed in the payroll run using the SEVERANCE transaction code.',
-    });
+    } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -628,7 +665,7 @@ router.get('/:id/audit-logs', requirePermission('view_employees'), async (req, r
       orderBy: { createdAt: 'desc' },
       take: 200
     });
-    res.json(logs);
+    res.json({ data: logs });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -652,7 +689,7 @@ router.get('/:id', async (req, res) => {
     if (req.companyId && employee.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json(employee);
+    res.json({ data: employee });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -777,7 +814,7 @@ router.put('/:id', requirePermission('manage_employees'), async (req, res) => {
       details: auditDetails,
     });
 
-    res.json(employee);
+    res.json({ data: employee });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Employee not found' });
     console.error(error);

@@ -1,7 +1,11 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const router = express.Router();
+const { authenticateToken } = require('../lib/auth');
+const { requirePermission } = require('../lib/permissions');
+
+// All tax band routes require authentication
+router.use(authenticateToken);
 
 // GET all TaxBands
 router.get('/', async (req, res) => {
@@ -16,12 +20,18 @@ router.get('/', async (req, res) => {
 });
 
 // CREATE a new TaxBand
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('update_settings'), async (req, res) => {
   try {
+    const { bandNumber, description, lowerLimit, upperLimit, rate, fixedAmount, effectiveFrom } = req.body;
     const band = await prisma.taxBand.create({
       data: {
-        ...req.body,
-        effectiveFrom: req.body.effectiveFrom ? new Date(req.body.effectiveFrom) : undefined
+        bandNumber,
+        description,
+        lowerLimit,
+        upperLimit,
+        rate,
+        fixedAmount,
+        effectiveFrom: effectiveFrom ? new Date(effectiveFrom) : undefined
       }
     });
     res.json(band);
@@ -31,8 +41,14 @@ router.post('/', async (req, res) => {
 });
 
 // UPDATE a TaxBand
-router.put('/:id', async (req, res) => {
+router.put('/:id', requirePermission('update_settings'), async (req, res) => {
   try {
+    const existing = await prisma.taxBand.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ error: 'TaxBand not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     const band = await prisma.taxBand.update({
       where: { id: req.params.id },
       data: {
@@ -47,8 +63,14 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE a TaxBand
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('update_settings'), async (req, res) => {
   try {
+    const existing = await prisma.taxBand.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ error: 'TaxBand not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     await prisma.taxBand.delete({
       where: { id: req.params.id }
     });

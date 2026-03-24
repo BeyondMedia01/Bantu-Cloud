@@ -10,6 +10,8 @@ const prisma = require('../lib/prisma');
  * Must run AFTER authenticateToken.
  */
 const companyContext = async (req, res, next) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
   const companyId = req.headers['x-company-id'];
 
   if (!companyId) {

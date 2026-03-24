@@ -15,7 +15,15 @@ const PORT = process.env.PORT || 5005;
 // ─── Stripe Webhook (raw body — must come before express.json()) ──────────────
 // Stripe requires the raw request body to verify the signature.
 
-app.use('/api/webhooks', express.raw({ type: 'application/json' }), require('./routes/webhooks'));
+// Webhook rate limiter — generous limit to cover Stripe retries without allowing floods
+const webhookLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many webhook requests, please try again later.' },
+});
+app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookLimiter, require('./routes/webhooks'));
 
 // ─── Global Middleware ────────────────────────────────────────────────────────
 
@@ -36,7 +44,7 @@ app.use((req, _res, next) => {
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,                   // 20 attempts per window per IP
+  max: 5,                    // 5 attempts per window per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many attempts, please try again later.' },
@@ -53,8 +61,16 @@ app.get('/', (_req, res) => {
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/setup', authLimiter, require('./routes/setup'));
 app.use('/api/license/validate', authLimiter, require('./routes/licenseValidate'));
-// Biometric device webhooks — no auth (devices authenticate via serial + webhookKey)
-app.use('/api/biometric', require('./routes/biometric'));
+// Biometric device webhooks — devices authenticate via serial + webhookKey inside the handler.
+// A dedicated rate limiter prevents brute-force / flooding attacks against the endpoint.
+const deviceLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many device requests, please try again later.' },
+});
+app.use('/api/biometric', deviceLimiter, require('./routes/biometric'));
 
 // ─── Protected Routes (auth + company context required) ──────────────────────
 

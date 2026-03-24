@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
+const { authenticateToken } = require('../lib/auth');
+const { requirePermission } = require('../lib/permissions');
+
+// All system settings routes require authentication
+router.use(authenticateToken);
 
 // Get all system settings
 router.get('/', async (req, res) => {
@@ -17,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create a new system setting
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('update_settings'), async (req, res) => {
   const {
     settingName,
     settingValue,
@@ -51,14 +55,13 @@ router.post('/', async (req, res) => {
 });
 
 // Update a system setting
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requirePermission('update_settings'), async (req, res) => {
   const { id } = req.params;
 
   const {
     settingValue,
     isActive,
     description,
-    lastUpdatedBy
   } = req.body;
 
   try {
@@ -67,13 +70,15 @@ router.patch('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Setting not found' });
     }
 
+    const lastUpdatedBy = req.user?.email || req.user?.userId || 'system';
+
     const updatedSetting = await prisma.systemSetting.update({
       where: { id },
       data: {
         ...(settingValue !== undefined && { settingValue: String(settingValue) }),
         ...(isActive !== undefined && { isActive }),
         ...(description !== undefined && { description }),
-        ...(lastUpdatedBy !== undefined && { lastUpdatedBy }),
+        lastUpdatedBy,
       }
     });
     res.json(updatedSetting);
@@ -84,7 +89,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete a system setting
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('update_settings'), async (req, res) => {
   const { id } = req.params;
 
   try {

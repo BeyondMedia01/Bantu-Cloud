@@ -1,12 +1,13 @@
 import React from 'react';
 import { Search, Users as UsersIcon } from 'lucide-react';
 import type { EmployeeFilters as IFilters } from '../../types/employee';
+import type { Branch, Department } from '../../types/common';
 
 interface EmployeeFiltersProps {
   filters: IFilters;
   onFilterChange: (field: keyof IFilters, value: string) => void;
-  branches: any[];
-  departments: any[];
+  branches: Branch[];
+  departments: Department[];
   total: number;
 }
 

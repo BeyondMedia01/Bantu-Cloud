@@ -9,10 +9,26 @@ router.get('/profile', requireRole('EMPLOYEE'), async (req, res) => {
   try {
     const employee = await prisma.employee.findUnique({
       where: { userId: req.user.userId },
-      include: {
+      select: {
+        id: true, employeeCode: true, title: true,
+        firstName: true, lastName: true, maidenName: true,
+        email: true, phone: true,
+        nationality: true, nationalId: true,
+        dateOfBirth: true, gender: true, maritalStatus: true,
+        homeAddress: true, postalAddress: true,
+        nextOfKin: true, nextOfKinName: true, nextOfKinContact: true,
+        occupation: true, position: true, employmentType: true,
+        startDate: true,
+        paymentMethod: true, paymentBasis: true, baseRate: true,
+        currency: true, bankName: true, bankBranch: true, accountNumber: true,
+        taxMethod: true,
+        leaveBalance: true, leaveTaken: true, leaveEntitlement: true,
+        companyId: true, branchId: true, departmentId: true,
+        createdAt: true, updatedAt: true,
         company: { select: { name: true } },
         branch: { select: { name: true } },
         department: { select: { name: true } },
+        // Excluded: tin, idPassport, socialSecurityNum, bankAccountUSD, bankAccountZiG, bankRoutingUSD, bankRoutingZiG
       },
     });
     if (!employee) return res.status(404).json({ message: 'Employee record not found' });

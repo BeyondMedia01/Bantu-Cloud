@@ -96,9 +96,41 @@ router.post('/accrue', requirePermission('manage_leave'), async (req, res) => {
     let credited = 0;
     let skipped = 0;
 
+    // Pre-fetch all existing balances for this company + year in one query to avoid N+1
+    const existingBalances = await prisma.leaveBalance.findMany({
+      where: { companyId: req.companyId, year },
+    });
+    const balanceMap = new Map(
+      existingBalances.map((b) => [`${b.employeeId}:${b.leaveType}`, b])
+    );
+
+    // Collect creates and updates; execute in a single batched transaction
+    const creates = [];
+    const updates = []; // { id, credit }
+
     for (const emp of employees) {
       for (const policy of policies) {
-        const balance = await getOrCreateBalance(emp.id, req.companyId, policy.leaveType, year, policy.id);
+        const key = `${emp.id}:${policy.leaveType}`;
+        let balance = balanceMap.get(key);
+
+        if (!balance) {
+          // Will be created; use zero starting values for cap calculation
+          creates.push({
+            employeeId: emp.id,
+            companyId: req.companyId,
+            leaveType: policy.leaveType,
+            year,
+            leavePolicyId: policy.id || null,
+            balance: 0,
+            accrued: 0,
+            taken: 0,
+            encashed: 0,
+            openingBalance: 0,
+            lastAccrualDate: now,
+          });
+          credited++;
+          continue;
+        }
 
         // Skip if already accrued this month
         if (balance.lastAccrualDate) {
@@ -107,23 +139,26 @@ router.post('/accrue', requirePermission('manage_leave'), async (req, res) => {
         }
 
         // Apply cap: don't exceed maxAccumulation
-        const currentHolding = balance.openingBalance + balance.accrued - balance.taken - balance.encashed;
+        const currentHolding = balance.openingBalance + balance.accrued - balance.taken - (balance.encashed || 0);
         const room = policy.maxAccumulation - currentHolding;
         if (room <= 0) { skipped++; continue; }
 
-        const credit = Math.min(policy.accrualRate, room);
-
-        await prisma.leaveBalance.update({
-          where: { id: balance.id },
-          data: {
-            accrued: { increment: credit },
-            balance: { increment: credit },
-            lastAccrualDate: now,
-          },
-        });
+        const credit = Math.round(Math.min(policy.accrualRate, room) * 100) / 100;
+        updates.push({ id: balance.id, credit });
         credited++;
       }
     }
+
+    // Execute all creates and updates in one transaction
+    await prisma.$transaction([
+      ...(creates.length > 0 ? [prisma.leaveBalance.createMany({ data: creates, skipDuplicates: true })] : []),
+      ...updates.map(({ id, credit }) =>
+        prisma.leaveBalance.update({
+          where: { id },
+          data: { accrued: { increment: credit }, balance: { increment: credit }, lastAccrualDate: now },
+        })
+      ),
+    ]);
 
     await audit({
       req,
@@ -161,6 +196,10 @@ router.post('/year-end', requirePermission('manage_leave'), async (req, res) => 
     let carried = 0;
     let forfeited = 0;
 
+    // Build update ops in memory; execute as a single batched transaction
+    const closingUpdates = [];
+    const newYearUpserts = [];
+
     for (const bal of balances) {
       const policy = policies.find((p) => p.leaveType === bal.leaveType);
       const unused = Math.max(0, bal.balance);
@@ -169,15 +208,13 @@ router.post('/year-end', requirePermission('manage_leave'), async (req, res) => 
       const carryAmount = Math.min(unused, carryLimit);
       const forfeitAmount = unused - carryAmount;
 
-      // Mark closing year as processed
-      await prisma.leaveBalance.update({
+      closingUpdates.push(prisma.leaveBalance.update({
         where: { id: bal.id },
         data: { forfeited: forfeitAmount, balance: carryAmount },
-      });
+      }));
 
-      // Seed new year balance with carry-over as opening
       if (carryAmount > 0) {
-        await prisma.leaveBalance.upsert({
+        newYearUpserts.push(prisma.leaveBalance.upsert({
           where: { employeeId_leaveType_year: { employeeId: bal.employeeId, leaveType: bal.leaveType, year: newYear } },
           create: {
             employeeId: bal.employeeId,
@@ -189,12 +226,15 @@ router.post('/year-end', requirePermission('manage_leave'), async (req, res) => 
             balance: carryAmount,
           },
           update: { openingBalance: { increment: carryAmount }, balance: { increment: carryAmount } },
-        });
+        }));
         carried++;
       }
 
       if (forfeitAmount > 0) forfeited++;
     }
+
+    // Execute all updates + new-year upserts in a single transaction
+    await prisma.$transaction([...closingUpdates, ...newYearUpserts]);
 
     await audit({
       req,

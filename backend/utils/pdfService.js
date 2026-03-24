@@ -60,7 +60,7 @@ function _drawPayslip(doc, data) {
     .text('PAYSLIP', RIGHT - 150, 35, { width: 150, align: 'right' });
   
   doc.fillColor(BANTU_GREEN).font('Helvetica-Bold').fontSize(16)
-    .text(data.companyName.toUpperCase(), LEFT + 60, 40);
+    .text((data.companyName || '').toUpperCase(), LEFT + 60, 40);
   doc.fillColor('white').font('Helvetica').fontSize(10)
     .text(`Period: ${data.period}`, LEFT + 60, 62);
 

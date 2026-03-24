@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
       include: { _count: { select: { employees: true } } },
       orderBy: { name: 'asc' },
     });
-    res.json(departments);
+    res.json({ data: departments });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -28,8 +28,10 @@ router.get('/', async (req, res) => {
 
 // POST /api/departments
 router.post('/', requirePermission('manage_companies'), async (req, res) => {
-  const { companyId, branchId, name } = req.body;
-  if (!companyId || !name) return res.status(400).json({ message: 'companyId and name are required' });
+  const { branchId, name } = req.body;
+  const companyId = req.companyId;
+  if (!companyId) return res.status(400).json({ message: 'Company context required' });
+  if (!name) return res.status(400).json({ message: 'name is required' });
   try {
     const dept = await prisma.department.create({ data: { companyId, branchId, name } });
     res.status(201).json(dept);
@@ -50,7 +52,7 @@ router.get('/:id', async (req, res) => {
     if (req.companyId && dept.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json(dept);
+    res.json({ data: dept });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -61,8 +63,14 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
   const { name, branchId } = req.body;
   try {
+    const existing = await prisma.department.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Department not found' });
+    if (req.companyId && existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const dept = await prisma.department.update({ where: { id: req.params.id }, data: { name, branchId } });
-    res.json(dept);
+    res.json({ data: dept });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Department not found' });
     console.error(error);
@@ -73,6 +81,12 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
 // DELETE /api/departments/:id
 router.delete('/:id', requirePermission('manage_companies'), async (req, res) => {
   try {
+    const existing = await prisma.department.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Department not found' });
+    if (req.companyId && existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.department.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {

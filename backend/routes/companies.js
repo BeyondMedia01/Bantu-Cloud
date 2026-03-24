@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
       include: { _count: { select: { employees: true, branches: true } } },
       orderBy: { name: 'asc' },
     });
-    res.json(companies);
+    res.json({ data: companies });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -68,7 +68,7 @@ router.get('/:id', async (req, res) => {
       if (company.clientId !== clientId) return res.status(403).json({ message: 'Access denied' });
     }
 
-    res.json(company);
+    res.json({ data: company });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -96,7 +96,7 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
         ...(req.body.zimdefRate !== undefined && { zimdefRate: req.body.zimdefRate === null ? null : parseFloat(req.body.zimdefRate) }),
       },
     });
-    res.json(updated);
+    res.json({ data: updated });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

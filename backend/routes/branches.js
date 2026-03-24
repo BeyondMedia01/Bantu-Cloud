@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
       include: { departments: true, _count: { select: { employees: true } } },
       orderBy: { name: 'asc' },
     });
-    res.json(branches);
+    res.json({ data: branches });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -27,8 +27,10 @@ router.get('/', async (req, res) => {
 
 // POST /api/branches
 router.post('/', requirePermission('manage_companies'), async (req, res) => {
-  const { companyId, subCompanyId, name } = req.body;
-  if (!companyId || !name) return res.status(400).json({ message: 'companyId and name are required' });
+  const { subCompanyId, name } = req.body;
+  const companyId = req.companyId;
+  if (!companyId) return res.status(400).json({ message: 'Company context required' });
+  if (!name) return res.status(400).json({ message: 'name is required' });
   try {
     const branch = await prisma.branch.create({ data: { companyId, subCompanyId, name } });
     res.status(201).json(branch);
@@ -49,7 +51,7 @@ router.get('/:id', async (req, res) => {
     if (req.companyId && branch.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json(branch);
+    res.json({ data: branch });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -60,8 +62,14 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
   const { name, subCompanyId } = req.body;
   try {
+    const existing = await prisma.branch.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Branch not found' });
+    if (req.companyId && existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const branch = await prisma.branch.update({ where: { id: req.params.id }, data: { name, subCompanyId } });
-    res.json(branch);
+    res.json({ data: branch });
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Branch not found' });
     console.error(error);
@@ -72,6 +80,12 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
 // DELETE /api/branches/:id
 router.delete('/:id', requirePermission('manage_companies'), async (req, res) => {
   try {
+    const existing = await prisma.branch.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Branch not found' });
+    if (req.companyId && existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.branch.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {

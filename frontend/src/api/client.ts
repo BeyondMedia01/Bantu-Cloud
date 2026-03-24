@@ -17,10 +17,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ─── Response Interceptor — handle 401 ────────────────────────────────────────
+// ─── Response Interceptor — unwrap envelope + handle 401 ─────────────────────
+//
+// Non-paginated JSON responses now use { data: X } envelopes. This interceptor
+// unwraps them so call sites read `response.data` directly (unchanged behaviour).
+//
+// Paginated responses { data: [...], total, page, limit } are left intact because
+// call sites already read `response.data.data` and `response.data.total` for those.
+// Blob responses (PDF/CSV downloads) are also passed through untouched.
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const body = response.data;
+    if (
+      body !== null &&
+      typeof body === 'object' &&
+      !Array.isArray(body) &&
+      response.config.responseType !== 'blob' &&
+      Object.prototype.hasOwnProperty.call(body, 'data') &&
+      // Leave paginated envelopes intact — callers already read .data.data / .data.total
+      !Object.prototype.hasOwnProperty.call(body, 'total')
+    ) {
+      response.data = body.data;
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       sessionStorage.removeItem('token');

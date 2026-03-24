@@ -14,7 +14,7 @@ router.use((req, res, next) => {
 router.get('/alerts', async (req, res) => {
   try {
     const clientId = req.user.clientId;
-    const companyId = req.companyId || req.query.companyId || req.user.companyId;
+    const companyId = req.companyId;
 
     if (!companyId) {
       return res.status(400).json({ message: 'Company ID required' });
@@ -32,7 +32,7 @@ router.get('/alerts', async (req, res) => {
 router.get('/fraud', async (req, res) => {
   try {
     const clientId = req.user.clientId;
-    const companyId = req.companyId || req.query.companyId;
+    const companyId = req.companyId;
     const { skip = 0, take = 500 } = req.query;
 
     if (!companyId) return res.status(400).json({ message: 'Company ID required' });
@@ -48,7 +48,7 @@ router.get('/fraud', async (req, res) => {
 router.get('/cashflow', async (req, res) => {
   try {
     const { clientId } = req.user;
-    const companyId = req.companyId || req.query.companyId;
+    const companyId = req.companyId;
 
     if (!companyId) return res.status(400).json({ message: 'Company ID required' });
 
