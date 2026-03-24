@@ -160,6 +160,9 @@ app.use('/api/devices',    require('./routes/devices'));
 // Intelligence
 app.use('/api/intelligence', require('./routes/intelligence'));
 
+// Cron HTTP triggers (called by Render cron service or external scheduler)
+app.use('/api/cron', require('./routes/cron'));
+
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 
 // eslint-disable-next-line no-unused-vars
@@ -171,8 +174,14 @@ app.use((err, _req, res, _next) => {
 // ─── Scheduled Jobs ───────────────────────────────────────────────────────────
 
 const { runLeaveAccrual } = require('./jobs/leaveAccrual');
-// Run at 00:05 on the 1st of every month
-cron.schedule('5 0 1 * *', () => runLeaveAccrual());
+// In-process fallback: fires only if the server is alive at 00:05 on the 1st.
+// For reliability on Render, configure a native Cron Job to POST /api/cron/leave-accrue.
+cron.schedule('5 0 1 * *', () => {
+  console.log('[Cron] in-process leave-accrue triggered');
+  runLeaveAccrual()
+    .then(() => console.log('[Cron] in-process leave-accrue completed'))
+    .catch((err) => console.error('[Cron] in-process leave-accrue FAILED:', err));
+});
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 const startServer = async () => {
