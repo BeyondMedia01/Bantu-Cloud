@@ -132,7 +132,7 @@ async function payslipToBuffer(payslipId) {
   const lineItems = buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary });
 
   const leaveBal = await prisma.leaveBalance.findFirst({
-    where: { employeeId: payslip.employeeId, leaveType: 'ANNUAL', year: yearStart.getFullYear() },
+    where: { employeeId: payslip.employeeId, leaveType: 'ANNUAL', year: ytdStart.getFullYear() },
     select: { balance: true, taken: true }
   });
 
