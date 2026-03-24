@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie,
 } from 'recharts';
 import { Plus, ArrowUpRight, Clock, CheckCircle2, UserX, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ReportsAPI, DashboardAPI, PublicHolidaysAPI, CurrencyRateAPI,
-  type DashboardSummary, type CurrencyRate, type ReminderItem, type PublicHoliday,
-} from '../api/client';
-import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
 import IntelligenceWidget from '../components/IntelligenceWidget';
 import MiniCalendar from '../components/dashboard/MiniCalendar';
@@ -20,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { useDashboardData } from '../hooks/useDashboardData';
 
 const fmtDate = (d: string | undefined) =>
   d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -37,47 +33,19 @@ const RUN_STATUS_CLASS: Record<string, string> = {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { showToast } = useToast();
-
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [reminders, setReminders] = useState<{ birthdays: ReminderItem[]; anniversaries: ReminderItem[] }>({ birthdays: [], anniversaries: [] });
-  const [trend, setTrend] = useState<{ name: string; netPay: number; grossPay: number; headcount: number }[]>([]);
-  const [holidays, setHolidays] = useState<PublicHoliday[]>([]);
-  const [exchangeRate, setExchangeRate] = useState<CurrencyRate | null>(null);
-  const [exchangeRateLoading, setExchangeRateLoading] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const { showToast: _showToast } = useToast();
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
 
-  useEffect(() => {
-    let mounted = true;
-    const cid = getActiveCompanyId();
-    if (!cid) { setLoading(false); return; }
-
-    Promise.allSettled([
-      ReportsAPI.summary().then((res) => { if (mounted) setSummary(res.data); }),
-      DashboardAPI.reminders().then((res) => { if (mounted) setReminders(res.data); }),
-      ReportsAPI.payrollTrend().then((res) => { if (mounted) setTrend(res.data); }),
-    ]).then((results) => {
-      if (!mounted) return;
-      const failed = results.filter((r) => r.status === 'rejected');
-      if (failed.length > 0) showToast('Some dashboard data failed to load. Please refresh.', 'warning');
-    }).finally(() => { if (mounted) setLoading(false); });
-
-    const thisYear = new Date().getFullYear();
-    Promise.all([
-      PublicHolidaysAPI.getAll(thisYear),
-      PublicHolidaysAPI.getAll(thisYear + 1),
-    ])
-      .then(([r1, r2]) => { if (mounted) setHolidays([...r1.data, ...r2.data]); })
-      .catch(() => {});
-
-    CurrencyRateAPI.getLatest()
-      .then((res) => { if (mounted) setExchangeRate(res.data); })
-      .catch(() => {})
-      .finally(() => { if (mounted) setExchangeRateLoading(false); });
-
-    return () => { mounted = false; };
-  }, []); // [] is correct — company switches trigger a full page reload
+  const {
+    summary,
+    reminders,
+    trend,
+    holidays,
+    exchangeRate,
+    exchangeRateLoading,
+    loading,
+    hasCompany,
+  } = useDashboardData();
 
   const pieData = summary
     ? [
@@ -95,11 +63,10 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Intelligence Layer */}
       <IntelligenceWidget />
 
       {/* No company selected */}
-      {!loading && !summary && (
+      {!hasCompany && (
         <Card className="border-border">
           <CardContent className="flex flex-col items-center justify-center py-24 gap-4 text-center">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
@@ -113,7 +80,7 @@ const Dashboard: React.FC = () => {
         </Card>
       )}
 
-      {/* ZIMRA TIN alert */}
+      {/* Compliance alerts */}
       {!loading && noTinCount > 0 && (
         <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <UserX size={18} className="text-amber-600 shrink-0" />
@@ -130,7 +97,6 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Missing bank details alert */}
       {!loading && noBankCount > 0 && (
         <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <UserX size={18} className="text-amber-600 shrink-0" />
@@ -152,8 +118,6 @@ const Dashboard: React.FC = () => {
 
         {/* Column 1: Overview & Payroll */}
         <div className="flex flex-col gap-4">
-
-          {/* Overview Card */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">Overview</CardTitle>
@@ -211,10 +175,7 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
           ) : currentRun ? (
-            <Card
-              className="cursor-pointer hover:border-blue-400/40 transition-colors"
-              onClick={() => navigate('/payroll')}
-            >
+            <Card className="cursor-pointer hover:border-blue-400/40 transition-colors" onClick={() => navigate('/payroll')}>
               <CardContent className="pt-4">
                 <div className="flex justify-between items-start mb-2">
                   <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Current Run</p>
@@ -314,7 +275,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Net Pay Trend — full width */}
+      {/* Net Pay Trend */}
       <Card>
         <CardContent className="p-8 flex flex-col gap-6">
           <div className="flex justify-between items-start">
