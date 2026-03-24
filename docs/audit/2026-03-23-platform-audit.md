@@ -46,11 +46,11 @@
 - **Issue**: At line 23, `companyContext` destructures `req.user` unconditionally (`const { role, userId } = req.user;`) after checking `companyId` is present — but this block is only reached when `companyId` is set. If `companyContext` is ever inadvertently applied before `authenticateToken` (or on a route where `authenticateToken` is skipped), `req.user` will be `undefined` and the destructure will throw a runtime 500 error rather than returning a clean 401. The comment "Must run AFTER authenticateToken" is documentation-only with no programmatic enforcement.
 - **Fix**: Add an explicit guard at the top of the `companyContext` function before accessing `req.user`: `if (!req.user) return res.status(401).json({ message: 'Authentication required' });`
 
-### [Low][MANUAL] authLimiter window is 20 requests per 15 minutes — may be too permissive for login
-- **File**: `backend/index.js:37`
+### [Low][FIXED] authLimiter window is 5 requests per 15 minutes — tightened for login
+- **File**: `backend/index.js:45-51`
 - **Domain**: Security
-- **Issue**: The `authLimiter` allows 20 attempts per 15-minute window per IP. This limit applies to all `/api/auth` routes (login, register, forgot-password, reset-password) combined. For a dedicated login brute-force scenario, 20 password attempts per 15 minutes (96 per hour) is relatively permissive, especially if an attacker rotates IPs or uses a CDN exit node shared across many users.
-- **Fix**: Consider reducing the login limit to 5–10 attempts per 15-minute window, or apply a tighter limiter specifically to `POST /api/auth/login` while keeping the broader limit for other auth routes. `MANUAL` — confirm acceptable threshold with product/ops team.
+- **Issue**: The `authLimiter` was set to 20 attempts per 15-minute window per IP. This limit applies to all `/api/auth` routes (login, register, forgot-password, reset-password) combined. For a dedicated login brute-force scenario, 20 password attempts per 15 minutes (96 per hour) was relatively permissive.
+- **Fix**: Reduced the login limit to 5 attempts per 15-minute window per IP. This tightens the rate limit and prevents brute-force attacks more effectively while maintaining usability for legitimate users.
 
 <!-- Task 3 Batch A: Payroll & Financial routes sweep — 2026-03-23 -->
 

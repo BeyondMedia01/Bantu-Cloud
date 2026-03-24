@@ -44,7 +44,7 @@ app.use((req, _res, next) => {
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,                   // 20 attempts per window per IP
+  max: 5,                    // 5 attempts per window per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many attempts, please try again later.' },
