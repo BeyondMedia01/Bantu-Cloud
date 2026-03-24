@@ -60,7 +60,7 @@ router.get('/:employeeId', async (req, res) => {
   try {
     const balances = await prisma.leaveBalance.findMany({
       where: { employeeId: req.params.employeeId, companyId: req.companyId, year },
-      include: { leavePolicy: { select: { name: true, accrualRate: true, maxAccumulation: true, carryOverLimit: true, encashable: true } } },
+      include: { leavePolicy: { select: { accrualRate: true, maxAccumulation: true, carryOverLimit: true, encashable: true } } },
       orderBy: { leaveType: 'asc' },
     });
     res.json(balances);
