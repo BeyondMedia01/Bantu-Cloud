@@ -35,3 +35,4 @@ Thumbs.db
 /backend/uploads/*
 !/backend/uploads/.gitkeep
 /tmp/
+.tmp/

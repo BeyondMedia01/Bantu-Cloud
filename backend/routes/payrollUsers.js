@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { authenticateToken } = require('../lib/auth');
 const { requirePermission } = require('../lib/permissions');
 
@@ -10,7 +9,7 @@ router.use(authenticateToken);
 
 // Get all payroll users for a company
 router.get('/', async (req, res) => {
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
   if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
 
   try {
@@ -27,7 +26,7 @@ router.get('/', async (req, res) => {
 
 // Create a new payroll user
 router.post('/', requirePermission('manage_users'), async (req, res) => {
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
   if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
 
   const {
@@ -76,7 +75,7 @@ router.post('/', requirePermission('manage_users'), async (req, res) => {
 // Update a payroll user
 router.patch('/:id', requirePermission('manage_users'), async (req, res) => {
   const { id } = req.params;
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
   
   if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
 
@@ -124,7 +123,7 @@ router.patch('/:id', requirePermission('manage_users'), async (req, res) => {
 // Delete a payroll user
 router.delete('/:id', requirePermission('manage_users'), async (req, res) => {
   const { id } = req.params;
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
 
   try {
     const existing = await prisma.payrollUser.findUnique({ where: { id } });
