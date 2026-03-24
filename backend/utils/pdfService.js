@@ -63,6 +63,8 @@ function _drawPayslip(doc, data) {
     .text((data.companyName || '').toUpperCase(), LEFT + 60, 40);
   doc.fillColor('white').font('Helvetica').fontSize(10)
     .text(`Period: ${data.period}`, LEFT + 60, 62);
+  doc.fillColor(BANTU_GREEN).font('Helvetica').fontSize(9)
+    .text(`Issued: ${data.issuedDate || new Date().toLocaleDateString('en-GB')}`, LEFT + 60, 78);
 
   // ── Employee & Employment Details Card ────────────────────────────────────
   let currY = 130;
@@ -155,6 +157,11 @@ function _drawPayslip(doc, data) {
   });
 
   // ── Summary Totals ────────────────────────────────────────────────────────
+  // Ensure enough room for summary (70) + leave bar (45) + footer (80)
+  if (currY + 220 > PAGE_SAFE_BOTTOM) {
+    doc.addPage({ size: 'A4', margin: 0 });
+    currY = 40;
+  }
   currY += 25;
 
   doc.rect(LEFT, currY, CONTENT_W, 70).fill(DARK_NAVY);
@@ -189,8 +196,10 @@ function _drawPayslip(doc, data) {
   doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(8).text('ANNUAL LEAVE BALANCE', LEFT + 20, currY + 12);
   doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(12).text(`${(data.leaveBalance || 0).toFixed(1)} days`, LEFT + 20, currY + 24);
 
-  doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(8).text('LEAVE TAKEN (YTD)', LEFT + 20 + leaveW, currY + 12);
-  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(12).text(`${(data.leaveTaken || 0).toFixed(1)} days`, LEFT + 20 + leaveW, currY + 24);
+  if (data.leaveTaken > 0) {
+    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(8).text('LEAVE TAKEN (YTD)', LEFT + 20 + leaveW, currY + 12);
+    doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(12).text(`${data.leaveTaken.toFixed(1)} days`, LEFT + 20 + leaveW, currY + 24);
+  }
 
   // ── Branding Footer ──────────────────────────────────────────────────────
   const footerY = Math.min(currY + 60, 820);

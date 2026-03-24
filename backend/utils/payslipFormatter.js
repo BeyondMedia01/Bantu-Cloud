@@ -132,13 +132,19 @@ async function payslipToBuffer(payslipId) {
   const lineItems = buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary });
 
   const leaveBal = await prisma.leaveBalance.findFirst({
-    where: { employeeId: payslip.employeeId, leaveType: 'ANNUAL', year: ytdStart.getFullYear() },
-    select: { balance: true, taken: true }
+    where: {
+      employeeId: payslip.employeeId,
+      year: ytdStart.getFullYear(),
+      leaveType: { contains: 'ANNUAL', mode: 'insensitive' },
+    },
+    select: { balance: true, taken: true },
+    orderBy: { balance: 'desc' },
   });
 
   const pdfData = {
     companyName: payslip.payrollRun.company.name,
-    period: `${payslip.payrollRun.startDate.toLocaleDateString()} – ${payslip.payrollRun.endDate.toLocaleDateString()}`,
+    period: `${payslip.payrollRun.startDate.toLocaleDateString('en-GB')} – ${payslip.payrollRun.endDate.toLocaleDateString('en-GB')}`,
+    issuedDate: new Date().toLocaleDateString('en-GB'),
     employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
     employeeCode: payslip.employee.employeeCode || '',
     nationalId: payslip.employee.idPassport || payslip.employee.nationalId || '',
