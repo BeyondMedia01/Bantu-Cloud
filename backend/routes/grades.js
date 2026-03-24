@@ -66,6 +66,12 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', requirePermission('update_settings'), async (req, res) => {
   const { name, description, minSalary, maxSalary } = req.body;
   try {
+    const existing = await prisma.grade.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Grade not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const grade = await prisma.grade.update({
       where: { id: req.params.id },
       data: {
@@ -86,6 +92,12 @@ router.put('/:id', requirePermission('update_settings'), async (req, res) => {
 // DELETE /api/grades/:id
 router.delete('/:id', requirePermission('update_settings'), async (req, res) => {
   try {
+    const existing = await prisma.grade.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Grade not found' });
+    if (req.clientId && existing.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.grade.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {

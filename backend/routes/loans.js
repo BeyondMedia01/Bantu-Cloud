@@ -42,6 +42,12 @@ router.post('/', requirePermission('manage_loans'), async (req, res) => {
   if (parseInt(termMonths) <= 0) return res.status(400).json({ message: 'termMonths must be greater than 0' });
 
   try {
+    if (req.companyId) {
+      const emp = await prisma.employee.findUnique({ where: { id: employeeId }, select: { companyId: true } });
+      if (!emp) return res.status(404).json({ message: 'Employee not found' });
+      if (emp.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
+    }
+
     const monthlyPayment = (parseFloat(amount) * (1 + (parseFloat(interestRate || 0) / 100))) / parseInt(termMonths);
 
     const loan = await prisma.loan.create({
@@ -187,6 +193,15 @@ router.get('/:id/repayments', async (req, res) => {
 // PATCH /api/loans/repayments/:id — mark repayment paid
 router.patch('/repayments/:id', requirePermission('manage_loans'), async (req, res) => {
   try {
+    const existing = await prisma.loanRepayment.findUnique({
+      where: { id: req.params.id },
+      include: { loan: { include: { employee: { select: { companyId: true } } } } },
+    });
+    if (!existing) return res.status(404).json({ message: 'Repayment not found' });
+    if (req.companyId && existing.loan?.employee?.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const repayment = await prisma.loanRepayment.update({
       where: { id: req.params.id },
       data: { status: 'PAID', paidDate: new Date() },

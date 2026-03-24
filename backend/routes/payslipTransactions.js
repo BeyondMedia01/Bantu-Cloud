@@ -49,6 +49,12 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   try {
+    const existing = await prisma.payslipTransaction.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ message: 'Transaction not found' });
+    if (existing.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.payslipTransaction.delete({
       where: { id: req.params.id }
     });

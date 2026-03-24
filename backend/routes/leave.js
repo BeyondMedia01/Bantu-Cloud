@@ -148,6 +148,15 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', requirePermission('manage_leave'), async (req, res) => {
   const { type, startDate, endDate, totalDays, reason, status } = req.body;
   try {
+    const existing = await prisma.leaveRecord.findUnique({
+      where: { id: req.params.id },
+      include: { employee: { select: { companyId: true } } },
+    });
+    if (!existing) return res.status(404).json({ message: 'Leave record not found' });
+    if (req.companyId && existing.employee?.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const record = await prisma.leaveRecord.update({
       where: { id: req.params.id },
       data: {
@@ -170,6 +179,15 @@ router.put('/:id', requirePermission('manage_leave'), async (req, res) => {
 // PUT /api/leave/request/:id/approve
 router.put('/request/:id/approve', requirePermission('approve_leave'), async (req, res) => {
   try {
+    const leaveReq = await prisma.leaveRequest.findUnique({
+      where: { id: req.params.id },
+      include: { employee: { select: { companyId: true } } },
+    });
+    if (!leaveReq) return res.status(404).json({ message: 'Leave request not found' });
+    if (req.companyId && leaveReq.employee?.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const request = await prisma.leaveRequest.update({
       where: { id: req.params.id },
       data: { status: 'APPROVED', reviewedBy: req.user.userId, reviewNote: req.body.note },
@@ -251,6 +269,15 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), async (re
 // PUT /api/leave/request/:id/reject
 router.put('/request/:id/reject', requirePermission('reject_leave'), async (req, res) => {
   try {
+    const leaveReq = await prisma.leaveRequest.findUnique({
+      where: { id: req.params.id },
+      include: { employee: { select: { companyId: true } } },
+    });
+    if (!leaveReq) return res.status(404).json({ message: 'Leave request not found' });
+    if (req.companyId && leaveReq.employee?.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     const request = await prisma.leaveRequest.update({
       where: { id: req.params.id },
       data: { status: 'REJECTED', reviewedBy: req.user.userId, reviewNote: req.body.note },
@@ -275,6 +302,15 @@ router.put('/request/:id/reject', requirePermission('reject_leave'), async (req,
 // DELETE /api/leave/:id
 router.delete('/:id', requirePermission('manage_leave'), async (req, res) => {
   try {
+    const existing = await prisma.leaveRecord.findUnique({
+      where: { id: req.params.id },
+      include: { employee: { select: { companyId: true } } },
+    });
+    if (!existing) return res.status(404).json({ message: 'Leave record not found' });
+    if (req.companyId && existing.employee?.companyId !== req.companyId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
     await prisma.leaveRecord.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {

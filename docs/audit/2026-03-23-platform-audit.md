@@ -143,49 +143,49 @@
 - **Issue**: `prisma.employee.findUnique({ where: { userId: req.user.userId }, include: { company: ..., branch: ..., department: ... } })` has no `select` clause on the Employee model itself, so the full row is returned including `tin`, `passportNumber`, `nationalId`, `socialSecurityNum`, `accountNumber`, `taxDirective`, and all salary fields. While an employee may legitimately see their own profile, returning raw TIN and full bank account numbers in an API response without masking increases exposure if the channel is compromised.
 - **Fix**: Add a `select` clause that returns only the fields needed by the self-service UI. Mask `accountNumber` (show last 4 digits). Consider omitting `tin` from this endpoint entirely. `MANUAL` — agree on safe field list with product team.
 
-### [High] `PUT /api/leave/:id` has no ownership check — any company user can update any leave record by ID
+### [High][FIXED] `PUT /api/leave/:id` has no ownership check — any company user can update any leave record by ID
 - **File**: `backend/routes/leave.js:148`
 - **Domain**: Security
 - **Issue**: The `PUT /:id` handler calls `prisma.leaveRecord.update({ where: { id: req.params.id }, data: {...} })` directly without first fetching the record to verify `record.employee.companyId === req.companyId`. An authenticated user from Company A who knows a leave record ID belonging to Company B can modify that record's status, dates, or reason.
 - **Fix**: Before the update, fetch the record with `include: { employee: { select: { companyId: true } } }` and assert ownership: `if (req.companyId && record.employee.companyId !== req.companyId) return res.status(403).json(...)`.
 
-### [High] `PUT /api/leave/request/:id/approve` and `PUT /api/leave/request/:id/reject` have no ownership check on the leave request
+### [High][FIXED] `PUT /api/leave/request/:id/approve` and `PUT /api/leave/request/:id/reject` have no ownership check on the leave request
 - **File**: `backend/routes/leave.js:171`
 - **Domain**: Security
 - **Issue**: Both approval and rejection handlers call `prisma.leaveRequest.update({ where: { id: req.params.id }, ... })` without first verifying the request belongs to the caller's company. Any `approve_leave` / `reject_leave` user at any company can approve or reject another company's employees' leave requests by guessing a request ID, and the subsequent balance deduction will affect that other company's employee.
 - **Fix**: Fetch the leave request first (with `include: { employee: { select: { companyId: true } } }`), assert `employee.companyId === req.companyId`, and return 403 on mismatch before proceeding with the update and financial transaction.
 
-### [High] `DELETE /api/leave/:id` has no ownership check — cross-company leave record deletion possible
+### [High][FIXED] `DELETE /api/leave/:id` has no ownership check — cross-company leave record deletion possible
 - **File**: `backend/routes/leave.js:276`
 - **Domain**: Security
 - **Issue**: `prisma.leaveRecord.delete({ where: { id: req.params.id } })` is called without an ownership check. Any user with `manage_leave` permission at any company can delete a leave record belonging to another company.
 - **Fix**: Fetch the record first with `include: { employee: { select: { companyId: true } } }` and assert `employee.companyId === req.companyId` before deleting.
 
-### [High] `PATCH /api/loans/repayments/:id` has no ownership check — any company can mark any repayment as paid
+### [High][FIXED] `PATCH /api/loans/repayments/:id` has no ownership check — any company can mark any repayment as paid
 - **File**: `backend/routes/loans.js:188`
 - **Domain**: Security
 - **Issue**: The `PATCH /repayments/:id` handler directly updates a `LoanRepayment` record without first verifying it belongs to the caller's company. An attacker with `manage_loans` permission at any company can mark any loan repayment as paid by guessing or enumerating its ID.
 - **Fix**: Fetch the repayment including its loan and the loan's employee (`include: { loan: { include: { employee: { select: { companyId: true } } } } }`), assert `companyId === req.companyId`, and return 403 on mismatch.
 
-### [High] `PUT /api/grades/:id` and `DELETE /api/grades/:id` have no ownership check
+### [High][FIXED] `PUT /api/grades/:id` and `DELETE /api/grades/:id` have no ownership check
 - **File**: `backend/routes/grades.js:66`
 - **Domain**: Security
 - **Issue**: Both `PUT /:id` and `DELETE /:id` call `prisma.grade.update/delete({ where: { id: req.params.id } })` without first verifying the grade's `clientId` matches `req.clientId`. Any user with `update_settings` permission at any client can modify or delete another client's grade definitions.
 - **Fix**: Fetch the grade first, assert `grade.clientId === req.clientId`, and return 403 on mismatch before mutating.
 
-### [High] `PUT /api/departments/:id` has no ownership check — cross-company department modification possible
+### [High][FIXED] `PUT /api/departments/:id` has no ownership check — cross-company department modification possible
 - **File**: `backend/routes/departments.js:61`
 - **Domain**: Security
 - **Issue**: `prisma.department.update({ where: { id: req.params.id }, data: { name, branchId } })` is called without fetching the record to verify ownership. Any `manage_companies` user can rename or reassign any department at any company by knowing its ID. `DELETE /:id` has the same problem.
 - **Fix**: Fetch the department first, assert `dept.companyId === req.companyId`, return 403 on mismatch. Apply the same pattern to `DELETE /:id`.
 
-### [High] `PUT /api/branches/:id` and `DELETE /api/branches/:id` have no ownership checks
+### [High][FIXED] `PUT /api/branches/:id` and `DELETE /api/branches/:id` have no ownership checks
 - **File**: `backend/routes/branches.js:60`
 - **Domain**: Security
 - **Issue**: Both mutation handlers call Prisma directly by ID without a prior ownership check, allowing any `manage_companies` user to rename or delete a branch belonging to any other company.
 - **Fix**: Fetch the branch first, assert `branch.companyId === req.companyId`, return 403 on mismatch before mutating.
 
-### [Medium] `POST /api/departments` and `POST /api/branches` accept `companyId` from `req.body` without validating it matches `req.companyId`
+### [Medium][FIXED] `POST /api/departments` and `POST /api/branches` accept `companyId` from `req.body` without validating it matches `req.companyId`
 - **File**: `backend/routes/departments.js:30`, `backend/routes/branches.js:29`
 - **Domain**: Security
 - **Issue**: Both creation handlers take `companyId` directly from the request body: `const { companyId, ... } = req.body` and then pass it straight to `prisma.department.create({ data: { companyId, ... } })`. An authenticated user with `manage_companies` permission can supply any `companyId` and create departments or branches under a company they do not belong to.
@@ -197,7 +197,7 @@
 - **Issue**: The `GET /` handler has no `requirePermission` middleware. Employees are filtered by the `EMPLOYEE` role check inside the handler, but users with non-EMPLOYEE roles (e.g., `VIEWER` or custom roles without `manage_leave`) can see all leave records and requests across the entire company unfiltered.
 - **Fix**: Add `requirePermission('view_leave')` (or equivalent) as route middleware, or at minimum document that read access is intentionally unrestricted. `MANUAL` — confirm intended access control model.
 
-### [Medium] `POST /api/loans` does not verify the target `employeeId` belongs to the caller's company
+### [Medium][FIXED] `POST /api/loans` does not verify the target `employeeId` belongs to the caller's company
 - **File**: `backend/routes/loans.js:36`
 - **Domain**: Security
 - **Issue**: The loan creation handler validates presence of `employeeId` but does not look up the employee to confirm they belong to `req.companyId`. An attacker with `manage_loans` permission can create a loan record against an employee in a different company.
@@ -291,7 +291,7 @@
 - **Issue**: The restore handler iterates over models in `backupData.data` and calls `tx[model].upsert({ where: { id: item.id }, update: item, create: item })` — passing each item directly from the client-supplied JSON payload with no field whitelisting or schema validation. An attacker with `manage_company` permission can supply a crafted backup JSON that creates or overwrites Employee records, PayrollRun records, Payslips, or any other linked model with arbitrary field values (including `companyId` reassignment). There is also no check that the IDs being restored actually belong to the requesting company.
 - **Fix**: Validate every item against a strict schema before upsert. Assert that each record's `companyId` (or `clientId`) matches `req.companyId`/`req.clientId`. Do not pass raw `item` objects directly — whitelist permitted fields for each model type.
 
-### [High] `taxBands.js` `PUT /:id` and `DELETE /:id` — no ownership check; any authenticated user can modify any tax band
+### [High][FIXED] `taxBands.js` `PUT /:id` and `DELETE /:id` — no ownership check; any authenticated user can modify any tax band
 - **File**: `backend/routes/taxBands.js:34`
 - **Domain**: Security
 - **Issue**: Same IDOR pattern as employees.js: `PUT /:id` and `DELETE /:id` operate directly by ID with no check that the band belongs to the caller's client scope.
@@ -315,7 +315,7 @@
 - **Issue**: Same IDOR pattern as employees.js: both mutation handlers operate directly on ID without verifying the sub-company's `clientId` matches `req.clientId`.
 - **Fix**: Fetch the record first, assert `sub.clientId === req.clientId`, return 403 on mismatch.
 
-### [High] `payrollCalendar.js` `PUT /:id` and `DELETE /:id` — no ownership check
+### [High][FIXED] `payrollCalendar.js` `PUT /:id` and `DELETE /:id` — no ownership check
 - **File**: `backend/routes/payrollCalendar.js:88`
 - **Domain**: Security
 - **Issue**: Same IDOR pattern: `PUT /:id` fetches the existing calendar for the closed-check but does not assert `calendar.clientId === req.clientId`. `DELETE /:id` does the same. `GET /:id` (line 73) also has no ownership check. `POST /:id/close` (line 115) has no ownership check either.
@@ -406,7 +406,7 @@
 - **Issue**: `data.companyName.toUpperCase()` is called unconditionally. `companyName` is populated in `payslipFormatter.js` from `payslip.payrollRun.company.name` with no null guard. If the company record has no name (or the relation is not loaded), this call throws `TypeError: Cannot read properties of undefined (reading 'toUpperCase')`, crashing the PDF generation promise and leaving the employee without a payslip.
 - **Fix**: Replace with `(data.companyName || 'Unknown Company').toUpperCase()` in `_drawPayslip`, or assert `companyName` is present before calling `generatePayslipBuffer` in `payslipFormatter.js`.
 
-### [High] `payslipTransactions.js` `DELETE /:id` — no ownership check; any company user can delete any transaction by ID
+### [High][FIXED] `payslipTransactions.js` `DELETE /:id` — no ownership check; any company user can delete any transaction by ID
 - **File**: `backend/routes/payslipTransactions.js:49`
 - **Domain**: Security
 - **Issue**: `prisma.payslipTransaction.delete({ where: { id: req.params.id } })` is called with only a `companyId` guard on the route-level check (`if (!req.companyId)`), but the actual delete is performed without verifying that the target `payslipTransaction` record belongs to `req.companyId`. A user from Company A who knows a transaction UUID from Company B can delete it.
