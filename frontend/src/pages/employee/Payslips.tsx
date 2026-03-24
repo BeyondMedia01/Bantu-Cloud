@@ -1,13 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { FileText, Loader } from 'lucide-react';
-import { EmployeeSelfAPI } from '../../api/client';
-import { PayrollAPI } from '../../api/client';
+import { EmployeeSelfAPI, PayrollAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 
 const EmployeePayslips: React.FC = () => {
   const { showToast } = useToast();
   const [payslips, setPayslips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handlePdf = async (runId: string, payslipId: string) => {
+    try {
+      const res = await PayrollAPI.downloadPayslipPdf(runId, payslipId);
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `payslip.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      showToast('Failed to download payslip PDF', 'error');
+    }
+  };
 
   useEffect(() => {
     EmployeeSelfAPI.getPayslips()
@@ -52,14 +65,12 @@ const EmployeePayslips: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-red-500">{p.paye?.toFixed(2)}</td>
                   <td className="px-4 py-3 text-sm font-bold text-emerald-600">{p.netPay?.toFixed(2)}</td>
                   <td className="px-4 py-3">
-                    <a
-                      href={PayrollAPI.getPayslipPdfUrl(p.payrollRunId, p.id)}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      onClick={() => handlePdf(p.payrollRunId, p.id)}
                       className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:underline"
                     >
                       <FileText size={14} /> PDF
-                    </a>
+                    </button>
                   </td>
                 </tr>
               ))}
