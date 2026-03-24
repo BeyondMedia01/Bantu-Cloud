@@ -112,25 +112,24 @@ router.post(
 // Note: must be declared BEFORE /:runId routes so "preview" isn't treated as a runId.
 
 router.post('/preview', requirePermission('process_payroll'), async (req, res) => {
-  // Period-lock check (date-based fallback)
-  const overlappingClosedCal = await prisma.payrollCalendar.findFirst({
-    where: {
-      clientId: req.clientId,
-      isClosed: true,
-      startDate: { lte: new Date() }, // Preview is usually for current date, but we don't have a fixed period in body always
-      // If period is provided in body, use it.
-      ...(req.body.period && {
-        startDate: { lte: new Date(req.body.period + '-31') },
-        endDate: { gte: new Date(req.body.period + '-01') },
-      })
-    },
-  });
-  if (overlappingClosedCal) return res.status(400).json({ message: 'This period is closed' });
-
   const { inputs, currency = 'USD' } = req.body;
   if (!inputs?.length) return res.json([]);
 
   try {
+    // Period-lock check (date-based fallback)
+    const overlappingClosedCal = await prisma.payrollCalendar.findFirst({
+      where: {
+        clientId: req.clientId,
+        isClosed: true,
+        startDate: { lte: new Date() }, // Preview is usually for current date, but we don't have a fixed period in body always
+        // If period is provided in body, use it.
+        ...(req.body.period && {
+          startDate: { lte: new Date(req.body.period + '-31') },
+          endDate: { gte: new Date(req.body.period + '-01') },
+        })
+      },
+    });
+    if (overlappingClosedCal) return res.status(400).json({ message: 'This period is closed' });
     const tcIds = [...new Set(inputs.map((i) => i.transactionCodeId))];
     const tcs = await prisma.transactionCode.findMany({
       where: { id: { in: tcIds } },

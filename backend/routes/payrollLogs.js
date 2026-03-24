@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 // Get all payroll logs for a company (read-only, with optional filters)
 router.get('/', async (req, res) => {
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
   if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
 
   const { actionType, status, entityAffected, startDate, endDate, userId } = req.query;
@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
 
 // Create a new log entry (append-only — no edit or delete exposed)
 router.post('/', async (req, res) => {
-  const companyId = req.headers['x-company-id'];
+  const companyId = req.companyId;
   if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
 
   const {

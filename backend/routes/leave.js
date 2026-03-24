@@ -196,26 +196,27 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), async (re
     const year = new Date(request.startDate).getFullYear();
     const leaveType = request.type || 'ANNUAL';
 
-    // Prefer LeaveBalance; fall back to legacy Employee.leaveBalance
-    const leaveBalance = await prisma.leaveBalance.findUnique({
-      where: { employeeId_leaveType_year: { employeeId: request.employeeId, leaveType, year } },
-      select: { id: true, balance: true, companyId: true },
-    });
+    // Wrap balance check + decrement atomically to prevent race condition
+    await prisma.$transaction(async (tx) => {
+      // Prefer LeaveBalance; fall back to legacy Employee.leaveBalance
+      const leaveBalance = await tx.leaveBalance.findUnique({
+        where: { employeeId_leaveType_year: { employeeId: request.employeeId, leaveType, year } },
+        select: { id: true, balance: true, companyId: true },
+      });
 
-    if (leaveBalance) {
-      if (leaveBalance.balance < request.days) {
-        return res.status(400).json({ message: `Insufficient leave balance. Available: ${leaveBalance.balance}, Requested: ${request.days}` });
+      if (leaveBalance) {
+        if (leaveBalance.balance < request.days) {
+          throw Object.assign(new Error(`Insufficient leave balance. Available: ${leaveBalance.balance}, Requested: ${request.days}`), { statusCode: 400 });
+        }
+      } else {
+        const empToCheck = await tx.employee.findUnique({ where: { id: request.employeeId }, select: { leaveBalance: true } });
+        if (empToCheck && empToCheck.leaveBalance < request.days) {
+          throw Object.assign(new Error(`Insufficient leave balance. Available: ${empToCheck.leaveBalance}, Requested: ${request.days}`), { statusCode: 400 });
+        }
       }
-    } else {
-      const empToCheck = await prisma.employee.findUnique({ where: { id: request.employeeId }, select: { leaveBalance: true } });
-      if (empToCheck && empToCheck.leaveBalance < request.days) {
-        return res.status(400).json({ message: `Insufficient leave balance. Available: ${empToCheck.leaveBalance}, Requested: ${request.days}` });
-      }
-    }
 
-    // Create LeaveRecord, update LeaveBalance (or legacy Employee balance), atomically
-    const ops = [
-      prisma.leaveRecord.create({
+      // Create LeaveRecord and update balances inside same transaction
+      await tx.leaveRecord.create({
         data: {
           employeeId: request.employeeId,
           type: leaveType,
@@ -226,29 +227,24 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), async (re
           status: 'APPROVED',
           approvedBy: req.user.userId,
         },
-      }),
-      prisma.employee.update({
+      });
+      await tx.employee.update({
         where: { id: request.employeeId },
         data: {
           leaveBalance: { decrement: request.days },
           leaveTaken: { increment: request.days },
         },
-      }),
-    ];
-
-    if (leaveBalance) {
-      ops.push(
-        prisma.leaveBalance.update({
+      });
+      if (leaveBalance) {
+        await tx.leaveBalance.update({
           where: { id: leaveBalance.id },
           data: {
             taken: { increment: request.days },
             balance: { decrement: request.days },
           },
-        })
-      );
-    }
-
-    await prisma.$transaction(ops);
+        });
+      }
+    });
 
     await audit({
       req,
@@ -261,6 +257,7 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), async (re
     res.json(request);
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Leave request not found' });
+    if (error.statusCode === 400) return res.status(400).json({ message: error.message });
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }

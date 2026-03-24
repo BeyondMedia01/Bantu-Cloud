@@ -83,6 +83,16 @@ router.get('/export', requirePermission('manage_company'), async (req, res) => {
   }
 });
 
+// Allowed models for restore — explicit whitelist prevents untrusted mass-upsert
+const ALLOWED_RESTORE_MODELS = [
+  'TransactionCode', 'Grade', 'Branch', 'Department',
+  'Employee', 'PayrollRun',
+  'EmployeeBankAccount', 'EmployeeTransaction', 'LeaveRecord',
+  'LeaveRequest', 'LeaveBalance', 'Loan', 'AttendanceRecord',
+  'EmployeeDocument', 'Payslip', 'PayrollTransaction', 'PayrollInput',
+  'LoanRepayment'
+];
+
 // POST /api/backup/restore
 router.post('/restore', requirePermission('manage_company'), async (req, res) => {
   const companyId = req.companyId;
@@ -97,9 +107,16 @@ router.post('/restore', requirePermission('manage_company'), async (req, res) =>
       return res.status(400).json({ message: 'Invalid backup format' });
     }
 
+    // Reject any model key in the backup that is not in the whitelist
+    for (const model of Object.keys(backupData.data)) {
+      if (!ALLOWED_RESTORE_MODELS.includes(model)) {
+        return res.status(400).json({ error: `Model ${model} is not restorable` });
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       // ORDER MATTERS due to foreign keys
-      
+
       // 1. Transaction Codes & Grades
       for (const tc of (backupData.data.TransactionCode || [])) {
         await tx.transactionCode.upsert({
@@ -138,7 +155,7 @@ router.post('/restore', requirePermission('manage_company'), async (req, res) =>
         });
       }
 
-      // 5. The rest (unordered)
+      // 5. The rest (whitelisted relational tables only)
       const RELATIONAL_TABLES = [
         'EmployeeBankAccount', 'EmployeeTransaction', 'LeaveRecord',
         'LeaveRequest', 'LeaveBalance', 'Loan', 'AttendanceRecord',

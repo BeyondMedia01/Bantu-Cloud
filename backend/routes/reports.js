@@ -62,10 +62,10 @@ router.get('/payslips', requirePermission('view_reports'), async (req, res) => {
 
 // ─── Tax Report (P16) ─────────────────────────────────────────────────────────
 
-// GET /api/reports/tax?companyId=&year=&format=pdf|json
+// GET /api/reports/tax?year=&format=pdf|json
 router.get('/tax', requirePermission('export_reports'), async (req, res) => {
-  const { companyId, year, format = 'json' } = req.query;
-  const targetCompanyId = companyId || req.companyId;
+  const { year, format = 'json' } = req.query;
+  const targetCompanyId = req.companyId;
   if (!targetCompanyId) return res.status(400).json({ message: 'companyId required' });
 
   try {
@@ -365,10 +365,10 @@ router.get('/payroll-trend', requirePermission('view_reports'), async (req, res)
 
 // ─── ZIMRA P2 Monthly Return ──────────────────────────────────────────────────
 
-// GET /api/reports/p2?companyId=&month=&year=
+// GET /api/reports/p2?month=&year=
 router.get('/p2', requirePermission('export_reports'), async (req, res) => {
-  const { companyId, month, year } = req.query;
-  const targetCompanyId = companyId || req.companyId;
+  const { month, year } = req.query;
+  const targetCompanyId = req.companyId;
   if (!targetCompanyId || !month || !year) {
     return res.status(400).json({ message: 'companyId, month, and year are required' });
   }

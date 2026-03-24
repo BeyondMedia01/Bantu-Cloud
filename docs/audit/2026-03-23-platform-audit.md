@@ -54,19 +54,19 @@
 
 <!-- Task 3 Batch A: Payroll & Financial routes sweep — 2026-03-23 -->
 
-### [High] `POST /preview` DB call is outside try/catch — unhandled promise rejection on Prisma error
+### [High][FIXED] `POST /preview` DB call is outside try/catch — unhandled promise rejection on Prisma error
 - **File**: `backend/routes/payroll.js:116`
 - **Domain**: Code Quality
 - **Issue**: The period-lock check at line 116 (`prisma.payrollCalendar.findFirst(...)`) is executed outside the `try` block (which starts at line 133). If Prisma throws (e.g., DB connection failure), the error is an unhandled promise rejection, crashing the process in Node.js versions ≥15 and returning no response to the caller in earlier versions.
 - **Fix**: Move the period-lock query inside the `try` block, or wrap the entire handler body in a single top-level try/catch with `next(err)`.
 
-### [High] `payslipExports` GET/POST/PATCH read `x-company-id` header directly instead of `req.companyId` — bypasses `companyContext` middleware
+### [High][FIXED] `payslipExports` GET/POST/PATCH read `x-company-id` header directly instead of `req.companyId` — bypasses `companyContext` middleware
 - **File**: `backend/routes/payslipExports.js:8`
 - **Domain**: Security
 - **Issue**: All three handlers in `payslipExports.js` read `companyId` directly from `req.headers['x-company-id']` rather than from `req.companyId` set by the `companyContext` middleware. This means no cross-tenant ownership validation occurs — any authenticated user can supply an arbitrary `x-company-id` header and read or write export records for a company they do not belong to.
 - **Fix**: Replace `req.headers['x-company-id']` with `req.companyId` (populated by `companyContext`) in all handlers. The `PATCH /:id` and `DELETE /:id` handlers also need ownership checks (look up the record and verify `record.companyId === req.companyId` before mutating).
 
-### [High] `payrollLogs` GET/POST read `x-company-id` header directly — same bypass as payslipExports
+### [High][FIXED] `payrollLogs` GET/POST read `x-company-id` header directly — same bypass as payslipExports
 - **File**: `backend/routes/payrollLogs.js:8`
 - **Domain**: Security
 - **Issue**: Both handlers read `const companyId = req.headers['x-company-id']` instead of `req.companyId`. An authenticated user from any company can read all audit log entries for any other company by setting a different header value, and can also write spoofed log entries under an arbitrary company ID.
@@ -78,13 +78,13 @@
 - **Issue**: The `GET /api/payslips/:id` handler uses `include: { employee: true }` with no `select` clause. This returns every column on the Employee record including personal fields such as `idPassport`, `tin`, `socialSecurityNum`, `bankAccountUSD`, `bankAccountZiG`, and potentially any future sensitive fields added to the model, to any authenticated user with access to that payslip.
 - **Fix**: Replace `employee: true` with `employee: { select: { firstName: true, lastName: true, employeeCode: true, position: true } }` (add only fields the payslip view requires). Apply the same pattern to `payrollRun: { include: { company: true } }` to avoid leaking the full Company record.
 
-### [High] `reports.js` `GET /tax` accepts arbitrary `companyId` query param — IDOR across companies
+### [High][FIXED] `reports.js` `GET /tax` accepts arbitrary `companyId` query param — IDOR across companies
 - **File**: `backend/routes/reports.js:67`
 - **Domain**: Security
 - **Issue**: `const targetCompanyId = companyId || req.companyId;` — any user can pass `?companyId=<other-company-id>` and retrieve the full P16 annual tax report for a company they are not authorised for. There is no check that `targetCompanyId` matches `req.companyId` or that the requesting user belongs to that company.
 - **Fix**: Remove the `companyId` query parameter entirely and always use `req.companyId`. If cross-company access is needed for CLIENT-role users, add an explicit check: `if (companyId && companyId !== req.companyId) { /* verify req.user belongs to that company or has CLIENT scope */ }`.
 
-### [High] `reports.js` `GET /p2` same IDOR — arbitrary `companyId` accepted in query string
+### [High][FIXED] `reports.js` `GET /p2` same IDOR — arbitrary `companyId` accepted in query string
 - **File**: `backend/routes/reports.js:370`
 - **Domain**: Security
 - **Issue**: Same pattern as `/tax`: `const targetCompanyId = companyId || req.companyId` with no ownership validation. The P2 return contains gross salary, PAYE, and AIDS levy figures for every employee in the target company — highly sensitive payroll financial data.
@@ -131,13 +131,13 @@
 
 <!-- Task 3 Batch B: Employee & HR routes sweep — 2026-03-23 -->
 
-### [High] `GET /api/employees` and `GET /api/employees/:id` return full employee records including TIN, passport number, bank details, and SSN without field selection
+### [High][FIXED] `GET /api/employees` and `GET /api/employees/:id` return full employee records including TIN, passport number, bank details, and SSN without field selection
 - **File**: `backend/routes/employees.js:186`
 - **Domain**: Security
 - **Issue**: Both the list query (`findMany`) and the single-record query (`findUnique`) use no `select` clause, returning the entire Employee row. This includes highly sensitive PII fields: `tin`, `passportNumber`, `nationalId`, `socialSecurityNum`, `accountNumber`, `bankName`, `bankBranch`, `taxDirective`, `taxDirectivePerc`, and any future columns added to the model. The employee self-service path at line 148 also returns all fields for the requesting employee.
 - **Fix**: Add explicit `select` or use a safe projection helper in all employee read queries. Fields such as `tin`, `passportNumber`, `socialSecurityNum`, `taxDirective*` should be excluded from list responses and only returned in the individual profile endpoint when the requester has `manage_employees` permission. `MANUAL` — confirm which fields each consumer requires.
 
-### [High] `GET /api/employee/profile` (employeeSelf.js) returns the full employee record including TIN, passport, bank details, and SSN
+### [High][FIXED] `GET /api/employee/profile` (employeeSelf.js) returns the full employee record including TIN, passport, bank details, and SSN
 - **File**: `backend/routes/employeeSelf.js:10`
 - **Domain**: Security
 - **Issue**: `prisma.employee.findUnique({ where: { userId: req.user.userId }, include: { company: ..., branch: ..., department: ... } })` has no `select` clause on the Employee model itself, so the full row is returned including `tin`, `passportNumber`, `nationalId`, `socialSecurityNum`, `accountNumber`, `taxDirective`, and all salary fields. While an employee may legitimately see their own profile, returning raw TIN and full bank account numbers in an API response without masking increases exposure if the channel is compromised.
@@ -285,7 +285,7 @@
 - **Issue**: All four handlers (`GET /`, `POST /`, `PATCH /:id`, `DELETE /:id`) have no `authenticateToken` or permission check. Any unauthenticated caller can enumerate payroll user accounts for any company, create new payroll users with ADMIN role and all permissions, or delete existing users. The file uses its own `new PrismaClient()` instance.
 - **Fix**: Add `authenticateToken` at router level and `requirePermission('manage_companies')` (or equivalent) on all mutation handlers. Replace the local `new PrismaClient()` instance with the shared singleton.
 
-### [High] `backup.js` `POST /restore` — upserts entire payload directly from `req.body` with no field validation, enabling overwrite of arbitrary records across models
+### [High][FIXED] `backup.js` `POST /restore` — upserts entire payload directly from `req.body` with no field validation, enabling overwrite of arbitrary records across models
 - **File**: `backend/routes/backup.js:87`
 - **Domain**: Security
 - **Issue**: The restore handler iterates over models in `backupData.data` and calls `tx[model].upsert({ where: { id: item.id }, update: item, create: item })` — passing each item directly from the client-supplied JSON payload with no field whitelisting or schema validation. An attacker with `manage_company` permission can supply a crafted backup JSON that creates or overwrites Employee records, PayrollRun records, Payslips, or any other linked model with arbitrary field values (including `companyId` reassignment). There is also no check that the IDs being restored actually belong to the requesting company.
@@ -355,7 +355,7 @@
 - **Issue**: `createdBy` is extracted from `req.body` and written directly to the new `PayrollUser` record. Even if auth were added, a caller could supply any string as the creator identity.
 - **Fix**: Derive `createdBy` from `req.user?.email || req.user?.userId` server-side.
 
-### [Medium] `intelligence.js` middleware checks `req.user.clientId` but individual handlers allow `companyId` override via query string
+### [Medium][FIXED] `intelligence.js` middleware checks `req.user.clientId` but individual handlers allow `companyId` override via query string
 - **File**: `backend/routes/intelligence.js:35`
 - **Domain**: Security
 - **Issue**: The `/fraud` and `/cashflow` handlers use `req.companyId || req.query.companyId` — the query string fallback bypasses the `companyContext` middleware's validated company binding, allowing any authenticated user with a `clientId` to query fraud flags and cashflow forecasts for a company they do not belong to by supplying `?companyId=<other-id>`.
@@ -400,7 +400,7 @@
 
 <!-- Task 5: Payslip mapping and leave logic sweep — 2026-03-23 -->
 
-### [High] `pdfService.js` `_drawPayslip` — `data.companyName.toUpperCase()` will throw if `companyName` is undefined
+### [High][FIXED] `pdfService.js` `_drawPayslip` — `data.companyName.toUpperCase()` will throw if `companyName` is undefined
 - **File**: `backend/utils/pdfService.js:63`
 - **Domain**: Business Logic
 - **Issue**: `data.companyName.toUpperCase()` is called unconditionally. `companyName` is populated in `payslipFormatter.js` from `payslip.payrollRun.company.name` with no null guard. If the company record has no name (or the relation is not loaded), this call throws `TypeError: Cannot read properties of undefined (reading 'toUpperCase')`, crashing the PDF generation promise and leaving the employee without a payslip.
@@ -432,7 +432,7 @@
 - **Issue**: `prisma.leaveRecord.delete({ where: { id: req.params.id } })` is called without verifying the record belongs to the requesting company. Identical IDOR exposure as the `PUT /:id` handler.
 - **Fix**: Apply the same ownership pre-fetch and company assertion as recommended for `PUT /:id` before executing the delete.
 
-### [High] `leave.js` `POST /` — negative balance possible via `Employee.leaveBalance` legacy fallback; no floor guard
+### [High][FIXED] `leave.js` `POST /` — negative balance possible via `Employee.leaveBalance` legacy fallback; no floor guard
 - **File**: `backend/routes/leave.js:86`
 - **Domain**: Business Logic
 - **Issue**: The balance check uses `availableBalance < days_f` and rejects insufficient balance — but only before the transaction. Inside `$transaction`, `employee.leaveBalance` is decremented with `{ decrement: days_f }` with no DB-level floor constraint. If two concurrent requests race (both pass the pre-check with the same balance), both decrements commit and `leaveBalance` goes negative. The `LeaveBalance` model path has the same race condition. A negative balance is not caught anywhere downstream and will render as a negative number on the payslip leave section.
