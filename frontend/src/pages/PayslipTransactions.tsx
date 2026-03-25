@@ -127,7 +127,9 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-md self-start ${t.transaction?.type === 'EARNING' ? 'bg-emerald-50 text-accent-green' : 'bg-red-50 text-red-500'}`}>
                         {t.transactionCode}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium mt-1">{t.transaction?.description}</span>
+                      <span className="text-[10px] text-slate-400 font-medium mt-1">
+                        {t.description || t.transaction?.description || '—'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">

@@ -135,7 +135,12 @@ function _drawPayslip(doc, data) {
     rowIndex++;
 
     doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9);
-    doc.text(item.name, cols[0].x, rowY + 7);
+    const nameY = item.description ? rowY + 5 : rowY + 7;
+    doc.text(item.name, cols[0].x, nameY);
+    if (item.description) {
+      doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7);
+      doc.text(item.description, cols[0].x, rowY + 14);
+    }
 
     doc.font('Helvetica-Bold');
     if (item.allowance > 0) {

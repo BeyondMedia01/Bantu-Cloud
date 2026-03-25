@@ -108,6 +108,7 @@ const PayrollInputs: React.FC = () => {
         amount: parseFloat(editInput.amount),
         currency: editInput.currency,
         period: editInput.period,
+        notes: editInput.notes,
         payrollRunId: editInput.payrollRunId || undefined,
       });
       setEditInput(null);
@@ -353,6 +354,7 @@ const PayrollInputs: React.FC = () => {
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Type</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Amount</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Period</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Notes</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Status</th>
                 <th className="px-5 py-3" />
               </tr>
@@ -391,6 +393,9 @@ const PayrollInputs: React.FC = () => {
                       ${Number(inp.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-5 py-3 text-slate-500 font-medium">{inp.period}</td>
+                    <td className="px-5 py-3 text-[11px] text-slate-400 italic max-w-[150px] truncate" title={inp.notes}>
+                      {inp.notes || '—'}
+                    </td>
                     <td className="px-5 py-3">
                       <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${
                         inp.processed ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-700'
@@ -408,6 +413,7 @@ const PayrollInputs: React.FC = () => {
                               amount: String(inp.amount ?? inp.employeeUSD ?? inp.employeeZiG ?? 0),
                               currency: inp.currency || (inp.employeeZiG > 0 ? 'ZiG' : 'USD'),
                               period: inp.period,
+                              notes: inp.notes || '',
                               payrollRunId: inp.payrollRunId || '',
                             });
                             setError('');
@@ -510,6 +516,17 @@ const PayrollInputs: React.FC = () => {
                   onChange={(e) => setEditInput((p: any) => ({ ...p, period: e.target.value }))}
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Notes</label>
+                <input
+                  type="text"
+                  value={editInput.notes}
+                  onChange={(e) => setEditInput((p: any) => ({ ...p, notes: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
+                  placeholder="e.g. OT Multiplier details"
                 />
               </div>
 

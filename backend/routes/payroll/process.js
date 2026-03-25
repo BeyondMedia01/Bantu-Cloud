@@ -1012,6 +1012,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               transactionCodeId: i.transactionCodeId,
               amount: i.employeeUSD,
               currency: 'USD',
+              description: i.notes,
             });
           }
           if ((i.employeeZiG || 0) !== 0) {
@@ -1019,6 +1020,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               transactionCodeId: i.transactionCodeId,
               amount: i.employeeZiG,
               currency: 'ZiG',
+              description: i.notes,
             });
           }
         } else {
@@ -1028,6 +1030,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               transactionCodeId: i.transactionCodeId,
               amount: amt,
               currency: run.currency,
+              description: i.notes,
             });
           }
         }
@@ -1041,12 +1044,14 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               transactionCodeId: sd.transactionCodeId,
               amount: sd.value,
               currency: 'USD',
+              description: sd.notes,
             });
           } else if (sd.currency === 'ZiG' && (sd.value || 0) !== 0) {
             allEmpItems.push({
               transactionCodeId: sd.transactionCodeId,
               amount: sd.value,
               currency: 'ZiG',
+              description: sd.notes,
             });
           }
         } else {
@@ -1056,6 +1061,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               transactionCodeId: sd.transactionCodeId,
               amount: amt,
               currency: run.currency,
+              description: sd.notes,
             });
           }
         }
@@ -1068,6 +1074,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           transactionCodeId: item.transactionCodeId,
           amount: item.amount,
           currency: item.currency,
+          description: item.description,
         });
       }
     }

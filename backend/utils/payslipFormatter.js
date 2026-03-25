@@ -21,6 +21,7 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
   earningTxs.forEach(t => {
     lines.push({
       name: t.transactionCode.name,
+      description: t.description,
       allowance: t.amount,
       deduction: 0,
       employer: 0,

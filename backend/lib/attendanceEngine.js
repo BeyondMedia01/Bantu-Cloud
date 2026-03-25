@@ -164,6 +164,9 @@ function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
     let totalOt2Hours       = 0;
     let totalOt2Earnings    = 0;
 
+    const usedOt1Mults = new Set();
+    const usedOt2Mults = new Set();
+
     for (const r of empRecords) {
       const shiftOt1Mult = r.shift?.ot1Multiplier ?? 1.5;
       const shiftOt2Mult = r.shift?.ot2Multiplier ?? 2.0;
@@ -171,6 +174,9 @@ function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
       const normHrs = r.normalMinutes / 60;
       const ot1Hrs  = r.ot1Minutes / 60;
       const ot2Hrs  = r.ot2Minutes / 60;
+
+      if (ot1Hrs > 0) usedOt1Mults.add(shiftOt1Mult);
+      if (ot2Hrs > 0) usedOt2Mults.add(shiftOt2Mult);
 
       totalNormalHours    += normHrs;
       totalNormalEarnings += hourlyRate * normHrs;
@@ -193,19 +199,21 @@ function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
       });
     }
     if (ot1TcId && totalOt1Hours > 0) {
+      const multLabel = Array.from(usedOt1Mults).sort().map(m => `${m}x`).join(', ');
       inputs.push({
         employeeId: empId, transactionCodeId: ot1TcId, period, payrollRunId: payrollRunId || null,
         [currency === 'ZiG' ? 'employeeZiG' : 'employeeUSD']: parseFloat(totalOt1Earnings.toFixed(2)),
         units: parseFloat(totalOt1Hours.toFixed(2)), unitsType: 'hrs',
-        notes: `OT 1: ${totalOt1Hours.toFixed(2)} hrs`,
+        notes: `OT 1 (${multLabel}): ${totalOt1Hours.toFixed(2)} hrs`,
       });
     }
     if (ot2TcId && totalOt2Hours > 0) {
+      const multLabel = Array.from(usedOt2Mults).sort().map(m => `${m}x`).join(', ');
       inputs.push({
         employeeId: empId, transactionCodeId: ot2TcId, period, payrollRunId: payrollRunId || null,
         [currency === 'ZiG' ? 'employeeZiG' : 'employeeUSD']: parseFloat(totalOt2Earnings.toFixed(2)),
         units: parseFloat(totalOt2Hours.toFixed(2)), unitsType: 'hrs',
-        notes: `OT 2: ${totalOt2Hours.toFixed(2)} hrs`,
+        notes: `OT 2 (${multLabel}): ${totalOt2Hours.toFixed(2)} hrs`,
       });
     }
   }
