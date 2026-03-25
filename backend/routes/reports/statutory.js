@@ -512,7 +512,7 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req,
       where: { payrollRunId: { in: runIds }, employeeId: { in: employeeIds } },
       include: {
         transactionCode: {
-          select: { code: true, name: true, type: true, preTax: true, incomeCategory: true, isExempt: true },
+          select: { code: true, name: true, type: true, preTax: true, incomeCategory: true },
         },
       },
     });
@@ -603,15 +603,13 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req,
         const code = (tc?.code || '').toUpperCase();
         const name = (tc?.name || '').toUpperCase();
         const amt = Math.abs(t.amount || 0);
-        const isExempt = tc?.isExempt;
-
         if (tc?.type === 'EARNING' || tc?.type === 'BENEFIT') {
           if (cat === 'OVERTIME' || name.includes('OVERTIME') || code.includes('OT'))
             add(r.overtime, amt);
           else if (cat === 'BONUS')
             add(r.bonus, amt);
           else if (cat === 'GRATUITY')
-            isExempt ? add(r.severanceExempt, amt) : add(r.gratuityNoExempt, amt);
+            add(r.gratuityNoExempt, amt);
           else if (cat === 'COMMISSION')
             add(r.commission, amt);
           else if (tc?.type === 'BENEFIT') {
@@ -620,7 +618,6 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req,
             else if (name.includes('EDU') || code.includes('EDU'))   add(r.educationBenefit, amt);
             else                                                       add(r.otherBenefits, amt);
           }
-          else if (cat === 'ALLOWANCE' && isExempt)                  add(r.otherExemptions, amt);
           else if (cat === 'ALLOWANCE')                               add(r.otherIrregular, amt);
           else                                                         add(r.nonTaxable, amt);
         } else if (tc?.type === 'DEDUCTION') {
