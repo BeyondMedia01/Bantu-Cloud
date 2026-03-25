@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader, RefreshCw, ChevronsRight, CalendarCheck, AlertCircle } from 'lucide-react';
+import { Loader, ChevronsRight, CalendarCheck, AlertCircle } from 'lucide-react';
 import { LeaveBalanceAPI, EmployeeAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 
@@ -17,7 +17,7 @@ const LeaveBalances: React.FC = () => {
   const [showAdjust, setShowAdjust] = useState<string | null>(null);
   const [adjValue, setAdjValue] = useState('');
   const [adjNote, setAdjNote] = useState('');
-  const [confirmAction, setConfirmAction] = useState<'accrue' | 'yearend' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'yearend' | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -37,24 +37,7 @@ const LeaveBalances: React.FC = () => {
 
   useEffect(load, [yearFilter, employeeFilter]);
 
-  const handleAccrue = () => setConfirmAction('accrue');
-
   const handleYearEnd = () => setConfirmAction('yearend');
-
-  const runAccrue = async () => {
-    setActionLoading('accrue');
-    setActionMsg('');
-    setError('');
-    try {
-      const r = await LeaveBalanceAPI.runAccrual();
-      setActionMsg(`Accrual complete — ${r.data.credited} credits issued, ${r.data.skipped} skipped (already accrued or at cap)`);
-      load();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Accrual failed');
-    } finally {
-      setActionLoading('');
-    }
-  };
 
   const runYearEnd = async () => {
     const yr = parseInt(yearFilter);
@@ -100,12 +83,10 @@ const LeaveBalances: React.FC = () => {
     <div className="flex flex-col gap-6">
       {confirmAction && (
         <ConfirmModal
-          title={confirmAction === 'accrue' ? 'Run Monthly Accrual' : 'Year-End Carry-Over'}
-          message={confirmAction === 'accrue'
-            ? 'Run monthly accrual for all active employees? This will credit leave balances based on active policies.'
-            : `Run year-end carry-over for ${yearFilter}? Unused leave will be rolled forward (within policy limits) and remainder forfeited.`}
-          confirmLabel={confirmAction === 'accrue' ? 'Run Accrual' : 'Run Year-End'}
-          onConfirm={() => { const action = confirmAction; setConfirmAction(null); if (action === 'accrue') runAccrue(); else runYearEnd(); }}
+          title="Year-End Carry-Over"
+          message={`Run year-end carry-over for ${yearFilter}? Unused leave will be rolled forward (within policy limits) and remainder forfeited.`}
+          confirmLabel="Run Year-End"
+          onConfirm={() => { setConfirmAction(null); runYearEnd(); }}
           onCancel={() => setConfirmAction(null)}
         />
       )}
@@ -115,14 +96,6 @@ const LeaveBalances: React.FC = () => {
           <p className="text-slate-500 text-sm font-medium">Per-employee, per-type leave balance tracking</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={handleAccrue}
-            disabled={actionLoading === 'accrue'}
-            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold text-sm shadow hover:bg-blue-700 disabled:opacity-60"
-          >
-            <RefreshCw size={15} className={actionLoading === 'accrue' ? 'animate-spin' : ''} />
-            Run Monthly Accrual
-          </button>
           <button
             onClick={handleYearEnd}
             disabled={actionLoading === 'yearend'}
@@ -165,7 +138,7 @@ const LeaveBalances: React.FC = () => {
         <div className="text-center py-16 bg-primary rounded-2xl border border-border">
           <CalendarCheck size={36} className="mx-auto mb-3 text-slate-200" />
           <p className="font-bold text-slate-500 mb-1">No balances found</p>
-          <p className="text-sm text-slate-400">Run a monthly accrual to seed leave balances for active employees</p>
+          <p className="text-sm text-slate-400">Leave balances will appear here once accrual has run for active employees</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">

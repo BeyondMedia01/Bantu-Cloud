@@ -184,7 +184,7 @@ const Reports: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm">ZIMRA Monthly PAYE Return</p>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">P2 PDF &nbsp;·&nbsp; TaRMS Excel Upload</p>
+                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">TaRMS Excel Upload</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -196,19 +196,11 @@ const Reports: React.FC = () => {
                     {MONTHS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                   <button
-                    disabled={disabled || isDownloading('p2')}
-                    onClick={downloadP2}
-                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
-                  >
-                    <Download size={15} /> {isDownloading('p2') ? '…' : 'P2 PDF'}
-                  </button>
-                  <button
                     disabled={disabled || isDownloading('tarms-excel')}
                     onClick={downloadTarmsExcel}
-                    className="bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
-                    title="Export 52-column TaRMS bulk upload Excel"
+                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
                   >
-                    <FileSpreadsheet size={15} /> {isDownloading('tarms-excel') ? '…' : 'TaRMS Excel'}
+                    <Download size={15} /> {isDownloading('tarms-excel') ? 'Generating…' : 'Export'}
                   </button>
                 </div>
               </div>
@@ -226,19 +218,11 @@ const Reports: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    disabled={disabled || isDownloading('nssa')}
-                    onClick={downloadNssa}
-                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
-                  >
-                    <Download size={15} /> {isDownloading('nssa') ? 'Generating…' : 'PDF'}
-                  </button>
-                  <button
                     disabled={disabled || isDownloading('nssa-excel')}
                     onClick={downloadNssaExcel}
-                    className="bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
-                    title="Export detailed P4A per-employee Excel (NSSA upload format)"
+                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
                   >
-                    <FileSpreadsheet size={15} /> {isDownloading('nssa-excel') ? 'Generating…' : 'Excel'}
+                    <Download size={15} /> {isDownloading('nssa-excel') ? 'Generating…' : 'Export'}
                   </button>
                 </div>
               </div>
