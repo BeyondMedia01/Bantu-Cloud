@@ -124,7 +124,10 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
         companyId: req.companyId,
         date: { gte: new Date(startDate), lte: new Date(endDate) },
       },
-      include: { employee: { select: { id: true, firstName: true, lastName: true, employeeCode: true, baseRate: true, currency: true, hoursPerPeriod: true, daysPerPeriod: true } } },
+      include: {
+        employee: { select: { id: true, firstName: true, lastName: true, employeeCode: true, baseRate: true, currency: true, hoursPerPeriod: true, daysPerPeriod: true } },
+        shift: { select: { ot1Multiplier: true, ot2Multiplier: true } }
+      },
     });
 
     const byEmployee = {};
@@ -134,33 +137,42 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
           employee: r.employee,
           daysPresent: 0, daysAbsent: 0,
           normalHours: 0, ot1Hours: 0, ot2Hours: 0, totalHours: 0,
+          estimatedPay: 0,
         };
       }
       const s = byEmployee[r.employeeId];
       if (r.status === 'PRESENT') s.daysPresent++;
       else s.daysAbsent++;
-      s.normalHours += r.normalMinutes / 60;
-      s.ot1Hours    += r.ot1Minutes    / 60;
-      s.ot2Hours    += r.ot2Minutes    / 60;
+
+      const normHrs = r.normalMinutes / 60;
+      const ot1Hrs  = r.ot1Minutes / 60;
+      const ot2Hrs  = r.ot2Minutes / 60;
+
+      s.normalHours += normHrs;
+      s.ot1Hours    += ot1Hrs;
+      s.ot2Hours    += ot2Hrs;
       s.totalHours  += r.totalMinutes  / 60;
+
+      const emp = r.employee;
+      const stdHours = emp.hoursPerPeriod ?? (emp.daysPerPeriod ? emp.daysPerPeriod * 8 : 160);
+      const hourly = emp.baseRate / stdHours;
+      const ot1Mult = r.shift?.ot1Multiplier ?? 1.5;
+      const ot2Mult = r.shift?.ot2Multiplier ?? 2.0;
+
+      s.estimatedPay += (hourly * normHrs) + (hourly * ot1Mult * ot1Hrs) + (hourly * ot2Mult * ot2Hrs);
     }
 
-    // Calculate OT pay estimate
+    // Format summary
     const summary = Object.values(byEmployee).map((s) => {
       const emp = s.employee;
-      const stdHours  = emp.hoursPerPeriod ?? (emp.daysPerPeriod ? emp.daysPerPeriod * 8 : 160);
-      const hourly    = emp.baseRate / stdHours;
-      const normalPay = s.normalHours * hourly;
-      const ot1Pay    = s.ot1Hours    * hourly * 1.5;
-      const ot2Pay    = s.ot2Hours    * hourly * 2.0;
       return {
         ...s,
-        normalHours: parseFloat(s.normalHours.toFixed(2)),
-        ot1Hours:    parseFloat(s.ot1Hours.toFixed(2)),
-        ot2Hours:    parseFloat(s.ot2Hours.toFixed(2)),
-        totalHours:  parseFloat(s.totalHours.toFixed(2)),
-        estimatedPay: parseFloat((normalPay + ot1Pay + ot2Pay).toFixed(2)),
-        currency:    emp.currency || 'USD',
+        normalHours:  parseFloat(s.normalHours.toFixed(2)),
+        ot1Hours:     parseFloat(s.ot1Hours.toFixed(2)),
+        ot2Hours:     parseFloat(s.ot2Hours.toFixed(2)),
+        totalHours:   parseFloat(s.totalHours.toFixed(2)),
+        estimatedPay: parseFloat(s.estimatedPay.toFixed(2)),
+        currency:     emp.currency || 'USD',
       };
     });
 
@@ -296,7 +308,10 @@ router.post('/generate-inputs', requirePermission('process_payroll'), async (req
         status: 'PRESENT',
         ...(employeeIds?.length && { employeeId: { in: employeeIds } }),
       },
-      include: { employee: { select: { id: true, baseRate: true, currency: true, hoursPerPeriod: true, daysPerPeriod: true } } },
+      include: {
+        employee: { select: { id: true, baseRate: true, currency: true, hoursPerPeriod: true, daysPerPeriod: true } },
+        shift: { select: { ot1Multiplier: true, ot2Multiplier: true } }
+      },
     });
 
     if (records.length === 0) return res.json({ message: 'No attendance records found', created: 0 });

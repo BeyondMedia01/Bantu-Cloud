@@ -734,6 +734,8 @@ model Shift {
   breakMinutes  Int              @default(60)
   normalHours   Float            @default(8)   // hours of normal-rate work per day
   ot1Threshold  Float            @default(2)   // OT hours at ×1.5 before ×2.0 kicks in
+  ot1Multiplier Float            @default(1.5) // rate multiplier for OT1
+  ot2Multiplier Float            @default(2.0) // rate multiplier for OT2
   isOvernight   Boolean          @default(false)
   isActive      Boolean          @default(true)
   createdAt     DateTime         @default(now())
