@@ -81,14 +81,8 @@ const Reports: React.FC = () => {
   const downloadP16 = () =>
     download('p16', () => ReportsAPI.tax({ year: String(selectedYear), format: 'pdf' }), `ZIMRA_P16_${selectedYear}.pdf`);
 
-  const downloadP2 = () =>
-    download('p2', () => ReportsAPI.p2({ month: String(selectedMonth), year: String(selectedYear) }), `ZIMRA_P2_${selectedMonth}_${selectedYear}.pdf`);
-
   const downloadTarmsExcel = () =>
     download('tarms-excel', () => ReportsAPI.tarmsPayeExcel({ month: String(selectedMonth), year: String(selectedYear) }), `ZIMRA_TaRMS_PAYE_${selectedMonth}_${selectedYear}.xlsx`);
-
-  const downloadNssa = () =>
-    download('nssa', () => ReportsAPI.nssaP4a({ month: String(selectedMonth), year: String(selectedYear) }), `NSSA_P4A_${selectedMonth}_${selectedYear}.pdf`);
 
   const downloadNssaExcel = () =>
     download('nssa-excel', () => ReportsAPI.nssaP4aExcel({ month: String(selectedMonth), year: String(selectedYear) }), `NSSA_P4A_${selectedMonth}_${selectedYear}.xlsx`);
