@@ -234,55 +234,12 @@ function _drawPayslip(doc, data) {
 
   currY = Math.max(earningsBottom, deductionBottom);
 
-  // ── Section 5: Dedicated Summary Box ─────────────────────────────────────
-  // Single #f2f2f2 rectangle — never sits inside the deductions table.
-  // Total Earnings and Total Deductions use the EXACT same x/width as the
-  // AMOUNT (USD) column headers drawn by drawTable above.
-  currY += 4;
-  const SUM_H = 54;
-  doc.rect(LEFT, currY, CONTENT_W, SUM_H).fill('#f2f2f2');
-
-  // Earnings AMOUNT column — mirrors drawTable: xStart + T_PAD + T_DESC_W, w = T_AMT_W
-  const E_SUM_X = LEFT    + T_PAD + T_DESC_W; // 148pt
-  // Deductions AMOUNT column — same formula for R_START
-  const D_SUM_X = R_START + T_PAD + T_DESC_W; // 409pt
-
-  // Labels
-  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5);
-  doc.text('TOTAL EARNINGS',   LEFT    + T_PAD, currY + 10);
-  doc.text('TOTAL DEDUCTIONS', R_START + T_PAD, currY + 10);
-
-  // Amounts — forced to exact column x/width (no drift possible)
-  doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(10)
-    .text(usd(data.grossPay),       E_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
-  doc.fillColor('#dc2626').font('Helvetica-Bold').fontSize(10)
-    .text(usd(data.totalDeductions), D_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
-
-  // NET SALARY — bold anchor, right-aligned to page right edge
-  const NET_LABEL_X = RIGHT - 150;
-  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5)
-    .text('NET SALARY', NET_LABEL_X, currY + 10, { width: 150 - T_PAD, align: 'right' });
-
-  if (data.netPayUSD != null && data.netPayZIG != null) {
-    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(11)
-      .text(`USD ${fmt(data.netPayUSD)}`, NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
-    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(9)
-      .text(`ZiG ${fmt(data.netPayZIG)}`, NET_LABEL_X, currY + 37, { width: 150 - T_PAD, align: 'right' });
-  } else {
-    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(14)
-      .text(usd(data.netSalary), NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
-  }
-
-  currY += SUM_H;
-
-  // ── Section 6: Statutory Employer Contributions ───────────────────────────
-  // Same 3-column format (Description | Amount | YTD) as the main tables.
-  // Right edges align with the deductions table's YTD column above.
+  // ── Section 5: Statutory Employer Contributions ───────────────────────────
+  // Shown immediately below the earnings/deductions tables, before the totals.
   if (employers.length > 0) {
     currY += 6;
 
-    // Section header
-    doc.rect(LEFT, currY, CONTENT_W, HDR_H).fill('#1e3a5f'); // slightly lighter navy
+    doc.rect(LEFT, currY, CONTENT_W, HDR_H).fill('#1e3a5f');
     doc.fillColor('#a5b4fc').font('Helvetica-Bold').fontSize(8.5)
       .text('STATUTORY EMPLOYER CONTRIBUTIONS', LEFT + T_PAD, currY + 5);
     doc.fillColor('rgba(255,255,255,0.55)').font('Helvetica').fontSize(6.5);
@@ -305,6 +262,47 @@ function _drawPayslip(doc, data) {
           .text(usd(c.ytd), EMP_YTD_X, textY, { width: T_YTD_W, align: 'right' });
       }
     });
+
+    currY += employers.length * ROW_H;
+  }
+
+  // ── Section 6: Dedicated Summary Box ─────────────────────────────────────
+  // Drawn last (below employer contributions) as the final audit anchor.
+  // Total Earnings and Total Deductions use the EXACT same x/width as the
+  // AMOUNT (USD) column headers in the earnings/deductions tables above.
+  currY += 6;
+  const SUM_H = 54;
+  doc.rect(LEFT, currY, CONTENT_W, SUM_H).fill('#f2f2f2');
+
+  // Earnings AMOUNT column: xStart + T_PAD + T_DESC_W, width = T_AMT_W
+  const E_SUM_X = LEFT    + T_PAD + T_DESC_W; // 148pt
+  // Deductions AMOUNT column: same formula at R_START
+  const D_SUM_X = R_START + T_PAD + T_DESC_W; // 409pt
+
+  // Labels
+  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5);
+  doc.text('TOTAL EARNINGS',   LEFT    + T_PAD, currY + 10);
+  doc.text('TOTAL DEDUCTIONS', R_START + T_PAD, currY + 10);
+
+  // Amounts — pinned to exact column x/width (no drift)
+  doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(10)
+    .text(usd(data.grossPay),        E_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
+  doc.fillColor('#dc2626').font('Helvetica-Bold').fontSize(10)
+    .text(usd(data.totalDeductions), D_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
+
+  // NET SALARY — bold anchor, right-aligned to page right edge
+  const NET_LABEL_X = RIGHT - 150;
+  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5)
+    .text('NET SALARY', NET_LABEL_X, currY + 10, { width: 150 - T_PAD, align: 'right' });
+
+  if (data.netPayUSD != null && data.netPayZIG != null) {
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(11)
+      .text(`USD ${fmt(data.netPayUSD)}`, NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
+    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(9)
+      .text(`ZiG ${fmt(data.netPayZIG)}`, NET_LABEL_X, currY + 37, { width: 150 - T_PAD, align: 'right' });
+  } else {
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(14)
+      .text(usd(data.netSalary), NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
   }
 
   // ── Section 7: Universal Bantu Footer ─────────────────────────────────────
