@@ -266,43 +266,44 @@ function _drawPayslip(doc, data) {
     currY += employers.length * ROW_H;
   }
 
-  // ── Section 6: Dedicated Summary Box ─────────────────────────────────────
-  // Drawn last (below employer contributions) as the final audit anchor.
-  // Total Earnings and Total Deductions use the EXACT same x/width as the
-  // AMOUNT (USD) column headers in the earnings/deductions tables above.
+  // ── Section 6: Three-Box Summary Ribbon ──────────────────────────────────
+  // THREE physically separate rectangles — each with its own doc.rect() call.
+  // No shared background; no overlapping x ranges possible.
   currY += 6;
-  const SUM_H = 54;
-  doc.rect(LEFT, currY, CONTENT_W, SUM_H).fill('#f2f2f2');
+  const SUM_H  = 54;
+  const BOX_GAP = 4;
+  const BOX_W  = Math.floor((CONTENT_W - BOX_GAP * 2) / 3); // ~170pt each
+  const B1_X   = LEFT;                       // Box 1 start: 40
+  const B2_X   = B1_X + BOX_W + BOX_GAP;    // Box 2 start: ~214
+  const B3_X   = B2_X + BOX_W + BOX_GAP;    // Box 3 start: ~388
+  const B_PAD  = 10;                         // inner padding
 
-  // Earnings AMOUNT column: xStart + T_PAD + T_DESC_W, width = T_AMT_W
-  const E_SUM_X = LEFT    + T_PAD + T_DESC_W; // 148pt
-  // Deductions AMOUNT column: same formula at R_START
-  const D_SUM_X = R_START + T_PAD + T_DESC_W; // 409pt
+  // Box 1 — Total Earnings (white on navy)
+  doc.rect(B1_X, currY, BOX_W, SUM_H).fill(DARK_NAVY);
+  doc.fillColor('rgba(255,255,255,0.6)').font('Helvetica').fontSize(7)
+    .text('TOTAL EARNINGS', B1_X + B_PAD, currY + 10);
+  doc.fillColor('white').font('Helvetica-Bold').fontSize(11)
+    .text(usd(data.grossPay), B1_X + B_PAD, currY + 24, { width: BOX_W - B_PAD * 2, align: 'right' });
 
-  // Labels
-  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5);
-  doc.text('TOTAL EARNINGS',   LEFT    + T_PAD, currY + 10);
-  doc.text('TOTAL DEDUCTIONS', R_START + T_PAD, currY + 10);
+  // Box 2 — Total Deductions (dark text on light grey)
+  doc.rect(B2_X, currY, BOX_W, SUM_H).fill('#f1f5f9');
+  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7)
+    .text('TOTAL DEDUCTIONS', B2_X + B_PAD, currY + 10);
+  doc.fillColor('#dc2626').font('Helvetica-Bold').fontSize(11)
+    .text(usd(data.totalDeductions), B2_X + B_PAD, currY + 24, { width: BOX_W - B_PAD * 2, align: 'right' });
 
-  // Amounts — pinned to exact column x/width (no drift)
-  doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(10)
-    .text(usd(data.grossPay),        E_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
-  doc.fillColor('#dc2626').font('Helvetica-Bold').fontSize(10)
-    .text(usd(data.totalDeductions), D_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
-
-  // NET SALARY — bold anchor, right-aligned to page right edge
-  const NET_LABEL_X = RIGHT - 150;
-  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5)
-    .text('NET SALARY', NET_LABEL_X, currY + 10, { width: 150 - T_PAD, align: 'right' });
-
+  // Box 3 — Net Salary (navy text on green, bold anchor)
+  doc.rect(B3_X, currY, BOX_W, SUM_H).fill(BANTU_GREEN);
+  doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7)
+    .text('NET SALARY', B3_X + B_PAD, currY + 10);
   if (data.netPayUSD != null && data.netPayZIG != null) {
-    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(11)
-      .text(`USD ${fmt(data.netPayUSD)}`, NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
-    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(9)
-      .text(`ZiG ${fmt(data.netPayZIG)}`, NET_LABEL_X, currY + 37, { width: 150 - T_PAD, align: 'right' });
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(10)
+      .text(`USD ${fmt(data.netPayUSD)}`, B3_X + B_PAD, currY + 22, { width: BOX_W - B_PAD * 2, align: 'right' });
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(9)
+      .text(`ZiG ${fmt(data.netPayZIG)}`, B3_X + B_PAD, currY + 36, { width: BOX_W - B_PAD * 2, align: 'right' });
   } else {
     doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(14)
-      .text(usd(data.netSalary), NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
+      .text(usd(data.netSalary), B3_X + B_PAD, currY + 22, { width: BOX_W - B_PAD * 2, align: 'right' });
   }
 
   // ── Section 7: Universal Bantu Footer ─────────────────────────────────────
