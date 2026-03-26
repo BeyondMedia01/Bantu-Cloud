@@ -62,6 +62,16 @@ app.get('/', (_req, res) => {
   res.json({ message: 'Bantu Payroll API', version: '2.0.0' });
 });
 
+app.get('/api/seed-tcs', async (req, res) => {
+  try {
+    const { autoSeedTransactionCodes } = require('./utils/transactionCodes');
+    await autoSeedTransactionCodes();
+    res.json({ message: 'Seeding complete' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Public Routes (no auth required) ────────────────────────────────────────
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));
