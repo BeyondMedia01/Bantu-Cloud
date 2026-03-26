@@ -892,15 +892,13 @@ function _drawPayslipSummary(doc, data) {
   const R_DESC_X = LEFT + 400; const R_DESC_W = 65;  // 430–495
   const R_AMT_X  = LEFT + 495; const R_AMT_W  = 70;  // 525–565 (right edge 565)
 
-  // Vertical safety — drawBantuFooter anchors at page.height - 60 ≈ 781.89
-  // Leave 45pt clearance above the footer rule line
-  const FOOTER_Y    = 841.89 - 60;
-  const SAFE_BOTTOM = FOOTER_Y - 45;
+  // Vertical safety — derive from actual doc.page.height so this works for any
+  // page size. drawBantuFooter anchors at doc.page.height - 60; leave 45pt above it.
+  const SAFE_BOTTOM = doc.page.height - 60 - 45;
 
   const DARK_NAVY    = '#1a2e4a';
   const BANTU_GREEN  = '#B2DB64';
   const BORDER_COLOR = '#e2e8f0';
-  const BLUE         = '#1a2e4a';
   const GREY         = '#64748b';
   const GREEN        = '#059669';
 
@@ -974,7 +972,7 @@ function _drawPayslipSummary(doc, data) {
     if (y + 60 > SAFE_BOTTOM) y = breakPage();
 
     // Department / group label
-    doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(9.5)
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(9.5)
       .text((group.name || 'General').toUpperCase(), LEFT, y);
     y += 16;
 
@@ -996,7 +994,7 @@ function _drawPayslipSummary(doc, data) {
       if (y + blockH > SAFE_BOTTOM) y = breakPage();
 
       // ── Employee name row ─────────────────────────────────────────────────
-      doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(8)
+      doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(8)
         .text(
           `${emp.employeeCode || ''}  ${(emp.lastName || '').toUpperCase()}, ${emp.firstName || ''}`,
           LEFT, y, { width: WIDTH, lineBreak: false }
@@ -1010,15 +1008,15 @@ function _drawPayslipSummary(doc, data) {
         const r = employers[i]  || {};
 
         if (e.name) {
-          doc.fillColor(BLUE).font('Helvetica').fontSize(7.5)
+          doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(7.5)
             .text(e.name, E_DESC_X, y, { width: E_DESC_W, lineBreak: false });
-          doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(7.5)
+          doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7.5)
             .text(fmt(e.allowance), E_AMT_X, y, { width: E_AMT_W, align: 'right' });
         }
         if (d.name) {
-          doc.fillColor(BLUE).font('Helvetica').fontSize(7.5)
+          doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(7.5)
             .text(normalizeLabel(d.name), D_DESC_X, y, { width: D_DESC_W, lineBreak: false });
-          doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(7.5)
+          doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7.5)
             .text(fmt(d.deduction), D_AMT_X, y, { width: D_AMT_W, align: 'right' });
         }
         if (r.name) {
@@ -1045,7 +1043,7 @@ function _drawPayslipSummary(doc, data) {
       const ccy        = p.currency || 'USD';
 
       // ── Column totals ─────────────────────────────────────────────────────
-      doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(7.5);
+      doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7.5);
       doc.text(fmt(totalAllow), E_AMT_X, y, { width: E_AMT_W, align: 'right' });
       doc.text(fmt(totalDed),   D_AMT_X, y, { width: D_AMT_W, align: 'right' });
       doc.text(fmt(totalEmpr),  R_AMT_X, y, { width: R_AMT_W, align: 'right' });
@@ -1070,11 +1068,11 @@ function _drawPayslipSummary(doc, data) {
     // ── Group subtotal ────────────────────────────────────────────────────────
     if (y + 24 > SAFE_BOTTOM) y = breakPage();
     doc.rect(LEFT, y - 2, WIDTH, 18).fill('#f1f5f9');
-    doc.fillColor(BLUE).font('Helvetica-Bold').fontSize(8);
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(8);
     doc.text(`SUBTOTAL — ${(group.name || 'General').toUpperCase()}`, LEFT + 5, y + 2, { width: 200, lineBreak: false });
     doc.text(fmt(groupTotalEarnings),   E_AMT_X, y + 2, { width: E_AMT_W, align: 'right' });
     doc.text(fmt(groupTotalDeductions), D_AMT_X, y + 2, { width: D_AMT_W, align: 'right' });
-    doc.text(fmt(groupTotalNetPay),     R_AMT_X, y + 2, { width: R_AMT_W, align: 'right' });
+    doc.text(fmt(groupTotalEmployer),   R_AMT_X, y + 2, { width: R_AMT_W, align: 'right' });
     y += 26;
 
     grandTotalEarnings   += groupTotalEarnings;
@@ -1091,7 +1089,7 @@ function _drawPayslipSummary(doc, data) {
   doc.text('GRAND TOTALS', LEFT + 5, y + 4, { width: 180, lineBreak: false });
   doc.text(`${gtCcy} ${fmt(grandTotalEarnings)}`,   E_AMT_X, y + 4, { width: E_AMT_W, align: 'right' });
   doc.text(`${gtCcy} ${fmt(grandTotalDeductions)}`, D_AMT_X, y + 4, { width: D_AMT_W, align: 'right' });
-  doc.text(`${gtCcy} ${fmt(grandTotalNetPay)}`,     R_AMT_X, y + 4, { width: R_AMT_W, align: 'right' });
+  doc.text(`${gtCcy} ${fmt(grandTotalEmployer)}`,   R_AMT_X, y + 4, { width: R_AMT_W, align: 'right' });
 
   // Universal footer — fixed to page bottom, never causes a new page
   drawBantuFooter(doc);
@@ -1106,7 +1104,7 @@ const generatePayslipSummaryPDF = (data, res) => {
 
 const generatePayslipSummaryBuffer = (data) => {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 30, size: 'A4' });
+    const doc = new PDFDocument({ margin: 0, size: 'A4' });
     const chunks = [];
     doc.on('data', (chunk) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -1118,7 +1116,6 @@ const generatePayslipSummaryBuffer = (data) => {
 
 module.exports = {
   generatePayslipPDF,
-  _drawPayslip,
   generatePayrollSummaryPDF,
   generatePayslipSummaryPDF,
   generatePayslipSummaryBuffer,
