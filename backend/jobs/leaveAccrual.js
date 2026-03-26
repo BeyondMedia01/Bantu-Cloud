@@ -15,21 +15,27 @@
 
 const prisma = require('../lib/prisma');
 
-async function runLeaveAccrual() {
+// companyId is optional — when provided, only that company is processed (post-payroll trigger).
+// When omitted (cron), all active companies are processed.
+async function runLeaveAccrual(companyId) {
   const now = new Date();
   const currentYear  = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 1-based
 
-  console.log(`[LeaveAccrual] Starting accrual run for ${currentYear}-${String(currentMonth).padStart(2, '0')}`);
+  console.log(`[LeaveAccrual] Starting accrual run for ${currentYear}-${String(currentMonth).padStart(2, '0')}${companyId ? ` (company ${companyId})` : ''}`);
 
   let totalAccrued = 0;
   let totalSkipped = 0;
   let totalErrors  = 0;
 
   try {
-    // Fetch all active leave policies that have a positive accrual rate
+    // Fetch active leave policies — optionally scoped to one company
     const policies = await prisma.leavePolicy.findMany({
-      where: { isActive: true, accrualRate: { gt: 0 } },
+      where: {
+        isActive: true,
+        accrualRate: { gt: 0 },
+        ...(companyId && { companyId }),
+      },
     });
 
     if (policies.length === 0) {

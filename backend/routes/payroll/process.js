@@ -1154,6 +1154,13 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       details: { employeeCount: result.count, currency: run.currency },
     });
 
+    // Trigger leave accrual for this company now that payroll is complete.
+    // runLeaveAccrual is idempotent — it skips any employee already accrued this month.
+    const { runLeaveAccrual } = require('../../jobs/leaveAccrual');
+    runLeaveAccrual(run.companyId)
+      .then(() => console.log(`[LeaveAccrual] post-payroll accrual complete for company ${run.companyId}`))
+      .catch((err) => console.error(`[LeaveAccrual] post-payroll accrual failed for company ${run.companyId}:`, err));
+
     res.json({ message: 'Payroll processed successfully', runId: run.id, count: result.count });
   } catch (error) {
     // Mark run as ERROR if processing fails
