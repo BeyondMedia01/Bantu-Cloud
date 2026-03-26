@@ -35,6 +35,39 @@ function drawPlatformLogo(doc, x, y, size = 30) {
   doc.restore();
 }
 
+/**
+ * Universal branded footer — identical branding on every PDF type.
+ * Always anchored at doc.page.height - 60 so it never floats or creates a new page.
+ * Logo left · "Bantu Modern HR & Payroll Automation" centre · CONFIDENTIAL right.
+ */
+function drawBantuFooter(doc) {
+  const PAGE_H = doc.page.height;
+  const PAGE_W = doc.page.width;
+  const FOOTER_Y = PAGE_H - 60;
+  const F_LEFT   = 50;
+  const F_RIGHT  = PAGE_W - 50;
+  const GREY = '#64748b';
+  const BORDER_COLOR = '#e2e8f0';
+  const TEXT_W = F_RIGHT - F_LEFT - 25; // usable width after logo
+
+  doc.moveTo(F_LEFT, FOOTER_Y).lineTo(F_RIGHT, FOOTER_Y)
+    .lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
+
+  drawPlatformLogo(doc, F_LEFT, FOOTER_Y + 8, 18);
+
+  // Centre — company identity
+  doc.fillColor(GREY).font('Helvetica-Bold').fontSize(8)
+    .text('Bantu Modern HR & Payroll Automation',
+      F_LEFT + 25, FOOTER_Y + 13,
+      { width: TEXT_W - 140, align: 'center' });
+
+  // Right — confidentiality notice
+  doc.fillColor(GREY).font('Helvetica').fontSize(8)
+    .text('CONFIDENTIAL DOCUMENT',
+      F_RIGHT - 140, FOOTER_Y + 13,
+      { width: 140, align: 'right' });
+}
+
 function _drawPayslip(doc, data) {
   const ccy = data.currency || 'USD';
   const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -49,7 +82,6 @@ function _drawPayslip(doc, data) {
 
   const LEFT = 40;
   const PAGE_WIDTH = 595.28;
-  const PAGE_H = 841.89;
   const RIGHT = PAGE_WIDTH - 40;
   const CONTENT_W = RIGHT - LEFT;
   const MID = LEFT + CONTENT_W / 2;
@@ -210,32 +242,39 @@ function _drawPayslip(doc, data) {
   const SUM_H = 60;
   doc.rect(LEFT, currY, CONTENT_W, SUM_H).fill(DARK_NAVY);
 
-  const sumW = CONTENT_W / 3;
+  // Each of the three panels is CONTENT_W/3 wide.
+  // Amounts are right-aligned within their panel so they line up with the
+  // AMOUNT columns of the two-column table above (no drifting).
+  const sumW  = CONTENT_W / 3;
+  const panelW = Math.floor(sumW - 16); // usable inner width per panel
   const totalDeductions = data.totalDeductions ?? (data.grossPay - data.netSalary);
 
+  // Panel 1 — Total Earnings
   doc.fillColor('rgba(255,255,255,0.7)').font('Helvetica').fontSize(7.5)
-    .text('TOTAL EARNINGS', LEFT + 18, currY + 14);
+    .text('TOTAL EARNINGS', LEFT + 10, currY + 14, { width: panelW });
   doc.fillColor('white').font('Helvetica-Bold').fontSize(14)
-    .text(`${ccy} ${fmt(data.grossPay)}`, LEFT + 18, currY + 26);
+    .text(`${ccy} ${fmt(data.grossPay)}`, LEFT + 10, currY + 26, { width: panelW, align: 'right' });
 
+  // Panel 2 — Total Deductions
   doc.fillColor('rgba(255,255,255,0.7)').font('Helvetica').fontSize(7.5)
-    .text('TOTAL DEDUCTIONS', LEFT + sumW + 12, currY + 14);
+    .text('TOTAL DEDUCTIONS', LEFT + sumW + 10, currY + 14, { width: panelW });
   doc.fillColor('#fb7185').font('Helvetica-Bold').fontSize(14)
-    .text(`${ccy} ${fmt(totalDeductions)}`, LEFT + sumW + 12, currY + 26);
+    .text(`${ccy} ${fmt(totalDeductions)}`, LEFT + sumW + 10, currY + 26, { width: panelW, align: 'right' });
 
+  // Panel 3 — Net Salary (green)
   doc.rect(LEFT + sumW * 2, currY, sumW, SUM_H).fill(BANTU_GREEN);
   if (data.netPayUSD != null && data.netPayZIG != null) {
     doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(7.5)
-      .text('NET PAY SPLIT', LEFT + sumW * 2 + 14, currY + 12);
+      .text('NET PAY SPLIT', LEFT + sumW * 2 + 10, currY + 12, { width: panelW });
     doc.font('Helvetica-Bold').fontSize(12)
-      .text(`USD ${fmt(data.netPayUSD)}`, LEFT + sumW * 2 + 14, currY + 25);
+      .text(`USD ${fmt(data.netPayUSD)}`, LEFT + sumW * 2 + 10, currY + 25, { width: panelW, align: 'right' });
     doc.fontSize(11)
-      .text(`ZiG ${fmt(data.netPayZIG)}`, LEFT + sumW * 2 + 14, currY + 40);
+      .text(`ZiG ${fmt(data.netPayZIG)}`, LEFT + sumW * 2 + 10, currY + 40, { width: panelW, align: 'right' });
   } else {
     doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(8)
-      .text('NET SALARY', LEFT + sumW * 2 + 14, currY + 14);
+      .text('NET SALARY', LEFT + sumW * 2 + 10, currY + 14, { width: panelW });
     doc.font('Helvetica-Bold').fontSize(17)
-      .text(`${ccy} ${fmt(data.netSalary)}`, LEFT + sumW * 2 + 14, currY + 29);
+      .text(`${ccy} ${fmt(data.netSalary)}`, LEFT + sumW * 2 + 10, currY + 29, { width: panelW, align: 'right' });
   }
 
   // ── Leave Balances ────────────────────────────────────────────────────────
@@ -255,17 +294,8 @@ function _drawPayslip(doc, data) {
       .text(`${data.leaveTaken.toFixed(1)} days`, MID + 10, currY + 22);
   }
 
-  // ── Branded Bantu Footer (fixed at page bottom) ───────────────────────────
-  const FOOTER_Y = PAGE_H - 32;
-  doc.moveTo(LEFT, FOOTER_Y - 4).lineTo(RIGHT, FOOTER_Y - 4)
-    .lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
-
-  drawPlatformLogo(doc, LEFT, FOOTER_Y - 4, 18);
-
-  doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(8)
-    .text('Bantu Modern HR & Payroll Automation', LEFT + 24, FOOTER_Y + 4);
-  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(8)
-    .text('CONFIDENTIAL DOCUMENT', RIGHT - 140, FOOTER_Y + 4, { width: 140, align: 'right' });
+  // ── Branded Bantu Footer (universal — fixed at page bottom) ─────────────
+  drawBantuFooter(doc);
 }
 
 const generatePayslipPDF = (data, stream) => {
@@ -842,9 +872,10 @@ function _drawPayslipSummary(doc, data) {
   const R_DESC_X = LEFT + 380; const R_DESC_W = 95;  // description
   const R_AMT_X  = LEFT + 475; const R_AMT_W  = 90;  // amount, right-aligned (reaches RIGHT=565)
 
-  // Page safety: footer is always painted at FOOTER_Y; content must not exceed SAFE_BOTTOM
-  const FOOTER_Y   = 812;
-  const SAFE_BOTTOM = FOOTER_Y - 45; // enough room before footer line
+  // Page safety: drawBantuFooter paints at doc.page.height - 60 (≈782 for A4).
+  // Content must stop at SAFE_BOTTOM to leave clearance above the footer line.
+  const FOOTER_Y    = 841.89 - 60; // matches drawBantuFooter's anchor
+  const SAFE_BOTTOM = FOOTER_Y - 45;
 
   const DARK_NAVY   = '#1a2e4a';
   const BANTU_GREEN = '#B2DB64';
@@ -901,21 +932,9 @@ function _drawPayslipSummary(doc, data) {
     return hdrY + 28;
   };
 
-  // ── Footer — always anchored at FOOTER_Y on the current page ─────────────
-  // Never floats up with content; never forces a new page on its own.
-  const drawFooter = () => {
-    doc.lineWidth(0.5).strokeColor(BORDER_COLOR)
-      .moveTo(LEFT, FOOTER_Y).lineTo(RIGHT, FOOTER_Y).stroke();
-    drawPlatformLogo(doc, LEFT, FOOTER_Y + 5, 18);
-    doc.fillColor(GREY).font('Helvetica-Bold').fontSize(8)
-      .text('Bantu Modern HR & Payroll Automation', LEFT + 24, FOOTER_Y + 9);
-    doc.fillColor(GREY).font('Helvetica').fontSize(8)
-      .text('CONFIDENTIAL DOCUMENT', RIGHT - 150, FOOTER_Y + 9, { width: 150, align: 'right' });
-  };
-
   // ── Page-break helper ─────────────────────────────────────────────────────
   const breakPage = () => {
-    drawFooter();          // stamp footer on the page being left
+    drawBantuFooter(doc);  // stamp universal footer on the page being left
     doc.addPage();
     return drawHeader();   // returns new y start
   };
@@ -946,15 +965,15 @@ function _drawPayslipSummary(doc, data) {
       const maxRows    = Math.max(earnings.length, deductions.length, employers.length);
 
       // Estimate full block height before painting — prevents mid-block page splits
-      // name(12) + rows(maxRows×11) + underline(6) + subtotal-row(12) + net-pay(14) + gap(18)
-      const blockH = 12 + maxRows * 11 + 50;
+      // name(12) + rows(maxRows×11) + underline(6) + subtotal-row(12) + net-pay(14) + gap(30)
+      const blockH = 12 + maxRows * 11 + 62;
       if (y + blockH > SAFE_BOTTOM) y = breakPage();
 
-      // Employee name
+      // Employee name — constrained to prevent wrapping into data rows
       doc.font('Helvetica-Bold').fontSize(8).fillColor(BLUE);
       doc.text(
         `${emp.employeeCode || ''}  ${(emp.lastName || '').toUpperCase()}, ${emp.firstName || ''}`,
-        LEFT, y
+        LEFT, y, { width: WIDTH, lineBreak: false }
       );
       y += 12;
 
@@ -1018,8 +1037,8 @@ function _drawPayslipSummary(doc, data) {
       groupTotalEmployer   += totalEmpr;
       groupTotalNetPay     += netPay;
 
-      y += 18;
-      doc.moveTo(LEFT, y - 4).lineTo(RIGHT, y - 4).lineWidth(0.3).strokeColor(BORDER_COLOR).stroke();
+      y += 30; // 30px padding between employee blocks prevents overlap
+      doc.moveTo(LEFT, y - 10).lineTo(RIGHT, y - 10).lineWidth(0.3).strokeColor(BORDER_COLOR).stroke();
     });
 
     // Group subtotal — kept together (page-break-inside: avoid equivalent)
@@ -1048,8 +1067,8 @@ function _drawPayslipSummary(doc, data) {
   doc.text(`${gtCcy} ${fmt(grandTotalDeductions)}`, D_AMT_X, y + 3, { width: D_AMT_W, align: 'right' });
   doc.text(`${gtCcy} ${fmt(grandTotalNetPay)}`,     R_AMT_X, y + 3, { width: R_AMT_W, align: 'right' });
 
-  // Footer on the last data page — always at FOOTER_Y, never on a new page
-  drawFooter();
+  // Universal footer — always at doc.page.height - 60, never on a new page
+  drawBantuFooter(doc);
 }
 
 const generatePayslipSummaryPDF = (data, res) => {

@@ -185,6 +185,17 @@ async function payslipToBuffer(payslipId) {
     leaveTaken: leaveBal?.taken ?? (payslip.employee.leaveTaken || 0),
   };
 
+  // Hard stop: bank details are mandatory for BANK-payment employees.
+  // Throw before generating the PDF so the API returns a clear 422 error.
+  if (pdfData.bankMissing) {
+    const err = new Error(
+      `Bank details incomplete for ${pdfData.employeeName} (${pdfData.employeeCode}). ` +
+      `Both Bank Name and Account Number must be set before generating a payslip PDF.`
+    );
+    err.code = 'BANK_DETAILS_MISSING';
+    throw err;
+  }
+
   const buffer = await generatePayslipBuffer(pdfData);
 
   return {
