@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Users, TrendingUp, TrendingDown, DollarSign, Banknote, ChevronDown, FileText } from 'lucide-react';
+import { ArrowLeft, Download, Users, TrendingUp, TrendingDown, DollarSign, Banknote, ChevronDown, FileText, Eye } from 'lucide-react';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 
@@ -97,6 +97,17 @@ const PayrollSummary: React.FC = () => {
       a.href = url; a.download = `payslip-summary-${runId}.pdf`; a.click();
       URL.revokeObjectURL(url);
     } catch { showToast('Failed to generate Detailed Summary', 'error'); }
+    finally { setExporting(''); }
+  };
+
+  const handlePayslipSummaryPreview = async () => {
+    if (!runId) return;
+    setExporting('summary-preview');
+    try {
+      const res = await PayrollAPI.downloadPayslipSummaryPdf(runId);
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      window.open(url, '_blank');
+    } catch { showToast('Failed to preview Payroll Summary', 'error'); }
     finally { setExporting(''); }
   };
 
@@ -236,6 +247,13 @@ const PayrollSummary: React.FC = () => {
               className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 text-white rounded-full text-sm font-bold hover:bg-slate-700 disabled:opacity-50"
             >
               <FileText size={14} /> {exporting === 'pdf' ? 'Generating…' : 'Master Roll'}
+            </button>
+            <button
+              onClick={handlePayslipSummaryPreview}
+              disabled={!!exporting}
+              className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm font-bold hover:bg-red-100 disabled:opacity-50"
+            >
+              <Eye size={14} /> {exporting === 'summary-preview' ? 'Loading…' : 'Preview Summary'}
             </button>
             <button
               onClick={handlePayslipSummaryDownload}
