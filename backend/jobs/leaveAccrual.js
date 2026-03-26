@@ -22,6 +22,10 @@ async function runLeaveAccrual() {
 
   console.log(`[LeaveAccrual] Starting accrual run for ${currentYear}-${String(currentMonth).padStart(2, '0')}`);
 
+  let totalAccrued = 0;
+  let totalSkipped = 0;
+  let totalErrors  = 0;
+
   try {
     // Fetch all active leave policies that have a positive accrual rate
     const policies = await prisma.leavePolicy.findMany({
@@ -50,79 +54,104 @@ async function runLeaveAccrual() {
 
       for (const policy of companyPolicies) {
         for (const emp of employees) {
-          // Employee must have started before the current month
-          if (emp.startDate && new Date(emp.startDate) >= new Date(currentYear, currentMonth - 1, 1)) {
-            continue;
-          }
+          try {
+            // Employee must have started before the current month
+            if (emp.startDate && new Date(emp.startDate) >= new Date(currentYear, currentMonth - 1, 1)) {
+              totalSkipped++;
+              continue;
+            }
 
-          // ── Year-end carry-over: handle on January run ──────────────────────
-          if (currentMonth === 1) {
-            await handleYearEnd(emp.id, companyId, policy, currentYear);
-          }
+            // ── Year-end carry-over: handle on January run ──────────────────────
+            if (currentMonth === 1) {
+              await handleYearEnd(emp.id, companyId, policy, currentYear);
+            }
 
-          // ── Find or create current-year balance ─────────────────────────────
-          let balance = await prisma.leaveBalance.findFirst({
-            where: {
-              employeeId:   emp.id,
-              companyId,
-              leavePolicyId: policy.id,
-              year:          currentYear,
-            },
-          });
-
-          if (!balance) {
-            balance = await prisma.leaveBalance.create({
-              data: {
-                employeeId:    emp.id,
+            // ── Find or create current-year balance ─────────────────────────────
+            // NOTE: query by (employeeId, leaveType, year) — the actual unique key.
+            // Do NOT filter by leavePolicyId: a balance may exist from a leave request
+            // or import with leavePolicyId = null, and filtering by policy.id would miss
+            // it and then fail with a unique-constraint violation on create.
+            let balance = await prisma.leaveBalance.findFirst({
+              where: {
+                employeeId: emp.id,
                 companyId,
-                leavePolicyId: policy.id,
-                leaveType:     policy.leaveType,
-                year:          currentYear,
-                openingBalance: 0,
-                accrued:       0,
-                taken:         0,
-                encashed:      0,
-                forfeited:     0,
-                balance:       0,
+                leaveType:  policy.leaveType,
+                year:       currentYear,
               },
             });
-          }
 
-          // ── Skip if already accrued this month ──────────────────────────────
-          if (balance.lastAccrualDate) {
-            const lastDate = new Date(balance.lastAccrualDate);
-            if (
-              lastDate.getFullYear() === currentYear &&
-              lastDate.getMonth() + 1 === currentMonth
-            ) {
-              continue; // already ran this month
+            if (!balance) {
+              balance = await prisma.leaveBalance.create({
+                data: {
+                  employeeId:    emp.id,
+                  companyId,
+                  leavePolicyId: policy.id,
+                  leaveType:     policy.leaveType,
+                  year:          currentYear,
+                  openingBalance: 0,
+                  accrued:       0,
+                  taken:         0,
+                  encashed:      0,
+                  forfeited:     0,
+                  balance:       0,
+                },
+              });
+            } else if (!balance.leavePolicyId) {
+              // Back-fill the policy link if it was created without one
+              await prisma.leaveBalance.update({
+                where: { id: balance.id },
+                data:  { leavePolicyId: policy.id },
+              });
             }
+
+            // ── Skip if already accrued this month ──────────────────────────────
+            if (balance.lastAccrualDate) {
+              const lastDate = new Date(balance.lastAccrualDate);
+              if (
+                lastDate.getFullYear() === currentYear &&
+                lastDate.getMonth() + 1 === currentMonth
+              ) {
+                totalSkipped++;
+                continue; // already ran this month
+              }
+            }
+
+            // ── Apply accrual, respecting max cap ──────────────────────────────
+            const newAccrued = balance.accrued + policy.accrualRate;
+            const totalAvailable = balance.openingBalance + newAccrued - balance.taken - balance.encashed;
+            const cappedAccrued = policy.maxAccumulation > 0 && totalAvailable > policy.maxAccumulation
+              ? Math.max(0, balance.accrued + (policy.maxAccumulation - (balance.openingBalance + balance.accrued - balance.taken - balance.encashed)))
+              : newAccrued;
+
+            const newBalance = balance.openingBalance + cappedAccrued - balance.taken - balance.encashed;
+
+            await prisma.leaveBalance.update({
+              where: { id: balance.id },
+              data: {
+                accrued:         cappedAccrued,
+                balance:         Math.max(0, newBalance),
+                lastAccrualDate: now,
+              },
+            });
+
+            totalAccrued++;
+          } catch (empErr) {
+            totalErrors++;
+            console.error(
+              `[LeaveAccrual] Failed for employee ${emp.id} policy ${policy.id}:`,
+              empErr.message
+            );
+            // Continue to next employee — don't let one failure stop the whole run
           }
-
-          // ── Apply accrual, respecting max cap ──────────────────────────────
-          const newAccrued = balance.accrued + policy.accrualRate;
-          const totalAvailable = balance.openingBalance + newAccrued - balance.taken - balance.encashed;
-          const cappedAccrued = policy.maxAccumulation > 0 && totalAvailable > policy.maxAccumulation
-            ? Math.max(0, balance.accrued + (policy.maxAccumulation - (balance.openingBalance + balance.accrued - balance.taken - balance.encashed)))
-            : newAccrued;
-
-          const newBalance = balance.openingBalance + cappedAccrued - balance.taken - balance.encashed;
-
-          await prisma.leaveBalance.update({
-            where: { id: balance.id },
-            data: {
-              accrued:         cappedAccrued,
-              balance:         Math.max(0, newBalance),
-              lastAccrualDate: now,
-            },
-          });
         }
       }
     }
 
-    console.log(`[LeaveAccrual] Accrual run complete.`);
+    console.log(
+      `[LeaveAccrual] Run complete — accrued: ${totalAccrued}, skipped: ${totalSkipped}, errors: ${totalErrors}`
+    );
   } catch (err) {
-    console.error('[LeaveAccrual] Error during accrual run:', err);
+    console.error('[LeaveAccrual] Fatal error during accrual run:', err);
   }
 }
 
@@ -133,8 +162,9 @@ async function runLeaveAccrual() {
 async function handleYearEnd(employeeId, companyId, policy, currentYear) {
   const prevYear = currentYear - 1;
 
+  // Query by (employeeId, leaveType, year) — the actual unique key, not leavePolicyId
   const prevBalance = await prisma.leaveBalance.findFirst({
-    where: { employeeId, companyId, leavePolicyId: policy.id, year: prevYear },
+    where: { employeeId, companyId, leaveType: policy.leaveType, year: prevYear },
   });
 
   if (!prevBalance) return;
@@ -155,7 +185,7 @@ async function handleYearEnd(employeeId, companyId, policy, currentYear) {
 
   // Set opening balance on current year (create if not exists yet)
   const existing = await prisma.leaveBalance.findFirst({
-    where: { employeeId, companyId, leavePolicyId: policy.id, year: currentYear },
+    where: { employeeId, companyId, leaveType: policy.leaveType, year: currentYear },
   });
 
   if (!existing && carryOver > 0) {

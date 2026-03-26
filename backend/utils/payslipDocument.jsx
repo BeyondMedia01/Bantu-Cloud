@@ -65,15 +65,17 @@ const s = StyleSheet.create({
   tableTitle:  { fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
   subHeaders:  { flexDirection: 'row', marginTop: 4 },
   subHdrDesc:  { flex: 1, color: 'rgba(255,255,255,0.65)', fontSize: 6 },
-  subHdrAmt:   { width: 72, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
-  subHdrYtd:   { width: 58, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
+  subHdrUnits: { width: 38, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
+  subHdrAmt:   { width: 65, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
+  subHdrYtd:   { width: 52, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
   tableRow:    { flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 5 },
   rowEven:     { backgroundColor: '#f7f9fc' },
   rowDesc:     { flex: 1, color: TEXT_DARK, fontSize: 7.5 },
   rowSubDesc:  { flex: 1, color: TEXT_MUTED, fontSize: 6, marginTop: 1 },
-  rowAmt:      { width: 72, fontFamily: 'Helvetica-Bold', fontSize: 7.5,
+  rowUnits:    { width: 38, fontSize: 7, textAlign: 'right', color: TEXT_MUTED },
+  rowAmt:      { width: 65, fontFamily: 'Helvetica-Bold', fontSize: 7.5,
                  textAlign: 'right', color: DARK_NAVY },
-  rowYtd:      { width: 58, fontSize: 7, textAlign: 'right', color: TEXT_MUTED },
+  rowYtd:      { width: 52, fontSize: 7, textAlign: 'right', color: TEXT_MUTED },
 
   // Employer contributions
   empSection:  { marginHorizontal: 10, marginTop: 5 },
@@ -120,8 +122,9 @@ const TableSection = ({ title, titleColor, rows, getAmt, getYtd }) => (
       <Text style={[s.tableTitle, { color: titleColor }]}>{title}</Text>
       <View style={s.subHeaders}>
         <Text style={s.subHdrDesc}>DESCRIPTION</Text>
-        <Text style={s.subHdrAmt}>AMOUNT (USD)</Text>
-        <Text style={s.subHdrYtd}>YTD (USD)</Text>
+        <Text style={s.subHdrUnits}>UNITS</Text>
+        <Text style={s.subHdrAmt}>AMOUNT</Text>
+        <Text style={s.subHdrYtd}>YTD</Text>
       </View>
     </View>
     {rows.map((item, idx) => (
@@ -130,6 +133,9 @@ const TableSection = ({ title, titleColor, rows, getAmt, getYtd }) => (
           <Text style={s.rowDesc}>{item.name}</Text>
           {item.description ? <Text style={s.rowSubDesc}>{item.description}</Text> : null}
         </View>
+        <Text style={s.rowUnits}>
+          {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
+        </Text>
         <Text style={s.rowAmt}>{usd(getAmt(item))}</Text>
         <Text style={s.rowYtd}>{usd(getYtd(item) ?? getAmt(item))}</Text>
       </View>

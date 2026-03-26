@@ -97,11 +97,32 @@ async function payslipToBuffer(payslipId) {
   });
   if (!payslip) return null;
 
-  const transactions = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
-    include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true } } },
-    orderBy: { createdAt: 'asc' },
-  });
+  const [transactions, payrollInputs] = await Promise.all([
+    prisma.payrollTransaction.findMany({
+      where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
+      include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true } } },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.payrollInput.findMany({
+      where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
+      select: { transactionCodeId: true, units: true, unitsType: true },
+    }),
+  ]);
+
+  // Build units lookup by transactionCodeId
+  const inputUnitsMap = {};
+  for (const inp of payrollInputs) {
+    inputUnitsMap[inp.transactionCodeId] = {
+      units: inp.units ?? null,
+      unitsType: inp.unitsType ?? null,
+    };
+  }
+
+  // Merge units into transaction rows
+  const transactionsWithUnits = transactions.map(t => ({
+    ...t,
+    ...( inputUnitsMap[t.transactionCodeId] || {} ),
+  }));
 
   // Calculate YTD data using Zimbabwe tax year boundary
   // Find the company's earliest payroll run to handle mid-year company starts
@@ -140,7 +161,7 @@ async function payslipToBuffer(payslipId) {
   });
 
   const basicSalary = payslip.basicSalaryApplied > 0 ? payslip.basicSalaryApplied : (payslip.employee.baseRate ?? 0);
-  const lineItems = buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary });
+  const lineItems = buildPayslipLineItems({ payslip, transactions: transactionsWithUnits, ytdStat, ytdMap, basicSalary });
 
   const leaveBal = await prisma.leaveBalance.findFirst({
     where: {
