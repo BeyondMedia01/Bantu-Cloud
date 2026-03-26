@@ -114,15 +114,18 @@ router.post('/accrue', requirePermission('manage_leave'), async (req, res) => {
         let balance = balanceMap.get(key);
 
         if (!balance) {
-          // Will be created; use zero starting values for cap calculation
+          // New record — apply accrualRate immediately, respecting the max cap
+          const credit = Math.round(
+            Math.min(policy.accrualRate, policy.maxAccumulation > 0 ? policy.maxAccumulation : policy.accrualRate) * 100
+          ) / 100;
           creates.push({
             employeeId: emp.id,
             companyId: req.companyId,
             leaveType: policy.leaveType,
             year,
             leavePolicyId: policy.id || null,
-            balance: 0,
-            accrued: 0,
+            balance: credit,
+            accrued: credit,
             taken: 0,
             encashed: 0,
             openingBalance: 0,
