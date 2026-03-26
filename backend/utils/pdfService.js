@@ -69,232 +69,232 @@ function drawBantuFooter(doc) {
 }
 
 function _drawPayslip(doc, data) {
-  const ccy = data.currency || 'USD';
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // ── Data integrity guard ──────────────────────────────────────────────────
+  if (data.bankMissing) {
+    throw Object.assign(
+      new Error(`Bank details incomplete for ${data.employeeName || 'employee'}. ` +
+                'Both Bank Name and Account Number must be set before generating a payslip.'),
+      { code: 'BANK_DETAILS_MISSING' }
+    );
+  }
 
-  // Branding Colors
-  const BANTU_GREEN = '#B2DB64';
-  const DARK_NAVY = '#1a2e4a';
-  const TEXT_DARK = '#1e293b';
-  const TEXT_MUTED = '#64748b';
-  const BG_LIGHT = '#f8fafc';
+  // ── Utilities ─────────────────────────────────────────────────────────────
+  const fmt  = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const usd  = (n) => `USD ${fmt(n)}`; // every amount is prefixed with USD
+
+  // ── Colours ───────────────────────────────────────────────────────────────
+  const BANTU_GREEN  = '#B2DB64';
+  const DARK_NAVY    = '#1a2e4a';
+  const TEXT_DARK    = '#1e293b';
+  const TEXT_MUTED   = '#64748b';
+  const BG_LIGHT     = '#f8fafc';
   const BORDER_COLOR = '#e2e8f0';
 
-  const LEFT = 40;
-  const PAGE_WIDTH = 595.28;
-  const RIGHT = PAGE_WIDTH - 40;
-  const CONTENT_W = RIGHT - LEFT;
-  const MID = LEFT + CONTENT_W / 2;
+  // ── Layout constants ──────────────────────────────────────────────────────
+  const LEFT      = 40;
+  const PAGE_W    = 595.28;
+  const RIGHT     = PAGE_W - 40;
+  const CONTENT_W = RIGHT - LEFT;           // 515pt
+  const MID       = LEFT + CONTENT_W / 2;   // 297.5pt
+  const GAP       = 8;                       // gap between table halves
+  const HALF_W    = Math.floor((CONTENT_W - GAP) / 2); // 253pt per half
+  const R_START   = LEFT + HALF_W + GAP;    // right table x-origin
 
-  // ── Header ────────────────────────────────────────────────────────────────
-  doc.rect(0, 0, PAGE_WIDTH, 100).fill(DARK_NAVY);
-  drawPlatformLogo(doc, LEFT, 27, 42);
+  // Table sub-grid — same proportions for both halves AND employer section.
+  // Every amount lives in a fixed 80pt bounding box, right-aligned.
+  const T_PAD   = 8;   // inner left padding
+  const T_AMT_W = 80;  // fixed amount column (user spec)
+  const T_YTD_W = 65;  // fixed YTD column
+  const T_DESC_W = HALF_W - T_PAD - T_AMT_W - T_YTD_W; // 100pt
 
-  doc.fillColor('white').font('Helvetica-Bold').fontSize(22)
-    .text('PAYSLIP', RIGHT - 140, 32, { width: 140, align: 'right' });
+  // Employer section (full-width) aligns its right edges to the table above
+  const EMP_YTD_X  = RIGHT - T_YTD_W;
+  const EMP_AMT_X  = EMP_YTD_X - T_AMT_W;
+  const EMP_DESC_W = EMP_AMT_X - LEFT - T_PAD;
 
+  const ROW_H  = 16;  // data row height
+  const HDR_H  = 32;  // two-line table header (title + sub-headers)
+
+  // ── Section 1: Identity Header ────────────────────────────────────────────
+  // Navy bar with logo, company, period, PAYSLIP title, and leave entitlement
+  const HEADER_H = 108;
+  doc.rect(0, 0, PAGE_W, HEADER_H).fill(DARK_NAVY);
+  drawPlatformLogo(doc, LEFT, 28, 42);
+
+  // PAYSLIP label — top right
+  doc.fillColor('white').font('Helvetica-Bold').fontSize(20)
+    .text('PAYSLIP', RIGHT - 130, 30, { width: 130, align: 'right' });
+
+  // Company + period — next to logo
+  doc.fillColor(BANTU_GREEN).font('Helvetica-Bold').fontSize(14)
+    .text((data.companyName || '').toUpperCase(), LEFT + 55, 30, { width: MID - LEFT - 55, lineBreak: false });
+  doc.fillColor('white').font('Helvetica').fontSize(9)
+    .text(`Period: ${data.period}`, LEFT + 55, 50);
+  doc.fillColor(BANTU_GREEN).font('Helvetica').fontSize(8)
+    .text(`Issued: ${data.issuedDate || new Date().toLocaleDateString('en-GB')}`, LEFT + 55, 64);
+
+  // Annual Leave Balance — shaded entitlement box, top-right of header
+  const LV_BOX_W = 130;
+  const LV_BOX_H = 42;
+  const LV_BOX_X = RIGHT - LV_BOX_W;
+  const LV_BOX_Y = HEADER_H - LV_BOX_H - 8;
+  doc.roundedRect(LV_BOX_X, LV_BOX_Y, LV_BOX_W, LV_BOX_H, 4).fill('rgba(255,255,255,0.1)');
+  doc.fillColor('rgba(255,255,255,0.65)').font('Helvetica-Bold').fontSize(6.5)
+    .text('ANNUAL LEAVE BALANCE', LV_BOX_X + 8, LV_BOX_Y + 7);
   doc.fillColor(BANTU_GREEN).font('Helvetica-Bold').fontSize(15)
-    .text((data.companyName || '').toUpperCase(), LEFT + 55, 35);
-  doc.fillColor('white').font('Helvetica').fontSize(9.5)
-    .text(`Period: ${data.period}`, LEFT + 55, 57);
-  doc.fillColor(BANTU_GREEN).font('Helvetica').fontSize(8.5)
-    .text(`Issued: ${data.issuedDate || new Date().toLocaleDateString('en-GB')}`, LEFT + 55, 73);
+    .text(`${(data.leaveBalance || 0).toFixed(1)} days`, LV_BOX_X + 8, LV_BOX_Y + 18);
+  if (data.leaveTaken > 0) {
+    doc.fillColor('rgba(255,255,255,0.5)').font('Helvetica').fontSize(6.5)
+      .text(`${data.leaveTaken.toFixed(1)} days taken YTD`, LV_BOX_X + 8, LV_BOX_Y + 34);
+  }
 
-  // ── Employee & Employment Details Card ────────────────────────────────────
-  let currY = 115;
-  doc.roundedRect(LEFT, currY, CONTENT_W, 88, 6).fill(BG_LIGHT);
+  // ── Section 2: Employee & Job Details Card ────────────────────────────────
+  let currY = HEADER_H + 6;
+  const CARD_H = 80;
+  doc.roundedRect(LEFT, currY, CONTENT_W, CARD_H, 5).fill(BG_LIGHT);
   doc.lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
 
-  const drawInfoField = (label, value, x, y, w) => {
-    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(7).text(label.toUpperCase(), x, y);
-    doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(9.5)
-      .text(value || '—', x, y + 11, { width: w, lineBreak: false });
+  const drawField = (label, value, x, y, w) => {
+    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(6.5).text(label.toUpperCase(), x, y);
+    doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(9)
+      .text(value || '—', x, y + 9, { width: w, lineBreak: false });
   };
 
-  const colWidth = (CONTENT_W - 40) / 4;
-  drawInfoField('Employee Name', data.employeeName, LEFT + 15, currY + 14, colWidth * 1.5);
-  drawInfoField('Employee Code', data.employeeCode, LEFT + 15 + colWidth * 1.5, currY + 14, colWidth);
-  drawInfoField('ID Number', data.nationalId, LEFT + 15 + colWidth * 2.5, currY + 14, colWidth * 1.5);
+  const CW = (CONTENT_W - 28) / 4;
+  drawField('Employee Name', data.employeeName,  LEFT + 12, currY + 10, CW * 1.5);
+  drawField('Employee Code', data.employeeCode,  LEFT + 12 + CW * 1.5, currY + 10, CW);
+  drawField('ID Number',     data.nationalId,    LEFT + 12 + CW * 2.5, currY + 10, CW * 1.5);
+  drawField('Department',    data.department,    LEFT + 12, currY + 46, CW);
+  drawField('Position',      data.jobTitle,      LEFT + 12 + CW,       currY + 46, CW);
+  drawField('Cost Centre',   data.costCenter,    LEFT + 12 + CW * 2,   currY + 46, CW);
+  drawField('Pay Method',    data.paymentMethod, LEFT + 12 + CW * 3,   currY + 46, CW);
 
-  drawInfoField('Department', data.department, LEFT + 15, currY + 54, colWidth);
-  drawInfoField('Position', data.jobTitle, LEFT + 15 + colWidth, currY + 54, colWidth);
-  drawInfoField('Cost Centre', data.costCenter, LEFT + 15 + colWidth * 2, currY + 54, colWidth);
-  drawInfoField('Pay Method', data.paymentMethod, LEFT + 15 + colWidth * 3, currY + 54, colWidth);
+  // ── Section 3: Payment Destination Bar ───────────────────────────────────
+  currY += CARD_H + 5;
+  const BANK_H = 32;
+  doc.rect(LEFT, currY, CONTENT_W, BANK_H).fill('#edf2f7');
+  doc.lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
+  drawField('Bank Name',      data.bankName,      LEFT + 12, currY + 5,  MID - LEFT - 24);
+  drawField('Account Number', data.accountNumber, MID  + 12, currY + 5,  RIGHT - MID - 12);
 
-  // ── Bank Details (mandatory — show warning if missing) ────────────────────
-  currY += 103;
-  if (data.bankMissing) {
-    doc.roundedRect(LEFT, currY, CONTENT_W, 36, 5).fill('#fef3c7');
-    doc.lineWidth(1).strokeColor('#f59e0b').stroke();
-    doc.fillColor('#92400e').font('Helvetica-Bold').fontSize(8.5)
-      .text('⚠  PAYMENT PENDING: UPDATE BANKING DETAILS', LEFT + 12, currY + 8);
-    doc.fillColor('#78350f').font('Helvetica').fontSize(8)
-      .text('Bank name and account number are missing from this employee\'s profile. Please update before processing payment.',
-        LEFT + 12, currY + 22, { width: CONTENT_W - 24, lineBreak: false });
+  // ── Section 4: Side-by-Side Financial Tables ──────────────────────────────
+  currY += BANK_H + 6;
+
+  const lineItems    = data.lineItems || [];
+  const earnings     = lineItems.filter(i => i.allowance > 0);
+  const deductions   = lineItems.filter(i => i.deduction > 0);
+  const employers    = lineItems.filter(i => i.employer  > 0);
+
+  /**
+   * Draws one independent table (earnings or deductions side).
+   * Returns the Y-coordinate immediately below the last row.
+   */
+  const drawTable = (xStart, tableTop, title, titleColor, rows, getAmt, getYtd) => {
+    // Header bar (2 lines: title + sub-headers)
+    doc.rect(xStart, tableTop, HALF_W, HDR_H).fill(DARK_NAVY);
+    doc.fillColor(titleColor).font('Helvetica-Bold').fontSize(9)
+      .text(title, xStart + T_PAD, tableTop + 5);
+    doc.fillColor('rgba(255,255,255,0.55)').font('Helvetica').fontSize(6.5);
+    doc.text('DESCRIPTION',  xStart + T_PAD,                     tableTop + 20, { width: T_DESC_W });
+    doc.text('AMOUNT (USD)', xStart + T_PAD + T_DESC_W,          tableTop + 20, { width: T_AMT_W, align: 'right' });
+    doc.text('YTD (USD)',    xStart + T_PAD + T_DESC_W + T_AMT_W, tableTop + 20, { width: T_YTD_W, align: 'right' });
+
+    // Data rows — each in its own bounded strip
+    rows.forEach((item, idx) => {
+      const rowY = tableTop + HDR_H + idx * ROW_H;
+      if (idx % 2 === 0) doc.rect(xStart, rowY, HALF_W, ROW_H).fill('#f7f9fc');
+
+      const textY = rowY + 4;
+      const amt   = getAmt(item);
+      const ytd   = getYtd(item);
+      const nameY = item.description ? textY - 1 : textY;
+
+      doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(8)
+        .text(item.name, xStart + T_PAD, nameY, { width: T_DESC_W, lineBreak: false });
+      if (item.description) {
+        doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5)
+          .text(item.description, xStart + T_PAD, nameY + 8, { width: T_DESC_W, lineBreak: false });
+      }
+      // Amount in fixed 80pt box — right-aligned, USD prefix
+      doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(8)
+        .text(usd(amt), xStart + T_PAD + T_DESC_W, textY, { width: T_AMT_W, align: 'right' });
+      // YTD in fixed 65pt box — right-aligned, USD prefix
+      doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7.5)
+        .text(usd(ytd ?? amt), xStart + T_PAD + T_DESC_W + T_AMT_W, textY, { width: T_YTD_W, align: 'right' });
+    });
+
+    return tableTop + HDR_H + rows.length * ROW_H;
+  };
+
+  const tableTop        = currY;
+  const earningsBottom  = drawTable(LEFT,    tableTop, 'EARNINGS',   BANTU_GREEN, earnings,
+    e => e.allowance, e => e.ytd);
+  const deductionBottom = drawTable(R_START, tableTop, 'DEDUCTIONS', '#fb7185',   deductions,
+    d => d.deduction, d => d.ytd);
+
+  currY = Math.max(earningsBottom, deductionBottom);
+
+  // ── Section 5: Net Salary Anchor ─────────────────────────────────────────
+  // Two panels aligned exactly with the table halves above.
+  // Left: gross / total earnings.  Right (green, high-contrast): NET SALARY.
+  currY += 6;
+  const NET_H = 44;
+
+  doc.rect(LEFT, currY, HALF_W, NET_H).fill(DARK_NAVY);
+  doc.fillColor('rgba(255,255,255,0.55)').font('Helvetica').fontSize(7)
+    .text('TOTAL EARNINGS', LEFT + T_PAD, currY + 8, { width: HALF_W - T_PAD });
+  doc.fillColor('white').font('Helvetica-Bold').fontSize(14)
+    .text(usd(data.grossPay), LEFT + T_PAD, currY + 20, { width: HALF_W - T_PAD - 6, align: 'right' });
+
+  doc.rect(R_START, currY, HALF_W, NET_H).fill(BANTU_GREEN);
+  if (data.netPayUSD != null && data.netPayZIG != null) {
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7.5)
+      .text('NET PAY SPLIT', R_START + T_PAD, currY + 6, { width: HALF_W - T_PAD });
+    doc.font('Helvetica-Bold').fontSize(12)
+      .text(`USD ${fmt(data.netPayUSD)}`, R_START + T_PAD, currY + 20, { width: HALF_W - T_PAD - 6, align: 'right' });
+    doc.fontSize(10)
+      .text(`ZiG ${fmt(data.netPayZIG)}`, R_START + T_PAD, currY + 33, { width: HALF_W - T_PAD - 6, align: 'right' });
   } else {
-    doc.roundedRect(LEFT, currY, CONTENT_W, 36, 5).fill('#f1f5f9');
-    doc.lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
-    drawInfoField('Bank Name', data.bankName, LEFT + 15, currY + 10, MID - LEFT - 20);
-    drawInfoField('Account Number', data.accountNumber, MID + 10, currY + 10, RIGHT - MID - 15);
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7.5)
+      .text('NET SALARY', R_START + T_PAD, currY + 8, { width: HALF_W - T_PAD });
+    doc.font('Helvetica-Bold').fontSize(16)
+      .text(usd(data.netSalary), R_START + T_PAD, currY + 20, { width: HALF_W - T_PAD - 6, align: 'right' });
   }
 
-  // ── Two-Column Earnings / Deductions Table ────────────────────────────────
-  currY += 50;
+  // ── Section 6: Statutory Employer Contributions ───────────────────────────
+  // Same 3-column format (Description | Amount | YTD) as the main tables.
+  // Right edges align with the deductions table's YTD column above.
+  if (employers.length > 0) {
+    currY += NET_H + 6;
 
-  const lineItems = data.lineItems || [];
-  const earnings = lineItems.filter(i => i.allowance > 0);
-  const deductions = lineItems.filter(i => i.deduction > 0);
-  const employerContribs = lineItems.filter(i => i.employer > 0);
+    // Section header
+    doc.rect(LEFT, currY, CONTENT_W, HDR_H).fill('#1e3a5f'); // slightly lighter navy
+    doc.fillColor('#a5b4fc').font('Helvetica-Bold').fontSize(8.5)
+      .text('STATUTORY EMPLOYER CONTRIBUTIONS', LEFT + T_PAD, currY + 5);
+    doc.fillColor('rgba(255,255,255,0.55)').font('Helvetica').fontSize(6.5);
+    doc.text('DESCRIPTION',  LEFT + T_PAD, currY + 20, { width: EMP_DESC_W });
+    doc.text('AMOUNT (USD)', EMP_AMT_X,    currY + 20, { width: T_AMT_W,  align: 'right' });
+    doc.text('YTD (USD)',    EMP_YTD_X,    currY + 20, { width: T_YTD_W,  align: 'right' });
+    currY += HDR_H;
 
-  // Each half is (CONTENT_W - 8) / 2 wide with an 8px gap between
-  const HALF_W = Math.floor((CONTENT_W - 8) / 2);
-  const R_START = LEFT + HALF_W + 8;
-  const PAD = 8;
-  const DESC_W = 108;
-  const AMT_W = 62;
-  const YTD_W = HALF_W - PAD * 2 - DESC_W - AMT_W;
+    employers.forEach((c, idx) => {
+      const rowY = currY + idx * ROW_H;
+      if (idx % 2 === 0) doc.rect(LEFT, rowY, CONTENT_W, ROW_H).fill('#f0f4ff');
 
-  // Column headers
-  const drawHalfHeader = (xStart, title, titleColor) => {
-    doc.rect(xStart, currY, HALF_W, 22).fill(DARK_NAVY);
-    doc.fillColor(titleColor).font('Helvetica-Bold').fontSize(7.5)
-      .text(title, xStart + PAD, currY + 3);
-    doc.fillColor('rgba(255,255,255,0.65)').font('Helvetica').fontSize(7);
-    doc.text('DESCRIPTION', xStart + PAD, currY + 13, { width: DESC_W });
-    doc.text('AMOUNT', xStart + PAD + DESC_W, currY + 13, { width: AMT_W, align: 'right' });
-    doc.text('YTD', xStart + PAD + DESC_W + AMT_W, currY + 13, { width: YTD_W, align: 'right' });
-  };
-
-  drawHalfHeader(LEFT, 'EARNINGS', BANTU_GREEN);
-  drawHalfHeader(R_START, 'DEDUCTIONS', '#fb7185');
-  currY += 22;
-
-  const ROW_H = 19;
-  const maxRows = Math.max(earnings.length, deductions.length);
-
-  for (let i = 0; i < maxRows; i++) {
-    const rowY = currY + i * ROW_H;
-    const bg = i % 2 === 0 ? '#f7f9fc' : 'white';
-    doc.rect(LEFT, rowY, HALF_W, ROW_H).fill(bg);
-    doc.rect(R_START, rowY, HALF_W, ROW_H).fill(bg);
-
-    const textY = rowY + 5;
-
-    if (earnings[i]) {
-      const e = earnings[i];
-      const eNameY = e.description ? textY - 2 : textY;
-      doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(8.5)
-        .text(e.name, LEFT + PAD, eNameY, { width: DESC_W, lineBreak: false });
-      if (e.description) {
-        doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7)
-          .text(e.description, LEFT + PAD, eNameY + 9, { width: DESC_W, lineBreak: false });
-      }
-      doc.fillColor('#059669').font('Helvetica-Bold').fontSize(8.5)
-        .text(fmt(e.allowance), LEFT + PAD + DESC_W, textY, { width: AMT_W, align: 'right' });
-      doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(8)
-        .text(fmt(e.ytd ?? e.allowance), LEFT + PAD + DESC_W + AMT_W, textY, { width: YTD_W, align: 'right' });
-    }
-
-    if (deductions[i]) {
-      const d = deductions[i];
-      const dNameY = d.description ? textY - 2 : textY;
-      doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(8.5)
-        .text(d.name, R_START + PAD, dNameY, { width: DESC_W, lineBreak: false });
-      if (d.description) {
-        doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7)
-          .text(d.description, R_START + PAD, dNameY + 9, { width: DESC_W, lineBreak: false });
-      }
-      doc.fillColor('#e11d48').font('Helvetica-Bold').fontSize(8.5)
-        .text(fmt(d.deduction), R_START + PAD + DESC_W, textY, { width: AMT_W, align: 'right' });
-      doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(8)
-        .text(fmt(d.ytd ?? d.deduction), R_START + PAD + DESC_W + AMT_W, textY, { width: YTD_W, align: 'right' });
-    }
-  }
-  currY += maxRows * ROW_H + 6;
-
-  // ── Employer Statutory Contributions (horizontal box) ─────────────────────
-  if (employerContribs.length > 0) {
-    const BOX_H = 48;
-    doc.roundedRect(LEFT, currY, CONTENT_W, BOX_H, 5).fill('#eef2ff');
-    doc.lineWidth(0.5).strokeColor('#c7d2fe').stroke();
-    doc.fillColor('#3730a3').font('Helvetica-Bold').fontSize(7.5)
-      .text('STATUTORY EMPLOYER CONTRIBUTIONS', LEFT + 12, currY + 7);
-
-    const itemW = Math.floor((CONTENT_W - 24) / employerContribs.length);
-    employerContribs.forEach((c, idx) => {
-      const cx = LEFT + 12 + idx * itemW;
-      // Current
-      doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7)
-        .text(c.name.toUpperCase(), cx, currY + 19, { width: itemW - 8, lineBreak: false });
-      doc.fillColor('#3730a3').font('Helvetica-Bold').fontSize(9)
-        .text(`${ccy} ${fmt(c.employer)}`, cx, currY + 29, { width: itemW - 8, lineBreak: false });
-      // YTD inline
+      const textY = rowY + 4;
+      doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(8)
+        .text(c.name, LEFT + T_PAD, textY, { width: EMP_DESC_W, lineBreak: false });
+      doc.fillColor('#3730a3').font('Helvetica-Bold').fontSize(8)
+        .text(usd(c.employer), EMP_AMT_X, textY, { width: T_AMT_W, align: 'right' });
       if (c.ytd != null) {
-        doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7)
-          .text(`YTD: ${fmt(c.ytd)}`, cx, currY + 40, { width: itemW - 8, lineBreak: false });
+        doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(7.5)
+          .text(usd(c.ytd), EMP_YTD_X, textY, { width: T_YTD_W, align: 'right' });
       }
     });
-    currY += BOX_H + 8;
   }
 
-  // ── Summary Totals ────────────────────────────────────────────────────────
-  currY += 6;
-  const SUM_H = 60;
-  doc.rect(LEFT, currY, CONTENT_W, SUM_H).fill(DARK_NAVY);
-
-  // Each of the three panels is CONTENT_W/3 wide.
-  // Amounts are right-aligned within their panel so they line up with the
-  // AMOUNT columns of the two-column table above (no drifting).
-  const sumW  = CONTENT_W / 3;
-  const panelW = Math.floor(sumW - 16); // usable inner width per panel
-  const totalDeductions = data.totalDeductions ?? (data.grossPay - data.netSalary);
-
-  // Panel 1 — Total Earnings
-  doc.fillColor('rgba(255,255,255,0.7)').font('Helvetica').fontSize(7.5)
-    .text('TOTAL EARNINGS', LEFT + 10, currY + 14, { width: panelW });
-  doc.fillColor('white').font('Helvetica-Bold').fontSize(14)
-    .text(`${ccy} ${fmt(data.grossPay)}`, LEFT + 10, currY + 26, { width: panelW, align: 'right' });
-
-  // Panel 2 — Total Deductions
-  doc.fillColor('rgba(255,255,255,0.7)').font('Helvetica').fontSize(7.5)
-    .text('TOTAL DEDUCTIONS', LEFT + sumW + 10, currY + 14, { width: panelW });
-  doc.fillColor('#fb7185').font('Helvetica-Bold').fontSize(14)
-    .text(`${ccy} ${fmt(totalDeductions)}`, LEFT + sumW + 10, currY + 26, { width: panelW, align: 'right' });
-
-  // Panel 3 — Net Salary (green)
-  doc.rect(LEFT + sumW * 2, currY, sumW, SUM_H).fill(BANTU_GREEN);
-  if (data.netPayUSD != null && data.netPayZIG != null) {
-    doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(7.5)
-      .text('NET PAY SPLIT', LEFT + sumW * 2 + 10, currY + 12, { width: panelW });
-    doc.font('Helvetica-Bold').fontSize(12)
-      .text(`USD ${fmt(data.netPayUSD)}`, LEFT + sumW * 2 + 10, currY + 25, { width: panelW, align: 'right' });
-    doc.fontSize(11)
-      .text(`ZiG ${fmt(data.netPayZIG)}`, LEFT + sumW * 2 + 10, currY + 40, { width: panelW, align: 'right' });
-  } else {
-    doc.fillColor(DARK_NAVY).font('Helvetica').fontSize(8)
-      .text('NET SALARY', LEFT + sumW * 2 + 10, currY + 14, { width: panelW });
-    doc.font('Helvetica-Bold').fontSize(17)
-      .text(`${ccy} ${fmt(data.netSalary)}`, LEFT + sumW * 2 + 10, currY + 29, { width: panelW, align: 'right' });
-  }
-
-  // ── Leave Balances ────────────────────────────────────────────────────────
-  currY += SUM_H + 10;
-  doc.roundedRect(LEFT, currY, CONTENT_W, 36, 6).fill(BG_LIGHT);
-  doc.lineWidth(0.5).strokeColor(BORDER_COLOR).stroke();
-
-  doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(7.5)
-    .text('ANNUAL LEAVE BALANCE', LEFT + 15, currY + 10);
-  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(11)
-    .text(`${(data.leaveBalance || 0).toFixed(1)} days`, LEFT + 15, currY + 22);
-
-  if (data.leaveTaken > 0) {
-    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(7.5)
-      .text('LEAVE TAKEN (YTD)', MID + 10, currY + 10);
-    doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(11)
-      .text(`${data.leaveTaken.toFixed(1)} days`, MID + 10, currY + 22);
-  }
-
-  // ── Branded Bantu Footer (universal — fixed at page bottom) ─────────────
+  // ── Section 7: Universal Bantu Footer ─────────────────────────────────────
+  // Always anchored at doc.page.height - 60; never triggers a blank page 2.
   drawBantuFooter(doc);
 }
 
