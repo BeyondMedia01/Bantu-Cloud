@@ -33,11 +33,15 @@ const s = StyleSheet.create({
   periodText:  { color: 'white', fontSize: 8, marginTop: 3 },
   payslipTitle:{ color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 20,
                  textAlign: 'right' },
-  leaveBox:    { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 4,
-                 padding: 7, marginTop: 6, width: 130 },
-  leaveLabel:  { color: 'rgba(255,255,255,0.7)', fontSize: 6, fontFamily: 'Helvetica-Bold' },
-  leaveValue:  { color: BANTU_GREEN, fontSize: 14, fontFamily: 'Helvetica-Bold', marginTop: 3 },
-  leaveTaken:  { color: 'rgba(255,255,255,0.55)', fontSize: 6, marginTop: 2 },
+  // Leave bar (below bank bar)
+  leaveBar:    { backgroundColor: '#edf7e3', marginHorizontal: 10, marginTop: 5,
+                 padding: 8, flexDirection: 'row', alignItems: 'center',
+                 borderWidth: 0.5, borderColor: '#c3e6a0' },
+  leaveBlock:  { flex: 1 },
+  leaveLabel:  { color: TEXT_MUTED, fontSize: 6, fontFamily: 'Helvetica-Bold',
+                 textTransform: 'uppercase' },
+  leaveValue:  { color: DARK_NAVY, fontSize: 10, fontFamily: 'Helvetica-Bold', marginTop: 2 },
+  leaveDivider:{ width: 0.5, backgroundColor: '#c3e6a0', height: 28, marginHorizontal: 10 },
 
   // Employee card
   card:        { backgroundColor: BG_LIGHT, borderRadius: 5, padding: 10,
@@ -165,13 +169,6 @@ const PayslipDocument = ({ data }) => {
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={s.payslipTitle}>PAYSLIP</Text>
-            <View style={s.leaveBox}>
-              <Text style={s.leaveLabel}>ANNUAL LEAVE BALANCE</Text>
-              <Text style={s.leaveValue}>{(leaveBalance || 0).toFixed(1)} days</Text>
-              {leaveTaken > 0 && (
-                <Text style={s.leaveTaken}>{leaveTaken.toFixed(1)} days taken YTD</Text>
-              )}
-            </View>
           </View>
         </View>
 
@@ -194,6 +191,19 @@ const PayslipDocument = ({ data }) => {
         <View style={s.bankBar}>
           <Field label="Bank Name"      value={bankName}      style={{ flex: 1 }} />
           <Field label="Account Number" value={accountNumber} style={{ flex: 1 }} />
+        </View>
+
+        {/* ── Section 3b: Leave Balance Bar ───────────────────────────── */}
+        <View style={s.leaveBar}>
+          <View style={s.leaveBlock}>
+            <Text style={s.leaveLabel}>Annual Leave Balance</Text>
+            <Text style={s.leaveValue}>{(leaveBalance || 0).toFixed(1)} days</Text>
+          </View>
+          <View style={s.leaveDivider} />
+          <View style={s.leaveBlock}>
+            <Text style={s.leaveLabel}>Leave Taken (YTD)</Text>
+            <Text style={s.leaveValue}>{(leaveTaken || 0).toFixed(1)} days</Text>
+          </View>
         </View>
 
         {/* ── Section 4: Side-by-Side Financial Tables ───────────────── */}
