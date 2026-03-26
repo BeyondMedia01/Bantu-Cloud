@@ -138,13 +138,13 @@ function _drawPayslip(doc, data) {
   const LV_BOX_H = 42;
   const LV_BOX_X = RIGHT - LV_BOX_W;
   const LV_BOX_Y = HEADER_H - LV_BOX_H - 8;
-  doc.roundedRect(LV_BOX_X, LV_BOX_Y, LV_BOX_W, LV_BOX_H, 4).fill('rgba(255,255,255,0.1)');
-  doc.fillColor('rgba(255,255,255,0.65)').font('Helvetica-Bold').fontSize(6.5)
+  doc.fillColor('white', 0.12).roundedRect(LV_BOX_X, LV_BOX_Y, LV_BOX_W, LV_BOX_H, 4).fill();
+  doc.fillColor('white', 0.7).font('Helvetica-Bold').fontSize(6.5)
     .text('ANNUAL LEAVE BALANCE', LV_BOX_X + 8, LV_BOX_Y + 7);
-  doc.fillColor(BANTU_GREEN).font('Helvetica-Bold').fontSize(15)
+  doc.fillColor(BANTU_GREEN, 1).font('Helvetica-Bold').fontSize(15)
     .text(`${(data.leaveBalance || 0).toFixed(1)} days`, LV_BOX_X + 8, LV_BOX_Y + 18);
   if (data.leaveTaken > 0) {
-    doc.fillColor('rgba(255,255,255,0.5)').font('Helvetica').fontSize(6.5)
+    doc.fillColor('white', 0.55).font('Helvetica').fontSize(6.5)
       .text(`${data.leaveTaken.toFixed(1)} days taken YTD`, LV_BOX_X + 8, LV_BOX_Y + 34);
   }
 
@@ -194,7 +194,7 @@ function _drawPayslip(doc, data) {
     doc.rect(xStart, tableTop, HALF_W, HDR_H).fill(DARK_NAVY);
     doc.fillColor(titleColor).font('Helvetica-Bold').fontSize(9)
       .text(title, xStart + T_PAD, tableTop + 5);
-    doc.fillColor('rgba(255,255,255,0.55)').font('Helvetica').fontSize(6.5);
+    doc.fillColor('white', 0.6).font('Helvetica').fontSize(6.5);
     doc.text('DESCRIPTION',  xStart + T_PAD,                     tableTop + 20, { width: T_DESC_W });
     doc.text('AMOUNT (USD)', xStart + T_PAD + T_DESC_W,          tableTop + 20, { width: T_AMT_W, align: 'right' });
     doc.text('YTD (USD)',    xStart + T_PAD + T_DESC_W + T_AMT_W, tableTop + 20, { width: T_YTD_W, align: 'right' });
@@ -242,7 +242,7 @@ function _drawPayslip(doc, data) {
     doc.rect(LEFT, currY, CONTENT_W, HDR_H).fill('#1e3a5f');
     doc.fillColor('#a5b4fc').font('Helvetica-Bold').fontSize(8.5)
       .text('STATUTORY EMPLOYER CONTRIBUTIONS', LEFT + T_PAD, currY + 5);
-    doc.fillColor('rgba(255,255,255,0.55)').font('Helvetica').fontSize(6.5);
+    doc.fillColor('white', 0.6).font('Helvetica').fontSize(6.5);
     doc.text('DESCRIPTION',  LEFT + T_PAD, currY + 20, { width: EMP_DESC_W });
     doc.text('AMOUNT (USD)', EMP_AMT_X,    currY + 20, { width: T_AMT_W,  align: 'right' });
     doc.text('YTD (USD)',    EMP_YTD_X,    currY + 20, { width: T_YTD_W,  align: 'right' });
@@ -280,7 +280,7 @@ function _drawPayslip(doc, data) {
 
   // Box 1 — Total Earnings (white on navy)
   doc.rect(B1_X, currY, BOX_W, SUM_H).fill(DARK_NAVY);
-  doc.fillColor('rgba(255,255,255,0.6)').font('Helvetica').fontSize(7)
+  doc.fillColor('white', 0.7).font('Helvetica').fontSize(7)
     .text('TOTAL EARNINGS', B1_X + B_PAD, currY + 10);
   doc.fillColor('white').font('Helvetica-Bold').fontSize(11)
     .text(usd(data.grossPay), B1_X + B_PAD, currY + 24, { width: BOX_W - B_PAD * 2, align: 'right' });
