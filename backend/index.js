@@ -1,3 +1,4 @@
+require('esbuild-register/dist/node').register({ extensions: ['.jsx'] });
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
