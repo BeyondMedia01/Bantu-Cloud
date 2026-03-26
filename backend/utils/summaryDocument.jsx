@@ -45,8 +45,9 @@ const s = StyleSheet.create({
                 fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
   dataRow:    { flexDirection: 'row', paddingHorizontal: 4, paddingVertical: 2 },
   dataDesc:   { flex: 1, color: TEXT_DARK },
-  dataAmt:    { width: 68, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
-  dataAmtGrey:{ width: 68, textAlign: 'right', color: TEXT_MUTED },
+  dataUnits:  { width: 36, textAlign: 'right', color: TEXT_MUTED, fontSize: 7 },
+  dataAmt:    { width: 60, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
+  dataAmtGrey:{ width: 60, textAlign: 'right', color: TEXT_MUTED },
 
   netPay:     { flexDirection: 'row', paddingHorizontal: 10, paddingTop: 4,
                 paddingBottom: 2, justifyContent: 'flex-end' },
@@ -99,8 +100,10 @@ const SummaryDocument = ({ data }) => {
         {/* Column headers */}
         <View style={s.colHdr} fixed>
           <Text style={[s.colHdrText, { flex: 1 }]}>EARNINGS</Text>
+          <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
           <Text style={s.colAmt}>AMOUNT</Text>
           <Text style={[s.colHdrText, { flex: 1, paddingLeft: 6 }]}>DEDUCTIONS</Text>
+          <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
           <Text style={s.colAmt}>AMOUNT</Text>
           <Text style={[s.colHdrText, { flex: 1, paddingLeft: 6 }]}>EMPLOYER CONTRIB.</Text>
           <Text style={s.colAmt}>AMOUNT</Text>
@@ -146,6 +149,9 @@ const SummaryDocument = ({ data }) => {
                           return e ? (
                             <View key={i} style={s.dataRow}>
                               <Text style={s.dataDesc}>{e.name}</Text>
+                              <Text style={s.dataUnits}>
+                                {e.units != null ? `${e.units}${e.unitsType ? ' ' + e.unitsType : ''}` : ''}
+                              </Text>
                               <Text style={s.dataAmt}>{fmt(e.allowance)}</Text>
                             </View>
                           ) : <View key={i} style={[s.dataRow, { height: 14 }]} />;
@@ -158,6 +164,9 @@ const SummaryDocument = ({ data }) => {
                           return d ? (
                             <View key={i} style={s.dataRow}>
                               <Text style={s.dataDesc}>{normalizeLabel(d.name)}</Text>
+                              <Text style={s.dataUnits}>
+                                {d.units != null ? `${d.units}${d.unitsType ? ' ' + d.unitsType : ''}` : ''}
+                              </Text>
                               <Text style={s.dataAmt}>{fmt(d.deduction)}</Text>
                             </View>
                           ) : <View key={i} style={[s.dataRow, { height: 14 }]} />;

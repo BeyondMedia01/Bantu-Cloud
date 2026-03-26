@@ -25,7 +25,9 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
       allowance: t.amount,
       deduction: 0,
       employer: 0,
-      ytd: ytdMap[t.transactionCodeId] ?? t.amount
+      ytd: ytdMap[t.transactionCodeId] ?? t.amount,
+      units: t.units ?? null,
+      unitsType: t.unitsType ?? null,
     });
   });
 
@@ -45,7 +47,9 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
       allowance: 0,
       deduction: t.amount,
       employer: 0,
-      ytd: ytdMap[t.transactionCodeId] ?? t.amount
+      ytd: ytdMap[t.transactionCodeId] ?? t.amount,
+      units: t.units ?? null,
+      unitsType: t.unitsType ?? null,
     });
   });
 
