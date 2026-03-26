@@ -234,38 +234,52 @@ function _drawPayslip(doc, data) {
 
   currY = Math.max(earningsBottom, deductionBottom);
 
-  // ── Section 5: Net Salary Anchor ─────────────────────────────────────────
-  // Two panels aligned exactly with the table halves above.
-  // Left: gross / total earnings.  Right (green, high-contrast): NET SALARY.
-  currY += 6;
-  const NET_H = 44;
+  // ── Section 5: Dedicated Summary Box ─────────────────────────────────────
+  // Single #f2f2f2 rectangle — never sits inside the deductions table.
+  // Total Earnings and Total Deductions use the EXACT same x/width as the
+  // AMOUNT (USD) column headers drawn by drawTable above.
+  currY += 4;
+  const SUM_H = 54;
+  doc.rect(LEFT, currY, CONTENT_W, SUM_H).fill('#f2f2f2');
 
-  doc.rect(LEFT, currY, HALF_W, NET_H).fill(DARK_NAVY);
-  doc.fillColor('rgba(255,255,255,0.55)').font('Helvetica').fontSize(7)
-    .text('TOTAL EARNINGS', LEFT + T_PAD, currY + 8, { width: HALF_W - T_PAD });
-  doc.fillColor('white').font('Helvetica-Bold').fontSize(14)
-    .text(usd(data.grossPay), LEFT + T_PAD, currY + 20, { width: HALF_W - T_PAD - 6, align: 'right' });
+  // Earnings AMOUNT column — mirrors drawTable: xStart + T_PAD + T_DESC_W, w = T_AMT_W
+  const E_SUM_X = LEFT    + T_PAD + T_DESC_W; // 148pt
+  // Deductions AMOUNT column — same formula for R_START
+  const D_SUM_X = R_START + T_PAD + T_DESC_W; // 409pt
 
-  doc.rect(R_START, currY, HALF_W, NET_H).fill(BANTU_GREEN);
+  // Labels
+  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5);
+  doc.text('TOTAL EARNINGS',   LEFT    + T_PAD, currY + 10);
+  doc.text('TOTAL DEDUCTIONS', R_START + T_PAD, currY + 10);
+
+  // Amounts — forced to exact column x/width (no drift possible)
+  doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(10)
+    .text(usd(data.grossPay),       E_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
+  doc.fillColor('#dc2626').font('Helvetica-Bold').fontSize(10)
+    .text(usd(data.totalDeductions), D_SUM_X, currY + 22, { width: T_AMT_W, align: 'right' });
+
+  // NET SALARY — bold anchor, right-aligned to page right edge
+  const NET_LABEL_X = RIGHT - 150;
+  doc.fillColor(TEXT_MUTED).font('Helvetica').fontSize(6.5)
+    .text('NET SALARY', NET_LABEL_X, currY + 10, { width: 150 - T_PAD, align: 'right' });
+
   if (data.netPayUSD != null && data.netPayZIG != null) {
-    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7.5)
-      .text('NET PAY SPLIT', R_START + T_PAD, currY + 6, { width: HALF_W - T_PAD });
-    doc.font('Helvetica-Bold').fontSize(12)
-      .text(`USD ${fmt(data.netPayUSD)}`, R_START + T_PAD, currY + 20, { width: HALF_W - T_PAD - 6, align: 'right' });
-    doc.fontSize(10)
-      .text(`ZiG ${fmt(data.netPayZIG)}`, R_START + T_PAD, currY + 33, { width: HALF_W - T_PAD - 6, align: 'right' });
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(11)
+      .text(`USD ${fmt(data.netPayUSD)}`, NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
+    doc.fillColor(TEXT_MUTED).font('Helvetica-Bold').fontSize(9)
+      .text(`ZiG ${fmt(data.netPayZIG)}`, NET_LABEL_X, currY + 37, { width: 150 - T_PAD, align: 'right' });
   } else {
-    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(7.5)
-      .text('NET SALARY', R_START + T_PAD, currY + 8, { width: HALF_W - T_PAD });
-    doc.font('Helvetica-Bold').fontSize(16)
-      .text(usd(data.netSalary), R_START + T_PAD, currY + 20, { width: HALF_W - T_PAD - 6, align: 'right' });
+    doc.fillColor(DARK_NAVY).font('Helvetica-Bold').fontSize(14)
+      .text(usd(data.netSalary), NET_LABEL_X, currY + 22, { width: 150 - T_PAD, align: 'right' });
   }
+
+  currY += SUM_H;
 
   // ── Section 6: Statutory Employer Contributions ───────────────────────────
   // Same 3-column format (Description | Amount | YTD) as the main tables.
   // Right edges align with the deductions table's YTD column above.
   if (employers.length > 0) {
-    currY += NET_H + 6;
+    currY += 6;
 
     // Section header
     doc.rect(LEFT, currY, CONTENT_W, HDR_H).fill('#1e3a5f'); // slightly lighter navy
