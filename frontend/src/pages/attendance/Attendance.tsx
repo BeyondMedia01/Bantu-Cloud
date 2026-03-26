@@ -304,7 +304,7 @@ const Attendance: React.FC = () => {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-border">
                 <tr>
-                  {['Employee', 'Date', 'Status', 'In', 'Out', 'Break', 'Normal', 'OT ×1.5', 'OT ×2.0', ''].map((h) => (
+                  {['Employee', 'Date', 'Status', 'In', 'Out', 'Break', 'Normal', 'OT ×1.0', 'OT ×1.5', 'OT ×2.0', ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-slate-400">{h}</th>
                   ))}
                 </tr>
@@ -334,6 +334,7 @@ const Attendance: React.FC = () => {
                     <td className="px-4 py-3 text-sm font-medium text-slate-600">{fmtTime(r.clockOut)}</td>
                     <td className="px-4 py-3 text-sm font-medium text-slate-500">{r.breakMinutes ?? 0}m</td>
                     <td className="px-4 py-3 text-sm font-bold text-emerald-700">{fmtMins(r.normalMinutes ?? 0)}</td>
+                    <td className="px-4 py-3 text-sm font-bold text-blue-700">{fmtMins(r.ot0Minutes ?? 0)}</td>
                     <td className="px-4 py-3 text-sm font-bold text-amber-700">{fmtMins(r.ot1Minutes ?? 0)}</td>
                     <td className="px-4 py-3 text-sm font-bold text-red-700">{fmtMins(r.ot2Minutes ?? 0)}</td>
                     <td className="px-4 py-3">

@@ -616,9 +616,9 @@ export const AttendanceAPI = {
     api.post('/attendance/process', data),
   manual: (data: any) => api.post('/attendance/manual', data),
   update: (id: string, data: any) => api.put(`/attendance/${id}`, data),
-  generateInputs: (data: {
+    generateInputs: (data: {
     startDate: string; endDate: string; period: string;
-    normalTcId?: string; ot1TcId?: string; ot2TcId?: string;
+    normalTcId?: string; ot0TcId?: string; ot1TcId?: string; ot2TcId?: string;
     payrollRunId?: string; employeeIds?: string[];
   }) => api.post('/attendance/generate-inputs', data),
 };

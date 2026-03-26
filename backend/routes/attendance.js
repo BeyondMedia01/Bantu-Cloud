@@ -321,7 +321,36 @@ router.post('/generate-inputs', requirePermission('process_payroll'), async (req
 
     if (records.length === 0) return res.json({ message: 'No attendance records found', created: 0 });
 
-    const tcs = { normalTcId, ot0TcId, ot1TcId, ot2TcId };
+    // Fallback: If TC IDs are not provided, find them by category/name
+    let fNormalTcId = normalTcId;
+    let fOt0TcId    = ot0TcId;
+    let fOt1TcId    = ot1TcId;
+    let fOt2TcId    = ot2TcId;
+
+    if (!fNormalTcId || !fOt0TcId || !fOt1TcId || !fOt2TcId) {
+      const allTcs = await prisma.transactionCode.findMany({
+        where: { clientId: req.clientId, type: 'EARNING' }
+      });
+      if (!fNormalTcId) {
+        fNormalTcId = allTcs.find(t => t.incomeCategory === 'BASIC_SALARY' || t.name.toLowerCase().includes('normal'))?.id;
+      }
+      if (!fOt0TcId) {
+        fOt0TcId = allTcs.find(t => t.incomeCategory === 'OVERTIME' && t.name.includes('1.0'))?.id;
+      }
+      if (!fOt1TcId) {
+        fOt1TcId = allTcs.find(t => t.incomeCategory === 'OVERTIME' && t.name.includes('1.5'))?.id;
+      }
+      if (!fOt2TcId) {
+        fOt2TcId = allTcs.find(t => t.incomeCategory === 'OVERTIME' && t.name.includes('2.0'))?.id;
+      }
+    }
+
+    const tcs = { 
+      normalTcId: fNormalTcId, 
+      ot0TcId:    fOt0TcId, 
+      ot1TcId:    fOt1TcId, 
+      ot2TcId:    fOt2TcId 
+    };
     const inputs = buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId || null);
 
     let created = 0;
