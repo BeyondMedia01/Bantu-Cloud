@@ -214,6 +214,20 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
       orderBy: { createdAt: 'asc' },
     });
 
+    // Fetch PayrollInput records to get units/unitsType (not stored on PayrollTransaction)
+    const allInputs = await prisma.payrollInput.findMany({
+      where: { payrollRunId: run.id },
+      select: { employeeId: true, transactionCodeId: true, units: true, unitsType: true },
+    });
+    // Build lookup: `${employeeId}:${transactionCodeId}` → { units, unitsType }
+    const inputUnitsMap = {};
+    for (const inp of allInputs) {
+      inputUnitsMap[`${inp.employeeId}:${inp.transactionCodeId}`] = {
+        units: inp.units ?? null,
+        unitsType: inp.unitsType ?? null,
+      };
+    }
+
     // Group transactions by employeeId for quick lookup
     const txByEmployee = {};
     for (const tx of allTransactions) {
@@ -251,10 +265,14 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
           gross: num(ps.gross),
         };
 
-        // Get transactions for this employee and normalise amounts
+        // Get transactions for this employee, normalise amounts, and attach units from PayrollInput
         const empTxs = (txByEmployee[ps.employeeId] || [])
           .filter(t => t.transactionCode)
-          .map(t => ({ ...t, amount: num(t.amount) }));
+          .map(t => {
+            const key = `${ps.employeeId}:${t.transactionCodeId}`;
+            const unitsData = inputUnitsMap[key] || {};
+            return { ...t, amount: num(t.amount), ...unitsData };
+          });
 
         const displayLines = buildPayslipLineItems({ 
           payslip: normPs, 
