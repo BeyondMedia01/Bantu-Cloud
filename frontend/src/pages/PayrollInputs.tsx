@@ -30,6 +30,8 @@ const PayrollInputs: React.FC = () => {
     amount: '',
     currency: 'USD',
     period: new Date().toISOString().slice(0, 7), // YYYY-MM
+    units: '',
+    notes: '',
   });
 
   const loadInputs = async () => {
@@ -86,9 +88,20 @@ const PayrollInputs: React.FC = () => {
         amount: parseFloat(form.amount),
         currency: form.currency,
         period: form.period,
+        units: form.units ? parseFloat(form.units) : undefined,
+        notes: form.notes || undefined,
       });
       setShowForm(false);
-      setForm({ employeeId: '', payrollRunId: '', transactionCodeId: '', amount: '', currency: 'USD', period: new Date().toISOString().slice(0, 7) });
+      setForm({
+        employeeId: '',
+        payrollRunId: '',
+        transactionCodeId: '',
+        amount: '',
+        currency: 'USD',
+        period: new Date().toISOString().slice(0, 7),
+        units: '',
+        notes: '',
+      });
       loadInputs();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create input.');
@@ -109,6 +122,7 @@ const PayrollInputs: React.FC = () => {
         currency: editInput.currency,
         period: editInput.period,
         notes: editInput.notes,
+        units: editInput.units !== undefined ? parseFloat(editInput.units) : undefined,
         payrollRunId: editInput.payrollRunId || undefined,
       });
       setEditInput(null);
@@ -256,6 +270,29 @@ const PayrollInputs: React.FC = () => {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-600 mb-1.5">Units (e.g. Hours)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.units}
+                onChange={(e) => setForm((p) => ({ ...p, units: e.target.value }))}
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-bold text-slate-600 mb-1.5">Notes / Description</label>
+              <input
+                type="text"
+                value={form.notes}
+                onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                placeholder="e.g. Manual overtime entry"
+              />
+            </div>
           </div>
 
           {error && (
@@ -353,6 +390,7 @@ const PayrollInputs: React.FC = () => {
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Transaction</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Type</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Amount</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Units</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Period</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Notes</th>
                 <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Status</th>
@@ -392,6 +430,11 @@ const PayrollInputs: React.FC = () => {
                     <td className="px-5 py-3 font-bold text-navy">
                       ${Number(inp.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
+                    <td className="px-5 py-3 text-slate-500 font-bold">
+                      {inp.units !== null && inp.units !== undefined ? (
+                        <span>{Number(inp.units).toFixed(2)} <span className="text-[10px] text-slate-400 font-medium">hrs</span></span>
+                      ) : '—'}
+                    </td>
                     <td className="px-5 py-3 text-slate-500 font-medium">{inp.period}</td>
                     <td className="px-5 py-3 text-[11px] text-slate-400 italic max-w-[150px] truncate" title={inp.notes}>
                       {inp.notes || '—'}
@@ -414,6 +457,7 @@ const PayrollInputs: React.FC = () => {
                               currency: inp.currency || (inp.employeeZiG > 0 ? 'ZiG' : 'USD'),
                               period: inp.period,
                               notes: inp.notes || '',
+                              units: inp.units !== null && inp.units !== undefined ? String(inp.units) : '',
                               payrollRunId: inp.payrollRunId || '',
                             });
                             setError('');
@@ -508,15 +552,28 @@ const PayrollInputs: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Period</label>
-                <input
-                  type="month"
-                  value={editInput.period}
-                  onChange={(e) => setEditInput((p: any) => ({ ...p, period: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Units (Hours)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editInput.units}
+                    onChange={(e) => setEditInput((p: any) => ({ ...p, units: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Period</label>
+                  <input
+                    type="month"
+                    value={editInput.period}
+                    onChange={(e) => setEditInput((p: any) => ({ ...p, period: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
+                    required
+                  />
+                </div>
               </div>
 
               <div>

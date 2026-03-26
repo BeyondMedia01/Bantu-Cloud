@@ -55,6 +55,17 @@ async function autoSeedTransactionCodes() {
         affectsAidsLevy: true,
       },
       {
+        code: '122',
+        name: 'Overtime 1.0x',
+        type: 'EARNING',
+        incomeCategory: 'OVERTIME',
+        taxable: true,
+        pensionable: true,
+        affectsPaye: true,
+        affectsNssa: true,
+        affectsAidsLevy: true,
+      },
+      {
         code: '115',
         name: 'commission',
         type: 'EARNING',

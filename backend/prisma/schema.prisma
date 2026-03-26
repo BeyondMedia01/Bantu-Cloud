@@ -733,7 +733,9 @@ model Shift {
   endTime       String           // HH:MM, e.g. "17:00"
   breakMinutes  Int              @default(60)
   normalHours   Float            @default(8)   // hours of normal-rate work per day
+  ot0Threshold  Float            @default(0)   // hours at ×1.0 before ×1.5 kicks in
   ot1Threshold  Float            @default(2)   // OT hours at ×1.5 before ×2.0 kicks in
+  ot0Multiplier Float            @default(1.0) // rate multiplier for OT0 (e.g. 1.0x)
   ot1Multiplier Float            @default(1.5) // rate multiplier for OT1
   ot2Multiplier Float            @default(2.0) // rate multiplier for OT2
   isOvernight   Boolean          @default(false)
@@ -822,6 +824,7 @@ model AttendanceRecord {
   breakMinutes     Int       @default(0)
   totalMinutes     Int       @default(0) // gross work minutes (excl. break)
   normalMinutes    Int       @default(0) // minutes @ ×1.0
+  ot0Minutes       Int       @default(0) // minutes @ ×1.0 (additional)
   ot1Minutes       Int       @default(0) // minutes @ ×1.5
   ot2Minutes       Int       @default(0) // minutes @ ×2.0
   status           String    @default("PRESENT") // PRESENT | ABSENT | HALF_DAY | HOLIDAY | LEAVE

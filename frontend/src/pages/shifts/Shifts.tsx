@@ -4,8 +4,8 @@ import { ShiftAPI } from '../../api/client';
 
 const BLANK = {
   name: '', code: '', startTime: '08:00', endTime: '17:00',
-  breakMinutes: 60, normalHours: 8, ot1Threshold: 2,
-  ot1Multiplier: 1.5, ot2Multiplier: 2.0, isOvernight: false,
+  breakMinutes: 60, normalHours: 8, ot0Threshold: 0, ot1Threshold: 2,
+  ot0Multiplier: 1.0, ot1Multiplier: 1.5, ot2Multiplier: 2.0, isOvernight: false,
 };
 
 const ShiftForm: React.FC<{
@@ -61,18 +61,28 @@ const ShiftForm: React.FC<{
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1 Threshold (hrs)</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.0 Threshold (hrs)</label>
+          <input type="number" min="0" max="24" step="0.5" value={form.ot0Threshold} onChange={set('ot0Threshold')}
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.0 Multiplier</label>
+          <input type="number" min="0" max="10" step="0.1" value={form.ot0Multiplier} onChange={set('ot0Multiplier')}
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.5 Threshold (hrs)</label>
           <input type="number" min="0" max="24" step="0.5" value={form.ot1Threshold} onChange={set('ot1Threshold')}
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1 Multiplier</label>
-          <input type="number" min="0" max="10" step="0.5" value={form.ot1Multiplier} onChange={set('ot1Multiplier')}
+          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.5 Multiplier</label>
+          <input type="number" min="0" max="10" step="0.1" value={form.ot1Multiplier} onChange={set('ot1Multiplier')}
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 2 Multiplier</label>
-          <input type="number" min="0" max="10" step="0.5" value={form.ot2Multiplier} onChange={set('ot2Multiplier')}
+          <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 2.0 Multiplier</label>
+          <input type="number" min="0" max="10" step="0.1" value={form.ot2Multiplier} onChange={set('ot2Multiplier')}
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
         </div>
         <div className="flex items-center gap-3 pt-5">
@@ -203,7 +213,8 @@ const Shifts: React.FC = () => {
 
                   <div className="text-xs text-slate-400 font-medium space-y-0.5 mb-3">
                     <p>Break: {s.breakMinutes} min | Normal: {s.normalHours} hrs/day</p>
-                    <p>OT 1 up to {s.ot1Threshold} hrs (×{s.ot1Multiplier}), then OT 2 (×{s.ot2Multiplier})</p>
+                    {s.ot0Threshold > 0 && <p>OT 1.0: up to {s.ot0Threshold} hrs (×{s.ot0Multiplier})</p>}
+                    <p>OT 1.5: up to {s.ot1Threshold} hrs (×{s.ot1Multiplier}), then OT 2.0 (×{s.ot2Multiplier})</p>
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-slate-400 font-medium border-t border-border pt-3">

@@ -126,7 +126,7 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
       },
       include: {
         employee: { select: { id: true, firstName: true, lastName: true, employeeCode: true, baseRate: true, currency: true, hoursPerPeriod: true, daysPerPeriod: true } },
-        shift: { select: { ot1Multiplier: true, ot2Multiplier: true } }
+        shift: { select: { ot0Multiplier: true, ot1Multiplier: true, ot2Multiplier: true } }
       },
     });
 
@@ -136,7 +136,7 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
         byEmployee[r.employeeId] = {
           employee: r.employee,
           daysPresent: 0, daysAbsent: 0,
-          normalHours: 0, ot1Hours: 0, ot2Hours: 0, totalHours: 0,
+          normalHours: 0, ot0Hours: 0, ot1Hours: 0, ot2Hours: 0, totalHours: 0,
           estimatedPay: 0,
         };
       }
@@ -145,10 +145,12 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
       else s.daysAbsent++;
 
       const normHrs = r.normalMinutes / 60;
+      const ot0Hrs  = r.ot0Minutes / 60;
       const ot1Hrs  = r.ot1Minutes / 60;
       const ot2Hrs  = r.ot2Minutes / 60;
 
       s.normalHours += normHrs;
+      s.ot0Hours    += ot0Hrs;
       s.ot1Hours    += ot1Hrs;
       s.ot2Hours    += ot2Hrs;
       s.totalHours  += r.totalMinutes  / 60;
@@ -156,10 +158,11 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
       const emp = r.employee;
       const stdHours = emp.hoursPerPeriod ?? (emp.daysPerPeriod ? emp.daysPerPeriod * 8 : 160);
       const hourly = emp.baseRate / stdHours;
+      const ot0Mult = r.shift?.ot0Multiplier ?? 1.0;
       const ot1Mult = r.shift?.ot1Multiplier ?? 1.5;
       const ot2Mult = r.shift?.ot2Multiplier ?? 2.0;
 
-      s.estimatedPay += (hourly * normHrs) + (hourly * ot1Mult * ot1Hrs) + (hourly * ot2Mult * ot2Hrs);
+      s.estimatedPay += (hourly * normHrs) + (hourly * ot0Mult * ot0Hrs) + (hourly * ot1Mult * ot1Hrs) + (hourly * ot2Mult * ot2Hrs);
     }
 
     // Format summary
@@ -168,6 +171,7 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
       return {
         ...s,
         normalHours:  parseFloat(s.normalHours.toFixed(2)),
+        ot0Hours:     parseFloat(s.ot0Hours.toFixed(2)),
         ot1Hours:     parseFloat(s.ot1Hours.toFixed(2)),
         ot2Hours:     parseFloat(s.ot2Hours.toFixed(2)),
         totalHours:   parseFloat(s.totalHours.toFixed(2)),
@@ -221,7 +225,7 @@ router.post('/manual', requirePermission('manage_employees'), async (req, res) =
 
     const shift = shiftId ? await prisma.shift.findUnique({ where: { id: shiftId } }) : null;
 
-    let result = { clockIn: null, clockOut: null, breakMinutes: 0, totalMinutes: 0, normalMinutes: 0, ot1Minutes: 0, ot2Minutes: 0 };
+    let result = { clockIn: null, clockOut: null, breakMinutes: 0, totalMinutes: 0, normalMinutes: 0, ot0Minutes: 0, ot1Minutes: 0, ot2Minutes: 0 };
 
     if (clockIn && clockOut) {
       const fakeLogs = [
@@ -276,6 +280,7 @@ router.put('/:id', requirePermission('manage_employees'), async (req, res) => {
           breakMinutes: computed.breakMinutes,
           totalMinutes: computed.totalMinutes,
           normalMinutes: computed.normalMinutes,
+          ot0Minutes:   computed.ot0Minutes,
           ot1Minutes:   computed.ot1Minutes,
           ot2Minutes:   computed.ot2Minutes,
         }),
@@ -310,13 +315,13 @@ router.post('/generate-inputs', requirePermission('process_payroll'), async (req
       },
       include: {
         employee: { select: { id: true, baseRate: true, currency: true, hoursPerPeriod: true, daysPerPeriod: true } },
-        shift: { select: { ot1Multiplier: true, ot2Multiplier: true } }
+        shift: { select: { ot0Multiplier: true, ot1Multiplier: true, ot2Multiplier: true } }
       },
     });
 
     if (records.length === 0) return res.json({ message: 'No attendance records found', created: 0 });
 
-    const tcs = { normalTcId, ot1TcId, ot2TcId };
+    const tcs = { normalTcId, ot0TcId, ot1TcId, ot2TcId };
     const inputs = buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId || null);
 
     let created = 0;

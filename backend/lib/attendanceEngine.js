@@ -95,11 +95,14 @@ function processDailyLogs(logs, shift, date, options = {}) {
   const isPublicHoliday = options.isPublicHoliday || false;
 
   const normalHours    = shift?.normalHours    ?? 8;
+  const ot0Threshold   = shift?.ot0Threshold   ?? 0;
   const ot1Threshold   = shift?.ot1Threshold   ?? 2;
   const normalLimit    = normalHours  * 60;
+  const ot0Limit       = ot0Threshold * 60;
   const ot1Limit       = ot1Threshold * 60;
 
   let normalMinutes = 0;
+  let ot0Minutes    = 0;
   let ot1Minutes    = 0;
   let ot2Minutes    = 0;
 
@@ -109,7 +112,9 @@ function processDailyLogs(logs, shift, date, options = {}) {
     ot1Minutes = workMinutes;
   } else {
     normalMinutes = Math.min(workMinutes, normalLimit);
-    const remainder = Math.max(0, workMinutes - normalLimit);
+    let remainder = Math.max(0, workMinutes - normalLimit);
+    ot0Minutes = Math.min(remainder, ot0Limit);
+    remainder = Math.max(0, remainder - ot0Limit);
     ot1Minutes = Math.min(remainder, ot1Limit);
     ot2Minutes = Math.max(0, remainder - ot1Limit);
   }
@@ -120,6 +125,7 @@ function processDailyLogs(logs, shift, date, options = {}) {
     breakMinutes: breakDeduction,
     totalMinutes: workMinutes,
     normalMinutes,
+    ot0Minutes,
     ot1Minutes,
     ot2Minutes,
     status: workMinutes > 0 ? 'PRESENT' : 'ABSENT',
@@ -137,13 +143,13 @@ function processDailyLogs(logs, shift, date, options = {}) {
  * Rate calculation: employee.baseRate / normalHoursPerPeriod = hourly rate
  *
  * @param {object[]} records        — AttendanceRecord rows with employee joined
- * @param {object} tcs              — { normalTcId, ot1TcId, ot2TcId }
+ * @param {object} tcs              — { normalTcId, ot0TcId, ot1TcId, ot2TcId }
  * @param {string} period           — "YYYY-MM"
  * @param {string|null} payrollRunId
  * @returns PayrollInput-shaped objects (no DB ids)
  */
 function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
-  const { normalTcId, ot1TcId, ot2TcId } = tcs;
+  const { normalTcId, ot0TcId, ot1TcId, ot2TcId } = tcs;
   const inputs = [];
 
   // Group by employee
@@ -159,28 +165,37 @@ function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
 
     let totalNormalHours    = 0;
     let totalNormalEarnings = 0;
+    let totalOt0Hours       = 0;
+    let totalOt0Earnings    = 0;
     let totalOt1Hours       = 0;
     let totalOt1Earnings    = 0;
     let totalOt2Hours       = 0;
     let totalOt2Earnings    = 0;
 
+    const usedOt0Mults = new Set();
     const usedOt1Mults = new Set();
     const usedOt2Mults = new Set();
 
     for (const r of empRecords) {
+      const shiftOt0Mult = r.shift?.ot0Multiplier ?? 1.0;
       const shiftOt1Mult = r.shift?.ot1Multiplier ?? 1.5;
       const shiftOt2Mult = r.shift?.ot2Multiplier ?? 2.0;
 
       const normHrs = r.normalMinutes / 60;
+      const ot0Hrs  = r.ot0Minutes / 60;
       const ot1Hrs  = r.ot1Minutes / 60;
       const ot2Hrs  = r.ot2Minutes / 60;
 
+      if (ot0Hrs > 0) usedOt0Mults.add(shiftOt0Mult);
       if (ot1Hrs > 0) usedOt1Mults.add(shiftOt1Mult);
       if (ot2Hrs > 0) usedOt2Mults.add(shiftOt2Mult);
 
       totalNormalHours    += normHrs;
       totalNormalEarnings += hourlyRate * normHrs;
       
+      totalOt0Hours    += ot0Hrs;
+      totalOt0Earnings += hourlyRate * shiftOt0Mult * ot0Hrs;
+
       totalOt1Hours    += ot1Hrs;
       totalOt1Earnings += hourlyRate * shiftOt1Mult * ot1Hrs;
 
@@ -196,6 +211,15 @@ function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
         [currency === 'ZiG' ? 'employeeZiG' : 'employeeUSD']: parseFloat(totalNormalEarnings.toFixed(2)),
         units: parseFloat(totalNormalHours.toFixed(2)), unitsType: 'hrs',
         notes: `Normal time: ${totalNormalHours.toFixed(2)} hrs`,
+      });
+    }
+    if (ot0TcId && totalOt0Hours > 0) {
+      const multLabel = Array.from(usedOt0Mults).sort().map(m => `${m}x`).join(', ');
+      inputs.push({
+        employeeId: empId, transactionCodeId: ot0TcId, period, payrollRunId: payrollRunId || null,
+        [currency === 'ZiG' ? 'employeeZiG' : 'employeeUSD']: parseFloat(totalOt0Earnings.toFixed(2)),
+        units: parseFloat(totalOt0Hours.toFixed(2)), unitsType: 'hrs',
+        notes: `OT 0 (${multLabel}): ${totalOt0Hours.toFixed(2)} hrs`,
       });
     }
     if (ot1TcId && totalOt1Hours > 0) {
