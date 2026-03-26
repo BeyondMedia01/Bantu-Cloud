@@ -1,6 +1,7 @@
 const prisma = require('../lib/prisma');
 const { calculateYTD, getYtdStartDate } = require('./ytdCalculator');
 const { generatePayslipBuffer } = require('./pdfService');
+const { runLeaveAccrual } = require('../jobs/leaveAccrual');
 
 /**
  * Shared logic to build payslip line items.
@@ -165,15 +166,29 @@ async function payslipToBuffer(payslipId) {
 
   // Leave balances are stored per calendar year (not tax year), so use the
   // payroll run's calendar year — not ytdStart which can point to the prior year.
-  const leaveBal = await prisma.leaveBalance.findFirst({
+  const leaveYear = new Date(payslip.payrollRun.startDate).getFullYear();
+  const leaveQuery = {
     where: {
       employeeId: payslip.employeeId,
-      year: new Date(payslip.payrollRun.startDate).getFullYear(),
+      year: leaveYear,
       leaveType: { contains: 'ANNUAL', mode: 'insensitive' },
     },
     select: { balance: true, taken: true },
     orderBy: { balance: 'desc' },
-  });
+  };
+
+  let leaveBal = await prisma.leaveBalance.findFirst(leaveQuery);
+
+  // If no balance exists yet, trigger accrual for this company now so the record
+  // is created and the payslip shows the correct balance immediately.
+  if (!leaveBal) {
+    try {
+      await runLeaveAccrual(payslip.payrollRun.companyId);
+      leaveBal = await prisma.leaveBalance.findFirst(leaveQuery);
+    } catch (e) {
+      console.error('[payslipFormatter] on-demand accrual failed:', e.message);
+    }
+  }
 
   const pdfData = {
     companyName: payslip.payrollRun.company.name,
