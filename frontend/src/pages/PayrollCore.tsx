@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash, Search, Database, Coins, XCircle } from 'lucide-react';
 import { PayrollCoreAPI } from '../api/client';

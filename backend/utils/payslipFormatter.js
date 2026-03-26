@@ -81,7 +81,13 @@ async function payslipToBuffer(payslipId) {
   const payslip = await prisma.payslip.findUnique({
     where: { id: payslipId },
     include: {
-      employee: { include: { user: true, department: true } },
+      employee: {
+        include: {
+          user: true,
+          department: true,
+          bankAccounts: { orderBy: { priority: 'asc' } },
+        },
+      },
       payrollRun: { include: { company: true } },
     },
   });
@@ -153,8 +159,21 @@ async function payslipToBuffer(payslipId) {
     department: payslip.employee.department?.name || '',
     costCenter: payslip.employee.costCenter || '',
     paymentMethod: payslip.employee.paymentMethod || 'BANK',
-    bankName: payslip.employee.bankName || '',
-    accountNumber: payslip.employee.accountNumber || '',
+    bankName: (() => {
+      if (payslip.employee.bankName) return payslip.employee.bankName;
+      return payslip.employee.bankAccounts?.[0]?.bankName || '';
+    })(),
+    accountNumber: (() => {
+      if (payslip.employee.accountNumber) return payslip.employee.accountNumber;
+      return payslip.employee.bankAccounts?.[0]?.accountNumber || '';
+    })(),
+    bankMissing: (
+      (payslip.employee.paymentMethod === 'BANK' || !payslip.employee.paymentMethod) &&
+      (
+        (!payslip.employee.bankName && !(payslip.employee.bankAccounts?.[0]?.bankName)) ||
+        (!payslip.employee.accountNumber && !(payslip.employee.bankAccounts?.[0]?.accountNumber))
+      )
+    ),
     currency: payslip.payrollRun.currency,
     lineItems,
     grossPay: payslip.gross,
