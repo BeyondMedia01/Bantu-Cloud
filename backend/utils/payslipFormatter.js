@@ -163,10 +163,12 @@ async function payslipToBuffer(payslipId) {
   const basicSalary = payslip.basicSalaryApplied > 0 ? payslip.basicSalaryApplied : (payslip.employee.baseRate ?? 0);
   const lineItems = buildPayslipLineItems({ payslip, transactions: transactionsWithUnits, ytdStat, ytdMap, basicSalary });
 
+  // Leave balances are stored per calendar year (not tax year), so use the
+  // payroll run's calendar year — not ytdStart which can point to the prior year.
   const leaveBal = await prisma.leaveBalance.findFirst({
     where: {
       employeeId: payslip.employeeId,
-      year: ytdStart.getFullYear(),
+      year: new Date(payslip.payrollRun.startDate).getFullYear(),
       leaveType: { contains: 'ANNUAL', mode: 'insensitive' },
     },
     select: { balance: true, taken: true },
