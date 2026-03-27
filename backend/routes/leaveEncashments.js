@@ -78,14 +78,17 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // Calculate daily rate using configurable working days per month
-    const workingDaysPerMonth = await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22);
+    // Calculate daily rate using configurable working days per period settings
+    // Order of precedence: Employee.daysPerPeriod > WORKING_DAYS_PER_PERIOD > WORKING_DAYS_PER_MONTH > default 22.
+    const workingDaysPerPeriodDefault = await getSettingAsNumber('WORKING_DAYS_PER_PERIOD', await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22));
     const emp = await prisma.employee.findUnique({
       where: { id: employeeId },
-      select: { basicSalaryUSD: true, basicSalaryZiG: true, currency: true },
+      select: { basicSalaryUSD: true, basicSalaryZiG: true, currency: true, daysPerPeriod: true },
     });
+    
+    const divisor = emp?.daysPerPeriod || workingDaysPerPeriodDefault;
     const monthlySalary = emp?.basicSalaryUSD || 0;
-    const ratePerDay = monthlySalary > 0 ? monthlySalary / workingDaysPerMonth : 0;
+    const ratePerDay = monthlySalary > 0 ? monthlySalary / divisor : 0;
     const totalAmount = parseFloat((daysFloat * ratePerDay).toFixed(2));
     const currency = emp?.currency || 'USD';
 

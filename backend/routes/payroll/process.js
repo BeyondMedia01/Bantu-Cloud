@@ -303,8 +303,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     const globalZimdefRate = await getSettingAsNumber('ZIMDEF_RATE', 1) / 100;
     const zimdefRate = run.company.zimdefRate != null ? run.company.zimdefRate / 100 : globalZimdefRate;
 
-    // Working days per month — used for pro-rating unpaid leave deductions
-    const workingDaysPerMonth = await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22);
+    // Working days per payroll period — used for pro-rating and short-time calculations.
+    // Order of precedence: Employee.daysPerPeriod > WORKING_DAYS_PER_PERIOD > WORKING_DAYS_PER_MONTH > default 22.
+    const workingDaysPerPeriodDefault = await getSettingAsNumber('WORKING_DAYS_PER_PERIOD', await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22));
 
     const employees = await prisma.employee.findMany({
       where: { companyId: run.companyId },
@@ -586,7 +587,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       // Auto-calculate 'Shortime' (201) if units are entered but monetary amounts are zero
       for (const i of empInputs) {
         if (i.transactionCode.code === '201' && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
-          const dayRate = emp.baseRate / (workingDaysPerMonth || 22);
+          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault;
+          const dayRate = emp.baseRate / divisor;
           const amt = round2(dayRate * i.units);
           if (emp.currency === 'ZiG') i.employeeZiG = amt;
           else i.employeeUSD = amt;
@@ -598,11 +600,16 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       // The overtime multiplier is taken from tc.defaultValue (e.g. 1.5 for time-and-a-half);
       // defaults to 1.5 if not configured on the transaction code.
       for (const i of empInputs) {
-        if (i.transactionCode.incomeCategory === 'OVERTIME' && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
-          const dayRate = emp.baseRate / (workingDaysPerMonth || 22);
+        const tc = i.transactionCode;
+        const isOvertime = tc.incomeCategory === 'OVERTIME' || tc.name.toLowerCase().includes('overtime');
+        
+        if (isOvertime && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
+          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault;
+          const dayRate = emp.baseRate / divisor;
           const hourlyRate = dayRate / 8;
-          const multiplier = i.transactionCode.defaultValue || 1.5;
-          const amt = round2(hourlyRate * multiplier * i.units);
+          const multiplier = tc.defaultValue ? parseFloat(tc.defaultValue) : 1.5;
+          const amt = round2(hourlyRate * i.units * multiplier);
+          
           if (emp.currency === 'ZiG') i.employeeZiG = amt;
           else i.employeeUSD = amt;
         }

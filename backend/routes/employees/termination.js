@@ -53,7 +53,8 @@ router.get('/', requirePermission('manage_employees'), async (req, res) => {
 
     // Configurable calendar constants from SystemSettings
     const daysPerMonth      = await getSettingAsNumber('DAYS_PER_MONTH', 30);
-    const workingDaysPerMonth = await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22);
+    const workingDaysPerPeriodDefault = await getSettingAsNumber('WORKING_DAYS_PER_PERIOD', await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22));
+    const divisor = employee.daysPerPeriod || workingDaysPerPeriodDefault;
 
     // Notice pay — only if employee did NOT work out notice period
     // Formula: noticeDays × (monthlyPay / daysPerMonth) — per Zimbabwe Labour Act for monthly-paid employees
@@ -63,7 +64,7 @@ router.get('/', requirePermission('manage_employees'), async (req, res) => {
       if (employee.paymentBasis === 'DAILY') {
         noticePay = noticeDays * employee.baseRate;
       } else if (employee.paymentBasis === 'HOURLY') {
-        const hoursPerDay = employee.hoursPerPeriod ? employee.hoursPerPeriod / (employee.daysPerPeriod || workingDaysPerMonth) : 8;
+        const hoursPerDay = employee.hoursPerPeriod ? employee.hoursPerPeriod / divisor : 8;
         noticePay = noticeDays * hoursPerDay * employee.baseRate;
       } else {
         noticePay = noticeDays * (monthlyPay / daysPerMonth);

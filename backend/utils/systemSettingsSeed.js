@@ -13,7 +13,14 @@ async function autoSeedSystemSettings() {
       settingName: 'WORKING_DAYS_PER_MONTH',
       settingValue: '22',
       dataType: 'NUMBER',
-      description: 'Standard number of working days in a month used for pro-rating and short-time calculations.',
+      description: 'Legacy monthly working days fallback. See WORKING_DAYS_PER_PERIOD.',
+      isActive: true
+    },
+    {
+      settingName: 'WORKING_DAYS_PER_PERIOD',
+      settingValue: '22',
+      dataType: 'NUMBER',
+      description: 'Default number of working days in a payroll period. Used for pro-rating, short-time, and daily rate calculations when not specified on the employee profile.',
       isActive: true
     },
     {
