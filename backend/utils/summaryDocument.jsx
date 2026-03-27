@@ -97,16 +97,22 @@ const SummaryDocument = ({ data }) => {
           <Text style={s.title}>PAYROLL SUMMARY</Text>
         </View>
 
-        {/* Column headers */}
+        {/* Column headers — each section mirrors the flex:1 colSection + dataRow padding structure */}
         <View style={s.colHdr} fixed>
-          <Text style={[s.colHdrText, { flex: 1 }]}>EARNINGS</Text>
-          <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-          <Text style={s.colAmt}>AMOUNT</Text>
-          <Text style={[s.colHdrText, { flex: 1, paddingLeft: 6 }]}>DEDUCTIONS</Text>
-          <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-          <Text style={s.colAmt}>AMOUNT</Text>
-          <Text style={[s.colHdrText, { flex: 1, paddingLeft: 6 }]}>EMPLOYER CONTRIB.</Text>
-          <Text style={s.colAmt}>AMOUNT</Text>
+          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+            <Text style={[s.colHdrText, { flex: 1 }]}>EARNINGS</Text>
+            <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
+            <Text style={[s.colAmt, { width: 60 }]}>AMOUNT</Text>
+          </View>
+          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+            <Text style={[s.colHdrText, { flex: 1 }]}>DEDUCTIONS</Text>
+            <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
+            <Text style={[s.colAmt, { width: 60 }]}>AMOUNT</Text>
+          </View>
+          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+            <Text style={[s.colHdrText, { flex: 1 }]}>EMPLOYER CONTRIB.</Text>
+            <Text style={[s.colAmt, { width: 60 }]}>AMOUNT</Text>
+          </View>
         </View>
 
         {/* Groups */}
