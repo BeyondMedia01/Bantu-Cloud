@@ -73,6 +73,16 @@ app.get('/api/seed-tcs', async (req, res) => {
   }
 });
 
+app.get('/api/seed-settings', async (req, res) => {
+  try {
+    const { autoSeedSystemSettings } = require('./utils/systemSettingsSeed');
+    await autoSeedSystemSettings();
+    res.json({ message: 'Settings seeding complete' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Public Routes (no auth required) ────────────────────────────────────────
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));
@@ -203,12 +213,14 @@ const startServer = async () => {
 
   try {
     // Run auto-boot actions
-    console.log('Running auto-boot actions (Holidays, Transaction Codes)...');
+    console.log('Running auto-boot actions (Holidays, Transaction Codes, Settings)...');
     const { autoSeedHolidays } = require('./utils/holidays');
     const { autoSeedTransactionCodes } = require('./utils/transactionCodes');
+    const { autoSeedSystemSettings } = require('./utils/systemSettingsSeed');
     
     await autoSeedHolidays();
     await autoSeedTransactionCodes();
+    await autoSeedSystemSettings();
     console.log('Auto-boot actions complete.');
 
     const portStr = process.env.PORT || '5005';
