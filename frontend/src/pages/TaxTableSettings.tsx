@@ -189,7 +189,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
       )}
       <header className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-navy">Tax Tables</h2>
+          <h1 className="text-2xl font-bold text-navy">Tax Tables</h1>
           <p className="text-slate-500 text-sm font-medium">Manage multi-currency progressive tax structures.</p>
         </div>
         <button

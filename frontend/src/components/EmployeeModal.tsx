@@ -28,34 +28,41 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
   };
 
   return (
-    <div className="fixed inset-0 bg-navy/40 backdrop-blur-sm flex justify-center items-center z-[100] p-4">
+    <div
+      className="fixed inset-0 bg-black/40 flex justify-center items-center z-[100] p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="employee-modal-title"
+    >
       <div className="bg-primary w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border shadow-2xl p-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-navy">{initialData ? 'Edit Profile' : 'New Employee'}</h2>
+            <h2 id="employee-modal-title" className="text-2xl font-bold text-navy">{initialData ? 'Edit Profile' : 'New Employee'}</h2>
             <p className="text-sm text-slate-500 font-medium">Configure core details and payroll particulars.</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-navy transition-colors font-bold text-xl">&times;</button>
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-navy transition-colors font-bold text-xl">&times;</button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Section: Basic Info */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">First Name</label>
-              <input 
-                type="text" 
-                required 
+              <label htmlFor="em-first-name" className="text-xs font-bold text-slate-400 uppercase tracking-wider">First Name</label>
+              <input
+                id="em-first-name"
+                type="text"
+                required
                 className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
                 value={formData.firstName}
                 onChange={e => setFormData({ ...formData, firstName: e.target.value })}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Last Name</label>
-              <input 
-                type="text" 
-                required 
+              <label htmlFor="em-last-name" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Last Name</label>
+              <input
+                id="em-last-name"
+                type="text"
+                required
                 className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
                 value={formData.lastName}
                 onChange={e => setFormData({ ...formData, lastName: e.target.value })}
@@ -65,10 +72,11 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">National ID</label>
-              <input 
-                type="text" 
-                required 
+              <label htmlFor="em-national-id" className="text-xs font-bold text-slate-400 uppercase tracking-wider">National ID</label>
+              <input
+                id="em-national-id"
+                type="text"
+                required
                 placeholder="63-123456-X-42"
                 className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
                 value={formData.nationalId}
@@ -76,9 +84,10 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Department</label>
-              <input 
-                type="text" 
+              <label htmlFor="em-department" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Department</label>
+              <input
+                id="em-department"
+                type="text"
                 className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
                 value={formData.department}
                 onChange={e => setFormData({ ...formData, department: e.target.value })}
@@ -95,19 +104,21 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
             
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Base Salary</label>
-                <input 
-                  type="number" 
+                <label htmlFor="em-base-salary" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Base Salary</label>
+                <input
+                  id="em-base-salary"
+                  type="number"
                   step="0.01"
-                  required 
+                  required
                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
                   value={formData.baseSalary}
                   onChange={e => setFormData({ ...formData, baseSalary: parseFloat(e.target.value) })}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency</label>
-                <select 
+                <label htmlFor="em-currency" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency</label>
+                <select
+                  id="em-currency"
                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
                   value={formData.currency}
                   onChange={e => setFormData({ ...formData, currency: e.target.value })}
@@ -117,9 +128,10 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                 </select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider text-accent-green">Tax. Benefits</label>
-                <input 
-                   type="number" 
+                <label htmlFor="em-taxable-benefits" className="text-xs font-bold text-slate-400 uppercase tracking-wider text-accent-green">Tax. Benefits</label>
+                <input
+                   id="em-taxable-benefits"
+                   type="number"
                    step="0.01"
                    placeholder="0.00"
                    className="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-green font-bold text-accent-green"
@@ -131,9 +143,10 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
 
             <div className="grid grid-cols-3 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Medical Aid</label>
-                <input 
-                   type="number" 
+                <label htmlFor="em-medical-aid" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Medical Aid</label>
+                <input
+                   id="em-medical-aid"
+                   type="number"
                    step="0.01"
                    className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
                    value={formData.medicalAid}
@@ -141,9 +154,10 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">NEC Deduction</label>
-                <input 
-                   type="number" 
+                <label htmlFor="em-nec-deduction" className="text-xs font-bold text-slate-400 uppercase tracking-wider">NEC Deduction</label>
+                <input
+                   id="em-nec-deduction"
+                   type="number"
                    step="0.01"
                    className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
                    value={formData.necDeduction}
@@ -151,9 +165,10 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Leave Balance</label>
-                <input 
-                   type="number" 
+                <label htmlFor="em-leave-balance" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Leave Balance</label>
+                <input
+                   id="em-leave-balance"
+                   type="number"
                    step="0.5"
                    className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
                    value={formData.leaveBalance}

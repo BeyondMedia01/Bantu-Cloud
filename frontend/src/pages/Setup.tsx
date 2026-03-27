@@ -40,7 +40,7 @@ const Setup: React.FC = () => {
 
       <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-2">Initialize Platform</h2>
+          <h1 className="text-2xl font-bold mb-2">Initialize Platform</h1>
           <p className="text-slate-500 font-medium">Creates the PLATFORM_ADMIN account and first client. This endpoint is disabled once setup is complete.</p>
         </div>
 

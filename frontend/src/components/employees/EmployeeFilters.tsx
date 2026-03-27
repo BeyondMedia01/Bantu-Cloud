@@ -24,8 +24,10 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
     <div className="flex flex-col lg:flex-row gap-3">
       {/* Search Input */}
       <div className="bg-primary rounded-2xl border border-border shadow-sm px-4 py-3 flex items-center gap-3 flex-1 transition-all focus-within:ring-2 focus-within:ring-accent-blue/10 focus-within:border-accent-blue">
-        <Search size={16} className="text-slate-400 shrink-0" />
+        <Search size={16} className="text-slate-400 shrink-0" aria-hidden="true" />
+        <label htmlFor="employee-search" className="sr-only">Search employees</label>
         <input
+          id="employee-search"
           type="text"
           placeholder="Search by name, code, or position…"
           className="flex-1 bg-transparent focus:outline-none font-medium placeholder:text-slate-300 text-sm text-navy"
@@ -40,7 +42,10 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
 
       {/* Select Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <label htmlFor="filter-branch" className="sr-only">Filter by branch</label>
         <select
+          id="filter-branch"
+          aria-label="Filter by branch"
           value={filters.branch}
           onChange={(e) => onFilterChange('branch', e.target.value)}
           className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm transition-all"
@@ -49,7 +54,10 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
           {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
 
+        <label htmlFor="filter-department" className="sr-only">Filter by department</label>
         <select
+          id="filter-department"
+          aria-label="Filter by department"
           value={filters.department}
           onChange={(e) => onFilterChange('department', e.target.value)}
           className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm transition-all"
@@ -58,7 +66,10 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
           {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
 
+        <label htmlFor="filter-employment-type" className="sr-only">Filter by employment type</label>
         <select
+          id="filter-employment-type"
+          aria-label="Filter by employment type"
           value={filters.employmentType}
           onChange={(e) => onFilterChange('employmentType', e.target.value)}
           className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm transition-all"

@@ -60,11 +60,23 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Per-account lockout: 3 failed attempts → 15-minute lockout
+const loginFailures = new Map(); // email → { count, lockedUntil }
+const MAX_LOGIN_ATTEMPTS = 3;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: 'email and password are required' });
+  }
+
+  // Check per-account lockout
+  const failure = loginFailures.get(email);
+  if (failure?.lockedUntil && failure.lockedUntil > Date.now()) {
+    const remaining = Math.ceil((failure.lockedUntil - Date.now()) / 60000);
+    return res.status(429).json({ message: `Account temporarily locked. Try again in ${remaining} minute(s).` });
   }
 
   try {
@@ -79,7 +91,19 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      const rec = loginFailures.get(email) || { count: 0, lockedUntil: null };
+      rec.count += 1;
+      if (rec.count >= MAX_LOGIN_ATTEMPTS) {
+        rec.lockedUntil = Date.now() + LOCKOUT_MS;
+        rec.count = 0;
+      }
+      loginFailures.set(email, rec);
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Successful login — clear any failure record
+    loginFailures.delete(email);
 
     const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
     const companyId = user.employee?.companyId ?? null;

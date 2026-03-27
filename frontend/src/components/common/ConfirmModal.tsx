@@ -36,7 +36,11 @@ const ConfirmModal: React.FC<Props> = ({
       aria-labelledby="confirm-title"
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onCancel}
+        aria-hidden="true"
+      />
 
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-xl border border-border w-full max-w-sm p-6 flex flex-col gap-4">

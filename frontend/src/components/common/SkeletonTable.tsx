@@ -50,13 +50,19 @@ const SkeletonTable: React.FC<SkeletonTableProps> = ({ headers, rows = 6 }) => {
   };
 
   return (
-    <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden animate-pulse">
+    <div
+      role="status"
+      aria-label="Loading data…"
+      aria-busy="true"
+      className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden animate-pulse"
+    >
+      <span className="sr-only">Loading…</span>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-border bg-slate-50">
               {headers.map((h, i) => (
-                <th key={i} className="px-5 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">
+                <th key={i} scope="col" className="px-5 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">
                   {h}
                 </th>
               ))}

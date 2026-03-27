@@ -238,11 +238,11 @@ const Payslips: React.FC = () => {
             <table className="w-full text-left min-w-max">
               <thead>
                 <tr className="border-b border-border bg-slate-50">
-                  <th className={thCls}>Employee</th>
-                  <th className={thCls}>Position</th>
+                  <th scope="col" className={thCls}>Employee</th>
+                  <th scope="col" className={thCls}>Position</th>
 
                   {/* BASIC */}
-                  <th className={thCls}>Basic{isDual ? ' (USD)' : ''}</th>
+                  <th scope="col" className={thCls}>Basic{isDual ? ' (USD)' : ''}</th>
 
                   {/* One column per earning/benefit TC (e.g. Transport Allowance) */}
                   {allEarningTCs.map((tc) => (
@@ -252,11 +252,11 @@ const Payslips: React.FC = () => {
                   {/* Gross Pay */}
                   {isDual ? (
                     <>
-                      <th className={thCls}>Gross USD</th>
-                      <th className={thCls}>Gross ZiG</th>
+                      <th scope="col" className={thCls}>Gross USD</th>
+                      <th scope="col" className={thCls}>Gross ZiG</th>
                     </>
                   ) : (
-                    <th className={thCls}>Gross Pay</th>
+                    <th scope="col" className={thCls}>Gross Pay</th>
                   )}
 
                   {/* One column per post-tax deduction TC (e.g. Advance) */}
@@ -265,19 +265,19 @@ const Payslips: React.FC = () => {
                   ))}
 
                   {/* Statutory deductions total */}
-                  <th className={thCls + ' text-red-400'}>Total Deductions</th>
+                  <th scope="col" className={thCls + ' text-red-400'}>Total Deductions</th>
 
                   {/* Net Pay */}
                   {isDual ? (
                     <>
-                      <th className={thCls}>Net USD</th>
-                      <th className={thCls}>Net ZiG</th>
+                      <th scope="col" className={thCls}>Net USD</th>
+                      <th scope="col" className={thCls}>Net ZiG</th>
                     </>
                   ) : (
-                    <th className={thCls}>Net Pay</th>
+                    <th scope="col" className={thCls}>Net Pay</th>
                   )}
 
-                  <th className={thCls}>Actions</th>
+                  <th scope="col" className={thCls}>Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">

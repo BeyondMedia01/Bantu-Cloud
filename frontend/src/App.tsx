@@ -122,6 +122,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
 
 import { ToastProvider } from './context/ToastContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -135,7 +136,10 @@ const queryClient = new QueryClient({
 // Minimal fallback while lazy chunks load
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[40vh]">
-    <div className="w-6 h-6 border-2 border-slate-300 border-t-navy rounded-full animate-spin" />
+    <div role="status" aria-label="Loading page">
+      <div className="w-6 h-6 border-2 border-slate-300 border-t-navy rounded-full animate-spin" aria-hidden="true" />
+      <span className="sr-only">Loading...</span>
+    </div>
   </div>
 );
 
@@ -143,10 +147,11 @@ const App: React.FC = () => {
   const role = getUserRole();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SettingsProvider>
-        <ToastProvider>
-          <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <SettingsProvider>
+          <ToastProvider>
+            <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public */}
@@ -261,10 +266,11 @@ const App: React.FC = () => {
                 } />
               </Routes>
             </Suspense>
-          </BrowserRouter>
-        </ToastProvider>
-      </SettingsProvider>
-    </QueryClientProvider>
+            </BrowserRouter>
+          </ToastProvider>
+        </SettingsProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

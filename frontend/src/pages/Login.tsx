@@ -48,7 +48,7 @@ const Login: React.FC = () => {
 
       <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-2">Welcome back</h2>
+          <h1 className="text-2xl font-bold mb-2">Welcome back</h1>
           <p className="text-slate-500 font-medium">Please enter your details to continue</p>
         </div>
 

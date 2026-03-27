@@ -292,7 +292,7 @@ const EmployeeNew: React.FC = () => {
           {/* ── Personal Details ── */}
           {activeTab === 'PERSONAL' && (
             <Section title="Personal Details">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FF name="employeeCode" label="Employee Code" required form={form}>
                   {(field) => <Input {...field} placeholder="e.g. EMP001" />}
                 </FF>
@@ -391,7 +391,7 @@ const EmployeeNew: React.FC = () => {
           {/* ── Work Details ── */}
           {activeTab === 'WORK' && (
             <Section title="Work Details">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="startDate" render={({ field }) => (
                   <FormItem className="flex flex-col gap-1.5">
                     <FormLabel className="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -640,7 +640,7 @@ const EmployeeNew: React.FC = () => {
           {/* ── Tax Details ── */}
           {activeTab === 'TAX' && (
             <Section title="Tax Details">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FF name="taxDirectivePerc" label="Tax Directive %" form={form}>
                   {(field) => <Input {...field} type="number" step="0.01" min="0" max="100" placeholder="0.00" />}
                 </FF>
@@ -714,7 +714,7 @@ const EmployeeNew: React.FC = () => {
           {/* ── Leave / Stats ── */}
           {activeTab === 'LEAVE' && (
             <Section title="Leave Details">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FF name="annualLeaveAccrued" label="Annual Leave Accrued (days)" form={form}>
                   {(field) => <Input {...field} type="number" step="0.5" min="0" placeholder="0" />}
                 </FF>

@@ -92,7 +92,7 @@ const LeaveBalances: React.FC = () => {
       )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-navy">Leave Balances</h2>
+          <h1 className="text-2xl font-bold text-navy">Leave Balances</h1>
           <p className="text-slate-500 text-sm font-medium">Per-employee, per-type leave balance tracking</p>
         </div>
         <div className="flex gap-2 flex-wrap">

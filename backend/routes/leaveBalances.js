@@ -156,8 +156,14 @@ router.post('/accrue', requirePermission('manage_leave'), async (req, res) => {
     await prisma.$transaction([
       ...(creates.length > 0 ? [prisma.leaveBalance.createMany({ data: creates, skipDuplicates: true })] : []),
       ...updates.map(({ id, credit }) =>
-        prisma.leaveBalance.update({
-          where: { id },
+        prisma.leaveBalance.updateMany({
+          where: {
+            id,
+            OR: [
+              { lastAccrualDate: null },
+              { lastAccrualDate: { lt: new Date(`${monthKey}-01`) } },
+            ],
+          },
           data: { accrued: { increment: credit }, balance: { increment: credit }, lastAccrualDate: now },
         })
       ),
@@ -208,7 +214,8 @@ router.post('/year-end', requirePermission('manage_leave'), async (req, res) => 
       const unused = Math.max(0, bal.balance);
 
       const carryLimit = policy ? policy.carryOverLimit : 0;
-      const carryAmount = Math.min(unused, carryLimit);
+      const maxAccum = policy && policy.maxAccumulation > 0 ? policy.maxAccumulation : Infinity;
+      const carryAmount = Math.min(unused, carryLimit, maxAccum);
       const forfeitAmount = unused - carryAmount;
 
       closingUpdates.push(prisma.leaveBalance.update({
@@ -267,6 +274,12 @@ router.put('/:id/adjust', requirePermission('manage_leave'), async (req, res) =>
     if (existing.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
 
     const adj = parseFloat(adjustment);
+    if (isNaN(adj)) return res.status(400).json({ message: 'adjustment must be a valid number' });
+    if (existing.balance + adj < 0) {
+      return res.status(400).json({
+        message: `Adjustment would result in a negative balance. Current balance: ${existing.balance}, adjustment: ${adj}`,
+      });
+    }
     const updated = await prisma.leaveBalance.update({
       where: { id: req.params.id },
       data: {

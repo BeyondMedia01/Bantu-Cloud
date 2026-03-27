@@ -109,8 +109,13 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Delete file from disk
-    const filePath = path.join(__dirname, '..', doc.fileUrl);
+    // Delete file from disk — guard against path traversal
+    const uploadsBase = path.resolve(__dirname, '../uploads');
+    const filePath = path.resolve(__dirname, '..', doc.fileUrl);
+    if (!filePath.startsWith(uploadsBase + path.sep) && !filePath.startsWith(uploadsBase)) {
+      console.error('[documents] Blocked suspicious fileUrl:', doc.fileUrl);
+      return res.status(400).json({ message: 'Invalid document path' });
+    }
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

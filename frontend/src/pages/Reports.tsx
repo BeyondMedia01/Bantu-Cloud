@@ -128,7 +128,7 @@ const Reports: React.FC = () => {
     <div className="flex flex-col gap-8">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-navy">Reports</h2>
+          <h1 className="text-2xl font-bold text-navy">Reports</h1>
           <p className="text-slate-500 font-medium text-sm">Generate and export ZIMRA & NSSA-compliant documentation.</p>
         </div>
         <div className="flex items-center gap-2">

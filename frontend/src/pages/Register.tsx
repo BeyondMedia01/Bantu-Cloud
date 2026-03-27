@@ -50,7 +50,7 @@ const Register: React.FC = () => {
 
       <div className="w-full max-w-[480px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-2">Create your account</h2>
+          <h1 className="text-2xl font-bold mb-2">Create your account</h1>
           <p className="text-slate-500 font-medium">You'll need a license token from your platform admin</p>
         </div>
 

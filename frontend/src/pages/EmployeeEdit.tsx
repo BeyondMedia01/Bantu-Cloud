@@ -366,7 +366,7 @@ const EmployeeEdit: React.FC = () => {
 
         {activeTab === 'PERSONAL' && (
           <Section title="Personal Details">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Employee Code" required>
               <input required value={form.employeeCode} onChange={set('employeeCode')} />
             </Field>
@@ -454,7 +454,7 @@ const EmployeeEdit: React.FC = () => {
 
         {activeTab === 'WORK' && (
         <Section title="Work Details">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Start Date" required>
               <input required type="date" value={form.startDate} onChange={set('startDate')} />
             </Field>
@@ -505,7 +505,7 @@ const EmployeeEdit: React.FC = () => {
 
         {activeTab === 'PAY' && (
         <Section title="Pay Details & Bank Splitting">
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <Field label="Payment Method" required>
               <select required value={form.paymentMethod} onChange={set('paymentMethod')}>
                 <option value="BANK">Bank</option>
@@ -666,7 +666,7 @@ const EmployeeEdit: React.FC = () => {
 
         {activeTab === 'TAX' && (
         <Section title="Tax Details">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Tax Directive %">
               <input type="number" step="0.01" min="0" max="100" value={form.taxDirectivePerc} onChange={set('taxDirectivePerc')} />
             </Field>
@@ -714,7 +714,7 @@ const EmployeeEdit: React.FC = () => {
 
         {activeTab === 'LEAVE' && (
         <Section title="Leave Details">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Annual Leave Accrued (days)">
               <input type="number" step="0.5" min="0" value={form.annualLeaveAccrued} onChange={set('annualLeaveAccrued')} />
             </Field>

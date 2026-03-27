@@ -243,7 +243,7 @@ model Branch {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   company      Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  subCompany   SubCompany? @relation(fields: [subCompanyId], references: [id])
+  subCompany   SubCompany? @relation(fields: [subCompanyId], references: [id], onDelete: SetNull)
   departments  Department[]
   employees    Employee[]
 }
@@ -256,7 +256,7 @@ model Department {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  branch    Branch?    @relation(fields: [branchId], references: [id])
+  branch    Branch?    @relation(fields: [branchId], references: [id], onDelete: SetNull)
   employees Employee[]
 }
 
@@ -337,11 +337,11 @@ model Employee {
   updatedAt      DateTime       @updatedAt
   client             Client              @relation(fields: [clientId], references: [id])
   company            Company             @relation(fields: [companyId], references: [id])
-  branch             Branch?             @relation(fields: [branchId], references: [id])
-  department         Department?         @relation(fields: [departmentId], references: [id])
-  user               User?               @relation(fields: [userId], references: [id])
-  grade              Grade?              @relation(fields: [gradeId], references: [id])
-  necGrade           NecGrade?           @relation(fields: [necGradeId], references: [id])
+  branch             Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  department         Department?         @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  grade              Grade?              @relation(fields: [gradeId], references: [id], onDelete: SetNull)
+  necGrade           NecGrade?           @relation(fields: [necGradeId], references: [id], onDelete: SetNull)
   bankAccounts     EmployeeBankAccount[]
   payrollTransactions  PayrollTransaction[]
   payslips             Payslip[]

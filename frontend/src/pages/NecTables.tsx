@@ -203,7 +203,7 @@ const NecTables: React.FC = () => {
       )}
       <header className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-navy">NEC Tables</h2>
+          <h1 className="text-2xl font-bold text-navy">NEC Tables</h1>
           <p className="text-slate-500 text-sm font-medium">
             Manage National Employment Council minimum wage tables and levy rates per sector.
           </p>

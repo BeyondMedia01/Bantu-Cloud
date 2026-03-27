@@ -69,7 +69,8 @@ app.get('/api/seed-tcs', async (req, res) => {
     await autoSeedTransactionCodes();
     res.json({ message: 'Seeding complete' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[seed-tcs]', err);
+    res.status(500).json({ message: 'Seeding failed' });
   }
 });
 

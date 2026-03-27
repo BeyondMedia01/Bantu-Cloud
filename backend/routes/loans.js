@@ -48,7 +48,12 @@ router.post('/', requirePermission('manage_loans'), async (req, res) => {
       if (emp.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
     }
 
-    const monthlyPayment = (parseFloat(amount) * (1 + (parseFloat(interestRate || 0) / 100))) / parseInt(termMonths);
+    // Amortization formula (matches frontend preview): P * r(1+r)^n / ((1+r)^n - 1)
+    // For zero-interest loans: flat principal / term
+    const P = parseFloat(amount);
+    const r = parseFloat(interestRate || 0) / 100 / 12; // monthly rate
+    const n = parseInt(termMonths);
+    const monthlyPayment = r === 0 ? P / n : (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 
     const loan = await prisma.loan.create({
       data: {

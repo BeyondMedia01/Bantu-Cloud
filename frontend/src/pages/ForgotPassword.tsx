@@ -37,7 +37,7 @@ const ForgotPassword: React.FC = () => {
             <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-500">
               <Mail size={28} />
             </div>
-            <h2 className="text-xl font-bold mb-2">Check your inbox</h2>
+            <h2 className="text-xl font-bold mb-2">Check your inbox</h1>
             <p className="text-slate-500 font-medium text-sm mb-6">
               If <strong>{email}</strong> is registered, we've sent a password reset link. Check your spam folder if it doesn't arrive.
             </p>
@@ -57,7 +57,7 @@ const ForgotPassword: React.FC = () => {
               <ArrowLeft size={15} /> Back to Sign In
             </button>
 
-            <h2 className="text-2xl font-bold mb-1">Forgot password?</h2>
+            <h1 className="text-2xl font-bold mb-1">Forgot password?</h1>
             <p className="text-slate-500 font-medium text-sm mb-6">
               Enter your email and we'll send you a reset link.
             </p>

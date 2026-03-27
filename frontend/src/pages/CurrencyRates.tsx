@@ -84,7 +84,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       )}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-navy mb-1">Exchange Rates</h2>
+          <h1 className="text-2xl font-bold text-navy mb-1">Exchange Rates</h1>
           <p className="text-slate-500 font-medium text-sm">Manage USD to ZiG conversion rates for payroll ledgers.</p>
         </div>
         <button

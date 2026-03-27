@@ -118,9 +118,10 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
         const tcName = tc?.name || '';
         const tcCode = tc?.code || '';
         const isMedAid = tc && tc.type === 'DEDUCTION' && tc.preTax === false &&
-          (tcName.toLowerCase().includes('medical aid') ||
-            (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)) ||
-            tcCode.toUpperCase() === 'MED_AID' || tcCode.toUpperCase() === 'MEDICAL_AID');
+          (tc.incomeCategory === 'MEDICAL_AID' ||
+            /medical\s*aid|med\s*aid/i.test(tcName) ||
+            /MED_AID|MEDICAL_AID/i.test(tcCode) ||
+            (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
 
         if (!tc || tc.type === 'EARNING' || tc.type === 'BENEFIT') {
           earnings += amt;
@@ -327,7 +328,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     }
 
     const adjustments = req.body?.adjustments || {};
-    const xr = run.exchangeRate || 1;
+    const xr = (run.exchangeRate > 0) ? run.exchangeRate : 1;
 
     // Banker's-rounding helper — ZIMRA requires figures to 2 d.p. at each step
     // to prevent accumulated float drift across a large employee headcount.
@@ -546,11 +547,12 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       if (run.dualCurrency) {
         const empPrescribedRate = emp.currency === 'USD' ? prescribedRateUSD : prescribedRateZIG;
         for (const loan of empLoans) {
-          if (loan.interestRate < empPrescribedRate) {
+          const loanRate = (loan.interestRate != null && !isNaN(loan.interestRate)) ? loan.interestRate : 0;
+          if (loanRate < empPrescribedRate) {
             const paidAmt = loan.repayments.reduce((sum, r) => sum + (r.amount || 0), 0);
             const currentBalance = Math.max(0, loan.amount - paidAmt);
             if (currentBalance > 0) {
-              const monthlyBenefit = (currentBalance * (empPrescribedRate - loan.interestRate)) / 100 / 12;
+              const monthlyBenefit = (currentBalance * (empPrescribedRate - loanRate)) / 100 / 12;
               if (emp.currency === 'USD') totalLoanBenefitUSD += monthlyBenefit;
               else totalLoanBenefitZIG += monthlyBenefit;
             }
@@ -558,11 +560,12 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         }
       } else {
         for (const loan of empLoans) {
-          if (loan.interestRate < currentPrescribedRate) {
+          const loanRate = (loan.interestRate != null && !isNaN(loan.interestRate)) ? loan.interestRate : 0;
+          if (loanRate < currentPrescribedRate) {
             const paidAmt = loan.repayments.reduce((sum, r) => sum + (r.amount || 0), 0);
             const currentBalance = Math.max(0, loan.amount - paidAmt);
             if (currentBalance > 0) {
-              const monthlyBenefit = (currentBalance * (currentPrescribedRate - loan.interestRate)) / 100 / 12;
+              const monthlyBenefit = (currentBalance * (currentPrescribedRate - loanRate)) / 100 / 12;
               totalLoanBenefit += monthlyBenefit;
             }
           }

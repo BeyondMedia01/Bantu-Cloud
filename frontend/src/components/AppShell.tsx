@@ -158,11 +158,14 @@ const AppShell: React.FC = () => {
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1 mb-1.5">Active Company</p>
           <button
             onClick={() => setCompanyDropdown(!companyDropdown)}
+            aria-haspopup="listbox"
+            aria-expanded={companyDropdown}
+            aria-label={`Active company: ${activeCompany?.name || 'No company'}. Click to switch.`}
             className="w-full flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-border rounded-xl hover:bg-slate-100 transition-colors text-sm font-semibold"
           >
-            <Building2 size={14} className="text-btn-primary shrink-0" />
+            <Building2 size={14} className="text-btn-primary shrink-0" aria-hidden="true" />
             <span className="truncate flex-1 text-left">{activeCompany?.name || 'No company'}</span>
-            <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${companyDropdown ? 'rotate-180' : ''}`} />
+            <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${companyDropdown ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
           {companyDropdown && (
             <div className="mt-1 bg-white border border-border rounded-xl shadow-lg z-10 overflow-hidden">
@@ -291,7 +294,7 @@ const AppShell: React.FC = () => {
       )}
 
       {/* Mobile sidebar drawer */}
-      <aside className={`fixed top-0 left-0 h-screen w-56 bg-primary border-r border-border z-50 flex flex-col transition-transform md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed top-0 left-0 h-screen w-56 max-w-[75vw] bg-primary border-r border-border z-50 flex flex-col transition-transform md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <SidebarContent mobile />
       </aside>
 

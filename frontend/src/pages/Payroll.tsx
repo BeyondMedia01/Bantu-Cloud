@@ -108,7 +108,7 @@ const Payroll: React.FC = () => {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-navy">Payroll</h2>
+          <h1 className="text-2xl font-bold text-navy">Payroll</h1>
           <p className="text-slate-500 font-medium text-sm">{total} payroll runs</p>
         </div>
         <button
@@ -140,7 +140,7 @@ const Payroll: React.FC = () => {
             <thead>
               <tr className="border-b border-border bg-slate-50">
                 {['Period', 'Run Date', 'Currency', 'Employees', 'Status', ''].map((h) => (
-                  <th key={h} className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -148,7 +148,7 @@ const Payroll: React.FC = () => {
               {runs.map((run: any) => (
                 <tr
                   key={run.id}
-                  className="hover:bg-slate-50/50 cursor-pointer transition-colors"
+                  className="hover:bg-slate-100/70 cursor-pointer transition-colors"
                   onClick={() => navigate(`/payroll/${run.id}/payslips`)}
                 >
                   <td className="px-5 py-4">

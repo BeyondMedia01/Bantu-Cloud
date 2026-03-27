@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote } from 'lucide-react';
+import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote, CalendarDays } from 'lucide-react';
+import { EmptyState } from '../components/common/EmptyState';
 import SkeletonTable from '../components/common/SkeletonTable';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
@@ -105,7 +106,7 @@ const Leave: React.FC = () => {
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-navy">Leave Management</h2>
+          <h1 className="text-2xl font-bold text-navy">Leave Management</h1>
           <p className="text-slate-500 font-medium text-sm">Track and manage employee leave records</p>
         </div>
         <button
@@ -241,16 +242,13 @@ const Leave: React.FC = () => {
       {loading ? (
         <SkeletonTable headers={['Employee', 'Leave Type', 'Dates', 'Days', 'Status', 'Actions']} />
       ) : records.length === 0 ? (
-        <div className="text-center py-16 bg-primary rounded-2xl border border-border">
-          <p className="font-bold text-slate-500">No leave records yet</p>
-          <p className="text-sm text-slate-400 mt-1 mb-4">Start tracking employee leave by recording the first entry.</p>
-          <button
-            onClick={() => navigate('/leave/new')}
-            className="inline-flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
-          >
-            <Plus size={16} /> Record Leave
-          </button>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title="No leave records yet"
+          description="Start tracking employee leave by recording the first entry."
+          actionLabel="Record Leave"
+          onAction={() => navigate('/leave/new')}
+        />
       ) : (
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto scroll-x-shadow">
@@ -258,13 +256,13 @@ const Leave: React.FC = () => {
               <thead>
                 <tr className="border-b border-border bg-slate-50">
                   {['Employee', 'Leave Type', 'Dates', 'Days', 'Status', 'Actions'].map((h) => (
-                    <th key={h} className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                    <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.length > 0 ? filtered.map((item: any) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={item.id} className="hover:bg-slate-100/70 transition-colors">
                     <td className="px-5 py-4">
                       <p className="text-sm font-bold">{item.employee?.firstName} {item.employee?.lastName}</p>
                       <p className="text-xs text-slate-400 font-semibold">{item.employee?.employeeCode || '—'}</p>

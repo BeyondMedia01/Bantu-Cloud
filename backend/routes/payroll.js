@@ -63,6 +63,11 @@ router.post(
     if (new Date(endDate) <= new Date(startDate)) {
       return res.status(400).json({ message: 'endDate must be after startDate' });
     }
+    const maxFutureDate = new Date();
+    maxFutureDate.setFullYear(maxFutureDate.getFullYear() + 1);
+    if (new Date(startDate) > maxFutureDate) {
+      return res.status(400).json({ message: 'startDate cannot be more than 1 year in the future' });
+    }
 
     const isDual = dualCurrency === true || dualCurrency === 'true';
     if (isDual && (!exchangeRate || parseFloat(exchangeRate) <= 1)) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ChevronRight } from 'lucide-react';
+import { Plus, ChevronRight, Banknote } from 'lucide-react';
+import { EmptyState } from '../components/common/EmptyState';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { LoanAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -64,27 +65,25 @@ const Loans: React.FC = () => {
       {loading ? (
         <SkeletonTable headers={['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', '']} />
       ) : filtered.length === 0 && !filter ? (
-        <div className="text-center py-16 bg-primary rounded-2xl border border-border">
-          <p className="font-bold text-slate-500">No loans yet</p>
-          <p className="text-sm text-slate-400 mt-1 mb-4">Set up employee loans and track repayment schedules.</p>
-          <button
-            onClick={() => navigate('/loans/new')}
-            className="inline-flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
-          >
-            <Plus size={16} /> Create First Loan
-          </button>
-        </div>
+        <EmptyState
+          icon={Banknote}
+          title="No loans yet"
+          description="Set up employee loans and track repayment schedules."
+          actionLabel="Create First Loan"
+          onAction={() => navigate('/loans/new')}
+        />
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-primary rounded-2xl border border-border">
-          <p className="font-medium">No loans match this filter.</p>
-        </div>
+        <EmptyState
+          icon={Banknote}
+          title="No loans match this filter"
+        />
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-slate-50">
                 {['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', ''].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} scope="col" className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>

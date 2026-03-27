@@ -113,7 +113,7 @@ const LeavePolicy: React.FC = () => {
       )}
       <header className="flex justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-navy">Leave Policies</h2>
+          <h1 className="text-2xl font-bold text-navy">Leave Policies</h1>
           <p className="text-slate-500 text-sm font-medium">Configure accrual rates, caps, and carry-over rules per leave type</p>
         </div>
         <button onClick={openAdd} className="bg-btn-primary text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-2">

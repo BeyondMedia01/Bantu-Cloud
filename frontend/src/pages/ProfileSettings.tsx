@@ -95,24 +95,24 @@ const ProfileSettings: React.FC = () => {
         <form onSubmit={handleSaveProfile} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">First Name</label>
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="Jane" />
+              <label htmlFor="profile-first-name" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">First Name</label>
+              <input id="profile-first-name" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="Jane" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Last Name</label>
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} placeholder="Smith" />
+              <label htmlFor="profile-last-name" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Last Name</label>
+              <input id="profile-last-name" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} placeholder="Smith" />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="profile-phone" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                 <span className="flex items-center gap-1"><Phone size={12} /> Phone Number (2FA)</span>
               </label>
-              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} placeholder="+263 77 123 4567" />
+              <input id="profile-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} placeholder="+263 77 123 4567" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
-              <input type="email" value={email} disabled className={`${inputCls} bg-slate-50 text-slate-400 cursor-not-allowed`} />
+              <label htmlFor="profile-email" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
+              <input id="profile-email" type="email" value={email} disabled className={`${inputCls} bg-slate-50 text-slate-400 cursor-not-allowed`} />
             </div>
           </div>
           <div className="flex justify-end">
@@ -143,17 +143,17 @@ const ProfileSettings: React.FC = () => {
 
         <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Current Password</label>
-            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" className={inputCls} />
+            <label htmlFor="profile-current-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Current Password</label>
+            <input id="profile-current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" className={inputCls} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">New Password</label>
-              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
+              <label htmlFor="profile-new-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">New Password</label>
+              <input id="profile-new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Confirm New Password</label>
-              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
+              <label htmlFor="profile-confirm-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Confirm New Password</label>
+              <input id="profile-confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
             </div>
           </div>
           <p className="text-xs text-slate-400 font-medium">Minimum 8 characters</p>

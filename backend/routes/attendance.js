@@ -42,7 +42,8 @@ const checkEmployeeLifecycle = async (empId, date) => {
 router.get('/logs', requirePermission('manage_employees'), async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'x-company-id required' });
   const { employeeId, deviceId, startDate, endDate, unmatched, page = '1', limit = '100' } = req.query;
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const parsedLimit = Math.min(500, Math.max(1, parseInt(limit) || 100));
+  const skip = (Math.max(1, parseInt(page) || 1) - 1) * parsedLimit;
 
   try {
     const where = {
@@ -60,7 +61,7 @@ router.get('/logs', requirePermission('manage_employees'), async (req, res) => {
 
     const [logs, total] = await Promise.all([
       prisma.attendanceLog.findMany({
-        where, skip, take: parseInt(limit),
+        where, skip, take: parsedLimit,
         include: {
           employee: { select: { id: true, firstName: true, lastName: true, employeeCode: true } },
           device:   { select: { id: true, name: true, vendor: true } },
@@ -70,7 +71,7 @@ router.get('/logs', requirePermission('manage_employees'), async (req, res) => {
       prisma.attendanceLog.count({ where }),
     ]);
 
-    res.json({ data: logs, total, page: parseInt(page), limit: parseInt(limit) });
+    res.json({ data: logs, total, page: Math.max(1, parseInt(page) || 1), limit: parsedLimit });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 });
 
@@ -79,7 +80,8 @@ router.get('/logs', requirePermission('manage_employees'), async (req, res) => {
 router.get('/', requirePermission('manage_employees'), async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'x-company-id required' });
   const { employeeId, startDate, endDate, status, page = '1', limit = '50' } = req.query;
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const parsedLimit = Math.min(500, Math.max(1, parseInt(limit) || 50));
+  const skip = (Math.max(1, parseInt(page) || 1) - 1) * parsedLimit;
 
   try {
     const where = {
@@ -96,7 +98,7 @@ router.get('/', requirePermission('manage_employees'), async (req, res) => {
 
     const [records, total] = await Promise.all([
       prisma.attendanceRecord.findMany({
-        where, skip, take: parseInt(limit),
+        where, skip, take: parsedLimit,
         include: {
           employee: { select: { id: true, firstName: true, lastName: true, employeeCode: true } },
           shift:    { select: { id: true, name: true, code: true, startTime: true, endTime: true } },
@@ -106,7 +108,7 @@ router.get('/', requirePermission('manage_employees'), async (req, res) => {
       prisma.attendanceRecord.count({ where }),
     ]);
 
-    res.json({ data: records, total, page: parseInt(page), limit: parseInt(limit) });
+    res.json({ data: records, total, page: Math.max(1, parseInt(page) || 1), limit: parsedLimit });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 });
 
@@ -353,11 +355,7 @@ router.post('/generate-inputs', requirePermission('process_payroll'), async (req
     };
     const inputs = buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId || null);
 
-    let created = 0;
-    for (const inp of inputs) {
-      await prisma.payrollInput.create({ data: inp });
-      created++;
-    }
+    const { count: created } = await prisma.payrollInput.createMany({ data: inputs, skipDuplicates: true });
 
     res.json({ message: `Created ${created} payroll inputs from attendance`, created });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }

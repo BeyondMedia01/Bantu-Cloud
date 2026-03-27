@@ -61,7 +61,7 @@ const ResetPassword: React.FC = () => {
             <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-500">
               <CheckCircle2 size={28} />
             </div>
-            <h2 className="text-xl font-bold mb-2">Password updated</h2>
+            <h2 className="text-xl font-bold mb-2">Password updated</h1>
             <p className="text-slate-500 font-medium text-sm mb-6">
               Your password has been changed. You can now sign in with your new password.
             </p>
@@ -74,7 +74,7 @@ const ResetPassword: React.FC = () => {
           </div>
         ) : (
           <>
-            <h2 className="text-2xl font-bold mb-1">Set new password</h2>
+            <h1 className="text-2xl font-bold mb-1">Set new password</h1>
             <p className="text-slate-500 font-medium text-sm mb-6">Choose a strong password — at least 8 characters.</p>
 
             {error && (

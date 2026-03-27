@@ -42,10 +42,16 @@ router.get('/', requirePermission('view_leave'), async (req, res) => {
   }
 });
 
+const VALID_LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
+
 // POST /api/leave — create a leave record (CLIENT_ADMIN) or request (EMPLOYEE)
 router.post('/', requirePermission('manage_leave'), async (req, res) => {
   const { employeeId, type, startDate, endDate, totalDays, days, reason } = req.body;
   const daysValue = parseFloat(days || totalDays);
+
+  if (type && !VALID_LEAVE_TYPES.includes(type)) {
+    return res.status(400).json({ message: `Invalid leave type. Must be one of: ${VALID_LEAVE_TYPES.join(', ')}` });
+  }
 
   // Validate required fields for EMPLOYEE self-service path
   if (req.user.role === 'EMPLOYEE') {
