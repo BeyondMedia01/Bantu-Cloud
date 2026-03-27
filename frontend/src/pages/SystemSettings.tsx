@@ -14,6 +14,8 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
   const fetchSettings = async () => {
     try {
       setFetchError(null);
+      // Ensure latest settings (like WORKING_DAYS_PER_PERIOD) are seeded before fetching
+      await SystemSettingsAPI.seed().catch(() => console.warn('Silently ignoring seed failure.'));
       const response = await SystemSettingsAPI.getAll();
       setSettings(response.data);
     } catch (error) {
@@ -21,6 +23,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       setFetchError('Failed to load system configurations. Please try again.');
     }
   };
+
 
   useEffect(() => {
     if (activeCompanyId) {

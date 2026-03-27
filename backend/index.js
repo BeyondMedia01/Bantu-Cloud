@@ -83,6 +83,7 @@ app.get('/api/seed-settings', async (req, res) => {
   }
 });
 
+
 // ─── Public Routes (no auth required) ────────────────────────────────────────
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));

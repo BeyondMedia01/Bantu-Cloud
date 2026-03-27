@@ -350,6 +350,7 @@ export const TaxTableAPI = {
 };
 
 export const SystemSettingsAPI = {
+  seed: () => api.get<{ message: string; settings: any[] }>('/seed-settings'),
   getAll: () => api.get<any[]>('/system-settings'),
   create: (data: any) => api.post('/system-settings', data),
   update: (id: string, data: any) => api.patch(`/system-settings/${id}`, data),
