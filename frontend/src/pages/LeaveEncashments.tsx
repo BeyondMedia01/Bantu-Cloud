@@ -147,7 +147,7 @@ const LeaveEncashments: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/40" onClick={() => { setRejectTarget(null); setRejectReason(''); }} />
           <div className="relative bg-white rounded-2xl shadow-xl border border-border w-full max-w-sm p-6 flex flex-col gap-4">
-            <h2 className="font-bold text-navy">Reject Encashment</h1>
+            <h2 className="font-bold text-navy">Reject Encashment</h2>
             <p className="text-sm text-slate-500">Provide an optional reason for rejection. The employee's leave balance will be restored.</p>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Reason (optional)</label>
