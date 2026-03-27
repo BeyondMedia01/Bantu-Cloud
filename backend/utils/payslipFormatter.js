@@ -186,6 +186,8 @@ async function payslipToBuffer(payslipId) {
     });
   }
 
+  console.log(`[payslipFormatter] leave lookup emp=${payslip.employeeId} year=${leaveYear} policy=${annualPolicy?.leaveType ?? 'NONE'} leaveBal=${JSON.stringify(leaveBal ? { balance: leaveBal.balance, accrued: leaveBal.accrued, taken: leaveBal.taken, lastAccrualDate: leaveBal.lastAccrualDate } : null)}`);
+
   // If no record exists OR balance is still 0 with nothing taken, directly credit
   // from the active leave policy. This fixes ghost records and first-time generation.
   const isUnaccrued = !leaveBal || ((leaveBal.balance || 0) === 0 && (leaveBal.accrued || 0) === 0);
