@@ -167,51 +167,55 @@ async function payslipToBuffer(payslipId) {
   const leaveYear = new Date(payslip.payrollRun.startDate).getFullYear();
   const companyId = payslip.payrollRun.companyId;
 
-  let leaveBal = await prisma.leaveBalance.findFirst({
-    where: {
-      employeeId: payslip.employeeId,
-      companyId,
-      year: leaveYear,
-      leaveType: { contains: 'ANNUAL', mode: 'insensitive' },
-    },
-    orderBy: { balance: 'desc' },
+  // Resolve the active annual leave policy first so we can query by its exact leaveType.
+  // Using contains:'ANNUAL' on the balance table can match multiple types (e.g. ANNUAL_PAID,
+  // ANNUAL_UNPAID) and return the wrong record.
+  const annualPolicy = await prisma.leavePolicy.findFirst({
+    where: { companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { contains: 'ANNUAL', mode: 'insensitive' } },
   });
+
+  let leaveBal = null;
+  if (annualPolicy) {
+    leaveBal = await prisma.leaveBalance.findFirst({
+      where: {
+        employeeId: payslip.employeeId,
+        companyId,
+        year: leaveYear,
+        leaveType: annualPolicy.leaveType,  // exact match via policy
+      },
+    });
+  }
 
   // If no record exists OR balance is still 0 with nothing taken, directly credit
   // from the active leave policy. This fixes ghost records and first-time generation.
   const isUnaccrued = !leaveBal || ((leaveBal.balance || 0) === 0 && (leaveBal.accrued || 0) === 0);
-  if (isUnaccrued) {
+  if (isUnaccrued && annualPolicy) {
     try {
       const now = new Date();
-      const policy = await prisma.leavePolicy.findFirst({
-        where: { companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { contains: 'ANNUAL', mode: 'insensitive' } },
+      const credit = Math.min(annualPolicy.accrualRate, annualPolicy.maxAccumulation > 0 ? annualPolicy.maxAccumulation : annualPolicy.accrualRate);
+      leaveBal = await prisma.leaveBalance.upsert({
+        where: { employeeId_leaveType_year: { employeeId: payslip.employeeId, leaveType: annualPolicy.leaveType, year: leaveYear } },
+        create: {
+          employeeId: payslip.employeeId,
+          companyId,
+          leavePolicyId: annualPolicy.id,
+          leaveType: annualPolicy.leaveType,
+          year: leaveYear,
+          openingBalance: 0,
+          accrued: credit,
+          taken: 0,
+          encashed: 0,
+          forfeited: 0,
+          balance: credit,
+          lastAccrualDate: now,
+        },
+        update: {
+          accrued: credit,
+          balance: credit,
+          leavePolicyId: annualPolicy.id,
+          lastAccrualDate: now,
+        },
       });
-      if (policy) {
-        const credit = Math.min(policy.accrualRate, policy.maxAccumulation > 0 ? policy.maxAccumulation : policy.accrualRate);
-        leaveBal = await prisma.leaveBalance.upsert({
-          where: { employeeId_leaveType_year: { employeeId: payslip.employeeId, leaveType: policy.leaveType, year: leaveYear } },
-          create: {
-            employeeId: payslip.employeeId,
-            companyId,
-            leavePolicyId: policy.id,
-            leaveType: policy.leaveType,
-            year: leaveYear,
-            openingBalance: 0,
-            accrued: credit,
-            taken: 0,
-            encashed: 0,
-            forfeited: 0,
-            balance: credit,
-            lastAccrualDate: now,
-          },
-          update: {
-            accrued: credit,
-            balance: credit,
-            leavePolicyId: policy.id,
-            lastAccrualDate: now,
-          },
-        });
-      }
     } catch (e) {
       console.error('[payslipFormatter] direct leave credit failed:', e.message);
     }

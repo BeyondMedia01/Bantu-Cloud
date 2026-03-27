@@ -265,8 +265,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     const bonusExemptionZIG = await getSettingAsNumber('BONUS_EXEMPTION_ZIG', 21000);
     const bonusExemption = run.currency === 'ZiG' ? bonusExemptionZIG : bonusExemptionUSD;
 
-    // Severance / retrenchment exemption threshold
-    const severanceExemptionUSD = await getSettingAsNumber('SEVERANCE_EXEMPTION_USD', 0);
+    // Severance / retrenchment exemption threshold.
+    // ZIMRA Finance Act prescribes a statutory minimum exemption (USD 10,000 or ZiG equivalent).
+    // Default to 10,000 USD so unconfigured systems don't over-tax retrenched employees.
+    // Override via System Settings → SEVERANCE_EXEMPTION_USD / SEVERANCE_EXEMPTION_ZIG.
+    const severanceExemptionUSD = await getSettingAsNumber('SEVERANCE_EXEMPTION_USD', 10000);
     const severanceExemptionZIG = await getSettingAsNumber('SEVERANCE_EXEMPTION_ZIG', 0);
     const severanceExemption = run.currency === 'ZiG' ? severanceExemptionZIG : severanceExemptionUSD;
 
@@ -400,7 +403,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         loan: { employeeId: { in: employeeIds }, status: { in: ['ACTIVE', 'PAID_OFF'] }, repaymentMethod: 'SALARY_DEDUCTION' },
       },
       include: { loan: { select: { id: true, employeeId: true } } },
-      orderBy: { dueDate: 'asc' },
+      orderBy: [{ dueDate: 'asc' }, { id: 'asc' }],  // secondary key ensures deterministic order for same-date repayments
     });
     const repaymentsByEmployee = {};
     for (const rep of allDueRepayments) {
@@ -841,7 +844,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           pensionContribution: (adj.pensionContribution || 0) + inputPensionUSD,
           pensionCap: pensionCapUSD > 0 ? pensionCapUSD : null,
           medicalAid: (adj.medicalAid || 0) + inputMedicalAidUSD,
-          taxCredits: (emp.taxCredits || 0) + elderlyCreditUSD_val,
+          // Elderly credit replaces (not adds to) emp.taxCredits — ZIMRA grants one credit type per employee.
+          taxCredits: elderlyCreditUSD_val > 0 ? elderlyCreditUSD_val : (emp.taxCredits || 0),
           wcifRate, sdfRate,
           taxBrackets: taxBracketsUSD,
           // FDS_FORECASTING: always annualise regardless of tax-table isAnnual flag
@@ -867,7 +871,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           severanceAmount: 0, severanceExemption: remSevExZIG,
           pensionContribution: inputPensionZIG,
           pensionCap: pensionCapZIG > 0 ? pensionCapZIG : null,
-          medicalAid: inputMedicalAidZIG, taxCredits: elderlyCreditZIG_val,
+          medicalAid: inputMedicalAidZIG, taxCredits: elderlyCreditZIG_val > 0 ? elderlyCreditZIG_val : (emp.taxCredits || 0),
           wcifRate: 0, sdfRate: 0,
           taxBrackets: taxBracketsZIG, annualBrackets: annualBracketsZIG, nssaCeiling: nssaCeilingZIG,
           nssaEmployeeRate: effectiveNssaEmpRate,
@@ -895,7 +899,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             ? (pensionCapZIG > 0 ? pensionCapZIG : null)
             : (pensionCapUSD > 0 ? pensionCapUSD : null),
           medicalAid: (adj.medicalAid || 0) + inputMedicalAid,
-          taxCredits: (emp.taxCredits || 0) + elderlyCredit,
+          // Elderly credit replaces (not adds to) emp.taxCredits — ZIMRA grants one credit type per employee.
+          taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
           wcifRate, sdfRate,
           taxBrackets,
           // FDS_FORECASTING: always annualise regardless of tax-table isAnnual flag
@@ -977,8 +982,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         pensionApplied: taxResult.pensionApplied,
         // For dual-currency runs store the USD-side base so the payslip shows
         // a consistent USD figure regardless of the employee's primary currency.
+        // Use a minimum of 0.01 to avoid rounding-to-zero for low ZiG salaries at high exchange rates.
         basicSalaryApplied: run.dualCurrency
-          ? round2(emp.currency === 'USD' ? baseRate : baseRate / xr)
+          ? Math.max(baseRate > 0 ? 0.01 : 0, round2(emp.currency === 'USD' ? baseRate : baseRate / xr))
           : baseRate,
         wcifEmployer: taxResult.wcifEmployer,
         sdfContribution: taxResult.sdfContribution,
@@ -1107,9 +1113,19 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         });
       }
 
+      // Atomic status lock: only advance if the run is still in a processable state.
+      // This prevents double-processing when two concurrent requests both pass the
+      // pre-transaction status check (C1/C2 race condition).
+      const locked = await tx.payrollRun.updateMany({
+        where: { id: run.id, status: { in: ['DRAFT', 'APPROVED', 'ERROR', 'COMPLETED'] } },
+        data: { status: 'PROCESSING' },
+      });
+      if (locked.count === 0) {
+        throw new Error('Payroll run is already being processed by another request');
+      }
+
       await tx.payslip.deleteMany({ where: { payrollRunId: run.id } });
       await tx.payrollTransaction.deleteMany({ where: { payrollRunId: run.id } });
-      await tx.payrollRun.update({ where: { id: run.id }, data: { status: 'PROCESSING' } });
 
       await tx.payslip.createMany({ data: payslipData });
       if (payrollTxData.length > 0) {
@@ -1155,11 +1171,16 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     });
 
     // Trigger leave accrual for this company now that payroll is complete.
-    // runLeaveAccrual is idempotent — it skips any employee already accrued this month.
+    // Awaited so that leave balances are up-to-date before the response is returned —
+    // this ensures payslip PDFs generated immediately after processing show the correct balance.
     const { runLeaveAccrual } = require('../../jobs/leaveAccrual');
-    runLeaveAccrual(run.companyId)
-      .then(() => console.log(`[LeaveAccrual] post-payroll accrual complete for company ${run.companyId}`))
-      .catch((err) => console.error(`[LeaveAccrual] post-payroll accrual failed for company ${run.companyId}:`, err));
+    try {
+      await runLeaveAccrual(run.companyId);
+      console.log(`[LeaveAccrual] post-payroll accrual complete for company ${run.companyId}`);
+    } catch (err) {
+      // Non-fatal: log the failure but don't block the payroll response.
+      console.error(`[LeaveAccrual] post-payroll accrual failed for company ${run.companyId}:`, err);
+    }
 
     res.json({ message: 'Payroll processed successfully', runId: run.id, count: result.count });
   } catch (error) {

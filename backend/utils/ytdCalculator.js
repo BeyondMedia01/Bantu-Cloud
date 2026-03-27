@@ -79,8 +79,8 @@ function getYtdStartDate(payrollRunDate, companyFirstPayrollDate) {
 
   if (companyFirstPayrollDate) {
     const firstRun = new Date(companyFirstPayrollDate);
-    // If the company's first run was after the tax year start, use that date
-    if (firstRun > taxYearStart) {
+    // Guard against invalid / epoch dates (new Date(null) === 1970-01-01)
+    if (!isNaN(firstRun.getTime()) && firstRun.getFullYear() > 1970 && firstRun > taxYearStart) {
       return firstRun;
     }
   }

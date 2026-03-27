@@ -117,6 +117,9 @@ function calculatePaye({
     zimdefRate = 0.01,
   }) {
     // Resolve tax bands from DB brackets — no active tax table means zero PAYE
+    if (!taxBrackets || taxBrackets.length === 0) {
+      console.warn('[taxEngine] No tax brackets provided — PAYE will be zero. Check tax table configuration.');
+    }
     const bands = (taxBrackets && taxBrackets.length > 0) ? normaliseBrackets(taxBrackets) : [];
   
     const ceiling = nssaCeiling ?? DEFAULT_NSSA_CEILING[currency] ?? 700;
