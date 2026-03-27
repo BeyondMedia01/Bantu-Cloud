@@ -111,14 +111,19 @@ async function runLeaveAccrual(companyId) {
             }
 
             // ── Skip if already accrued this month ──────────────────────────────
+            // BUT don't skip if the record was created with balance=0 and was never
+            // actually credited (accrued=0 and openingBalance=0) — that indicates a
+            // ghost record that needs to be fixed regardless of lastAccrualDate.
             if (balance.lastAccrualDate) {
               const lastDate = new Date(balance.lastAccrualDate);
-              if (
+              const alreadyThisMonth =
                 lastDate.getFullYear() === currentYear &&
-                lastDate.getMonth() + 1 === currentMonth
-              ) {
+                lastDate.getMonth() + 1 === currentMonth;
+              const neverActuallyAccrued =
+                (balance.accrued || 0) === 0 && (balance.openingBalance || 0) === 0;
+              if (alreadyThisMonth && !neverActuallyAccrued) {
                 totalSkipped++;
-                continue; // already ran this month
+                continue; // already ran this month and has real data
               }
             }
 
