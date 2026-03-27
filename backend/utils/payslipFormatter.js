@@ -178,13 +178,16 @@ async function payslipToBuffer(payslipId) {
   };
 
   let leaveBal = await prisma.leaveBalance.findFirst(leaveQuery);
+  console.log(`[payslipFormatter] leaveBal for emp=${payslip.employeeId} year=${leaveYear}:`, leaveBal);
 
   // If no balance exists yet, trigger accrual for this company now so the record
   // is created and the payslip shows the correct balance immediately.
   if (!leaveBal) {
+    console.log(`[payslipFormatter] no leave balance found — running on-demand accrual for company ${payslip.payrollRun.companyId}`);
     try {
       await runLeaveAccrual(payslip.payrollRun.companyId);
       leaveBal = await prisma.leaveBalance.findFirst(leaveQuery);
+      console.log(`[payslipFormatter] after accrual, leaveBal:`, leaveBal);
     } catch (e) {
       console.error('[payslipFormatter] on-demand accrual failed:', e.message);
     }
