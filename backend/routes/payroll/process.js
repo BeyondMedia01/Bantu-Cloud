@@ -1171,11 +1171,13 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     });
 
     // Trigger leave accrual for this company now that payroll is complete.
-    // Awaited so that leave balances are up-to-date before the response is returned —
-    // this ensures payslip PDFs generated immediately after processing show the correct balance.
+    // Pass the payroll run's endDate so accrual uses the correct month — this handles
+    // cases where payroll is processed before the month ends (e.g. April payroll run
+    // processed in late March should still accrue April leave).
+    // Awaited so leave balances are current before the response is returned.
     const { runLeaveAccrual } = require('../../jobs/leaveAccrual');
     try {
-      await runLeaveAccrual(run.companyId);
+      await runLeaveAccrual(run.companyId, run.endDate);
       console.log(`[LeaveAccrual] post-payroll accrual complete for company ${run.companyId}`);
     } catch (err) {
       // Non-fatal: log the failure but don't block the payroll response.

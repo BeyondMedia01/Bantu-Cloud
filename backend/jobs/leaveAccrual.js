@@ -16,9 +16,11 @@
 const prisma = require('../lib/prisma');
 
 // companyId is optional — when provided, only that company is processed (post-payroll trigger).
-// When omitted (cron), all active companies are processed.
-async function runLeaveAccrual(companyId) {
-  const now = new Date();
+// accrualDate is optional — when provided (post-payroll trigger), uses the payroll run's month
+// instead of today's date. This allows processing future payrolls (e.g. running April payroll
+// in late March) and still accruing for the correct month.
+async function runLeaveAccrual(companyId, accrualDate) {
+  const now = accrualDate ? new Date(accrualDate) : new Date();
   const currentYear  = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 1-based
 
