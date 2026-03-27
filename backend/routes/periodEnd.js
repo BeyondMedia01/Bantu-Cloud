@@ -56,6 +56,13 @@ router.post('/', requirePermission('approve_payroll'), async (req, res) => {
         data: { status: 'OVERDUE' },
       });
 
+      // Clear current-period leaveTaken counter for all employees under this client
+      // (ensures next period starts with 0 "taken" days on payslips while YTD LeaveBalance remains intact)
+      await tx.employee.updateMany({
+        where: { clientId: calendar.clientId },
+        data: { leaveTaken: 0 },
+      });
+
       return { closedCalendar, runsCompleted, repaymentsMarked };
     });
 
