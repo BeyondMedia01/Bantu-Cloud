@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
-const { calculatePaye } = require('../../utils/taxEngine');
+const { calculatePaye, grossUpNet } = require('../../utils/taxEngine');
 const { generatePayrollSummaryPDF, generatePayslipSummaryPDF, generatePayslipSummaryBuffer } = require('../../utils/pdfService');
 const { getSettings } = require('../../lib/systemSettings');
 const { audit } = require('../../lib/audit');
@@ -266,6 +266,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       'PENSION_CAP_USD', 'PENSION_CAP_ZIG',
       'LOAN_PRESCRIBED_RATE_USD', 'LOAN_PRESCRIBED_RATE_ZIG',
       'ELDERLY_TAX_CREDIT_USD', 'ELDERLY_TAX_CREDIT_ZIG',
+      'VEHICLE_BENEFIT_CC_1500_USD', 'VEHICLE_BENEFIT_CC_2000_USD', 'VEHICLE_BENEFIT_ABOVE_2000_USD',
+      'VEHICLE_BENEFIT_CC_1500_ZIG', 'VEHICLE_BENEFIT_CC_2000_ZIG', 'VEHICLE_BENEFIT_ABOVE_2000_ZIG',
       'ZIMDEF_RATE',
       'WORKING_DAYS_PER_PERIOD', 'WORKING_DAYS_PER_MONTH',
     ]);
@@ -305,6 +307,26 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     const elderlyCreditUSD = s('ELDERLY_TAX_CREDIT_USD');
     const elderlyCreditZIG = s('ELDERLY_TAX_CREDIT_ZIG');
 
+    // Vehicle benefit lookup by engine capacity category (ZIMRA deemed benefit table)
+    const vehicleBenefitTable = {
+      USD: {
+        UP_TO_1500CC:    s('VEHICLE_BENEFIT_CC_1500_USD'),
+        CC_1501_TO_2000: s('VEHICLE_BENEFIT_CC_2000_USD'),
+        ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_USD'),
+      },
+      ZiG: {
+        UP_TO_1500CC:    s('VEHICLE_BENEFIT_CC_1500_ZIG'),
+        CC_1501_TO_2000: s('VEHICLE_BENEFIT_CC_2000_ZIG'),
+        ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_ZIG'),
+      },
+    };
+    const resolveVehicleBenefit = (emp, runCurrency) => {
+      const cat = emp.vehicleEngineCategory;
+      if (!cat || cat === 'NONE') return emp.motorVehicleBenefit || 0;
+      const ccy = runCurrency === 'ZiG' ? 'ZiG' : 'USD';
+      return vehicleBenefitTable[ccy][cat] ?? emp.motorVehicleBenefit ?? 0;
+    };
+
     const globalZimdefRate = s('ZIMDEF_RATE') / 100;
     const zimdefRate = run.company.zimdefRate != null ? run.company.zimdefRate / 100 : globalZimdefRate;
 
@@ -321,6 +343,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         paymentBasis: true, rateSource: true,
         necGradeId: true, gradeId: true,
         splitUsdPercent: true, motorVehicleBenefit: true,
+        vehicleEngineCategory: true,
+        grossingUp: true,
         leaveBalance: true, leaveTaken: true,
         necGrade: { select: { id: true, minRate: true, necLevyRate: true } },
       },
@@ -354,7 +378,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           { payrollRunId: null, period: { lte: runPeriod }, processed: false }, // unattached, not yet processed
         ],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
     });
     const inputsByEmployee = {};
     for (const inp of allInputs) {
@@ -372,7 +396,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         effectiveFrom: { lte: run.endDate },
         OR: [{ effectiveTo: null }, { effectiveTo: { gte: run.startDate } }],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true } } },
+      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
     });
 
     // Build a set of (employeeId:transactionCodeId) already covered by explicit payroll inputs for this run
@@ -647,6 +671,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               inputPayeExcludedUSD += input.employeeUSD || 0;
               inputPayeExcludedZIG += input.employeeZiG || 0;
             }
+            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
+              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
+              inputPayeExcludedUSD += (input.employeeUSD || 0) * exemptFraction;
+              inputPayeExcludedZIG += (input.employeeZiG || 0) * exemptFraction;
+            }
           } else if (isPreTaxDeduction) {
             // Pre-tax pension: deducted from taxable income before PAYE
             inputPensionUSD += input.employeeUSD || 0;
@@ -665,6 +694,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             inputEarnings += amt;
             if (tc.affectsNssa === false) inputNssaExcluded += amt;
             if (tc.affectsPaye === false) inputPayeExcluded += amt;
+            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
+              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
+              inputPayeExcluded += amt * exemptFraction;
+            }
           } else if (isPreTaxDeduction) {
             inputPension += amt;
           } else if (isMedicalAid) {
@@ -702,6 +735,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               inputPayeExcludedUSD += empUSD;
               inputPayeExcludedZIG += empZIG;
             }
+            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
+              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
+              inputPayeExcludedUSD += empUSD * exemptFraction;
+              inputPayeExcludedZIG += empZIG * exemptFraction;
+            }
           } else if (isPreTaxDeduction) {
             inputPensionUSD += empUSD;
             inputPensionZIG += empZIG;
@@ -718,6 +756,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             inputEarnings += amt;
             if (tc.affectsNssa === false) inputNssaExcluded += amt;
             if (tc.affectsPaye === false) inputPayeExcluded += amt;
+            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
+              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
+              inputPayeExcluded += amt * exemptFraction;
+            }
           } else if (isPreTaxDeduction) {
             inputPension += amt;
           } else if (isMedicalAid) {
@@ -836,16 +878,44 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       const effectiveTaxDirectivePerc = directiveActive ? (emp.taxDirectivePerc || 0) : 0;
       const effectiveTaxDirectiveAmt = directiveActive ? (emp.taxDirectiveAmt || 0) : 0;
 
+      // Gross-up: employer absorbs employee PAYE. Solve for gross where employee nets their base salary.
+      // targetNet = baseSalary + cappedPension + medicalAid so only PAYE is absorbed by employer.
+      const effectiveBaseSalary = emp.grossingUp
+        ? (() => {
+            const isZIG = run.currency === 'ZiG';
+            const pensionContribution = (adj.pensionContribution || 0) + (isZIG ? inputPensionZIG : inputPensionUSD || inputPension);
+            const pensionCap = isZIG ? (pensionCapZIG > 0 ? pensionCapZIG : null) : (pensionCapUSD > 0 ? pensionCapUSD : null);
+            const cappedPension = pensionCap != null
+              ? Math.min(pensionContribution, pensionCap)
+              : pensionContribution;
+            const medForGrossUp = isZIG ? 0 : ((adj.medicalAid || 0) + (inputMedicalAidUSD || inputMedicalAid || 0));
+            const grossUpTargetNet = baseRate + cappedPension + medForGrossUp;
+            const solved = grossUpNet({
+              targetNet: grossUpTargetNet,
+              currency: isZIG ? 'ZiG' : 'USD',
+              taxBrackets: isZIG ? taxBracketsZIG : taxBracketsUSD,
+              annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
+              nssaCeiling: isZIG ? nssaCeilingZIG : nssaCeilingUSD,
+              pensionContribution, pensionCap,
+              medicalAid: medForGrossUp,
+              taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
+              nssaEmployeeRate, nssaEmployerRate,
+            });
+            return solved ? solved.grossSalary : baseRate;
+          })()
+        : baseRate;
+
       let taxResult, taxResultUSD, taxResultZIG;
 
       if (run.dualCurrency) {
-        const baseUSD = emp.currency === 'USD' ? baseRate : baseRate / xr;
-        const baseZIG = emp.currency === 'ZiG' ? baseRate : baseRate * xr;
+        const baseUSD = emp.currency === 'USD' ? effectiveBaseSalary : effectiveBaseSalary / xr;
+        const baseZIG = emp.currency === 'ZiG' ? effectiveBaseSalary : effectiveBaseSalary * xr;
 
         // Motor vehicle benefit is denominated in the employee's primary currency.
         // Route it to the matching currency side; the other side gets zero.
-        const mvBenefitUSD = emp.currency !== 'ZiG' ? (emp.motorVehicleBenefit || 0) : 0;
-        const mvBenefitZIG = emp.currency === 'ZiG' ? (emp.motorVehicleBenefit || 0) : 0;
+        const resolvedMV   = resolveVehicleBenefit(emp, run.currency);
+        const mvBenefitUSD = emp.currency !== 'ZiG' ? resolvedMV : 0;
+        const mvBenefitZIG = emp.currency === 'ZiG' ? resolvedMV : 0;
 
         taxResultUSD = calculatePaye({
           baseSalary: baseUSD, currency: 'USD',
@@ -901,9 +971,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         taxResult = taxResultUSD;
       } else {
         taxResult = calculatePaye({
-          baseSalary: baseRate, currency: run.currency,
+          baseSalary: effectiveBaseSalary, currency: run.currency,
           taxableBenefits: adj.taxableBenefits || 0,
-          motorVehicleBenefit: emp.motorVehicleBenefit || 0,
+          motorVehicleBenefit: resolveVehicleBenefit(emp, run.currency),
           overtimeAmount: (adj.overtimeAmount || 0) + inputEarnings,
           bonus: adj.bonus || 0, bonusExemption: remBonusEx,
           severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevEx,
