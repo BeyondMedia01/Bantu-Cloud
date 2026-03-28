@@ -18,6 +18,9 @@ if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
   console.error('FATAL: FRONTEND_URL must be set in production');
   process.exit(1);
 }
+if (!process.env.CRON_SECRET) {
+  console.warn('WARNING: CRON_SECRET is not set — leave accrual cron endpoint will return 503 and monthly accruals will not run');
+}
 
 // ─── Stripe Webhook (raw body — must come before express.json()) ──────────────
 // Stripe requires the raw request body to verify the signature.
@@ -80,7 +83,8 @@ app.get('/api/seed-settings', async (req, res) => {
     await autoSeedSystemSettings();
     res.json({ message: 'Settings seeding complete' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[seed-settings]', err);
+    res.status(500).json({ message: 'Seeding failed' });
   }
 });
 

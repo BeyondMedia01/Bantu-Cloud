@@ -1,6 +1,12 @@
 import axios from 'axios';
 import type { PaginatedResponse, Branch, Department } from '../types/common';
 
+if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
+  console.error(
+    '[api] VITE_API_URL is not set. All API calls will fall back to localhost:5005 ' +
+    'which will fail in production. Set VITE_API_URL in your Vercel environment variables.'
+  );
+}
 const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname || 'localhost'}:5005/api`;
 
 const api = axios.create({

@@ -29,6 +29,10 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
 
+      const errorId = this.state.error?.message
+        ? btoa(this.state.error.message).slice(0, 8).toUpperCase()
+        : 'UNKNOWN';
+
       return (
         <div className="flex min-h-screen items-center justify-center p-6 bg-slate-50">
           <div className="max-w-md w-full text-center">
@@ -45,6 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
             >
               Refresh page
             </button>
+            <p className="mt-4 text-xs text-slate-400 font-mono">Error ID: {errorId}</p>
           </div>
         </div>
       );
