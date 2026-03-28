@@ -3,6 +3,7 @@ const router = express.Router();
 const prisma = require('../lib/prisma');
 const { authenticateToken } = require('../lib/auth');
 const { requirePermission } = require('../lib/permissions');
+const { invalidateSettingsCache } = require('../lib/systemSettings');
 
 router.use(authenticateToken);
 
@@ -61,6 +62,7 @@ router.put('/', requirePermission('update_settings'), async (req, res) => {
         });
       }
     }
+    invalidateSettingsCache();
     res.json({ message: 'Work period settings saved' });
   } catch (err) {
     console.error(err);

@@ -57,6 +57,13 @@ enum TaxMethod {
   NON_FDS
 }
 
+enum VehicleEngineCategory {
+  NONE
+  UP_TO_1500CC
+  CC_1501_TO_2000
+  ABOVE_2000CC
+}
+
 enum PayrollStatus {
   DRAFT
   PENDING_APPROVAL
@@ -325,7 +332,9 @@ model Employee {
   taxCredits       Float?
   tin              String?
   motorVehicleBenefit Float       @default(0)
-  motorVehicleType String?
+  motorVehicleType      String?
+  vehicleEngineCategory VehicleEngineCategory @default(NONE)
+  grossingUp            Boolean               @default(false)
   // Split currency (e.g. 60 = receive 60% of net pay in USD, remainder in ZiG)
   splitUsdPercent  Float?
   // NEC grade linkage (used when rateSource = NEC_GRADE)
@@ -365,6 +374,8 @@ model Employee {
   @@index([departmentId])
   @@index([gradeId])
   @@index([necGradeId])
+  @@index([clientId, companyId])
+  @@index([companyId, employmentType])
 }
 
 model EmployeeBankAccount {
@@ -522,6 +533,9 @@ model PayrollInput {
   @@index([employeeId])
   @@index([payrollRunId])
   @@index([transactionCodeId])
+  @@index([payrollRunId, employeeId])
+  @@index([period])
+  @@index([employeeId, period])
 }
 
 model Payslip {
@@ -593,6 +607,9 @@ model TransactionCode {
   affectsAidsLevy  Boolean             @default(true)
   // ZIMRA IT7 income category — drives grouping on the tax certificate
   incomeCategory   IncomeCategory?
+  // If set (e.g. 30), only this % of the amount is included in grossForTax.
+  // Used for ZIMRA's 30% rule on company airtime/data used outside work premises.
+  deemedBenefitPercent Float?
   isActive         Boolean             @default(true)
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt

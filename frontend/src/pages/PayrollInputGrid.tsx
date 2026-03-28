@@ -119,17 +119,16 @@ const PayrollInputGrid: React.FC = () => {
         EmployeeAPI.getAll({ limit: '500' }),
         TransactionCodeAPI.getAll(),
         PayrollInputAPI.getAll({ period }),
-        TaxTableAPI.getAll({ currency, isActive: 'true' }),
+        TaxTableAPI.getAll({ currency, isActive: 'true', includeBrackets: 'true' }),
         NSSASettingsAPI.get(),
       ]);
 
-      // Build tax config from active table for this currency
+      // Brackets are now embedded in the table response — no second round-trip needed
       const activeTables: any[] = (tablesRes.data as any) || [];
       const activeTable = activeTables.find((t: any) => t.isActive && t.currency === currency);
       let resolvedTaxConfig: ActiveTaxConfig | null = null;
       if (activeTable) {
-        const bracketsRes = await TaxTableAPI.getBrackets(activeTable.id);
-        const rawBrackets: any[] = bracketsRes.data || [];
+        const rawBrackets: any[] = activeTable.brackets || [];
         const nssa = nssaRes.data;
         resolvedTaxConfig = {
           brackets: rawBrackets

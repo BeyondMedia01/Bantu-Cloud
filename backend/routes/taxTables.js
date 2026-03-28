@@ -9,15 +9,21 @@ const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
 // GET /api/tax-tables
+// Pass ?includeBrackets=true to embed brackets in each table (avoids a second round-trip)
 router.get('/', async (req, res) => {
   try {
     const where = {};
     if (req.clientId) where.clientId = req.clientId;
     if (req.query.currency) where.currency = req.query.currency;
+    if (req.query.isActive === 'true') where.isActive = true;
+
+    const includeBrackets = req.query.includeBrackets === 'true';
 
     const tables = await prisma.taxTable.findMany({
       where,
-      include: { _count: { select: { brackets: true } } },
+      include: includeBrackets
+        ? { brackets: { orderBy: { lowerBound: 'asc' } } }
+        : { _count: { select: { brackets: true } } },
       orderBy: { effectiveDate: 'desc' },
     });
     res.json(tables);

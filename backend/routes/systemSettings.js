@@ -3,6 +3,7 @@ const router = express.Router();
 const prisma = require('../lib/prisma');
 const { authenticateToken } = require('../lib/auth');
 const { requirePermission } = require('../lib/permissions');
+const { invalidateSettingsCache } = require('../lib/systemSettings');
 
 // All system settings routes require authentication
 router.use(authenticateToken);
@@ -44,6 +45,7 @@ router.post('/', requirePermission('update_settings'), async (req, res) => {
         lastUpdatedBy,
       }
     });
+    invalidateSettingsCache();
     res.status(201).json(newSetting);
   } catch (error) {
     console.error('Failed to create system setting:', error);
@@ -81,6 +83,7 @@ router.patch('/:id', requirePermission('update_settings'), async (req, res) => {
         lastUpdatedBy,
       }
     });
+    invalidateSettingsCache();
     res.json(updatedSetting);
   } catch (error) {
     console.error('Failed to update system setting:', error);
@@ -99,6 +102,7 @@ router.delete('/:id', requirePermission('update_settings'), async (req, res) => 
     }
 
     await prisma.systemSetting.delete({ where: { id } });
+    invalidateSettingsCache();
     res.status(204).send();
   } catch (error) {
     console.error('Failed to delete system setting:', error);
