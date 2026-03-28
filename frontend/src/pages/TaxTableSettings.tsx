@@ -8,7 +8,7 @@ import { useToast } from '../context/ToastContext';
 
 const EMPTY_ROW = { lowerBound: '', upperBound: '', rate: '', fixedAmount: '' };
 
-type PendingRow = { lowerBound: string; upperBound: string; rate: string; fixedAmount: string; error: string; saving: boolean };
+type PendingRow = { lowerBound: string; upperBound: string; rate: string; fixedAmount: string; error: string };
 
 const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
   const { showToast } = useToast();
@@ -97,38 +97,59 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
     }
   };
 
+  const [savingAll, setSavingAll] = useState(false);
+
   const addPendingRow = () => {
-    setPendingRows(prev => [...prev, { lowerBound: '', upperBound: '', rate: '', fixedAmount: '', error: '', saving: false }]);
+    setPendingRows(prev => [...prev, { lowerBound: '', upperBound: '', rate: '', fixedAmount: '', error: '' }]);
     setEditingId(null);
   };
 
   const updatePending = (idx: number, key: string, val: string) => {
-    setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, [key]: val } : r));
+    setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, [key]: val, error: '' } : r));
   };
 
   const removePending = (idx: number) => {
     setPendingRows(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSavePending = async (idx: number) => {
-    if (!activeTableId) return;
-    const row = pendingRows[idx];
-    if (row.lowerBound === '' || row.rate === '') {
-      setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, error: 'Lower bound and rate are required.' } : r));
-      return;
-    }
-    setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, saving: true, error: '' } : r));
+  const handleSaveAllPending = async () => {
+    if (!activeTableId || pendingRows.length === 0) return;
+
+    // Validate all rows first
+    let hasError = false;
+    const validated = pendingRows.map(row => {
+      if (row.lowerBound === '' || row.rate === '') {
+        hasError = true;
+        return { ...row, error: 'Lower bound and rate are required.' };
+      }
+      return { ...row, error: '' };
+    });
+    if (hasError) { setPendingRows(validated); return; }
+
+    setSavingAll(true);
     try {
-      const created = await TaxTableAPI.createBracket(activeTableId, {
+      const newBrackets = pendingRows.map(row => ({
         lowerBound:  parseFloat(row.lowerBound),
         upperBound:  row.upperBound !== '' ? parseFloat(row.upperBound) : null,
         rate:        parseFloat(row.rate) / 100,
         fixedAmount: row.fixedAmount !== '' ? parseFloat(row.fixedAmount) : 0,
-      });
-      setBrackets(prev => [...prev, created.data].sort((a, b) => a.lowerBound - b.lowerBound));
-      setPendingRows(prev => prev.filter((_, i) => i !== idx));
+      }));
+      const res = await TaxTableAPI.replaceBrackets(activeTableId, [
+        ...brackets.map(b => ({
+          lowerBound: b.lowerBound,
+          upperBound: b.upperBound,
+          rate: b.rate,
+          fixedAmount: b.fixedAmount,
+        })),
+        ...newBrackets,
+      ]);
+      setBrackets(res.data.sort((a: any, b: any) => a.lowerBound - b.lowerBound));
+      setPendingRows([]);
+      showToast(`${newBrackets.length} bracket${newBrackets.length > 1 ? 's' : ''} saved`, 'success');
     } catch (err: any) {
-      setPendingRows(prev => prev.map((r, i) => i === idx ? { ...r, saving: false, error: err.response?.data?.message || 'Failed to add bracket.' } : r));
+      showToast(err.response?.data?.message || 'Failed to save brackets.', 'error');
+    } finally {
+      setSavingAll(false);
     }
   };
 
@@ -383,14 +404,9 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => handleSavePending(idx)} disabled={row.saving} className="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors disabled:opacity-50">
-                              {row.saving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
-                            </button>
-                            <button onClick={() => removePending(idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
-                              <X size={13} />
-                            </button>
-                          </div>
+                          <button onClick={() => removePending(idx)} className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+                            <X size={13} />
+                          </button>
                         </td>
                       </tr>
                       {row.error && (
@@ -411,6 +427,32 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                   )}
                 </tbody>
               </table>
+
+              {/* Batch save footer */}
+              {pendingRows.length > 0 && (
+                <div className="flex items-center justify-between px-5 py-3 border-t border-emerald-200 bg-emerald-50/60">
+                  <span className="text-xs font-semibold text-emerald-700">
+                    {pendingRows.length} unsaved bracket{pendingRows.length > 1 ? 's' : ''}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPendingRows([])}
+                      disabled={savingAll}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                    >
+                      Discard All
+                    </button>
+                    <button
+                      onClick={handleSaveAllPending}
+                      disabled={savingAll}
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors disabled:opacity-50"
+                    >
+                      {savingAll ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
+                      Save {pendingRows.length} Bracket{pendingRows.length > 1 ? 's' : ''}
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="flex flex-col items-center justify-center p-20 text-slate-400">

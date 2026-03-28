@@ -4,7 +4,8 @@ import {
   Plus, Save, RefreshCw, List, X, CheckCircle2,
   AlertTriangle, LayoutGrid,
 } from 'lucide-react';
-import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI } from '../api/client';
+import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI, TaxTableAPI, NSSASettingsAPI } from '../api/client';
+import { calculatePAYE } from '../lib/tax';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -40,54 +41,48 @@ interface Summary {
 
 type Grid = Record<string, Record<string, CellData>>;
 
-// ─── client-side PAYE estimator (2024 monthly bands, fallback only) ───────────
+// ─── client-side PAYE estimator ──────────────────────────────────────────────
 
-const USD_BANDS = [
-  { lower: 0, upper: 100, rate: 0, fixed: 0 },
-  { lower: 100, upper: 300, rate: 0.2, fixed: 0 },
-  { lower: 300, upper: 1000, rate: 0.25, fixed: 40 },
-  { lower: 1000, upper: 2000, rate: 0.3, fixed: 215 },
-  { lower: 2000, upper: 3000, rate: 0.35, fixed: 515 },
-  { lower: 3000, upper: Infinity, rate: 0.4, fixed: 865 },
-];
-
-const ZIG_BANDS = [
-  { lower: 0, upper: 2800, rate: 0, fixed: 0 },
-  { lower: 2800, upper: 8400, rate: 0.2, fixed: 0 },
-  { lower: 8400, upper: 28000, rate: 0.25, fixed: 1120 },
-  { lower: 28000, upper: 56000, rate: 0.3, fixed: 6020 },
-  { lower: 56000, upper: 84000, rate: 0.35, fixed: 14420 },
-  { lower: 84000, upper: Infinity, rate: 0.4, fixed: 24220 },
-];
-
-const NSSA_CEILING: Record<string, number> = { USD: 700, ZiG: 20000 };
-
-function estimatePaye(gross: number, currency: string): Summary {
-  const bands = currency === 'ZiG' ? ZIG_BANDS : USD_BANDS;
-  const ceiling = NSSA_CEILING[currency] ?? 700;
-  const nssa = Math.min(gross, ceiling) * 0.045;
-  const taxable = Math.max(0, gross - nssa);
-  const band = [...bands].reverse().find((b) => taxable > b.lower) ?? bands[0];
-  const rawPaye = Math.max(0, band.fixed + (taxable - band.lower) * band.rate);
-  const aidsLevy = rawPaye * 0.03;
-  const totalPaye = rawPaye + aidsLevy;
-  return {
-    gross,
-    paye: totalPaye,
-    nssa,
-    net: Math.max(0, gross - totalPaye - nssa),
-    source: 'estimate',
-  };
+interface ActiveTaxConfig {
+  brackets: { lower: number; upper: number; rate: number; fixed: number }[];
+  nssaCeiling: number;
 }
 
-function computeSummary(grid: Grid, empId: string, activeCols: TxCode[], currency: string): Summary {
+function computeSummary(
+  grid: Grid,
+  empId: string,
+  activeCols: TxCode[],
+  currency: string,
+  taxConfig: ActiveTaxConfig | null,
+): Summary {
   let gross = 0;
   for (const tc of activeCols) {
     const val = parseFloat(grid[empId]?.[tc.id]?.value || '0') || 0;
     if (tc.type === 'EARNING' || tc.type === 'BENEFIT') gross += val;
     else if (tc.type === 'DEDUCTION') gross -= val;
   }
-  return estimatePaye(Math.max(0, gross), currency);
+  gross = Math.max(0, gross);
+
+  if (!taxConfig || taxConfig.brackets.length === 0) {
+    return { gross, paye: 0, nssa: 0, net: gross, source: 'estimate' };
+  }
+
+  const result = calculatePAYE({
+    baseSalary: gross,
+    currency,
+    taxBrackets: taxConfig.brackets,
+    nssaCeiling: taxConfig.nssaCeiling,
+  });
+
+  if (!result) return { gross, paye: 0, nssa: 0, net: gross, source: 'estimate' };
+
+  return {
+    gross: result.grossSalary,
+    paye: result.totalPaye,
+    nssa: result.nssaEmployee,
+    net: result.netSalary,
+    source: 'estimate',
+  };
 }
 
 // ─── component ───────────────────────────────────────────────────────────────
@@ -103,6 +98,7 @@ const PayrollInputGrid: React.FC = () => {
   const [period, setPeriod] = useState(new Date().toISOString().slice(0, 7));
   const [currency, setCurrency] = useState('USD');
 
+  const [taxConfig, setTaxConfig] = useState<ActiveTaxConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(false);
@@ -119,11 +115,35 @@ const PayrollInputGrid: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const [empRes, tcRes, inputRes] = await Promise.all([
+      const [empRes, tcRes, inputRes, tablesRes, nssaRes] = await Promise.all([
         EmployeeAPI.getAll({ limit: '500' }),
         TransactionCodeAPI.getAll(),
         PayrollInputAPI.getAll({ period }),
+        TaxTableAPI.getAll({ currency, isActive: 'true' }),
+        NSSASettingsAPI.get(),
       ]);
+
+      // Build tax config from active table for this currency
+      const activeTables: any[] = (tablesRes.data as any) || [];
+      const activeTable = activeTables.find((t: any) => t.isActive && t.currency === currency);
+      let resolvedTaxConfig: ActiveTaxConfig | null = null;
+      if (activeTable) {
+        const bracketsRes = await TaxTableAPI.getBrackets(activeTable.id);
+        const rawBrackets: any[] = bracketsRes.data || [];
+        const nssa = nssaRes.data;
+        resolvedTaxConfig = {
+          brackets: rawBrackets
+            .sort((a: any, b: any) => a.lowerBound - b.lowerBound)
+            .map((b: any) => ({
+              lower: b.lowerBound,
+              upper: b.upperBound ?? Infinity,
+              rate: b.rate,
+              fixed: b.fixedAmount ?? 0,
+            })),
+          nssaCeiling: currency === 'ZiG' ? 20000 : (nssa?.ceilingUSD ?? 700),
+        };
+      }
+      setTaxConfig(resolvedTaxConfig);
 
       const emps: Employee[] = (empRes.data as any).data || empRes.data || [];
       const tcs: TxCode[] = (tcRes.data as any) || [];
@@ -167,7 +187,7 @@ const PayrollInputGrid: React.FC = () => {
       // Compute initial summaries
       const newSummaries: Record<string, Summary> = {};
       for (const emp of emps) {
-        newSummaries[emp.id] = computeSummary(newGrid, emp.id, cols, currency);
+        newSummaries[emp.id] = computeSummary(newGrid, emp.id, cols, currency, resolvedTaxConfig);
       }
       setSummaries(newSummaries);
     } catch {
@@ -188,7 +208,7 @@ const PayrollInputGrid: React.FC = () => {
     };
     setGrid(newGrid);
     setDirtySet((prev) => new Set(prev).add(`${empId}:${tcId}`));
-    setSummaries((prev) => ({ ...prev, [empId]: computeSummary(newGrid, empId, activeCols, currency) }));
+    setSummaries((prev) => ({ ...prev, [empId]: computeSummary(newGrid, empId, activeCols, currency, taxConfig) }));
 
     const num = parseFloat(value);
     const warnKey = `${empId}:${tcId}`;
@@ -208,7 +228,7 @@ const PayrollInputGrid: React.FC = () => {
     setSummaries((prev) => {
       const next = { ...prev };
       for (const emp of employees) {
-        next[emp.id] = computeSummary(grid, emp.id, newCols, currency);
+        next[emp.id] = computeSummary(grid, emp.id, newCols, currency, taxConfig);
       }
       return next;
     });
@@ -220,7 +240,7 @@ const PayrollInputGrid: React.FC = () => {
     setSummaries((prev) => {
       const next = { ...prev };
       for (const emp of employees) {
-        next[emp.id] = computeSummary(grid, emp.id, newCols, currency);
+        next[emp.id] = computeSummary(grid, emp.id, newCols, currency, taxConfig);
       }
       return next;
     });
@@ -356,7 +376,7 @@ const PayrollInputGrid: React.FC = () => {
     setSummaries((prev) => {
       const next = { ...prev };
       for (const emp of employees) {
-        next[emp.id] = computeSummary(newGrid, emp.id, activeCols, currency);
+        next[emp.id] = computeSummary(newGrid, emp.id, activeCols, currency, taxConfig);
       }
       return next;
     });
@@ -682,7 +702,7 @@ const PayrollInputGrid: React.FC = () => {
           <span className="ml-auto">
             {serverPreviewActive
               ? '✓ Using server tax tables'
-              : 'PAYE estimated using 2024 bands — click Preview for accurate results'}
+              : taxConfig ? 'PAYE estimated from active tax table — click Preview for accurate results' : 'No active tax table — configure one in Tax Tables settings'}
           </span>
         </div>
       </div>
