@@ -71,6 +71,7 @@ const License = React.lazy(() => import('./pages/License'));
 const UtilitiesHub = React.lazy(() => import('./pages/utilities/UtilitiesHub'));
 const Transactions = React.lazy(() => import('./pages/utilities/Transactions'));
 const StatutoryRates = React.lazy(() => import('./pages/utilities/StatutoryRates'));
+const WorkPeriodSettings = React.lazy(() => import('./pages/utilities/WorkPeriodSettings'));
 const BackPay = React.lazy(() => import('./pages/utilities/BackPay'));
 const PayIncrease = React.lazy(() => import('./pages/utilities/PayIncrease'));
 const PeriodEnd = React.lazy(() => import('./pages/utilities/PeriodEnd'));
@@ -215,6 +216,7 @@ const App: React.FC = () => {
                   <Route path="/utilities/period-end" element={<PeriodEnd />} />
                   <Route path="/utilities/tax-tables" element={<TaxTableSettings />} />
                   <Route path="/utilities/statutory-rates" element={<StatutoryRates />} />
+                  <Route path="/utilities/work-period" element={<WorkPeriodSettings />} />
                   <Route path="/utilities/nec-tables" element={<NecTables />} />
                   <Route path="/utilities/nssa" element={<NSSASettings />} />
                   <Route path="/utilities/payroll-calendar" element={<PayrollCalendar />} />

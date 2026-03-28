@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, RefreshCw, Calendar, FileText, Percent, CalendarDays, Globe, GraduationCap } from 'lucide-react';
+import { TrendingUp, RefreshCw, Calendar, FileText, Percent, CalendarDays, Globe, GraduationCap, Clock } from 'lucide-react';
 
 const UTILITIES = [
   {
@@ -74,6 +74,14 @@ const UTILITIES = [
     description: 'Manage global default rates for SDF and ZIMDEF (Standard Zimbabwean rates)',
     color: 'text-indigo-600',
     bg: 'bg-indigo-50',
+  },
+  {
+    path: '/utilities/work-period',
+    icon: <Clock size={24} />,
+    title: 'Work Period Settings',
+    description: 'Set default working days per period, hours per day, and calendar days — used as fallbacks when employees have no individual override',
+    color: 'text-cyan-600',
+    bg: 'bg-cyan-50',
   },
   {
     path: '/currency-rates',

@@ -18,6 +18,7 @@ const prisma   = require('../lib/prisma');
 const { requirePermission }            = require('../lib/permissions');
 const { processDailyLogs, buildPayrollInputsFromAttendance, toMidnight } = require('../lib/attendanceEngine');
 const { processAttendanceLogs } = require('../services/attendanceService');
+const { getSettings } = require('../lib/systemSettings');
 
 const router = express.Router();
 
@@ -119,6 +120,9 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
   if (!req.companyId) return res.status(400).json({ message: 'x-company-id required' });
   const { startDate, endDate } = req.query;
   if (!startDate || !endDate) return res.status(400).json({ message: 'startDate and endDate required' });
+  const periodSettings = await getSettings(['HOURS_PER_DAY', 'WORKING_DAYS_PER_PERIOD']);
+  const hoursPerDay = parseFloat(periodSettings['HOURS_PER_DAY'] ?? 0);
+  const workingDaysPerPeriod = parseFloat(periodSettings['WORKING_DAYS_PER_PERIOD'] ?? 0);
 
   try {
     const records = await prisma.attendanceRecord.findMany({
@@ -158,7 +162,7 @@ router.get('/summary', requirePermission('manage_employees'), async (req, res) =
       s.totalHours  += r.totalMinutes  / 60;
 
       const emp = r.employee;
-      const stdHours = emp.hoursPerPeriod ?? (emp.daysPerPeriod ? emp.daysPerPeriod * 8 : 160);
+      const stdHours = emp.hoursPerPeriod ?? (emp.daysPerPeriod ? emp.daysPerPeriod * hoursPerDay : workingDaysPerPeriod * hoursPerDay);
       const hourly = emp.baseRate / stdHours;
       const ot0Mult = r.shift?.ot0Multiplier ?? 1.0;
       const ot1Mult = r.shift?.ot1Multiplier ?? 1.5;
@@ -353,7 +357,11 @@ router.post('/generate-inputs', requirePermission('process_payroll'), async (req
       ot1TcId:    fOt1TcId, 
       ot2TcId:    fOt2TcId 
     };
-    const inputs = buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId || null);
+    const genSettings = await getSettings(['HOURS_PER_DAY', 'WORKING_DAYS_PER_PERIOD']);
+    const inputs = buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId || null, {
+      hoursPerDay: parseFloat(genSettings['HOURS_PER_DAY'] ?? 0),
+      workingDaysPerPeriod: parseFloat(genSettings['WORKING_DAYS_PER_PERIOD'] ?? 0),
+    });
 
     const { count: created } = await prisma.payrollInput.createMany({ data: inputs, skipDuplicates: true });
 

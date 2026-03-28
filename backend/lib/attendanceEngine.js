@@ -148,7 +148,7 @@ function processDailyLogs(logs, shift, date, options = {}) {
  * @param {string|null} payrollRunId
  * @returns PayrollInput-shaped objects (no DB ids)
  */
-function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
+function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId, { hoursPerDay = 8, workingDaysPerPeriod = 20 } = {}) {
   const { normalTcId, ot0TcId, ot1TcId, ot2TcId } = tcs;
   const inputs = [];
 
@@ -160,7 +160,7 @@ function buildPayrollInputsFromAttendance(records, tcs, period, payrollRunId) {
 
   for (const [empId, empRecords] of Object.entries(byEmployee)) {
     const emp = empRecords[0].employee;
-    const normalHoursPerPeriod = emp.hoursPerPeriod ?? (emp.daysPerPeriod ? emp.daysPerPeriod * 8 : 160);
+    const normalHoursPerPeriod = emp.hoursPerPeriod ?? (emp.daysPerPeriod ? emp.daysPerPeriod * hoursPerDay : workingDaysPerPeriod * hoursPerDay);
     const hourlyRate = emp.baseRate / normalHoursPerPeriod;
 
     let totalNormalHours    = 0;

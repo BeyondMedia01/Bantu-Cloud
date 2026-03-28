@@ -8,10 +8,6 @@ const {
   generateIT7PDF
 } = require('../utils/pdfService');
 
-const { 
-  getSettingAsNumber,
-  getSettingAsString
-} = require('../lib/systemSettings');
 
 const router = express.Router();
 

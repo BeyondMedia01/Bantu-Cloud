@@ -2,17 +2,6 @@ const express = require('express');
 const ExcelJS = require('exceljs');
 const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
-const {
-  generateP16PDF,
-  generateP2PDF,
-  generateNSSA_P4A,
-  generateIT7PDF
-} = require('../../utils/pdfService');
-
-const { 
-  getSettingAsNumber,
-  getSettingAsString
-} = require('../../lib/systemSettings');
 
 const router = express.Router({ mergeParams: true });
 

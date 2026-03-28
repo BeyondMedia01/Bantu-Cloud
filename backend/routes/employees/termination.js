@@ -3,7 +3,7 @@
 const express = require('express');
 const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
-const { getSettingAsNumber } = require('../../lib/systemSettings');
+const { getSettings } = require('../../lib/systemSettings');
 
 const router = express.Router({ mergeParams: true });
 
@@ -51,9 +51,11 @@ router.get('/', requirePermission('manage_employees'), async (req, res) => {
     ).getDate();
     const proRataSalary   = monthlyPay * (termDay / daysInTermMonth);
 
-    // Configurable calendar constants from SystemSettings
-    const daysPerMonth      = await getSettingAsNumber('DAYS_PER_MONTH', 30);
-    const workingDaysPerPeriodDefault = await getSettingAsNumber('WORKING_DAYS_PER_PERIOD', await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22));
+    const termSettings = await getSettings(['DAYS_PER_MONTH', 'WORKING_DAYS_PER_PERIOD', 'WORKING_DAYS_PER_MONTH', 'HOURS_PER_DAY']);
+    const ts = (key) => parseFloat(termSettings[key] ?? 0);
+    const daysPerMonth = ts('DAYS_PER_MONTH');
+    const workingDaysPerPeriodDefault = ts('WORKING_DAYS_PER_PERIOD') || ts('WORKING_DAYS_PER_MONTH');
+    const hoursPerDaySetting = ts('HOURS_PER_DAY');
     const divisor = employee.daysPerPeriod || workingDaysPerPeriodDefault;
 
     // Notice pay — only if employee did NOT work out notice period
@@ -64,7 +66,7 @@ router.get('/', requirePermission('manage_employees'), async (req, res) => {
       if (employee.paymentBasis === 'DAILY') {
         noticePay = noticeDays * employee.baseRate;
       } else if (employee.paymentBasis === 'HOURLY') {
-        const hoursPerDay = employee.hoursPerPeriod ? employee.hoursPerPeriod / divisor : 8;
+        const hoursPerDay = employee.hoursPerPeriod ? employee.hoursPerPeriod / divisor : hoursPerDaySetting;
         noticePay = noticeDays * hoursPerDay * employee.baseRate;
       } else {
         noticePay = noticeDays * (monthlyPay / daysPerMonth);

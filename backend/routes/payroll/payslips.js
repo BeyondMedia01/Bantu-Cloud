@@ -3,7 +3,6 @@ const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
 const { calculatePaye } = require('../../utils/taxEngine');
 const { generatePayrollSummaryPDF, generatePayslipSummaryPDF, generatePayslipSummaryBuffer } = require('../../utils/pdfService');
-const { getSettingAsNumber } = require('../../lib/systemSettings');
 const { audit } = require('../../lib/audit');
 const { validateBody } = require('../../lib/validate');
 const { sendPayslip } = require('../../lib/mailer');

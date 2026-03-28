@@ -164,7 +164,7 @@ router.get('/stats', adminOnly, async (req, res) => {
       prisma.user.count(),
       prisma.employee.count(),
     ]);
-    const aidsLevyRate = await getSettingAsString('AidsLevyRate', '3%');
+    const aidsLevyRate = await getSettingAsString('AIDS_LEVY_RATE');
     res.json({ clients, users, employees, aidsLevyRate });
   } catch (error) {
     console.error(error);

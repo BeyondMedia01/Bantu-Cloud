@@ -3,7 +3,7 @@ const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
 const { calculatePaye } = require('../../utils/taxEngine');
 const { generatePayrollSummaryPDF, generatePayslipSummaryPDF, generatePayslipSummaryBuffer } = require('../../utils/pdfService');
-const { getSettingAsNumber } = require('../../lib/systemSettings');
+const { getSettings } = require('../../lib/systemSettings');
 const { audit } = require('../../lib/audit');
 const { validateBody } = require('../../lib/validate');
 const { sendPayslip } = require('../../lib/mailer');
@@ -73,15 +73,20 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
       return res.status(422).json({ error: 'No tax brackets configured for this company' })
     }
 
-    const previewAidsLevyRate = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
-    const previewMedicalAidCreditRate = await getSettingAsNumber('MEDICAL_AID_CREDIT_RATE', 50) / 100;
-    const previewNssaEmployeeRate = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;
-    const previewNssaCeilingUSD = await getSettingAsNumber('NSSA_CEILING_USD', 700);
+    const previewSettings = await getSettings([
+      'AIDS_LEVY_RATE', 'MEDICAL_AID_CREDIT_RATE', 'NSSA_EMPLOYEE_RATE',
+      'NSSA_CEILING_USD', 'NSSA_CEILING_ZIG',
+    ]);
+    const ps = (key) => parseFloat(previewSettings[key] ?? 0);
+
+    const previewAidsLevyRate = ps('AIDS_LEVY_RATE') / 100;
+    const previewMedicalAidCreditRate = ps('MEDICAL_AID_CREDIT_RATE') / 100;
+    const previewNssaEmployeeRate = ps('NSSA_EMPLOYEE_RATE') / 100;
+    const previewNssaCeilingUSD = ps('NSSA_CEILING_USD');
 
     // For ZiG payrolls, derive the NSSA ceiling dynamically from the RBZ prevailing rate:
-    // ZiG ceiling = USD ceiling (700) × most recent USD→ZiG rate for this company.
-    // This mirrors the logic used in the /process route (which reads from SystemSettings)
-    // but uses the live CurrencyRate table so that the preview always reflects today's rate.
+    // ZiG ceiling = USD ceiling × most recent USD→ZiG rate for this company.
+    // Falls back to NSSA_CEILING_ZIG setting if no currency rate record exists.
     let previewNssaCeiling = previewNssaCeilingUSD;
     if (currency === 'ZiG' && req.companyId) {
       const latestRate = await prisma.currencyRate.findFirst({
@@ -93,12 +98,9 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
         },
         orderBy: { effectiveDate: 'desc' },
       });
-      if (latestRate) {
-        previewNssaCeiling = previewNssaCeilingUSD * latestRate.rate;
-      } else {
-        // Fall back to the stored ZiG ceiling setting if no rate record exists
-        previewNssaCeiling = await getSettingAsNumber('NSSA_CEILING_ZIG', 20000);
-      }
+      previewNssaCeiling = latestRate
+        ? previewNssaCeilingUSD * latestRate.rate
+        : ps('NSSA_CEILING_ZIG');
     }
 
     const byEmployee = {};
@@ -252,61 +254,62 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       });
     }
 
-    // NSSA ceiling from SystemSettings (falls back to engine defaults)
-    const nssaCeilingUSD = await getSettingAsNumber('NSSA_CEILING_USD', 700);
-    const nssaCeilingZIG = await getSettingAsNumber('NSSA_CEILING_ZIG', 20000);
+    // Load all payroll settings in a single DB query — no hardcoded fallbacks.
+    // Values are seeded by autoSeedSystemSettings() on server start.
+    const settings = await getSettings([
+      'NSSA_CEILING_USD', 'NSSA_CEILING_ZIG',
+      'BONUS_EXEMPTION_USD', 'BONUS_EXEMPTION_ZIG',
+      'SEVERANCE_EXEMPTION_USD', 'SEVERANCE_EXEMPTION_ZIG',
+      'WCIF_RATE', 'SDF_RATE',
+      'NSSA_EMPLOYEE_RATE', 'NSSA_EMPLOYER_RATE',
+      'AIDS_LEVY_RATE', 'MEDICAL_AID_CREDIT_RATE',
+      'PENSION_CAP_USD', 'PENSION_CAP_ZIG',
+      'LOAN_PRESCRIBED_RATE_USD', 'LOAN_PRESCRIBED_RATE_ZIG',
+      'ELDERLY_TAX_CREDIT_USD', 'ELDERLY_TAX_CREDIT_ZIG',
+      'ZIMDEF_RATE',
+      'WORKING_DAYS_PER_PERIOD', 'WORKING_DAYS_PER_MONTH',
+    ]);
+    const s = (key) => parseFloat(settings[key] ?? 0);
+
+    const nssaCeilingUSD = s('NSSA_CEILING_USD');
+    const nssaCeilingZIG = s('NSSA_CEILING_ZIG');
     const nssaCeiling = run.currency === 'ZiG' ? nssaCeilingZIG : nssaCeilingUSD;
 
-    // Bonus exemption threshold (ZIMRA) — configure annually under System Settings.
-    // Default falls back to USD 700 (2024 ZIMRA threshold) so unconfigured systems
-    // do not over-tax employees on bonus runs.
-    const bonusExemptionUSD = await getSettingAsNumber('BONUS_EXEMPTION_USD', 700);
-    // ZiG default = 21 000 (ZIMRA 2024 ZiG annual bonus exemption threshold).
-    // Update via System Settings → BONUS_EXEMPTION_ZIG when ZIMRA revises this.
-    const bonusExemptionZIG = await getSettingAsNumber('BONUS_EXEMPTION_ZIG', 21000);
+    const bonusExemptionUSD = s('BONUS_EXEMPTION_USD');
+    const bonusExemptionZIG = s('BONUS_EXEMPTION_ZIG');
     const bonusExemption = run.currency === 'ZiG' ? bonusExemptionZIG : bonusExemptionUSD;
 
-    // Severance / retrenchment exemption threshold.
-    // ZIMRA Finance Act prescribes a statutory minimum exemption (USD 10,000 or ZiG equivalent).
-    // Default to 10,000 USD so unconfigured systems don't over-tax retrenched employees.
-    // Override via System Settings → SEVERANCE_EXEMPTION_USD / SEVERANCE_EXEMPTION_ZIG.
-    const severanceExemptionUSD = await getSettingAsNumber('SEVERANCE_EXEMPTION_USD', 10000);
-    const severanceExemptionZIG = await getSettingAsNumber('SEVERANCE_EXEMPTION_ZIG', 0);
+    const severanceExemptionUSD = s('SEVERANCE_EXEMPTION_USD');
+    const severanceExemptionZIG = s('SEVERANCE_EXEMPTION_ZIG');
     const severanceExemption = run.currency === 'ZiG' ? severanceExemptionZIG : severanceExemptionUSD;
 
     // Industry-specific WCIF and SDF rates: company setting overrides global SystemSetting
-    // Rates are stored as percentages (e.g. 1.5 for 1.5%) — divide by 100 for decimal multiplier
-    const globalWcifRate = await getSettingAsNumber('WCIF_RATE', 0) / 100;
-    const globalSdfRate = await getSettingAsNumber('SDF_RATE', 0) / 100;
+    const globalWcifRate = s('WCIF_RATE') / 100;
+    const globalSdfRate = s('SDF_RATE') / 100;
     const wcifRate = run.company.wcifRate != null ? run.company.wcifRate / 100 : globalWcifRate;
     const sdfRate = run.company.sdfRate != null ? run.company.sdfRate / 100 : globalSdfRate;
 
-    // NSSA contribution rates from SystemSettings — stored as percentages, converted to decimals
-    const nssaEmployeeRate = await getSettingAsNumber('NSSA_EMPLOYEE_RATE', 4.5) / 100;
-    const nssaEmployerRate = await getSettingAsNumber('NSSA_EMPLOYER_RATE', 4.5) / 100;
+    const nssaEmployeeRate = s('NSSA_EMPLOYEE_RATE') / 100;
+    const nssaEmployerRate = s('NSSA_EMPLOYER_RATE') / 100;
 
-    // AIDS levy and medical aid credit rates from SystemSettings — stored as percentages
-    const aidsLevyRate = await getSettingAsNumber('AIDS_LEVY_RATE', 3) / 100;
-    const medicalAidCreditRate = await getSettingAsNumber('MEDICAL_AID_CREDIT_RATE', 50) / 100;
+    const aidsLevyRate = s('AIDS_LEVY_RATE') / 100;
+    const medicalAidCreditRate = s('MEDICAL_AID_CREDIT_RATE') / 100;
 
-    // Pension deduction cap per ZIMRA regulations (0 = no cap)
-    const pensionCapUSD = await getSettingAsNumber('PENSION_CAP_USD', 0);
-    const pensionCapZIG = await getSettingAsNumber('PENSION_CAP_ZIG', 0);
+    const pensionCapUSD = s('PENSION_CAP_USD');
+    const pensionCapZIG = s('PENSION_CAP_ZIG');
 
-    // ZIMRA Prescribed Interest Rates for Loans (for Deemed Interest)
-    const prescribedRateUSD = await getSettingAsNumber('LOAN_PRESCRIBED_RATE_USD', 15);
-    const prescribedRateZIG = await getSettingAsNumber('LOAN_PRESCRIBED_RATE_ZIG', 150);
+    const prescribedRateUSD = s('LOAN_PRESCRIBED_RATE_USD');
+    const prescribedRateZIG = s('LOAN_PRESCRIBED_RATE_ZIG');
     const currentPrescribedRate = run.currency === 'ZiG' ? prescribedRateZIG : prescribedRateUSD;
 
-    const elderlyCreditUSD = await getSettingAsNumber('ELDERLY_TAX_CREDIT_USD', 75);
-    const elderlyCreditZIG = await getSettingAsNumber('ELDERLY_TAX_CREDIT_ZIG', 900);
+    const elderlyCreditUSD = s('ELDERLY_TAX_CREDIT_USD');
+    const elderlyCreditZIG = s('ELDERLY_TAX_CREDIT_ZIG');
 
-    const globalZimdefRate = await getSettingAsNumber('ZIMDEF_RATE', 1) / 100;
+    const globalZimdefRate = s('ZIMDEF_RATE') / 100;
     const zimdefRate = run.company.zimdefRate != null ? run.company.zimdefRate / 100 : globalZimdefRate;
 
-    // Working days per payroll period — used for pro-rating and short-time calculations.
-    // Order of precedence: Employee.daysPerPeriod > WORKING_DAYS_PER_PERIOD > WORKING_DAYS_PER_MONTH > default 22.
-    const workingDaysPerPeriodDefault = await getSettingAsNumber('WORKING_DAYS_PER_PERIOD', await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22));
+    // Working days — order of precedence: Employee.daysPerPeriod > WORKING_DAYS_PER_PERIOD > WORKING_DAYS_PER_MONTH
+    const workingDaysPerPeriodDefault = s('WORKING_DAYS_PER_PERIOD') || s('WORKING_DAYS_PER_MONTH');
 
     const employees = await prisma.employee.findMany({
       where: { companyId: run.companyId },

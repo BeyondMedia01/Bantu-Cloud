@@ -2,7 +2,7 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const { requirePermission } = require('../lib/permissions');
 const { audit } = require('../lib/audit');
-const { getSettingAsNumber } = require('../lib/systemSettings');
+const { getSettings } = require('../lib/systemSettings');
 
 const router = express.Router();
 
@@ -78,9 +78,8 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // Calculate daily rate using configurable working days per period settings
-    // Order of precedence: Employee.daysPerPeriod > WORKING_DAYS_PER_PERIOD > WORKING_DAYS_PER_MONTH > default 22.
-    const workingDaysPerPeriodDefault = await getSettingAsNumber('WORKING_DAYS_PER_PERIOD', await getSettingAsNumber('WORKING_DAYS_PER_MONTH', 22));
+    const wdSettings = await getSettings(['WORKING_DAYS_PER_PERIOD', 'WORKING_DAYS_PER_MONTH']);
+    const workingDaysPerPeriodDefault = parseFloat(wdSettings['WORKING_DAYS_PER_PERIOD'] ?? wdSettings['WORKING_DAYS_PER_MONTH'] ?? 0);
     const emp = await prisma.employee.findUnique({
       where: { id: employeeId },
       select: { basicSalaryUSD: true, basicSalaryZiG: true, currency: true, daysPerPeriod: true },
