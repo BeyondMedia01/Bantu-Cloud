@@ -190,6 +190,50 @@ async function autoSeedSystemSettings() {
       dataType: 'NUMBER',
       description: 'ZIMRA prescribed interest rate for ZiG loans (for Deemed Interest calculation).',
       isActive: true
+    },
+
+    // ── Vehicle Deemed Benefit (by engine cc tier) ───────────────────────────────
+    {
+      settingName: 'VEHICLE_BENEFIT_CC_1500_USD',
+      settingValue: '375',
+      dataType: 'NUMBER',
+      description: 'Monthly USD deemed vehicle benefit for engine ≤1500cc (ZIMRA Finance Act 2026: $4,500/yr ÷ 12).',
+      isActive: true
+    },
+    {
+      settingName: 'VEHICLE_BENEFIT_CC_2000_USD',
+      settingValue: '600',
+      dataType: 'NUMBER',
+      description: 'Monthly USD deemed vehicle benefit for engine 1501–2000cc (ZIMRA Finance Act 2026: $7,200/yr ÷ 12).',
+      isActive: true
+    },
+    {
+      settingName: 'VEHICLE_BENEFIT_ABOVE_2000_USD',
+      settingValue: '800',
+      dataType: 'NUMBER',
+      description: 'Monthly USD deemed vehicle benefit for engine >2000cc (ZIMRA Finance Act 2026: $9,600/yr ÷ 12).',
+      isActive: true
+    },
+    {
+      settingName: 'VEHICLE_BENEFIT_CC_1500_ZIG',
+      settingValue: '8970',
+      dataType: 'NUMBER',
+      description: 'Monthly ZiG deemed vehicle benefit for engine ≤1500cc. Update when RBZ rate changes.',
+      isActive: true
+    },
+    {
+      settingName: 'VEHICLE_BENEFIT_CC_2000_ZIG',
+      settingValue: '14352',
+      dataType: 'NUMBER',
+      description: 'Monthly ZiG deemed vehicle benefit for engine 1501–2000cc. Update when RBZ rate changes.',
+      isActive: true
+    },
+    {
+      settingName: 'VEHICLE_BENEFIT_ABOVE_2000_ZIG',
+      settingValue: '19136',
+      dataType: 'NUMBER',
+      description: 'Monthly ZiG deemed vehicle benefit for engine >2000cc. Update when RBZ rate changes.',
+      isActive: true
     }
   ];
 
