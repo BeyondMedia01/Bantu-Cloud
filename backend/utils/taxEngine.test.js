@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-const { calculatePaye, STATUTORY_RATES } = require('./taxEngine');
+const { calculatePaye, grossUpNet, STATUTORY_RATES } = require('./taxEngine');
 
 // ─── Shared ZIMRA 2026 USD annual tax brackets ──────────────────────────────
 // Populated from the live database (confirmed in audit March 2026)
@@ -282,5 +282,42 @@ describe('Tax Engine — Zimbabwean PAYE (FDS)', () => {
     expect(result.aidsLevy).toBe(0);
     // Net should still deduct NSSA
     expect(result.nssaEmployee).toBeCloseTo(31.5, 2);
+  });
+});
+
+describe('grossUpNet', () => {
+  it('returns net salary within tolerance when PAYE is zero (income below threshold)', () => {
+    const result = grossUpNet({ targetNet: 80, currency: 'USD' });
+    expect(result.totalPaye).toBeCloseTo(0, 1);
+    expect(Math.abs(result.netSalary - 80)).toBeLessThan(0.02);
+  });
+
+  it('gross-up produces a net salary within $0.02 of target for mid-range income', () => {
+    const TARGET = 2000;
+    const result = grossUpNet({
+      targetNet: TARGET,
+      currency: 'USD',
+      taxBrackets: BRACKETS_2026_USD,
+      annualBrackets: true,
+    });
+    expect(Math.abs(result.netSalary - TARGET)).toBeLessThan(0.02);
+    expect(result.grossSalary).toBeGreaterThan(TARGET);
+  });
+
+  it('gross-up is idempotent: calculatePaye on result.grossSalary yields the same net', () => {
+    const TARGET = 3500;
+    const grossedUp = grossUpNet({
+      targetNet: TARGET,
+      currency: 'USD',
+      taxBrackets: BRACKETS_2026_USD,
+      annualBrackets: true,
+    });
+    const verification = calculatePaye({
+      baseSalary: grossedUp.grossSalary,
+      currency: 'USD',
+      taxBrackets: BRACKETS_2026_USD,
+      annualBrackets: true,
+    });
+    expect(Math.abs(verification.netSalary - TARGET)).toBeLessThan(0.02);
   });
 });

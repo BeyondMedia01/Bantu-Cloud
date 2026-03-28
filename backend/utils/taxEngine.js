@@ -230,4 +230,39 @@ function calculatePaye({
   };
 }
 
-module.exports = { calculatePaye, STATUTORY_RATES };
+/**
+ * Gross-up solver: finds the gross salary G such that calculatePaye(G).netSalary ≈ targetNet.
+ * Uses binary search — converges to within $0.01 in <50 iterations for any realistic salary.
+ *
+ * The employer absorbs PAYE only. The employee still pays NSSA, pension, and medicalAid.
+ * To compute the correct targetNet, callers should pass:
+ *   targetNet = employeeBaseSalary + cappedPension + medicalAid
+ * so that the solver finds gross where (gross - NSSA - pension - medAid - PAYE) = that sum,
+ * meaning PAYE is the only extra cost absorbed by the employer.
+ *
+ * Accepts the same params as calculatePaye(), minus baseSalary (which is solved for).
+ * Returns the same result object as calculatePaye().
+ */
+function grossUpNet({ targetNet, currency = 'USD', maxIterations = 50, tolerance = 0.01, ...payeParams }) {
+  // Lower bound: targetNet (zero tax scenario)
+  // Upper bound: worst-case 40% top rate + 3% AIDS levy → net ≈ gross × 0.57; use 0.50 for safety
+  let lo = targetNet;
+  let hi = targetNet / 0.50;
+
+  let best = null;
+  for (let i = 0; i < maxIterations; i++) {
+    const mid = (lo + hi) / 2;
+    const result = calculatePaye({ baseSalary: mid, currency, ...payeParams });
+    const net = result.netSalary;
+    if (Math.abs(net - targetNet) < tolerance) {
+      best = result;
+      break;
+    }
+    if (net < targetNet) lo = mid;
+    else hi = mid;
+    best = result;
+  }
+  return best;
+}
+
+module.exports = { calculatePaye, grossUpNet, STATUTORY_RATES };
