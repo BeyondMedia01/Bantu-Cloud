@@ -144,6 +144,7 @@ app.use('/api/payroll-inputs', require('./routes/payrollInputs'));
 app.use('/api/transaction-codes', require('./routes/transactionCodes'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/tax-tables', require('./routes/taxTables'));
+app.use('/api/tax-bands', require('./routes/taxBands'));
 app.use('/api/system-settings', require('./routes/systemSettings'));
 app.use('/api/grades', require('./routes/grades'));
 

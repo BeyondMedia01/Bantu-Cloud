@@ -61,9 +61,9 @@ router.get('/:id', async (req, res) => {
               select: {
                 id: true,
                 name: true,
-                tradingName: true,
                 registrationNumber: true,
-                currency: true,
+                taxId: true,
+                address: true,
               },
             },
           },
