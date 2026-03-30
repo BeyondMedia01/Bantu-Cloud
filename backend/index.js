@@ -1,3 +1,8 @@
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  require('fs').writeFileSync('/tmp/gcp-credentials.json', process.env.GOOGLE_CREDENTIALS_JSON);
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/gcp-credentials.json';
+}
+
 require('esbuild-register/dist/node').register({ extensions: ['.jsx'] });
 const express = require('express');
 const cors = require('cors');
@@ -11,6 +16,7 @@ const { authenticateToken } = require('./lib/auth');
 const companyContext = require('./middleware/companyContext');
 
 const app = express();
+app.set('trust proxy', 1); // Render sits behind a proxy; required for express-rate-limit
 const PORT = process.env.PORT || 5005;
 
 // Fail fast if required env vars are missing in production
