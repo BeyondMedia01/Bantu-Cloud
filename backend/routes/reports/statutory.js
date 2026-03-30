@@ -483,15 +483,11 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req,
         payrollRun: runPeriodFilter(companyId, year, month),
       },
       include: {
-        employee: { select: { tin: true, passportNumber: true, firstName: true, lastName: true, currency: true } },
+        employee: { select: { tin: true, passportNumber: true, firstName: true, lastName: true, currency: true, taxMethod: true } },
         payrollRun: { select: { id: true, startDate: true, dualCurrency: true, currency: true } },
       },
       orderBy: { employee: { lastName: 'asc' } },
     });
-
-    if (payslips.length === 0) {
-      return res.status(404).json({ message: 'No completed payroll data for this period' });
-    }
 
     // Collect all run IDs so we can fetch transactions in one query
     const runIds = [...new Set(payslips.map(p => p.payrollRunId))];
@@ -684,165 +680,184 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req,
       ['Cumulative Bonus (Last Period) ZWG',         'cumBonusZWG',       'zwg'],
     ];
 
-    // ── 6. Build workbook ─────────────────────────────────────────────────────
+    // ── 6. Helper: build one TaRMS worksheet into the given workbook ─────────
+    const NUM_FMT = '#,##0.00';
+
+    const buildTarmsSheet = (wb, sheetName, sheetPayslips, ctx) => {
+      const { categorise, txByEmployee, priorBonusByEmployee, COL_DEF, DARK_BLUE, LIGHT_BLUE, LIGHT_GREEN, WHITE_FONT, NUM_FMT } = ctx;
+
+      const ws = wb.addWorksheet(sheetName, {
+        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
+      });
+
+      // Column widths
+      ws.columns = COL_DEF.map(([header, key], i) => ({
+        key,
+        width: i < 4 ? 22 : 20,
+        header,
+      }));
+
+      // Style header row
+      const headerRow = ws.getRow(1);
+      headerRow.height = 45;
+      COL_DEF.forEach(([, , ccyType], i) => {
+        const cell = headerRow.getCell(i + 1);
+        cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
+        cell.font   = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = { bottom: { style: 'medium', color: { argb: 'FF4472C4' } } };
+      });
+
+      // Add data rows (2 – N)
+      sheetPayslips.forEach((ps) => {
+        const emp = ps.employee;
+        const txs = txByEmployee[ps.employeeId] || [];
+        const cats = categorise(txs, ps);
+        const isDual = ps.payrollRun.dualCurrency;
+        const isUSD  = (ps.payrollRun.currency || 'USD').toUpperCase() === 'USD';
+
+        const nssaUSD = isDual ? (ps.nssaUSD ?? ps.nssaEmployee) : (isUSD ? ps.nssaEmployee : 0);
+        const nssaZWG = isDual ? (ps.nssaZIG ?? 0) : (!isUSD ? ps.nssaEmployee : 0);
+        const medAidUSD = isDual ? (ps.medicalAidCredit ?? 0) : (isUSD ? (ps.medicalAidCredit ?? 0) : 0);
+        const medAidZWG = isDual ? 0 : (!isUSD ? (ps.medicalAidCredit ?? 0) : 0);
+        const priorBonus = priorBonusByEmployee[ps.employeeId] || 0;
+
+        const salUSD = isDual ? (ps.grossUSD ?? 0) : (isUSD ? (ps.basicSalaryApplied || 0) : 0);
+        const salZWG = isDual ? (ps.grossZIG ?? 0) : (!isUSD ? (ps.basicSalaryApplied || 0) : 0);
+
+        const rowValues = {
+          tin:            emp.tin || '',
+          id:             emp.passportNumber || '',
+          name:           `${emp.firstName} ${emp.lastName}`,
+          currency:       ps.payrollRun.currency || 'USD',
+          salaryUSD:      salUSD,
+          salaryZWG:      salZWG,
+          exemptUSD:      cats.otherExemptions.usd,
+          exemptZWG:      cats.otherExemptions.zwg,
+          overtimeUSD:    cats.overtime.usd,
+          overtimeZWG:    cats.overtime.zwg,
+          bonusUSD:       cats.bonus.usd,
+          bonusZWG:       cats.bonus.zwg,
+          commissionUSD:  cats.commission.usd,
+          commissionZWG:  cats.commission.zwg,
+          otherIrregUSD:  cats.otherIrregular.usd,
+          otherIrregZWG:  cats.otherIrregular.zwg,
+          sevExemptUSD:   cats.severanceExempt.usd,
+          sevExemptZWG:   cats.severanceExempt.zwg,
+          gratNoExemptUSD:cats.gratuityNoExempt.usd,
+          gratNoExemptZWG:cats.gratuityNoExempt.zwg,
+          housingUSD:     cats.housingBenefit.usd,
+          housingZWG:     cats.housingBenefit.zwg,
+          vehicleUSD:     cats.vehicleBenefit.usd,
+          vehicleZWG:     cats.vehicleBenefit.zwg,
+          educationUSD:   cats.educationBenefit.usd,
+          educationZWG:   cats.educationBenefit.zwg,
+          otherBenUSD:    cats.otherBenefits.usd,
+          otherBenZWG:    cats.otherBenefits.zwg,
+          nonTaxUSD:      cats.nonTaxable.usd,
+          nonTaxZWG:      cats.nonTaxable.zwg,
+          pensionUSD:     isDual ? (ps.pensionApplied ?? 0) : (isUSD ? (ps.pensionApplied ?? 0) : 0),
+          pensionZWG:     !isDual && !isUSD ? (ps.pensionApplied ?? 0) : (cats.pension.zwg),
+          nssaUSD,
+          nssaZWG,
+          retirementUSD:  cats.retirementAnnuity.usd,
+          retirementZWG:  cats.retirementAnnuity.zwg,
+          necUSD:         isDual ? (ps.necLevy ?? 0) : (isUSD ? (ps.necLevy ?? 0) : 0),
+          necZWG:         !isDual && !isUSD ? (ps.necLevy ?? 0) : 0,
+          otherDedUSD:    cats.otherDeductions.usd,
+          otherDedZWG:    cats.otherDeductions.zwg,
+          medAidUSD,
+          medAidZWG,
+          medExpUSD:      cats.medicalExpenses.usd,
+          medExpZWG:      cats.medicalExpenses.zwg,
+          blindUSD:       cats.blindCredit.usd,
+          blindZWG:       cats.blindCredit.zwg,
+          disabledUSD:    cats.disabledCredit.usd,
+          disabledZWG:    cats.disabledCredit.zwg,
+          elderlyUSD:     cats.elderlyCredit.usd,
+          elderlyZWG:     cats.elderlyCredit.zwg,
+          cumBonusUSD:    isUSD ? priorBonus : 0,
+          cumBonusZWG:    !isUSD ? priorBonus : 0,
+        };
+
+        const row = ws.addRow(rowValues);
+
+        // Apply currency fill + number format to financial columns (5–52)
+        COL_DEF.forEach(([, , ccyType], i) => {
+          if (!ccyType) return;
+          const cell = row.getCell(i + 1);
+          cell.fill = {
+            type: 'pattern', pattern: 'solid',
+            fgColor: { argb: ccyType === 'usd' ? LIGHT_BLUE : LIGHT_GREEN },
+          };
+          cell.numFmt = NUM_FMT;
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          cell.font = { size: 10, name: 'Calibri' };
+        });
+        // Style the first 4 identifier columns
+        for (let i = 1; i <= 4; i++) {
+          const cell = row.getCell(i);
+          cell.font = { size: 10, name: 'Calibri' };
+          cell.alignment = { vertical: 'middle' };
+        }
+        row.height = 18;
+      });
+
+      // Totals row
+      const dataStart = 2;
+      const dataEnd   = sheetPayslips.length + 1;
+      const totalsRow = ws.addRow({});
+      totalsRow.height = 22;
+
+      // Label in col 3 (Employee Name)
+      totalsRow.getCell(3).value = 'TOTALS';
+      totalsRow.getCell(3).font  = { bold: true, size: 10, name: 'Calibri' };
+
+      // SUBTOTAL formulas for cols 5–52
+      COL_DEF.forEach(([, key, ccyType], i) => {
+        if (!ccyType) return;
+        const colLetter = ws.getColumn(i + 1).letter;
+        const cell = totalsRow.getCell(i + 1);
+        cell.value  = { formula: `SUBTOTAL(9,${colLetter}${dataStart}:${colLetter}${dataEnd})` };
+        cell.numFmt = NUM_FMT;
+        cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
+        cell.font   = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+      });
+      // Style the label cells
+      for (let i = 1; i <= 4; i++) {
+        const cell = totalsRow.getCell(i);
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
+        cell.font = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
+        cell.alignment = { vertical: 'middle' };
+      }
+
+      // Freeze first 3 columns + header
+      ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 1, topLeftCell: 'D2' }];
+
+      // Auto-filter on header row
+      ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: COL_DEF.length } };
+    };
+
+    // ── 7. Classify payslips and build workbook with two sheets ───────────────
+    const FDS_METHODS = new Set(['FDS_AVERAGE', 'FDS_FORECASTING']);
+    const fdsPayslips    = payslips.filter(p => FDS_METHODS.has(p.employee.taxMethod));
+    const nonFdsPayslips = payslips.filter(p => !FDS_METHODS.has(p.employee.taxMethod));
+
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Bantu HR';
     wb.created = new Date();
-    const ws = wb.addWorksheet('TaRMS PAYE', {
-      pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
-    });
 
-    // Column widths
-    ws.columns = COL_DEF.map(([header, key], i) => ({
-      key,
-      width: i < 4 ? 22 : 20,
-      header,
-    }));
+    const ctx = { categorise, txByEmployee, priorBonusByEmployee, COL_DEF, DARK_BLUE, LIGHT_BLUE, LIGHT_GREEN, WHITE_FONT, NUM_FMT };
 
-    // ── 7. Style header row ───────────────────────────────────────────────────
-    const headerRow = ws.getRow(1);
-    headerRow.height = 45;
-    COL_DEF.forEach(([, , ccyType], i) => {
-      const cell = headerRow.getCell(i + 1);
-      cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
-      cell.font   = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
-      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-      cell.border = { bottom: { style: 'medium', color: { argb: 'FF4472C4' } } };
-    });
+    if (fdsPayslips.length > 0)    buildTarmsSheet(wb, 'TaRMS PAYE (FDS)',     fdsPayslips,    ctx);
+    if (nonFdsPayslips.length > 0) buildTarmsSheet(wb, 'TaRMS PAYE (Non-FDS)', nonFdsPayslips, ctx);
 
-    // ── 8. Add data rows (2 – N) ──────────────────────────────────────────────
-    const NUM_FMT = '#,##0.00';
-
-    payslips.forEach((ps) => {
-      const emp = ps.employee;
-      const txs = txByEmployee[ps.employeeId] || [];
-      const cats = categorise(txs, ps);
-      const isDual = ps.payrollRun.dualCurrency;
-      const isUSD  = (ps.payrollRun.currency || 'USD').toUpperCase() === 'USD';
-
-      const nssaUSD = isDual ? (ps.nssaUSD ?? ps.nssaEmployee) : (isUSD ? ps.nssaEmployee : 0);
-      const nssaZWG = isDual ? (ps.nssaZIG ?? 0) : (!isUSD ? ps.nssaEmployee : 0);
-      const medAidUSD = isDual ? (ps.medicalAidCredit ?? 0) : (isUSD ? (ps.medicalAidCredit ?? 0) : 0);
-      const medAidZWG = isDual ? 0 : (!isUSD ? (ps.medicalAidCredit ?? 0) : 0);
-      const priorBonus = priorBonusByEmployee[ps.employeeId] || 0;
-
-      const salUSD = isDual ? (ps.grossUSD ?? 0) : (isUSD ? (ps.basicSalaryApplied || 0) : 0);
-      const salZWG = isDual ? (ps.grossZIG ?? 0) : (!isUSD ? (ps.basicSalaryApplied || 0) : 0);
-
-      const rowValues = {
-        tin:            emp.tin || '',
-        id:             emp.passportNumber || '',
-        name:           `${emp.firstName} ${emp.lastName}`,
-        currency:       ps.payrollRun.currency || 'USD',
-        salaryUSD:      salUSD,
-        salaryZWG:      salZWG,
-        exemptUSD:      cats.otherExemptions.usd,
-        exemptZWG:      cats.otherExemptions.zwg,
-        overtimeUSD:    cats.overtime.usd,
-        overtimeZWG:    cats.overtime.zwg,
-        bonusUSD:       cats.bonus.usd,
-        bonusZWG:       cats.bonus.zwg,
-        commissionUSD:  cats.commission.usd,
-        commissionZWG:  cats.commission.zwg,
-        otherIrregUSD:  cats.otherIrregular.usd,
-        otherIrregZWG:  cats.otherIrregular.zwg,
-        sevExemptUSD:   cats.severanceExempt.usd,
-        sevExemptZWG:   cats.severanceExempt.zwg,
-        gratNoExemptUSD:cats.gratuityNoExempt.usd,
-        gratNoExemptZWG:cats.gratuityNoExempt.zwg,
-        housingUSD:     cats.housingBenefit.usd,
-        housingZWG:     cats.housingBenefit.zwg,
-        vehicleUSD:     cats.vehicleBenefit.usd,
-        vehicleZWG:     cats.vehicleBenefit.zwg,
-        educationUSD:   cats.educationBenefit.usd,
-        educationZWG:   cats.educationBenefit.zwg,
-        otherBenUSD:    cats.otherBenefits.usd,
-        otherBenZWG:    cats.otherBenefits.zwg,
-        nonTaxUSD:      cats.nonTaxable.usd,
-        nonTaxZWG:      cats.nonTaxable.zwg,
-        pensionUSD:     isDual ? (ps.pensionApplied ?? 0) : (isUSD ? (ps.pensionApplied ?? 0) : 0),
-        pensionZWG:     !isDual && !isUSD ? (ps.pensionApplied ?? 0) : (cats.pension.zwg),
-        nssaUSD,
-        nssaZWG,
-        retirementUSD:  cats.retirementAnnuity.usd,
-        retirementZWG:  cats.retirementAnnuity.zwg,
-        necUSD:         isDual ? (ps.necLevy ?? 0) : (isUSD ? (ps.necLevy ?? 0) : 0),
-        necZWG:         !isDual && !isUSD ? (ps.necLevy ?? 0) : 0,
-        otherDedUSD:    cats.otherDeductions.usd,
-        otherDedZWG:    cats.otherDeductions.zwg,
-        medAidUSD,
-        medAidZWG,
-        medExpUSD:      cats.medicalExpenses.usd,
-        medExpZWG:      cats.medicalExpenses.zwg,
-        blindUSD:       cats.blindCredit.usd,
-        blindZWG:       cats.blindCredit.zwg,
-        disabledUSD:    cats.disabledCredit.usd,
-        disabledZWG:    cats.disabledCredit.zwg,
-        elderlyUSD:     cats.elderlyCredit.usd,
-        elderlyZWG:     cats.elderlyCredit.zwg,
-        cumBonusUSD:    isUSD ? priorBonus : 0,
-        cumBonusZWG:    !isUSD ? priorBonus : 0,
-      };
-
-      const row = ws.addRow(rowValues);
-
-      // Apply currency fill + number format to financial columns (5–52)
-      COL_DEF.forEach(([, , ccyType], i) => {
-        if (!ccyType) return;
-        const cell = row.getCell(i + 1);
-        cell.fill = {
-          type: 'pattern', pattern: 'solid',
-          fgColor: { argb: ccyType === 'usd' ? LIGHT_BLUE : LIGHT_GREEN },
-        };
-        cell.numFmt = NUM_FMT;
-        cell.alignment = { horizontal: 'right', vertical: 'middle' };
-        cell.font = { size: 10, name: 'Calibri' };
-      });
-      // Style the first 4 identifier columns
-      for (let i = 1; i <= 4; i++) {
-        const cell = row.getCell(i);
-        cell.font = { size: 10, name: 'Calibri' };
-        cell.alignment = { vertical: 'middle' };
-      }
-      row.height = 18;
-    });
-
-    // ── 9. Totals row (Row 101 or first row after data) ───────────────────────
-    const dataStart = 2;
-    const dataEnd   = payslips.length + 1;
-    const totalsRow = ws.addRow({});
-    totalsRow.height = 22;
-
-    // Label in col 3 (Employee Name)
-    totalsRow.getCell(3).value = 'TOTALS';
-    totalsRow.getCell(3).font  = { bold: true, size: 10, name: 'Calibri' };
-
-    // SUBTOTAL formulas for cols 5–52
-    COL_DEF.forEach(([, key, ccyType], i) => {
-      if (!ccyType) return;
-      const colLetter = ws.getColumn(i + 1).letter;
-      const cell = totalsRow.getCell(i + 1);
-      cell.value  = { formula: `SUBTOTAL(9,${colLetter}${dataStart}:${colLetter}${dataEnd})` };
-      cell.numFmt = NUM_FMT;
-      cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
-      cell.font   = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
-      cell.alignment = { horizontal: 'right', vertical: 'middle' };
-    });
-    // Style the label cells
-    for (let i = 1; i <= 4; i++) {
-      const cell = totalsRow.getCell(i);
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
-      cell.font = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
-      cell.alignment = { vertical: 'middle' };
+    if (wb.worksheets.length === 0) {
+      return res.status(404).json({ message: 'No completed payroll data for this period' });
     }
 
-    // ── 10. Freeze first 3 columns + header ──────────────────────────────────
-    ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 1, topLeftCell: 'D2' }];
-
-    // ── 11. Auto-filter on header row ─────────────────────────────────────────
-    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: COL_DEF.length } };
-
-    // ── 12. Stream ────────────────────────────────────────────────────────────
+    // ── 8. Stream ─────────────────────────────────────────────────────────────
     const mm   = String(month).padStart(2, '0');
     const filename = `ZIMRA-TaRMS-PAYE-${year}-${mm}.xlsx`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
