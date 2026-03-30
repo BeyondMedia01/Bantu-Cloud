@@ -32,6 +32,9 @@ function pickTcFields(body) {
     ...(affectsAidsLevy !== undefined && { affectsAidsLevy: Boolean(affectsAidsLevy) }),
     ...(incomeCategory !== undefined && { incomeCategory: incomeCategory || null }),
     ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+    ...(body.deemedBenefitPercent !== undefined && {
+      deemedBenefitPercent: body.deemedBenefitPercent !== '' ? parseFloat(body.deemedBenefitPercent) : undefined,
+    }),
   };
 }
 
