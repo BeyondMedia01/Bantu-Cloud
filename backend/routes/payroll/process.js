@@ -1260,11 +1260,15 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     // Awaited so leave balances are current before the response is returned.
     const { runLeaveAccrual } = require('../../jobs/leaveAccrual');
     try {
-      await runLeaveAccrual(run.companyId, run.endDate);
-      console.log(`[LeaveAccrual] post-payroll accrual complete for company ${run.companyId}`);
+      const accrualResult = await runLeaveAccrual(run.companyId, run.endDate);
+      console.log(`[LeaveAccrual] post-payroll accrual complete for company ${run.companyId}:`, accrualResult);
     } catch (err) {
-      // Non-fatal: log the failure but don't block the payroll response.
-      console.error(`[LeaveAccrual] post-payroll accrual failed for company ${run.companyId}:`, err);
+      // Non-fatal: log but don't block the payroll response.
+      // Structured errors from runLeaveAccrual include accrualSummary and accrualErrors.
+      console.error(`[LeaveAccrual] post-payroll accrual failed for company ${run.companyId}:`, err.message);
+      if (err.accrualErrors) {
+        console.error('[LeaveAccrual] Per-employee errors:', JSON.stringify(err.accrualErrors));
+      }
     }
 
     res.json({ message: 'Payroll processed successfully', runId: run.id, count: result.count });

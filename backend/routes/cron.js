@@ -31,12 +31,15 @@ function verifyCronSecret(req, res, next) {
 router.post('/leave-accrue', verifyCronSecret, async (req, res) => {
   console.log('[Cron] /api/cron/leave-accrue triggered externally');
   try {
-    await runLeaveAccrual();
-    console.log('[Cron] leave-accrue completed successfully');
-    res.json({ ok: true, message: 'Leave accrual completed' });
+    const result = await runLeaveAccrual();
+    console.log('[Cron] leave-accrue completed successfully:', result);
+    res.json({ ok: true, message: 'Leave accrual completed', ...result });
   } catch (err) {
-    console.error('[Cron] leave-accrue failed:', err);
-    res.status(500).json({ ok: false, message: err.message });
+    console.error('[Cron] leave-accrue failed:', err.message);
+    if (err.accrualErrors) {
+      console.error('[Cron] Per-employee errors:', JSON.stringify(err.accrualErrors));
+    }
+    res.status(500).json({ ok: false, message: err.message, summary: err.accrualSummary, errors: err.accrualErrors });
   }
 });
 

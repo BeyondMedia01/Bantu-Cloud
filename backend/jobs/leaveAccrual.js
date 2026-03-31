@@ -29,6 +29,7 @@ async function runLeaveAccrual(companyId, accrualDate) {
   let totalAccrued = 0;
   let totalSkipped = 0;
   let totalErrors  = 0;
+  const errors = [];
 
   try {
     // Fetch active leave policies — optionally scoped to one company
@@ -154,17 +155,28 @@ async function runLeaveAccrual(companyId, accrualDate) {
               `[LeaveAccrual] Failed for employee ${emp.id} policy ${policy.id}:`,
               empErr.message
             );
-            // Continue to next employee — don't let one failure stop the whole run
+            errors.push({ employeeId: emp.id, policyId: policy.id, leaveType: policy.leaveType, message: empErr.message });
           }
         }
       }
     }
 
-    console.log(
-      `[LeaveAccrual] Run complete — accrued: ${totalAccrued}, skipped: ${totalSkipped}, errors: ${totalErrors}`
-    );
+    const summary = { accrued: totalAccrued, skipped: totalSkipped, errors: totalErrors };
+    console.log(`[LeaveAccrual] Run complete — accrued: ${totalAccrued}, skipped: ${totalSkipped}, errors: ${totalErrors}`);
+
+    if (totalErrors > 0) {
+      console.error('[LeaveAccrual] Errors detail:', JSON.stringify(errors));
+      const err = new Error(`Leave accrual completed with ${totalErrors} error(s). First: ${errors[0].message}`);
+      err.accrualSummary = summary;
+      err.accrualErrors = errors;
+      throw err;
+    }
+
+    return summary;
   } catch (err) {
+    if (err.accrualSummary) throw err; // already structured, re-throw as-is
     console.error('[LeaveAccrual] Fatal error during accrual run:', err);
+    throw err;
   }
 }
 
