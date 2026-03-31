@@ -15,7 +15,8 @@ async function detectFraud(clientId, companyId, skip = 0, take = 500) {
       id: true,
       firstName: true,
       lastName: true,
-      idPassport: true,
+      nationalId: true,
+      passportNumber: true,
       accountNumber: true,
       employeeCode: true
     },
@@ -34,8 +35,9 @@ async function detectFraud(clientId, companyId, skip = 0, take = 500) {
     }
 
     // 2. Duplicate IDs/Passports
-    if (emp.idPassport && emp.idPassport.trim() !== '') {
-      const idStr = emp.idPassport.trim().toUpperCase();
+    const idPassport = emp.nationalId || emp.passportNumber;
+    if (idPassport && idPassport.trim() !== '') {
+      const idStr = idPassport.trim().toUpperCase();
       if (!idsMap[idStr]) idsMap[idStr] = [];
       idsMap[idStr].push(emp);
     }

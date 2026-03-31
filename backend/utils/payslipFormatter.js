@@ -196,7 +196,7 @@ async function payslipToBuffer(payslipId) {
     issuedDate: new Date().toLocaleDateString('en-GB'),
     employeeName: `${payslip.employee.firstName} ${payslip.employee.lastName}`,
     employeeCode: payslip.employee.employeeCode || '',
-    nationalId: payslip.employee.idPassport || payslip.employee.nationalId || '',
+    nationalId: payslip.employee.nationalId || payslip.employee.passportNumber || '',
     jobTitle: payslip.employee.position || '',
     department: payslip.employee.department?.name || '',
     costCenter: payslip.employee.costCenter || '',
