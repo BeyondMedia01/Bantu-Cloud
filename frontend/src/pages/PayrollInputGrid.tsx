@@ -4,7 +4,7 @@ import {
   Plus, Save, RefreshCw, List, X, CheckCircle2,
   AlertTriangle, LayoutGrid,
 } from 'lucide-react';
-import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI, TaxTableAPI, NSSASettingsAPI } from '../api/client';
+import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI, TaxTableAPI, NSSASettingsAPI, PayrollCalendarAPI } from '../api/client';
 import { calculatePAYE } from '../lib/tax';
 
 // ─── types ───────────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ const PayrollInputGrid: React.FC = () => {
   const [activeCols, setActiveCols] = useState<TxCode[]>([]);
   const [grid, setGrid] = useState<Grid>({});
   const [summaries, setSummaries] = useState<Record<string, Summary>>({});
-  const [period, setPeriod] = useState(new Date().toISOString().slice(0, 7));
+  const [period, setPeriod] = useState('');
   const [currency, setCurrency] = useState('USD');
 
   const [taxConfig, setTaxConfig] = useState<ActiveTaxConfig | null>(null);
@@ -111,17 +111,33 @@ const PayrollInputGrid: React.FC = () => {
 
   // ── load ──────────────────────────────────────────────────────────────────
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (overridePeriod?: string) => {
     setLoading(true);
     setError('');
     try {
-      const [empRes, tcRes, inputRes, tablesRes, nssaRes] = await Promise.all([
+      let activePeriod = overridePeriod;
+
+      const [empRes, tcRes, tablesRes, nssaRes] = await Promise.all([
         EmployeeAPI.getAll({ limit: '500' }),
         TransactionCodeAPI.getAll(),
-        PayrollInputAPI.getAll({ period }),
         TaxTableAPI.getAll({ currency, isActive: 'true', includeBrackets: 'true' }),
         NSSASettingsAPI.get(),
       ]);
+
+      if (!activePeriod) {
+        // Fetch active calendar to determine the correct period
+        const calRes = await PayrollCalendarAPI.getAll({ isClosed: 'false' });
+        const calendars: any[] = (calRes.data as any) || [];
+        const activeCalendar = calendars.sort((a: any, b: any) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+        )[0];
+        activePeriod = activeCalendar
+          ? new Date(activeCalendar.startDate).toISOString().slice(0, 7)
+          : new Date().toISOString().slice(0, 7);
+        setPeriod(activePeriod);
+      }
+
+      const inputRes = await PayrollInputAPI.getAll({ period: activePeriod });
 
       // Brackets are now embedded in the table response — no second round-trip needed
       const activeTables: any[] = (tablesRes.data as any) || [];
@@ -194,9 +210,15 @@ const PayrollInputGrid: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [period, currency]);
+  }, [currency]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Reload inputs when user manually changes the period
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod);
+    load(newPeriod);
+  };
 
   // ── cell change ───────────────────────────────────────────────────────────
 
@@ -417,7 +439,7 @@ const PayrollInputGrid: React.FC = () => {
           <input
             type="month"
             value={period}
-            onChange={(e) => setPeriod(e.target.value)}
+            onChange={(e) => handlePeriodChange(e.target.value)}
             className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 bg-primary"
           />
           <select
