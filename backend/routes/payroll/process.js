@@ -637,7 +637,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault;
           const dayRate = emp.baseRate / divisor;
           const hourlyRate = dayRate / 8;
-          const multiplier = tc.defaultValue ? parseFloat(tc.defaultValue) : 1.5;
+          // Use defaultValue if set; otherwise try to parse multiplier from the TC name (e.g. "Overtime 1.0x" → 1.0)
+          const nameMatch = tc.name.match(/(\d+(?:\.\d+)?)x/i);
+          const multiplier = tc.defaultValue != null ? parseFloat(tc.defaultValue) : (nameMatch ? parseFloat(nameMatch[1]) : 1.5);
           const amt = round2(hourlyRate * i.units * multiplier);
           
           if (emp.currency === 'ZiG') i.employeeZiG = amt;

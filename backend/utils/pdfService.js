@@ -435,7 +435,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
 
   let currentY = drawHeader(doc.y);
 
-  const grandTotals = { gross: 0, paye: 0, aids: 0, nssaE: 0, nssaR: 0, net: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0 };
+  const grandTotals = { gross: 0, paye: 0, aids: 0, nssaE: 0, nssaR: 0, net: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0, pension: 0, otherDed: 0, loans: 0, allowBen: 0, basic: 0 };
 
   groups.forEach((group) => {
     if (currentY > 780) { doc.addPage({ size: 'A3', layout: 'landscape', margin: 20 }); currentY = drawHeader(30); }
@@ -445,7 +445,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
     doc.font('Helvetica-Bold').fontSize(10).fillColor(NAVY).text(group.name.toUpperCase(), 30, currentY + 4);
     currentY += ROW_H;
 
-    const groupTotals = { gross: 0, paye: 0, aids: 0, nssaE: 0, nssaR: 0, net: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0 };
+    const groupTotals = { gross: 0, paye: 0, aids: 0, nssaE: 0, nssaR: 0, net: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0, pension: 0, otherDed: 0, loans: 0, allowBen: 0, basic: 0 };
 
     group.payslips.forEach((p, idx) => {
       if (currentY > 800) { doc.addPage({ size: 'A3', layout: 'landscape', margin: 20 }); currentY = drawHeader(30); }
@@ -486,18 +486,21 @@ const generatePayrollSummaryPDF = (data, stream) => {
 
       // Accumulate
       [groupTotals, grandTotals].forEach(t => {
+        t.basic += p.basicSalaryApplied || emp.baseRate || 0;
+        t.allowBen += allowBen;
         t.gross += p.gross || 0;
         t.paye += p.paye || 0;
         t.aids += p.aidsLevy || 0;
         t.nssaE += p.nssaEmployee || 0;
-        t.nssaR += p.nssaEmployer || 0;
+        t.pension += p.pensionActual || p.pensionApplied || 0;
+        t.loans += p.loanDeductions || 0;
+        t.otherDed += p.otherDeductionsActual || 0;
         t.net += p.netPay || 0;
-        t.necE += p.necLevy || 0;
-        t.necR += p.necEmployer || 0;
+        t.nssaR += p.nssaEmployer || 0;
         t.zimdef += p.zimdefEmployer || 0;
+        t.necR += p.necEmployer || 0;
         t.ctc += ctc;
-        t.otherDed = (t.otherDed || 0) + (p.otherDeductionsActual || 0);
-        t.pension = (t.pension || 0) + (p.pensionActual || p.pensionApplied || 0);
+        t.necE += p.necLevy || 0;
       });
 
       currentY += ROW_H;
@@ -508,7 +511,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
     doc.font('Helvetica-Bold').fontSize(8.5).fillColor(NAVY).text(`SUBTOTAL: ${group.name}`, 30, currentY + 5);
 
     // Display subtotals for main money columns
-    const stCells = { 5: groupTotals.gross, 6: groupTotals.paye, 9: groupTotals.pension, 11: groupTotals.otherDed, 12: groupTotals.net, 16: groupTotals.ctc };
+    const stCells = { 3: groupTotals.basic, 4: groupTotals.allowBen, 5: groupTotals.gross, 6: groupTotals.paye, 7: groupTotals.aids, 8: groupTotals.nssaE, 9: groupTotals.pension, 10: groupTotals.loans, 11: groupTotals.otherDed, 12: groupTotals.net, 13: groupTotals.nssaR, 14: groupTotals.zimdef, 15: groupTotals.necR, 16: groupTotals.ctc };
     let scx = 25;
     cols.forEach((col, ci) => {
       if (stCells[ci] !== undefined) {
@@ -526,7 +529,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
   doc.font('Helvetica-Bold').fontSize(11).fillColor(NAVY).text('GRAND TOTALS', 30, footerY + 10);
 
   let gcx = 25;
-  const gtCells = { 5: grandTotals.gross, 6: grandTotals.paye, 8: grandTotals.nssaE, 9: grandTotals.pension, 11: grandTotals.otherDed, 12: grandTotals.net, 14: grandTotals.zimdef, 16: grandTotals.ctc };
+  const gtCells = { 3: grandTotals.basic, 4: grandTotals.allowBen, 5: grandTotals.gross, 6: grandTotals.paye, 7: grandTotals.aids, 8: grandTotals.nssaE, 9: grandTotals.pension, 10: grandTotals.loans, 11: grandTotals.otherDed, 12: grandTotals.net, 13: grandTotals.nssaR, 14: grandTotals.zimdef, 15: grandTotals.necR, 16: grandTotals.ctc };
   cols.forEach((col, ci) => {
     if (gtCells[ci] !== undefined) {
       doc.text(fmtN(gtCells[ci]), gcx, footerY + 10, { width: col.w - 10, align: col.align });
