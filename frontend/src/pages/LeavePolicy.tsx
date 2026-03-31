@@ -3,7 +3,7 @@ import { Plus, Edit, Trash, Shield, Loader } from 'lucide-react';
 import { LeavePolicyAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 
-const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
+const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'MEDICAL_AID', 'OTHER'];
 
 const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ');
 
@@ -143,7 +143,7 @@ const LeavePolicy: React.FC = () => {
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Accrual Rate (days/month)</label>
-              <input type="number" step="0.5" min="0" required value={form.accrualRate} onChange={set('accrualRate')}
+              <input type="number" step="any" min="0" required value={form.accrualRate} onChange={set('accrualRate')}
                 className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
             </div>
             <div>
