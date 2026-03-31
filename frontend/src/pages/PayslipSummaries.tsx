@@ -176,6 +176,38 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                 </tr>
               )}
             </tbody>
+            {filteredSummaries.length > 0 && (() => {
+              const totalGrossUSD = filteredSummaries.reduce((sum, s) => sum + (s.grossUSD || 0), 0);
+              const totalGrossZiG = filteredSummaries.reduce((sum, s) => sum + (s.grossZiG || 0), 0);
+              const totalDeductionsUSD = filteredSummaries.reduce((sum, s) => sum + (s.deductionsUSD || 0), 0);
+              const totalDeductionsZiG = filteredSummaries.reduce((sum, s) => sum + (s.deductionsZiG || 0), 0);
+              const totalNetUSD = filteredSummaries.reduce((sum, s) => sum + (s.totalNetPayInUSD || 0), 0);
+              return (
+                <tfoot>
+                  <tr className="border-t-2 border-border bg-slate-50 font-bold">
+                    <td className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Total ({filteredSummaries.length} employee{filteredSummaries.length !== 1 ? 's' : ''})
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-0.5 font-mono">
+                        <span className="text-sm font-bold text-navy">${totalGrossUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[10px] text-slate-400">Z {totalGrossZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-0.5 font-mono">
+                        <span className="text-sm font-bold text-red-500">-${totalDeductionsUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[10px] text-slate-400">-Z {totalDeductionsZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-black text-accent-blue">${totalNetUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </td>
+                    <td colSpan={2} />
+                  </tr>
+                </tfoot>
+              );
+            })()}
           </table>
         </div>
       </div>
