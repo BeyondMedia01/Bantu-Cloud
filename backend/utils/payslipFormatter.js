@@ -71,12 +71,12 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
     lines.push({ name: 'Loan Repayments', allowance: 0, deduction: payslip.loanDeductions, employer: 0, ytd: ytdStat.loanDeductions });
   }
 
-  // Medical Aid — shown as employer contribution
+  // Medical Aid — shown in both deductions (employee) and employer contributions
   medicalAidTxs.forEach(t => {
     lines.push({
       name: t.transactionCode.name,
       allowance: 0,
-      deduction: 0,
+      deduction: t.amount,
       employer: t.amount,
       ytd: ytdMap[t.transactionCodeId] ?? t.amount,
       units: t.units ?? null,
