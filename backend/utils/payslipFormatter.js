@@ -9,8 +9,19 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
   const earningTxs = transactions.filter(
     (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
   );
+  const isMedicalAidTc = (tc) => {
+    const name = (tc.name || '').toLowerCase();
+    const code = (tc.code || '').toLowerCase();
+    return tc.incomeCategory === 'MEDICAL_AID' ||
+      /medical\s*aid|med\s*aid/.test(name) ||
+      code === '301';
+  };
+
   const deductionTxs = transactions.filter(
-    (t) => t.transactionCode.type === 'DEDUCTION'
+    (t) => t.transactionCode.type === 'DEDUCTION' && !isMedicalAidTc(t.transactionCode)
+  );
+  const medicalAidTxs = transactions.filter(
+    (t) => t.transactionCode.type === 'DEDUCTION' && isMedicalAidTc(t.transactionCode)
   );
 
   const lines = [
@@ -59,6 +70,19 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
   if (payslip.loanDeductions > 0) {
     lines.push({ name: 'Loan Repayments', allowance: 0, deduction: payslip.loanDeductions, employer: 0, ytd: ytdStat.loanDeductions });
   }
+
+  // Medical Aid — shown as employer contribution
+  medicalAidTxs.forEach(t => {
+    lines.push({
+      name: t.transactionCode.name,
+      allowance: 0,
+      deduction: 0,
+      employer: t.amount,
+      ytd: ytdMap[t.transactionCodeId] ?? t.amount,
+      units: t.units ?? null,
+      unitsType: t.unitsType ?? null,
+    });
+  });
 
   // Employer Contributions
   if (payslip.nssaEmployer > 0) {
