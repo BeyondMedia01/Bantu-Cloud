@@ -1,7 +1,11 @@
 import React from 'react';
+import { createRequire } from 'module';
 import {
-  Document, Page, View, Text, StyleSheet, renderToBuffer
+  Document, Page, View, Text, StyleSheet, renderToBuffer, Image
 } from '@react-pdf/renderer';
+
+const _require = createRequire(import.meta.url);
+const LOGO_PATH = _require.resolve('./logo.svg');
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const DARK_NAVY   = '#1a2e4a';
@@ -99,9 +103,7 @@ const s = StyleSheet.create({
   footer:      { position: 'absolute', bottom: 12, left: 12, right: 12,
                  borderTopWidth: 0.5, borderColor: BORDER,
                  flexDirection: 'row', alignItems: 'center', paddingTop: 6 },
-  footerLogo:  { width: 18, height: 18, backgroundColor: BANTU_GREEN,
-                 borderRadius: 3, justifyContent: 'center', alignItems: 'center',
-                 marginRight: 6 },
+  footerLogo:  { width: 22, height: 22, marginRight: 6 },
   footerBrand: { flex: 1, color: TEXT_MUTED, fontSize: 7, fontFamily: 'Helvetica-Bold',
                  textAlign: 'center' },
   footerConf:  { color: TEXT_MUTED, fontSize: 7, textAlign: 'right' },
@@ -164,9 +166,7 @@ const PayslipDocument = ({ data }) => {
         {/* ── Section 1: Identity Header ─────────────────────────────── */}
         <View style={s.header}>
           <View style={s.headerLeft}>
-            <View style={s.logoBox}>
-              <Text style={s.logoText}>B</Text>
-            </View>
+            <Image src={LOGO_PATH} style={s.logoBox} />
             <View>
               <Text style={s.company}>{(companyName || '').toUpperCase()}</Text>
               <Text style={s.periodText}>Period: {period}</Text>
@@ -277,9 +277,7 @@ const PayslipDocument = ({ data }) => {
 
         {/* ── Section 7: Footer (absolute, always at page bottom) ─────── */}
         <View style={s.footer} fixed>
-          <View style={s.footerLogo}>
-            <Text style={{ color: DARK_NAVY, fontSize: 8, fontFamily: 'Helvetica-Bold' }}>B</Text>
-          </View>
+          <Image src={LOGO_PATH} style={s.footerLogo} />
           <Text style={s.footerBrand}>Bantu Modern HR &amp; Payroll Automation</Text>
           <Text style={s.footerConf}>CONFIDENTIAL DOCUMENT</Text>
         </View>
