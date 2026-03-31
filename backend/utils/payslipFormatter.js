@@ -6,6 +6,10 @@ const { generatePayslipBuffer } = require('./pdfService');
  * Shared logic to build payslip line items.
  */
 function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary }) {
+  console.log('[payslip lines] tx count:', transactions.length, '| details:', JSON.stringify(
+    transactions.map(t => ({ amount: t.amount, type: t.transactionCode?.type, name: t.transactionCode?.name, code: t.transactionCode?.code }))
+  ));
+
   const earningTxs = transactions.filter(
     (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
   );
