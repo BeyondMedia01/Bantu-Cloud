@@ -79,8 +79,8 @@ const EmployeeEdit: React.FC = () => {
     const companyId = getActiveCompanyId();
     Promise.all([
       EmployeeAPI.getById(id!),
-      companyId ? BranchAPI.getAll({ companyId }) : Promise.resolve({ data: [] }),
-      companyId ? DepartmentAPI.getAll({ companyId }) : Promise.resolve({ data: [] }),
+      BranchAPI.getAll(companyId ? { companyId } : {}),
+      DepartmentAPI.getAll(companyId ? { companyId } : {}),
       NecTableAPI.getAll(),
       TaxTableAPI.getAll(),
       SystemSettingsAPI.getAll(),
