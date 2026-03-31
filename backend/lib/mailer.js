@@ -145,4 +145,124 @@ async function sendPayslip(to, { employeeName, companyName, period, pdfBuffer })
   });
 }
 
-module.exports = { sendPasswordReset, sendEmployeeInvite, sendPayrollComplete, sendPayslip };
+/**
+ * Payroll deadline reminder — sent to CLIENT_ADMIN 3 days before period closes.
+ */
+async function sendPayrollDeadlineReminder(to, { companyName, period, deadline, daysLeft }) {
+  return getTransporter().sendMail({
+    from: FROM,
+    to,
+    subject: `Payroll deadline in ${daysLeft} day${daysLeft === 1 ? '' : 's'} — ${companyName} (${period})`,
+    text: `This is a reminder that the payroll submission deadline for ${companyName} (${period}) is on ${deadline}.\n\nPlease ensure all payroll inputs are captured before the deadline.\n\n— Bantu Payroll`,
+    html: `
+      <div style="font-family:sans-serif;max-width:500px;margin:0 auto;">
+        <h2 style="color:#0f172a;">Payroll Deadline Reminder</h2>
+        <p>This is a reminder that the payroll submission deadline for <strong>${companyName}</strong> (${period}) is approaching.</p>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+          <tr><td style="padding:8px;color:#64748b;">Period</td><td style="padding:8px;font-weight:bold;">${period}</td></tr>
+          <tr style="background:#f8fafc;"><td style="padding:8px;color:#64748b;">Deadline</td><td style="padding:8px;font-weight:bold;color:#dc2626;">${deadline}</td></tr>
+          <tr><td style="padding:8px;color:#64748b;">Days Remaining</td><td style="padding:8px;font-weight:bold;">${daysLeft} day${daysLeft === 1 ? '' : 's'}</td></tr>
+        </table>
+        <a href="${process.env.FRONTEND_URL}/payroll" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#0f172a;color:#fff;border-radius:9999px;text-decoration:none;font-weight:bold;">
+          Go to Payroll
+        </a>
+        <p style="color:#64748b;font-size:13px;">Please ensure all payroll inputs are captured before the deadline.</p>
+      </div>
+    `,
+  });
+}
+
+/**
+ * Upcoming public holiday notification — sent to CLIENT_ADMIN.
+ */
+async function sendHolidayReminder(to, { companyName, holidays }) {
+  const holidayRows = holidays.map(h =>
+    `<tr style="background:#f8fafc;"><td style="padding:8px;font-weight:bold;">${h.name}</td><td style="padding:8px;color:#64748b;">${h.date}</td></tr>`
+  ).join('');
+  const holidayText = holidays.map(h => `  • ${h.name} — ${h.date}`).join('\n');
+
+  return getTransporter().sendMail({
+    from: FROM,
+    to,
+    subject: `Upcoming public holiday${holidays.length > 1 ? 's' : ''} — ${companyName}`,
+    text: `The following public holiday${holidays.length > 1 ? 's are' : ' is'} coming up:\n\n${holidayText}\n\nRemember to account for these dates in your payroll and leave planning.\n\n— Bantu Payroll`,
+    html: `
+      <div style="font-family:sans-serif;max-width:500px;margin:0 auto;">
+        <h2 style="color:#0f172a;">Upcoming Public Holiday${holidays.length > 1 ? 's' : ''}</h2>
+        <p>The following public holiday${holidays.length > 1 ? 's are' : ' is'} coming up for <strong>${companyName}</strong>:</p>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+          <tr style="background:#0f172a;color:#fff;"><th style="padding:8px;text-align:left;">Holiday</th><th style="padding:8px;text-align:left;">Date</th></tr>
+          ${holidayRows}
+        </table>
+        <p style="color:#64748b;font-size:13px;">Remember to account for these dates in your payroll and leave planning.</p>
+      </div>
+    `,
+  });
+}
+
+/**
+ * Work anniversary notification — sent to CLIENT_ADMIN listing today's anniversaries.
+ */
+async function sendAnniversaryReminder(to, { companyName, anniversaries }) {
+  const rows = anniversaries.map(a =>
+    `<tr style="background:#f8fafc;"><td style="padding:8px;font-weight:bold;">${a.name}</td><td style="padding:8px;color:#64748b;">${a.years} year${a.years === 1 ? '' : 's'}</td></tr>`
+  ).join('');
+  const text = anniversaries.map(a => `  • ${a.name} — ${a.years} year${a.years === 1 ? '' : 's'}`).join('\n');
+
+  return getTransporter().sendMail({
+    from: FROM,
+    to,
+    subject: `Work anniversary${anniversaries.length > 1 ? ' reminders' : ''} today — ${companyName}`,
+    text: `The following employee${anniversaries.length > 1 ? 's have' : ' has'} a work anniversary today:\n\n${text}\n\nConsider recognising their milestone!\n\n— Bantu Payroll`,
+    html: `
+      <div style="font-family:sans-serif;max-width:500px;margin:0 auto;">
+        <h2 style="color:#0f172a;">🎉 Work Anniversary${anniversaries.length > 1 ? ' Reminders' : ''}</h2>
+        <p>The following employee${anniversaries.length > 1 ? 's have' : ' has'} a work anniversary today at <strong>${companyName}</strong>:</p>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+          <tr style="background:#0f172a;color:#fff;"><th style="padding:8px;text-align:left;">Employee</th><th style="padding:8px;text-align:left;">Years of Service</th></tr>
+          ${rows}
+        </table>
+        <p style="color:#64748b;font-size:13px;">Consider recognising their milestone!</p>
+      </div>
+    `,
+  });
+}
+
+/**
+ * Birthday notification — sent to CLIENT_ADMIN listing today's birthdays.
+ */
+async function sendBirthdayReminder(to, { companyName, birthdays }) {
+  const rows = birthdays.map(b =>
+    `<tr style="background:#f8fafc;"><td style="padding:8px;font-weight:bold;">${b.name}</td><td style="padding:8px;color:#64748b;">${b.age ? `Turning ${b.age}` : 'Birthday today'}</td></tr>`
+  ).join('');
+  const text = birthdays.map(b => `  • ${b.name}${b.age ? ` (turning ${b.age})` : ''}`).join('\n');
+
+  return getTransporter().sendMail({
+    from: FROM,
+    to,
+    subject: `Birthday${birthdays.length > 1 ? ' reminders' : ''} today — ${companyName}`,
+    text: `The following employee${birthdays.length > 1 ? 's have' : ' has'} a birthday today:\n\n${text}\n\nDon't forget to wish them well!\n\n— Bantu Payroll`,
+    html: `
+      <div style="font-family:sans-serif;max-width:500px;margin:0 auto;">
+        <h2 style="color:#0f172a;">🎂 Birthday${birthdays.length > 1 ? ' Reminders' : ''}</h2>
+        <p>The following employee${birthdays.length > 1 ? 's have' : ' has'} a birthday today at <strong>${companyName}</strong>:</p>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+          <tr style="background:#0f172a;color:#fff;"><th style="padding:8px;text-align:left;">Employee</th><th style="padding:8px;text-align:left;">Milestone</th></tr>
+          ${rows}
+        </table>
+        <p style="color:#64748b;font-size:13px;">Don't forget to wish them well!</p>
+      </div>
+    `,
+  });
+}
+
+module.exports = {
+  sendPasswordReset,
+  sendEmployeeInvite,
+  sendPayrollComplete,
+  sendPayslip,
+  sendPayrollDeadlineReminder,
+  sendHolidayReminder,
+  sendAnniversaryReminder,
+  sendBirthdayReminder,
+};

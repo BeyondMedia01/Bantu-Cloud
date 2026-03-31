@@ -209,6 +209,8 @@ app.use((err, _req, res, _next) => {
 // ─── Scheduled Jobs ───────────────────────────────────────────────────────────
 
 const { runLeaveAccrual } = require('./jobs/leaveAccrual');
+const { runNotifications } = require('./jobs/notifications');
+
 // In-process fallback: fires only if the server is alive at 00:05 on the 1st.
 // For reliability on Render, configure a native Cron Job to POST /api/cron/leave-accrue.
 cron.schedule('5 0 1 * *', () => {
@@ -216,6 +218,15 @@ cron.schedule('5 0 1 * *', () => {
   runLeaveAccrual()
     .then(() => console.log('[Cron] in-process leave-accrue completed'))
     .catch((err) => console.error('[Cron] in-process leave-accrue FAILED:', err));
+});
+
+// Daily notifications: payroll deadlines, holidays, anniversaries, birthdays — 07:00 every day.
+// For reliability on Render, configure a native Cron Job to POST /api/cron/notify.
+cron.schedule('0 7 * * *', () => {
+  console.log('[Cron] in-process notifications triggered');
+  runNotifications()
+    .then((sent) => console.log(`[Cron] in-process notifications completed. ${sent} email(s) sent.`))
+    .catch((err) => console.error('[Cron] in-process notifications FAILED:', err));
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────

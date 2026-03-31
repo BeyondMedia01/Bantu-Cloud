@@ -10,6 +10,7 @@
 
 const express = require('express');
 const { runLeaveAccrual } = require('../jobs/leaveAccrual');
+const { runNotifications } = require('../jobs/notifications');
 
 const router = express.Router();
 
@@ -35,6 +36,19 @@ router.post('/leave-accrue', verifyCronSecret, async (req, res) => {
     res.json({ ok: true, message: 'Leave accrual completed' });
   } catch (err) {
     console.error('[Cron] leave-accrue failed:', err);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// POST /api/cron/notify
+// Schedule on Render: 0 7 * * *  (07:00 every day)
+router.post('/notify', verifyCronSecret, async (req, res) => {
+  console.log('[Cron] /api/cron/notify triggered');
+  try {
+    const sent = await runNotifications();
+    res.json({ ok: true, message: `Notifications job completed. ${sent} email(s) sent.` });
+  } catch (err) {
+    console.error('[Cron] notify failed:', err);
     res.status(500).json({ ok: false, message: err.message });
   }
 });
