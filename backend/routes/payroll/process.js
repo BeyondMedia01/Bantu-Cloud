@@ -559,6 +559,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       const adj = adjustments[emp.id] || {};
       const empInputs = inputsByEmployee[emp.id] || [];
       const empDefaults = defaultsByEmployee[emp.id] || [];
+      console.log(`[PAYE DEBUG] ${emp.firstName} ${emp.lastName} | inputs: ${empInputs.map(i => `${i.transactionCode?.name}(USD:${i.employeeUSD},ZiG:${i.employeeZiG})`).join(', ')} | defaults: ${empDefaults.map(d => `${d.transactionCode?.name}(${d.value} ${d.currency})`).join(', ')}`);
       const empRepayments = repaymentsByEmployee[emp.id] || [];
       const empLoans = loansByEmployee[emp.id] || [];
 
