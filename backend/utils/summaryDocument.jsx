@@ -60,12 +60,12 @@ const s = StyleSheet.create({
   subtotal:   { backgroundColor: '#f1f5f9', flexDirection: 'row', padding: 5,
                 marginHorizontal: 10, marginBottom: 4 },
   subtotLabel:{ flex: 1, fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: DARK_NAVY },
-  subtotAmt:  { width: 68, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
+  subtotAmt:  { width: 60, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
 
   grandTotal: { backgroundColor: DARK_NAVY, flexDirection: 'row', padding: 7,
                 marginHorizontal: 10, marginTop: 6 },
   gtLabel:    { flex: 1, color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 9 },
-  gtAmt:      { width: 80, textAlign: 'right', color: 'white',
+  gtAmt:      { width: 60, textAlign: 'right', color: 'white',
                 fontFamily: 'Helvetica-Bold', fontSize: 9 },
 
   footer:     { position: 'absolute', bottom: 12, left: 12, right: 12,
@@ -209,10 +209,21 @@ const SummaryDocument = ({ data }) => {
                 grandNet        += groupNet;
                 return (
                   <View style={s.subtotal} wrap={false}>
-                    <Text style={s.subtotLabel}>SUBTOTAL — {(group.name || 'General').toUpperCase()}</Text>
-                    <Text style={s.subtotAmt}>{fmt(groupEarnings)}</Text>
-                    <Text style={s.subtotAmt}>{fmt(groupDeductions)}</Text>
-                    <Text style={s.subtotAmt}>{fmt(groupEmployer)}</Text>
+                    {/* Mirror 3-section layout so amounts align with data column headers */}
+                    <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+                      <Text style={[s.subtotLabel, { flex: 1 }]}>SUBTOTAL — {(group.name || 'General').toUpperCase()}</Text>
+                      <Text style={[s.subtotAmt, { width: 36 }]} />
+                      <Text style={s.subtotAmt}>{fmt(groupEarnings)}</Text>
+                    </View>
+                    <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+                      <View style={{ flex: 1 }} />
+                      <Text style={[s.subtotAmt, { width: 36 }]} />
+                      <Text style={s.subtotAmt}>{fmt(groupDeductions)}</Text>
+                    </View>
+                    <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+                      <View style={{ flex: 1 }} />
+                      <Text style={s.subtotAmt}>{fmt(groupEmployer)}</Text>
+                    </View>
                   </View>
                 );
               })()}
@@ -220,12 +231,22 @@ const SummaryDocument = ({ data }) => {
           );
         })}
 
-        {/* Grand Totals */}
+        {/* Grand Totals — mirror 3-section layout */}
         <View style={s.grandTotal} wrap={false}>
-          <Text style={s.gtLabel}>GRAND TOTALS</Text>
-          <Text style={s.gtAmt}>USD {fmt(grandEarnings)}</Text>
-          <Text style={s.gtAmt}>USD {fmt(grandDeductions)}</Text>
-          <Text style={s.gtAmt}>USD {fmt(grandEmployer)}</Text>
+          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+            <Text style={[s.gtLabel, { flex: 1 }]}>GRAND TOTALS</Text>
+            <Text style={[s.gtAmt, { width: 36 }]} />
+            <Text style={s.gtAmt}>{fmt(grandEarnings)}</Text>
+          </View>
+          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+            <View style={{ flex: 1 }} />
+            <Text style={[s.gtAmt, { width: 36 }]} />
+            <Text style={s.gtAmt}>{fmt(grandDeductions)}</Text>
+          </View>
+          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
+            <View style={{ flex: 1 }} />
+            <Text style={s.gtAmt}>{fmt(grandEmployer)}</Text>
+          </View>
         </View>
 
         {/* Footer */}
