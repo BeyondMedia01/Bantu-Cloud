@@ -378,7 +378,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           { payrollRunId: null, period: { lte: runPeriod }, processed: false }, // unattached, not yet processed
         ],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
+      include: { transactionCode: { select: { type: true, taxable: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
     });
     const inputsByEmployee = {};
     for (const inp of allInputs) {
@@ -396,7 +396,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         effectiveFrom: { lte: run.endDate },
         OR: [{ effectiveTo: null }, { effectiveTo: { gte: run.startDate } }],
       },
-      include: { transactionCode: { select: { type: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
+      include: { transactionCode: { select: { type: true, taxable: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
     });
 
     // Build a set of (employeeId:transactionCodeId) already covered by explicit payroll inputs for this run
@@ -669,7 +669,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               inputNssaExcludedUSD += input.employeeUSD || 0;
               inputNssaExcludedZIG += input.employeeZiG || 0;
             }
-            if (tc.affectsPaye === false) {
+            if (tc.affectsPaye === false || tc.taxable === false) {
               inputPayeExcludedUSD += input.employeeUSD || 0;
               inputPayeExcludedZIG += input.employeeZiG || 0;
             }
@@ -695,7 +695,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           if (isEarning) {
             inputEarnings += amt;
             if (tc.affectsNssa === false) inputNssaExcluded += amt;
-            if (tc.affectsPaye === false) inputPayeExcluded += amt;
+            if (tc.affectsPaye === false || tc.taxable === false) inputPayeExcluded += amt;
             if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
               const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
               inputPayeExcluded += amt * exemptFraction;
@@ -733,7 +733,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               inputNssaExcludedUSD += empUSD;
               inputNssaExcludedZIG += empZIG;
             }
-            if (tc.affectsPaye === false) {
+            if (tc.affectsPaye === false || tc.taxable === false) {
               inputPayeExcludedUSD += empUSD;
               inputPayeExcludedZIG += empZIG;
             }
@@ -757,7 +757,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           if (isEarning) {
             inputEarnings += amt;
             if (tc.affectsNssa === false) inputNssaExcluded += amt;
-            if (tc.affectsPaye === false) inputPayeExcluded += amt;
+            if (tc.affectsPaye === false || tc.taxable === false) inputPayeExcluded += amt;
             if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
               const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
               inputPayeExcluded += amt * exemptFraction;

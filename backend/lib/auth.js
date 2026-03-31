@@ -9,21 +9,18 @@ if (!SECRET) {
 }
 
 const signToken = async (payload) => {
-  // Create a database session for this token
-  const session = await prisma.session.create({
+  // Generate session ID upfront so we can embed it in the JWT and create the
+  // session in a single DB round-trip (avoids the previous create + update pattern).
+  const sessionId = crypto.randomUUID();
+  const token = jwt.sign({ ...payload, sessionId }, SECRET, { expiresIn: '8h' });
+
+  await prisma.session.create({
     data: {
+      id: sessionId,
       userId: payload.userId,
-      token: crypto.randomBytes(20).toString('hex'), // Temporary unique token
-      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours
+      token,
+      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000),
     },
-  });
-
-  const token = jwt.sign({ ...payload, sessionId: session.id }, SECRET, { expiresIn: '8h' });
-
-  // Update session with the actual token
-  await prisma.session.update({
-    where: { id: session.id },
-    data: { token },
   });
 
   return token;

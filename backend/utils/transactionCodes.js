@@ -150,12 +150,9 @@ async function autoSeedTransactionCodes() {
               name: tc.name,
               incomeCategory: tc.incomeCategory,
               defaultValue: tc.defaultValue ?? null,
-              taxable: tc.taxable,
-              pensionable: tc.pensionable,
-              preTax: tc.preTax || false,
-              affectsPaye: tc.affectsPaye,
-              affectsNssa: tc.affectsNssa,
-              affectsAidsLevy: tc.affectsAidsLevy,
+              // Tax flags (taxable, affectsPaye, affectsNssa, affectsAidsLevy, preTax)
+              // are intentionally NOT updated so client customisations are preserved
+              // across deployments. Only structural/display fields are refreshed.
             },
             create: { ...tc, clientId: client.id },
           })

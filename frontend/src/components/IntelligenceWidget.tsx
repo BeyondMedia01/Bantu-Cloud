@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { IntelligenceAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
-import { AlertTriangle, ShieldAlert, Loader2 } from 'lucide-react';
+import { AlertTriangle, ShieldAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const IntelligenceWidget: React.FC = () => {
@@ -37,15 +37,7 @@ const IntelligenceWidget: React.FC = () => {
     return () => { mounted = false; };
   }, []); // [] is correct — company switches trigger a full page reload (window.location.reload)
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-6 bg-primary rounded-2xl border border-border">
-        <Loader2 className="animate-spin text-accent-blue" size={20} />
-      </div>
-    );
-  }
-
-  if (alerts.length === 0 && fraudFlags.length === 0) {
+  if (loading || (alerts.length === 0 && fraudFlags.length === 0)) {
     return null; // Return null if nothing to show to keep dashboard clean
   }
 

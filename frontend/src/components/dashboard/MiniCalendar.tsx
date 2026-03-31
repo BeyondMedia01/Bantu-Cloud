@@ -89,9 +89,9 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
                 aria-label={holidayName ?? undefined}
                 className={`cursor-pointer w-8 h-8 flex flex-col items-center justify-center rounded-xl text-xs font-bold transition-all
                   ${isSelected
-                    ? 'bg-navy text-white shadow-md transform scale-105'
+                    ? 'bg-accent-blue text-white shadow-md transform scale-105'
                     : isToday_
-                      ? 'border-2 border-accent-blue text-accent-blue hover:bg-slate-50'
+                      ? 'bg-accent-blue/10 border-2 border-accent-blue text-accent-blue'
                       : holidayName
                         ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
                         : 'text-slate-600 hover:bg-slate-100'}`}
