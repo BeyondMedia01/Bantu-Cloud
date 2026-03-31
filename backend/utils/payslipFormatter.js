@@ -33,6 +33,9 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
 
   // Add Statutory rows with YTD
   lines.push({ name: 'PAYE', allowance: 0, deduction: payslip.paye, employer: 0, ytd: ytdStat.paye });
+  if ((payslip.medicalAidCredit || 0) > 0) {
+    lines.push({ name: 'Medical Aid Credit', allowance: payslip.medicalAidCredit, deduction: 0, employer: 0, ytd: ytdStat.medicalAidCredit });
+  }
   lines.push({ name: 'AIDS Levy', allowance: 0, deduction: payslip.aidsLevy, employer: 0, ytd: ytdStat.aidsLevy });
   lines.push({ name: 'NSSA Employee', allowance: 0, deduction: payslip.nssaEmployee, employer: 0, ytd: ytdStat.nssaEmployee });
 

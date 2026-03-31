@@ -29,7 +29,7 @@ router.get('/payslips', requirePermission('view_reports'), async (req, res) => {
     });
 
     if (format === 'csv') {
-      const header = 'Employee Code,Name,Position,Gross,PAYE,AIDS Levy,NSSA,Net Pay,Currency\n';
+      const header = 'Employee Code,Name,Position,Gross,PAYE,Medical Aid Credit,AIDS Levy,NSSA,Net Pay,Currency\n';
       const rows = payslips.map((p) =>
         [
           p.employee.employeeCode || '',
@@ -37,6 +37,7 @@ router.get('/payslips', requirePermission('view_reports'), async (req, res) => {
           p.employee.position || '',
           p.gross.toFixed(2),
           p.paye.toFixed(2),
+          (p.medicalAidCredit || 0).toFixed(2),
           p.aidsLevy.toFixed(2),
           p.nssaEmployee.toFixed(2),
           p.netPay.toFixed(2),

@@ -22,6 +22,7 @@ function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions,
     sdfContribution: currentPayslip.sdfContribution || 0,
     wcifEmployer: currentPayslip.wcifEmployer || 0,
     necEmployer: currentPayslip.necEmployer || 0,
+    medicalAidCredit: currentPayslip.medicalAidCredit || 0,
   };
 
   // Add historical payslip totals
@@ -37,6 +38,7 @@ function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions,
     ytdStat.sdfContribution += ps.sdfContribution || 0;
     ytdStat.wcifEmployer += ps.wcifEmployer || 0;
     ytdStat.necEmployer += ps.necEmployer || 0;
+    ytdStat.medicalAidCredit += ps.medicalAidCredit || 0;
   });
 
   // Calculate YTD for each transaction code
