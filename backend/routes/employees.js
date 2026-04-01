@@ -85,8 +85,10 @@ const pickEmployeeFields = (body) => ({
   vehicleEngineCategory: body.vehicleEngineCategory || undefined,
   grossingUp:        body.grossingUp !== undefined ? Boolean(body.grossingUp) : undefined,
   // Leave balances
-  leaveBalance:      body.annualLeaveAccrued !== undefined && body.annualLeaveAccrued !== '' ? parseFloat(body.annualLeaveAccrued) : undefined,
   leaveTaken:        body.annualLeaveTaken !== undefined && body.annualLeaveTaken !== '' ? parseFloat(body.annualLeaveTaken) : undefined,
+  // Split salary
+  splitZigMode:      body.splitZigMode,
+  splitZigValue:     body.splitZigValue !== undefined && body.splitZigValue !== '' ? parseFloat(body.splitZigValue) : undefined,
 });
 
 // GET /api/employees
@@ -116,6 +118,7 @@ router.get('/', async (req, res) => {
           vehicleEngineCategory: true,
           grossingUp: true,
           leaveBalance: true, leaveTaken: true, leaveEntitlement: true,
+          splitUsdPercent: true, splitZigMode: true, splitZigValue: true,
           companyId: true, clientId: true, branchId: true, departmentId: true, gradeId: true,
           createdAt: true, updatedAt: true,
           branch: { select: { name: true } },
@@ -174,6 +177,7 @@ router.get('/', async (req, res) => {
           vehicleEngineCategory: true,
           grossingUp: true,
           leaveBalance: true, leaveTaken: true, leaveEntitlement: true,
+          splitUsdPercent: true, splitZigMode: true, splitZigValue: true,
           companyId: true, clientId: true, branchId: true, departmentId: true, gradeId: true,
           createdAt: true, updatedAt: true,
           branch: { select: { name: true } },

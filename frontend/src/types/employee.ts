@@ -54,6 +54,8 @@ export interface Employee {
   accountNumber?: string | null;
   necGradeId?: string | null;
   splitUsdPercent?: number | null;
+  splitZigMode?: 'NONE' | 'FIXED' | 'PERCENTAGE' | null;
+  splitZigValue?: number | null;
 
   // Tax
   taxMethod?: 'FDS_AVERAGE' | 'FDS_FORECASTING' | 'NON_FDS' | null;

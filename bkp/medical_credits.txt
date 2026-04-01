@@ -1,0 +1,2 @@
+Msg 207, Level 16, State 1, Server 5a29e5ef3ffd, Line 1
+Invalid column name 'MTCFromDate'.

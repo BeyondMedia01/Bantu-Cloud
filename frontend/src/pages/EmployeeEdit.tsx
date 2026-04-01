@@ -66,6 +66,7 @@ const EmployeeEdit: React.FC = () => {
     annualLeaveAccrued: '', annualLeaveTaken: '',
     // NEC / Split currency
     necGradeId: '', splitUsdPercent: '',
+    splitZigMode: 'NONE', splitZigValue: '',
     bankAccounts: [] as any[],
   });
   const [activeTab, setActiveTab] = useState<'PERSONAL' | 'WORK' | 'PAY' | 'TAX' | 'LEAVE' | 'DOCUMENTS' | 'AUDIT'>('PERSONAL');
@@ -159,6 +160,8 @@ const EmployeeEdit: React.FC = () => {
         annualLeaveTaken:   e.leaveTaken ?? '',
         necGradeId:         e.necGradeId || '',
         splitUsdPercent:    e.splitUsdPercent ?? '',
+        splitZigMode:       e.splitZigMode || 'NONE',
+        splitZigValue:      e.splitZigValue ?? '',
         bankAccounts:       e.bankAccounts?.length ? e.bankAccounts : [
           { accountName: '', accountNumber: '', bankName: '', bankBranch: '', branchCode: '', splitType: 'REMAINDER', splitValue: 0, priority: 0, currency: e.currency || 'USD' }
         ],
@@ -205,6 +208,8 @@ const EmployeeEdit: React.FC = () => {
         motorVehicleBenefit: form.motorVehicleBenefit ? parseFloat(form.motorVehicleBenefit) : undefined,
         necGradeId: form.necGradeId || null,
         splitUsdPercent: form.splitUsdPercent !== '' ? parseFloat(form.splitUsdPercent) : null,
+        splitZigMode: form.splitZigMode || 'NONE',
+        splitZigValue: form.splitZigValue !== '' ? parseFloat(form.splitZigValue) : null,
         bankAccounts: form.paymentMethod === 'BANK' ? form.bankAccounts : [],
       } as any);
       navigate('/employees');
@@ -552,6 +557,47 @@ const EmployeeEdit: React.FC = () => {
             <Field label="Days per Period">
               <input type="number" step="0.5" value={form.daysPerPeriod} onChange={set('daysPerPeriod')} />
             </Field>
+          </div>
+
+          {/* ZiG Basic Salary Splitting */}
+          <div className="bg-emerald-50/30 border border-emerald-100/50 p-6 rounded-2xl mb-8">
+            <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+              ZiG Basic Salary Splitting (ZIMRA Apportionment)
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">ZiG Portion Mode</label>
+                <select 
+                  value={form.splitZigMode} 
+                  onChange={set('splitZigMode')}
+                  className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                >
+                  <option value="NONE">None (100% USD)</option>
+                  <option value="PERCENTAGE">Percentage of USD Basic</option>
+                  <option value="FIXED">Fixed ZiG Amount</option>
+                </select>
+              </div>
+              {form.splitZigMode !== 'NONE' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                    {form.splitZigMode === 'PERCENTAGE' ? 'ZiG Portion (%)' : 'ZiG Amount'}
+                  </label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={form.splitZigValue} 
+                    onChange={set('splitZigValue')}
+                    className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-xl text-sm font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+              )}
+            </div>
+            <p className="mt-4 text-[10px] text-emerald-600/70 leading-relaxed font-medium">
+              {form.splitZigMode === 'PERCENTAGE' && "The ZiG basic will be calculated as a percentage of the USD base rate. The remainder stays as USD basic."}
+              {form.splitZigMode === 'FIXED' && "The ZiG basic is fixed. The USD basic will be the total USD base rate minus the USD-equivalent of this ZiG amount."}
+              {form.splitZigMode === 'NONE' && "The employee is paid entirely in the primary currency selected above."}
+            </p>
           </div>
 
           {form.paymentMethod === 'BANK' && (

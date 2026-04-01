@@ -19,12 +19,20 @@ const prisma = require('../lib/prisma');
 // accrualDate is optional — when provided (post-payroll trigger), uses the payroll run's month
 // instead of today's date. This allows processing future payrolls (e.g. running April payroll
 // in late March) and still accruing for the correct month.
+// When neither is provided (cron path), the most recent COMPLETED payroll run's endDate is
+// resolved per company so accrual always reflects actual payroll, not the server clock.
 async function runLeaveAccrual(companyId, accrualDate) {
-  const now = accrualDate ? new Date(accrualDate) : new Date();
-  const currentYear  = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-based
+  // accrualDate pinned at call time (post-payroll trigger); undefined = resolve per company below
+  const pinnedDate = accrualDate ? new Date(accrualDate) : null;
 
-  console.log(`[LeaveAccrual] Starting accrual run for ${currentYear}-${String(currentMonth).padStart(2, '0')}${companyId ? ` (company ${companyId})` : ''}`);
+  // Used only for the top-level log when a date is pinned
+  if (pinnedDate) {
+    const y = pinnedDate.getFullYear();
+    const m = pinnedDate.getMonth() + 1;
+    console.log(`[LeaveAccrual] Starting accrual run for ${y}-${String(m).padStart(2, '0')}${companyId ? ` (company ${companyId})` : ''}`);
+  } else {
+    console.log(`[LeaveAccrual] Starting accrual run (cron — date resolved per company)${companyId ? ` (company ${companyId})` : ''}`);
+  }
 
   let totalAccrued = 0;
   let totalSkipped = 0;
@@ -51,6 +59,27 @@ async function runLeaveAccrual(companyId, accrualDate) {
 
     for (const companyId of companyIds) {
       const companyPolicies = policies.filter((p) => p.companyId === companyId);
+
+      // Resolve effective accrual date for this company:
+      // - pinned date wins (post-payroll trigger)
+      // - otherwise use the most recent COMPLETED payroll run's endDate
+      // - fall back to system date only if no completed run exists
+      let now = pinnedDate;
+      if (!now) {
+        const latestRun = await prisma.payrollRun.findFirst({
+          where: { companyId, status: 'COMPLETED' },
+          orderBy: { endDate: 'desc' },
+          select: { endDate: true },
+        });
+        if (!latestRun) {
+          console.warn(`[LeaveAccrual] Company ${companyId} has no completed payroll run — skipping`);
+          continue;
+        }
+        now = new Date(latestRun.endDate);
+        console.log(`[LeaveAccrual] Company ${companyId} using accrual date: ${now.toISOString().slice(0, 10)} (from payroll run)`);
+      }
+      const currentYear  = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
 
       // Fetch all active employees for this company
       const employees = await prisma.employee.findMany({

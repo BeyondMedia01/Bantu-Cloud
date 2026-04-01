@@ -10,7 +10,7 @@ const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_
 const EMPTY_FORM = {
   leaveType: 'ANNUAL',
   accrualRate: '2.5',
-  maxAccumulation: '90',
+  maxAccumulation: '0',
   carryOverLimit: '30',
   encashable: true,
   encashCap: '0',

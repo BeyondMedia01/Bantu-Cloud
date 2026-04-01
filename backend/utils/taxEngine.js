@@ -176,8 +176,8 @@ function calculatePaye({
   // and produces identical results without ever reading band.fixed.
   let annualPaye = 0;
   for (const band of bands) {
-    if (taxBase <= band.lower) break;
-    const taxableInThisBand = Math.min(taxBase, band.upper) - band.lower;
+    if (taxBase <= (band.lower - 1)) break;
+    const taxableInThisBand = Math.min(taxBase, band.upper) - (band.lower - 1);
     annualPaye += taxableInThisBand * band.rate;
   }
 
@@ -265,4 +265,96 @@ function grossUpNet({ targetNet, currency = 'USD', maxIterations = 50, tolerance
   return best;
 }
 
-module.exports = { calculatePaye, grossUpNet, STATUTORY_RATES };
+/**
+ * Calculates PAYE for a split salary (USD + ZiG) using the ZIMRA apportionment method.
+ * 1. Consolidate: Convert all ZiG income components to USD using the exchange rate.
+ * 2. Calculate: Apply the USD tax table to the total USD-denominated gross.
+ * 3. Apportion: Split the resulting PAYE, AIDS Levy, and NSSA back into USD and ZiG
+ *    portions based on the ratio of the currency components in the original gross.
+ *
+ * This ensures the employee is taxed correctly according to their total earnings
+ * bracket while paying the appropriate amount in each respective currency.
+ */
+function calculateSplitSalaryPaye({
+  usdParams,      // calculatePaye params in USD
+  zigParams,      // calculatePaye params in ZiG
+  exchangeRate,   // Interbank rate (USD to ZiG)
+  taxBracketsUSD, // ZIMRA USD tax table
+  annualBrackets,
+  ...sharedParams // aidsLevyRate, nssaEmployeeRate, etc.
+}) {
+  const xr = (exchangeRate && exchangeRate > 0) ? exchangeRate : 1;
+  const consolidate = (u, z) => (u || 0) + (z || 0) / xr;
+
+  // consolidate all earnings/deductions into a single USD-denominated parameter set
+  const consolidated = {
+    ...sharedParams,
+    currency: 'USD',
+    taxBrackets: taxBracketsUSD,
+    annualBrackets,
+    baseSalary:          consolidate(usdParams.baseSalary, zigParams.baseSalary),
+    taxableBenefits:     consolidate(usdParams.taxableBenefits, zigParams.taxableBenefits),
+    motorVehicleBenefit: consolidate(usdParams.motorVehicleBenefit, zigParams.motorVehicleBenefit),
+    overtimeAmount:      consolidate(usdParams.overtimeAmount, zigParams.overtimeAmount),
+    bonus:               consolidate(usdParams.bonus, zigParams.bonus),
+    severanceAmount:     consolidate(usdParams.severanceAmount, zigParams.severanceAmount),
+    pensionContribution: consolidate(usdParams.pensionContribution, zigParams.pensionContribution),
+    medicalAid:          consolidate(usdParams.medicalAid, zigParams.medicalAid),
+    taxCredits:          consolidate(usdParams.taxCredits, zigParams.taxCredits),
+    nssaExcludedEarnings: consolidate(usdParams.nssaExcludedEarnings, zigParams.nssaExcludedEarnings),
+    payeExcludedEarnings: consolidate(usdParams.payeExcludedEarnings, zigParams.payeExcludedEarnings),
+    loanBenefit:         consolidate(usdParams.loanBenefit, zigParams.loanBenefit),
+    fdsAveragePAYEBasis: usdParams.fdsAveragePAYEBasis ? consolidate(usdParams.fdsAveragePAYEBasis, zigParams.fdsAveragePAYEBasis) : null,
+    // Statutory thresholds remain in USD for the consolidated calculation
+    bonusExemption:      usdParams.bonusExemption || 0,
+    severanceExemption:  usdParams.severanceExemption || 0,
+    nssaCeiling:         usdParams.nssaCeiling || 700,
+    pensionCap:          usdParams.pensionCap,
+  };
+
+  const totalResult = calculatePaye(consolidated);
+
+  /**
+   * Determine the USD share based on Cash Earnings (base + overtime + bonus + severance)
+   * which form the basis for PAYE and NSSA.
+   */
+  const cashUSD = (usdParams.baseSalary || 0) + (usdParams.overtimeAmount || 0) + (usdParams.bonus || 0) + (usdParams.severanceAmount || 0);
+  const totalCashUSD = consolidated.baseSalary + consolidated.overtimeAmount + consolidated.bonus + consolidated.severanceAmount;
+  
+  const usdRatio = totalCashUSD > 0 ? (cashUSD / totalCashUSD) : 1;
+
+  // Apportionment helpers
+  const apportionUSD = (val) => r2(val * usdRatio);
+  const apportionZIG = (val) => r2(val * (1 - usdRatio) * xr);
+
+  return {
+    totalResult,
+    usdRatio,
+    usd: {
+      gross:            apportionUSD(totalResult.grossSalary),
+      paye:             apportionUSD(totalResult.payeBeforeLevy),
+      aidsLevy:         apportionUSD(totalResult.aidsLevy),
+      nssaEmployee:     apportionUSD(totalResult.nssaEmployee),
+      nssaEmployer:     apportionUSD(totalResult.nssaEmployer),
+      pensionApplied:   apportionUSD(totalResult.pensionApplied),
+      netSalary:        apportionUSD(totalResult.netSalary),
+      totalPaye:        apportionUSD(totalResult.totalPaye),
+      exemptBonus:      apportionUSD(totalResult.exemptBonus),
+      medicalAidCredit: apportionUSD(totalResult.medicalAidCredit),
+    },
+    zig: {
+      gross:            apportionZIG(totalResult.grossSalary),
+      paye:             apportionZIG(totalResult.payeBeforeLevy),
+      aidsLevy:         apportionZIG(totalResult.aidsLevy),
+      nssaEmployee:     apportionZIG(totalResult.nssaEmployee),
+      nssaEmployer:     apportionZIG(totalResult.nssaEmployer),
+      pensionApplied:   apportionZIG(totalResult.pensionApplied),
+      netSalary:        apportionZIG(totalResult.netSalary),
+      totalPaye:        apportionZIG(totalResult.totalPaye),
+      exemptBonus:      apportionZIG(totalResult.exemptBonus),
+      medicalAidCredit: apportionZIG(totalResult.medicalAidCredit),
+    }
+  };
+}
+
+module.exports = { calculatePaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES };

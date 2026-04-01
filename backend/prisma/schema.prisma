@@ -132,6 +132,12 @@ enum DataType {
   DATE
 }
 
+enum SplitZigMode {
+  NONE
+  FIXED
+  PERCENTAGE
+}
+
 // ─── Auth & Tenancy ───────────────────────────────────────────────────────────
 
 model User {
@@ -337,6 +343,9 @@ model Employee {
   grossingUp            Boolean               @default(false)
   // Split currency (e.g. 60 = receive 60% of net pay in USD, remainder in ZiG)
   splitUsdPercent  Float?
+  // Basic salary split (e.g. fixed amount of ZiG or percentage of USD basic)
+  splitZigMode     SplitZigMode   @default(NONE)
+  splitZigValue    Float?
   // NEC grade linkage (used when rateSource = NEC_GRADE)
   necGradeId       String?
   // Balances
@@ -868,7 +877,7 @@ model LeavePolicy {
   companyId       String
   leaveType       String    // ANNUAL | SICK | MATERNITY | PATERNITY | UNPAID | etc.
   accrualRate     Float     @default(2.5)   // days accrued per month
-  maxAccumulation Float     @default(90)    // maximum days an employee can hold
+  maxAccumulation Float     @default(0)     // maximum days an employee can hold (0 = unlimited)
   carryOverLimit  Float     @default(30)    // max days to roll into next year (0 = forfeit all)
   encashable      Boolean   @default(true)  // whether unused days can be encashed
   encashCap       Float     @default(0)     // max days encashable per year (0 = unlimited)

@@ -109,6 +109,9 @@ const schema = z.object({
   // Leave
   annualLeaveAccrued: z.coerce.number().min(0).optional(),
   annualLeaveTaken: z.coerce.number().min(0).optional(),
+  // Split basic salary
+  splitZigMode: z.enum(['NONE', 'FIXED', 'PERCENTAGE']),
+  splitZigValue: z.coerce.number().optional(),
 }).superRefine((data, ctx) => {
   if (data.nationality === 'Zimbabwean' && !data.nationalId) {
     ctx.addIssue({ code: 'custom', message: 'Required for Zimbabwean nationals', path: ['nationalId'] });
@@ -201,6 +204,8 @@ const EmployeeNew: React.FC = () => {
       paymentMethod: 'BANK', paymentBasis: 'MONTHLY', rateSource: 'MANUAL',
       currency: 'USD', taxMethod: 'NON_FDS', taxTable: '', accumulativeSetting: 'NO',
       bankAccounts: [{ accountName: '', accountNumber: '', bankName: '', bankBranch: '', branchCode: '', splitType: 'REMAINDER', splitValue: 0, priority: 0, currency: 'USD' }],
+      splitZigMode: 'NONE',
+      splitZigValue: 0,
     },
   });
 
@@ -525,6 +530,38 @@ const EmployeeNew: React.FC = () => {
                 <FF name="daysPerPeriod" label="Days per Period" form={form}>
                   {(field) => <Input {...field} type="number" step="0.5" placeholder="e.g. 22" />}
                 </FF>
+              </div>
+
+              {/* ZiG Basic Salary Splitting */}
+              <div className="bg-emerald-50/30 border border-emerald-100/50 p-6 rounded-2xl mb-6">
+                <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                  ZiG Basic Salary Splitting (ZIMRA Apportionment)
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <FF name="splitZigMode" label="ZiG Portion Mode" form={form}>
+                    {(field) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="bg-white border-emerald-100"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="NONE">None (100% USD)</SelectItem>
+                          <SelectItem value="PERCENTAGE">Percentage of USD Basic</SelectItem>
+                          <SelectItem value="FIXED">Fixed ZiG Amount</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </FF>
+                  {form.watch('splitZigMode') !== 'NONE' && (
+                    <FF name="splitZigValue" label={form.watch('splitZigMode') === 'PERCENTAGE' ? 'ZiG Portion (%)' : 'ZiG Amount'} form={form} required>
+                      {(field) => <Input {...field} type="number" step="0.01" className="bg-white border-emerald-100 font-bold text-emerald-700" />}
+                    </FF>
+                  )}
+                </div>
+                <p className="mt-4 text-[10px] text-emerald-600/70 leading-relaxed font-medium">
+                  {form.watch('splitZigMode') === 'PERCENTAGE' && "The ZiG basic will be calculated as a percentage of the USD base rate. The remainder stays as USD basic."}
+                  {form.watch('splitZigMode') === 'FIXED' && "The ZiG basic is fixed. The USD basic will be the total USD base rate minus the USD-equivalent of this ZiG amount."}
+                  {form.watch('splitZigMode') === 'NONE' && "The employee is paid entirely in the primary currency selected above."}
+                </p>
               </div>
 
               {paymentMethod === 'BANK' && (

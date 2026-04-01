@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
-const { calculatePaye, grossUpNet } = require('../../utils/taxEngine');
+const { calculatePaye, calculateSplitSalaryPaye, grossUpNet } = require('../../utils/taxEngine');
 const { generatePayrollSummaryPDF, generatePayslipSummaryPDF, generatePayslipSummaryBuffer } = require('../../utils/pdfService');
 const { getSettings } = require('../../lib/systemSettings');
 const { audit } = require('../../lib/audit');
@@ -911,67 +911,83 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       let taxResult, taxResultUSD, taxResultZIG;
 
       if (run.dualCurrency) {
-        const baseUSD = emp.currency === 'USD' ? effectiveBaseSalary : effectiveBaseSalary / xr;
-        const baseZIG = emp.currency === 'ZiG' ? effectiveBaseSalary : effectiveBaseSalary * xr;
+        let baseUSD = 0, baseZIG = 0;
+        const totalBasicUSD = emp.currency === 'USD' ? effectiveBaseSalary : effectiveBaseSalary / xr;
 
-        // Motor vehicle benefit is denominated in the employee's primary currency.
-        // Route it to the matching currency side; the other side gets zero.
+        if (emp.splitZigMode === 'PERCENTAGE' && (emp.splitZigValue || 0) > 0) {
+          const splitPerc = Math.min(100, Math.max(0, emp.splitZigValue));
+          baseUSD = totalBasicUSD * (1 - splitPerc / 100);
+          baseZIG = totalBasicUSD * (splitPerc / 100) * xr;
+        } else if (emp.splitZigMode === 'FIXED' && (emp.splitZigValue || 0) > 0) {
+          baseZIG = emp.splitZigValue;
+          baseUSD = Math.max(0, totalBasicUSD - (baseZIG / xr));
+        } else {
+          // Fallback/NONE: Use the employee's primary currency only to avoid doubling the consolidated gross
+          if (emp.currency === 'ZiG') {
+            baseZIG = effectiveBaseSalary;
+            baseUSD = 0;
+          } else {
+            baseUSD = effectiveBaseSalary;
+            baseZIG = 0;
+          }
+        }
+
         const resolvedMV   = resolveVehicleBenefit(emp, run.currency);
         const mvBenefitUSD = emp.currency !== 'ZiG' ? resolvedMV : 0;
         const mvBenefitZIG = emp.currency === 'ZiG' ? resolvedMV : 0;
 
-        taxResultUSD = calculatePaye({
-          baseSalary: baseUSD, currency: 'USD',
-          taxableBenefits: adj.taxableBenefits || 0,
-          motorVehicleBenefit: mvBenefitUSD,
-          overtimeAmount: (adj.overtimeAmount || 0) + inputEarningsUSD,
-          bonus: adj.bonus || 0, bonusExemption: remBonusExUSD,
-          severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevExUSD,
-          pensionContribution: (adj.pensionContribution || 0) + inputPensionUSD,
-          pensionCap: pensionCapUSD > 0 ? pensionCapUSD : null,
-          medicalAid: (adj.medicalAid || 0) + inputMedicalAidUSD,
-          // Elderly credit replaces (not adds to) emp.taxCredits — ZIMRA grants one credit type per employee.
-          taxCredits: elderlyCreditUSD_val > 0 ? elderlyCreditUSD_val : (emp.taxCredits || 0),
-          wcifRate, sdfRate,
-          taxBrackets: taxBracketsUSD,
-          // FDS_FORECASTING: always annualise regardless of tax-table isAnnual flag
+        const splitResult = calculateSplitSalaryPaye({
+          usdParams: {
+            baseSalary: baseUSD,
+            taxableBenefits: adj.taxableBenefits || 0,
+            motorVehicleBenefit: mvBenefitUSD,
+            overtimeAmount: (adj.overtimeAmount || 0) + inputEarningsUSD,
+            bonus: adj.bonus || 0, bonusExemption: remBonusExUSD,
+            severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevExUSD,
+            pensionContribution: (adj.pensionContribution || 0) + inputPensionUSD,
+            pensionCap: pensionCapUSD > 0 ? pensionCapUSD : null,
+            medicalAid: (adj.medicalAid || 0) + inputMedicalAidUSD,
+            taxCredits: elderlyCreditUSD_val > 0 ? elderlyCreditUSD_val : (emp.taxCredits || 0),
+            nssaCeiling: nssaCeilingUSD,
+            nssaExcludedEarnings: inputNssaExcludedUSD,
+            payeExcludedEarnings: inputPayeExcludedUSD,
+            loanBenefit: totalLoanBenefitUSD,
+            fdsAveragePAYEBasis: fdsAvgPAYEBasis,
+          },
+          zigParams: {
+            baseSalary: baseZIG,
+            taxableBenefits: 0, // already in USD side for consolidation
+            motorVehicleBenefit: mvBenefitZIG,
+            overtimeAmount: inputEarningsZIG,
+            bonus: 0, bonusExemption: remBonusExZIG,
+            severanceAmount: 0, severanceExemption: remSevExZIG,
+            pensionContribution: inputPensionZIG,
+            pensionCap: pensionCapZIG > 0 ? pensionCapZIG : null,
+            medicalAid: inputMedicalAidZIG,
+            taxCredits: elderlyCreditZIG_val > 0 ? elderlyCreditZIG_val : (emp.taxCredits || 0),
+            nssaCeiling: nssaCeilingZIG,
+            nssaExcludedEarnings: inputNssaExcludedZIG,
+            payeExcludedEarnings: inputPayeExcludedZIG,
+            loanBenefit: totalLoanBenefitZIG,
+            fdsAveragePAYEBasis: null,
+          },
+          exchangeRate: xr,
+          taxBracketsUSD: taxBracketsUSD,
           annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
-          nssaCeiling: nssaCeilingUSD,
+          wcifRate,
+          sdfRate,
+          zimdefRate,
+          aidsLevyRate,
+          medicalAidCreditRate,
           nssaEmployeeRate: effectiveNssaEmpRate,
           nssaEmployerRate: effectiveNssaEmprRate,
-          nssaExcludedEarnings: inputNssaExcludedUSD,
-          payeExcludedEarnings: inputPayeExcludedUSD,
           taxDirectivePerc: effectiveTaxDirectivePerc,
           taxDirectiveAmt: effectiveTaxDirectiveAmt,
-          aidsLevyRate, medicalAidCreditRate,
-          loanBenefit: totalLoanBenefitUSD,
-          fdsAveragePAYEBasis: fdsAvgPAYEBasis,
-          zimdefRate,
         });
 
-        taxResultZIG = calculatePaye({
-          baseSalary: baseZIG, currency: 'ZiG',
-          taxableBenefits: 0, motorVehicleBenefit: mvBenefitZIG,
-          overtimeAmount: inputEarningsZIG,
-          bonus: 0, bonusExemption: remBonusExZIG,
-          severanceAmount: 0, severanceExemption: remSevExZIG,
-          pensionContribution: inputPensionZIG,
-          pensionCap: pensionCapZIG > 0 ? pensionCapZIG : null,
-          medicalAid: inputMedicalAidZIG, taxCredits: elderlyCreditZIG_val > 0 ? elderlyCreditZIG_val : (emp.taxCredits || 0),
-          wcifRate: 0, sdfRate: 0,
-          taxBrackets: taxBracketsZIG, annualBrackets: annualBracketsZIG, nssaCeiling: nssaCeilingZIG,
-          nssaEmployeeRate: effectiveNssaEmpRate,
-          nssaEmployerRate: effectiveNssaEmprRate,
-          nssaExcludedEarnings: inputNssaExcludedZIG,
-          payeExcludedEarnings: inputPayeExcludedZIG,
-          taxDirectivePerc: effectiveTaxDirectivePerc,
-          taxDirectiveAmt: effectiveTaxDirectiveAmt,
-          aidsLevyRate, medicalAidCreditRate,
-          loanBenefit: totalLoanBenefitZIG,
-          zimdefRate,
-        });
-
-        taxResult = taxResultUSD;
+        taxResultUSD = splitResult.usd;
+        taxResultZIG = splitResult.zig;
+        taxResult    = splitResult.totalResult;
       } else {
         taxResult = calculatePaye({
           baseSalary: effectiveBaseSalary, currency: run.currency,

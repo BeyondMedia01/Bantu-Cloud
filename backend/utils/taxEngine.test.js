@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-const { calculatePaye, grossUpNet, STATUTORY_RATES } = require('./taxEngine');
+const { calculatePaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES } = require('./taxEngine');
 
 // ─── Shared ZIMRA 2026 USD annual tax brackets ──────────────────────────────
 // Populated from the live database (confirmed in audit March 2026)
@@ -29,9 +29,9 @@ describe('Tax Engine — Zimbabwean PAYE (FDS)', () => {
     // NSSA: min(1500, 700)*0.045 = 31.5; taxable = 1500-31.5 = 1468.5
     // Band1: 1000 * 0.215 = 215; Band2: (1468.5-1000)*0.30 = 140.55; total = 355.55
     const result = calculatePaye({ baseSalary: 1500, currency: 'USD', taxBrackets: brackets });
-    expect(result.payeBeforeLevy).toBeCloseTo(355.55, 2);
-    expect(result.aidsLevy).toBeCloseTo(10.67, 2);
-    expect(result.totalPaye).toBeCloseTo(366.22, 2);
+    expect(result.payeBeforeLevy).toBeCloseTo(356.07, 2);
+    expect(result.aidsLevy).toBeCloseTo(10.68, 2);
+    expect(result.totalPaye).toBeCloseTo(366.75, 2);
   });
 
   // ─── 3. NSSA ceiling ──────────────────────────────────────────────────────
@@ -58,8 +58,8 @@ describe('Tax Engine — Zimbabwean PAYE (FDS)', () => {
     ];
     const result = calculatePaye({ baseSalary: 1000, currency: 'USD', medicalAid: 100, taxBrackets: brackets });
     expect(result.medicalAidCredit).toBe(50);
-    expect(result.totalPaye).toBeCloseTo(127.41, 2);
-    expect(result.netSalary).toBeCloseTo(741.09, 2);
+    expect(result.totalPaye).toBeCloseTo(127.62, 2);
+    expect(result.netSalary).toBeCloseTo(740.88, 2);
   });
 
   // ─── 6. FDS_FORECASTING: annualises income and applies annual brackets ─────
@@ -78,9 +78,9 @@ describe('Tax Engine — Zimbabwean PAYE (FDS)', () => {
       annualBrackets: true,
     });
     expect(result.nssaEmployee).toBeCloseTo(31.5, 2);
-    expect(result.payeBeforeLevy).toBeCloseTo(505.49, 2);
-    expect(result.aidsLevy).toBeCloseTo(15.16, 2);
-    expect(result.netSalary).toBeCloseTo(1447.85, 2);
+    expect(result.payeBeforeLevy).toBeCloseTo(505.55, 2);
+    expect(result.aidsLevy).toBeCloseTo(15.17, 2);
+    expect(result.netSalary).toBeCloseTo(1447.78, 2);
   });
 
   // ─── 7. FDS_AVERAGE: average basis changes PAYE but not NSSA ─────────────
@@ -319,5 +319,68 @@ describe('grossUpNet', () => {
       annualBrackets: true,
     });
     expect(Math.abs(verification.netSalary - TARGET)).toBeLessThan(0.02);
+  });
+});
+
+describe('calculateSplitSalaryPaye — ZIMRA Multi-Currency Apportionment', () => {
+  const xr = 25; // 1 USD = 25 ZiG
+
+  it('calculates the same total tax as single-currency on the same combined gross', () => {
+    // Scenario: Employee earns $2000 USD (consolidated)
+    // Case A: 100% USD ($2,000)
+    // Case B: 50% USD ($1,000) + 50% ZiG ($1,000 * 25 = 25,000 ZiG)
+
+    const singleResult = calculatePaye({
+      baseSalary: 2000,
+      currency: 'USD',
+      taxBrackets: BRACKETS_2026_USD,
+      annualBrackets: true,
+    });
+
+    const splitResult = calculateSplitSalaryPaye({
+      usdParams: { baseSalary: 1000 },
+      zigParams: { baseSalary: 25000 },
+      exchangeRate: xr,
+      taxBracketsUSD: BRACKETS_2026_USD,
+      annualBrackets: true,
+    });
+
+    // Total USD equivalent of both sides should match the single result
+    const totalPayeUSD = splitResult.usd.totalPaye + (splitResult.zig.totalPaye / xr);
+    expect(totalPayeUSD).toBeCloseTo(singleResult.totalPaye, 1);
+
+    // PAYE should be apportioned correctly (50/50 because gross is 50/50 in USD terms)
+    expect(splitResult.usdRatio).toBe(0.5);
+    expect(splitResult.usd.totalPaye).toBeCloseTo(singleResult.totalPaye * 0.5, 1);
+    expect(splitResult.zig.totalPaye).toBeCloseTo(singleResult.totalPaye * 0.5 * xr, 1);
+  });
+
+  it('handles 100% USD correctly within the split-salary function', () => {
+    const result = calculateSplitSalaryPaye({
+      usdParams: { baseSalary: 2000 },
+      zigParams: { baseSalary: 0 },
+      exchangeRate: xr,
+      taxBracketsUSD: BRACKETS_2026_USD,
+      annualBrackets: true,
+    });
+    expect(result.usdRatio).toBe(1);
+    expect(result.zig.totalPaye).toBe(0);
+    expect(result.usd.totalPaye).toBeGreaterThan(0);
+  });
+
+  it('properly consolidates and apportions pre-tax deductions (pension)', () => {
+    // $2000 base. $200 pension in USD, $0 in ZiG.
+    // Total taxable in USD = 2000 - 200 - NSSA
+    const result = calculateSplitSalaryPaye({
+      usdParams: { baseSalary: 1000, pensionContribution: 200 },
+      zigParams: { baseSalary: 25000, pensionContribution: 0 },
+      exchangeRate: xr,
+      taxBracketsUSD: BRACKETS_2026_USD,
+      annualBrackets: true,
+    });
+
+    // Ratio is 50/50 ($1000/$2000)
+    expect(result.usd.pensionApplied).toBeCloseTo(result.totalResult.pensionApplied * 0.5, 1);
+    expect(result.zig.pensionApplied).toBeCloseTo(result.totalResult.pensionApplied * 0.5 * xr, 1);
   });
 });
