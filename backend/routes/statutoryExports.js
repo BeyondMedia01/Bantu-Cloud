@@ -81,10 +81,12 @@ router.get('/zimra-paye/:runId', requirePermission('export_reports'), async (req
     ].join(',');
 
     const rows = payslips.map((p) => {
-      const gross = (run.dualCurrency ? (p.grossUSD ?? p.gross) : p.gross) ?? 0;
-      const paye = (run.dualCurrency ? (p.payeUSD ?? p.paye) : p.paye) ?? 0;
-      const aidsLevy = (run.dualCurrency ? (p.aidsLevyUSD ?? p.aidsLevy) : p.aidsLevy) ?? 0;
-      const nssa = (run.dualCurrency ? (p.nssaUSD ?? p.nssaEmployee) : p.nssaEmployee) ?? 0;
+      // For apportionment-method dual-currency runs, payslip.gross/paye/aidsLevy already hold the
+      // consolidated USD-equivalent totals — use them directly for all run types.
+      const gross = p.gross ?? 0;
+      const paye = p.paye ?? 0;
+      const aidsLevy = p.aidsLevy ?? 0;
+      const nssa = p.nssaEmployee ?? 0;
       // AllowableDeductions = NSSA + pension (ZIMRA P2 spec: both are pre-tax deductions)
       const pension = p.pensionApplied ?? 0;
       const allowableDeductions = nssa + pension;
@@ -174,13 +176,14 @@ router.get('/nssa/:runId', requirePermission('export_reports'), async (req, res)
     ].join(',');
 
     const rows = payslips.map((p) => {
-      const nssaEmp  = (run.dualCurrency ? (p.nssaUSD ?? p.nssaEmployee) : p.nssaEmployee) ?? 0;
+      // Consolidated USD-equivalent totals — correct for both single and dual-currency runs.
+      const nssaEmp  = p.nssaEmployee ?? 0;
       const nssaEmpr = p.nssaEmployer ?? nssaEmp; // stored employer contribution; fallback to employee amount
       const total = (nssaEmp + nssaEmpr).toFixed(2);
 
       // Pensionable earnings: use stored nssaBasis (ceiling-capped base used at processing time).
       // Avoids fragility of back-calculating from contribution when the rate changes between runs.
-      const gross = (run.dualCurrency ? (p.grossUSD ?? p.gross) : p.gross) ?? 0;
+      const gross = p.gross ?? 0;
       const pensionable = (p.nssaBasis != null && p.nssaBasis > 0)
         ? p.nssaBasis.toFixed(2)
         : gross.toFixed(2);
