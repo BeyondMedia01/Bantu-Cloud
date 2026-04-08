@@ -248,11 +248,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         message: `No active ${run.currency} tax table found. Configure and activate a tax table under Tax Configuration before processing payroll.`,
       });
     }
-    if (run.dualCurrency && taxBracketsZIG.length === 0) {
-      return res.status(422).json({
-        message: 'No active ZiG tax table found for this dual-currency run. Configure and activate a ZiG tax table under Tax Configuration.',
-      });
-    }
+    // Apportionment method: dual-currency runs consolidate all earnings into USD first,
+    // so only the USD tax table is required. No separate ZiG table is needed.
 
     // Load all payroll settings in a single DB query — no hardcoded fallbacks.
     // Values are seeded by autoSeedSystemSettings() on server start.
@@ -1042,8 +1039,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         netPayUSD = netUSD;
         netPayZIG = netZIG;
         dualFields = {
-          grossUSD: taxResultUSD.grossSalary, grossZIG: taxResultZIG.grossSalary,
-          payeUSD: taxResultUSD.payeBeforeLevy, payeZIG: taxResultZIG.payeBeforeLevy,
+          grossUSD: taxResultUSD.gross, grossZIG: taxResultZIG.gross,
+          payeUSD: taxResultUSD.paye, payeZIG: taxResultZIG.paye,
           aidsLevyUSD: taxResultUSD.aidsLevy, aidsLevyZIG: taxResultZIG.aidsLevy,
           nssaUSD: taxResultUSD.nssaEmployee, nssaZIG: taxResultZIG.nssaEmployee,
         };
