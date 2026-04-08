@@ -179,6 +179,12 @@ router.get('/nssa-p4a', requirePermission('export_reports'), async (req, res) =>
 
     const company = payslips[0].payrollRun.company;
 
+    if (!company?.nssaNumber) {
+      return res.status(422).json({
+        message: 'NSSA employer registration number is required for P4A export. Configure it under Company Settings.',
+      });
+    }
+
     // Group totals by currency
     const byCurrency = payslips.reduce((acc, ps) => {
       const curr = ps.currency || 'USD';
@@ -199,7 +205,7 @@ router.get('/nssa-p4a', requirePermission('export_reports'), async (req, res) =>
     res.setHeader('Content-Disposition', `attachment; filename=NSSA-P4A-${month}-${year}-${selectedCurrency}.pdf`);
     return generateNSSA_P4A({
       companyName: company.name,
-      nssaNumber: company.nssaNumber || 'N/A',
+      nssaNumber: company.nssaNumber,
       month,
       year,
       totalInsurableEarnings: totals.totalInsurableEarnings,

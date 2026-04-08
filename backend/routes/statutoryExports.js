@@ -135,8 +135,14 @@ router.get('/nssa/:runId', requirePermission('export_reports'), async (req, res)
     // Fetch company to get employer NSSA registration number (stored in registrationNumber or taxId)
     const company = await prisma.company.findUnique({
       where: { id: req.companyId },
-      select: { name: true, registrationNumber: true, taxId: true },
+      select: { name: true, registrationNumber: true, taxId: true, nssaNumber: true },
     });
+
+    if (!company?.nssaNumber) {
+      return res.status(422).json({
+        message: 'NSSA employer registration number is required for NSSA CSV export. Configure it under Company Settings.',
+      });
+    }
 
     const payslips = await prisma.payslip.findMany({
       where: { payrollRunId: req.params.runId },
@@ -158,7 +164,7 @@ router.get('/nssa/:runId', requirePermission('export_reports'), async (req, res)
     const period = run.startDate ? new Date(run.startDate) : new Date();
     const month = String(run.payrollCalendar?.month || (period.getMonth() + 1)).padStart(2, '0');
     const year = run.payrollCalendar?.year || period.getFullYear();
-    const employerCode = company?.registrationNumber || '';
+    const employerCode = company.nssaNumber;
 
     // NSSA CSV header — matches NSSA bulk upload template
     const header = [
