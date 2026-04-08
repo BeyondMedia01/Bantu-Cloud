@@ -82,7 +82,9 @@ async function calculateBackPay({ companyId, effectiveDate, employeeIds, employe
   }
 
   const rateMap = await buildRateMap(employeeIds, companyId, employeeRates, uniformNewRate);
-  const taxBrackets = await getTaxBrackets(companyId, currency);
+  // Always fetch USD brackets: back-pay tax estimates use the USD apportionment basis
+  // regardless of whether individual employees are ZiG-denominated.
+  const taxBrackets = await getTaxBrackets(companyId, 'USD');
 
   const runIds = runs.map((r) => r.id);
   const payslips = await prisma.payslip.findMany({
@@ -135,9 +137,10 @@ async function calculateBackPay({ companyId, effectiveDate, employeeIds, employe
       });
     }
 
+    // Estimate uses USD as the apportionment basis — convert ZiG employees to USD-equivalent.
     const taxResult =
       empGross > 0
-        ? calculatePaye({ baseSalary: empGross, currency: emp.currency || currency, taxBrackets })
+        ? calculatePaye({ baseSalary: empGross, currency: 'USD', taxBrackets })
         : { totalPaye: 0, nssaEmployee: 0, netSalary: empGross };
 
     totalGross += empGross;

@@ -230,7 +230,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     let taxBracketsZIG = [];
     let annualBracketsZIG = false;
-    if (run.dualCurrency || run.currency === 'ZiG') {
+    if (run.currency === 'ZiG') {  // dualCurrency runs consolidate into USD — ZiG table not needed
       const taxTableZIG = await fetchTaxTable(run.company.clientId, 'ZiG', run.startDate);
       taxBracketsZIG = taxTableZIG?.brackets ?? [];
       annualBracketsZIG = taxBracketsZIG.length > 0 && (taxTableZIG?.isAnnual ?? true);
