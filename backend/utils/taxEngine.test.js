@@ -384,3 +384,32 @@ describe('calculateSplitSalaryPaye — ZIMRA Multi-Currency Apportionment', () =
     expect(result.zig.pensionApplied).toBeCloseTo(result.totalResult.pensionApplied * 0.5 * xr, 1);
   });
 });
+
+describe('ITF16 CSV format', () => {
+  it('formats a row correctly', () => {
+    const fmt2 = (n) => Number(n || 0).toFixed(2);
+    const row = {
+      tin: 'TIN123', idPassport: 'ID456',
+      totalBasicSalary: 1000, totalBonus: 700, totalGratuity: 0,
+      totalAllowances: 200, totalOvertime: 50, totalCommission: 0, totalBenefits: 100,
+      pensionContributions: 45, totalNssa: 31.50, totalPaye: 150, totalAidsLevy: 4.50,
+      totalGross: 2050,
+    };
+    const lastName = 'Doe';
+    const firstName = 'John';
+    const name = `"${lastName}, ${firstName}"`;
+    const fields = [
+      row.tin, row.idPassport, name,
+      fmt2(row.totalGross),
+      fmt2(row.totalBasicSalary), fmt2(row.totalBonus),
+      fmt2(row.totalGratuity), fmt2(row.totalAllowances),
+      fmt2(row.totalOvertime), fmt2(row.totalCommission), fmt2(row.totalBenefits),
+      fmt2(row.pensionContributions), fmt2(row.totalNssa),
+      fmt2(row.totalPaye), fmt2(row.totalAidsLevy),
+      fmt2(row.totalPaye + row.totalAidsLevy),
+    ];
+    expect(fields.join(',')).toBe(
+      'TIN123,ID456,"Doe, John",2050.00,1000.00,700.00,0.00,200.00,50.00,0.00,100.00,45.00,31.50,150.00,4.50,154.50'
+    );
+  });
+});

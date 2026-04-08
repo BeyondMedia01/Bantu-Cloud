@@ -138,6 +138,135 @@ router.get('/tax', requirePermission('export_reports'), async (req, res) => {
   }
 });
 
+// ─── ITF16 Annual Electronic Return (CSV) ────────────────────────────────────
+// GET /api/reports/itf16?year=2025
+// ZIMRA e-Tax bulk upload format — one row per employee, annual income categories.
+
+router.get('/itf16', requirePermission('export_reports'), async (req, res) => {
+  const { year } = req.query;
+  const companyId = req.companyId;
+  if (!companyId || !year) {
+    return res.status(400).json({ message: 'year is required' });
+  }
+
+  try {
+    // Gate: TIN + BP Number required (same as P2)
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { name: true, taxId: true, registrationNumber: true },
+    });
+    if (!company?.taxId) {
+      return res.status(422).json({ message: 'Company TIN (taxId) is required for ITF16 export. Configure it under Company Settings.' });
+    }
+    if (!company?.registrationNumber) {
+      return res.status(422).json({ message: 'Company BP Number (registrationNumber) is required for ITF16 export. Configure it under Company Settings.' });
+    }
+
+    const payslips = await prisma.payslip.findMany({
+      where: { payrollRun: yearPeriodFilter(companyId, year) },
+      include: {
+        employee: {
+          select: {
+            employeeCode: true, firstName: true, lastName: true,
+            tin: true, nationalId: true, passportNumber: true,
+          },
+        },
+      },
+    });
+
+    if (payslips.length === 0) {
+      return res.status(404).json({ message: 'No completed payroll data for this year' });
+    }
+
+    // Aggregate statutory totals per employee
+    const byEmployee = {};
+    for (const ps of payslips) {
+      const key = ps.employeeId;
+      if (!byEmployee[key]) {
+        byEmployee[key] = {
+          employee: ps.employee,
+          totalGross: 0, totalBasicSalary: 0, totalBonus: 0, totalGratuity: 0,
+          totalAllowances: 0, totalOvertime: 0, totalCommission: 0, totalBenefits: 0,
+          pensionContributions: 0, totalNssa: 0, totalPaye: 0, totalAidsLevy: 0, totalNet: 0,
+        };
+      }
+      const e = byEmployee[key];
+      e.totalGross           += ps.gross        || 0;
+      e.totalPaye            += ps.paye         || 0;
+      e.totalAidsLevy        += ps.aidsLevy     || 0;
+      e.totalNssa            += ps.nssaEmployee || 0;
+      e.pensionContributions += ps.pensionApplied || 0;
+      e.totalNet             += ps.netPay       || 0;
+    }
+
+    // Categorise earnings from transactions
+    const runIds = [...new Set(payslips.map(p => p.payrollRunId))];
+    const employeeIds = Object.keys(byEmployee);
+    const transactions = await prisma.payrollTransaction.findMany({
+      where: { payrollRunId: { in: runIds }, employeeId: { in: employeeIds } },
+      select: {
+        employeeId: true, amount: true,
+        transactionCode: { select: { type: true, incomeCategory: true, code: true } },
+      },
+    });
+
+    for (const t of transactions) {
+      const e = byEmployee[t.employeeId];
+      if (!e) continue;
+      const tc = t.transactionCode;
+      if (!tc || tc.type !== 'EARNING') continue;
+      const amt = Math.abs(t.amount || 0);
+      const cat = tc.incomeCategory;
+      const code = (tc.code || '').toUpperCase();
+      if (cat === 'BASIC_SALARY' || (!cat && code.includes('BASIC'))) e.totalBasicSalary += amt;
+      else if (cat === 'BONUS')       e.totalBonus      += amt;
+      else if (cat === 'GRATUITY')    e.totalGratuity   += amt;
+      else if (cat === 'ALLOWANCE')   e.totalAllowances += amt;
+      else if (cat === 'OVERTIME')    e.totalOvertime   += amt;
+      else if (cat === 'COMMISSION')  e.totalCommission += amt;
+      else if (cat === 'BENEFIT')     e.totalBenefits   += amt;
+    }
+
+    const fmt2 = (n) => Number(n || 0).toFixed(2);
+
+    const header = [
+      'EmployerTIN', 'EmployerBPNumber', 'TaxYear',
+      'EmployeeTIN', 'IDPassport', 'EmployeeName',
+      'GrossIncome',
+      'BasicSalary', 'Bonus', 'Gratuity', 'Allowances', 'Overtime', 'Commission', 'Benefits',
+      'PensionContributions', 'NSSA',
+      'PAYE', 'AIDSLevy', 'TotalTaxDeducted',
+    ].join(',');
+
+    const rows = Object.values(byEmployee).map((r) => {
+      const emp = r.employee;
+      const name = `"${`${emp.lastName || ''}, ${emp.firstName || ''}`.replace(/"/g, '""')}"`;
+      return [
+        company.taxId,
+        company.registrationNumber,
+        year,
+        emp.tin || '',
+        emp.nationalId || emp.passportNumber || '',
+        name,
+        fmt2(r.totalGross),
+        fmt2(r.totalBasicSalary), fmt2(r.totalBonus), fmt2(r.totalGratuity),
+        fmt2(r.totalAllowances), fmt2(r.totalOvertime), fmt2(r.totalCommission), fmt2(r.totalBenefits),
+        fmt2(r.pensionContributions), fmt2(r.totalNssa),
+        fmt2(r.totalPaye), fmt2(r.totalAidsLevy),
+        fmt2(r.totalPaye + r.totalAidsLevy),
+      ].join(',');
+    });
+
+    const filename = `ZIMRA-ITF16-${year}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send([header, ...rows].join('\n'));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // ─── ZIMRA P2 Monthly Return ──────────────────────────────────────────────────
 
 // GET /api/reports/p2?month=&year=
