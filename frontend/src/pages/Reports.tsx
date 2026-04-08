@@ -87,6 +87,9 @@ const Reports: React.FC = () => {
   const downloadNssaExcel = () =>
     download('nssa-excel', () => ReportsAPI.nssaP4aExcel({ month: String(selectedMonth), year: String(selectedYear) }), `NSSA_P4A_${selectedMonth}_${selectedYear}.xlsx`);
 
+  const downloadItf16 = () =>
+    download('itf16', () => ReportsAPI.itf16({ year: String(selectedYear) }), `ZIMRA_ITF16_${selectedYear}.xlsx`);
+
   const downloadEft = () => {
     if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
     download('eft', () => ReportsAPI.eft({ runId: selectedRunId }), `Bank_EFT_${selectedRunId}.csv`);
@@ -219,6 +222,26 @@ const Reports: React.FC = () => {
                     <Download size={15} /> {isDownloading('nssa-excel') ? 'Generating…' : 'Export'}
                   </button>
                 </div>
+              </div>
+
+              {/* ZIMRA ITF16 Annual Electronic Return */}
+              <div className="bg-primary rounded-2xl border border-border shadow-sm p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
+                    <FileText size={22} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">ZIMRA ITF16 Annual Return</p>
+                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Tax Year {selectedYear}</p>
+                  </div>
+                </div>
+                <button
+                  disabled={disabled || isDownloading('itf16')}
+                  onClick={downloadItf16}
+                  className="bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40 shrink-0"
+                >
+                  <Download size={15} /> {isDownloading('itf16') ? 'Generating…' : 'Export ITF16'}
+                </button>
               </div>
 
               {/* Pension Fund Exports */}

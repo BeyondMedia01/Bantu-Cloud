@@ -492,6 +492,8 @@ export const ReportsAPI = {
     api.get(`/reports/it7/${employeeId}/${year}`, { responseType: 'blob' }),
   pensionExport: (params: { month: string; type: string; companyId?: string }) =>
     api.get('/reports/pension-export', { params, responseType: 'blob' }),
+  itf16: (params: { year: string }) =>
+    api.get('/reports/itf16', { params, responseType: 'blob' }),
 };
 
 export const DocumentsAPI = {
