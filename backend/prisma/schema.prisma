@@ -583,6 +583,8 @@ model Payslip {
   exemptBonusUSD      Float?     @default(0)
   exemptBonusZIG      Float?     @default(0)
   exemptSeverance     Float?     @default(0)
+  exemptSeveranceUSD  Float?     @default(0)
+  exemptSeveranceZIG  Float?     @default(0)
   medicalAidCredit    Float?     @default(0)
   taxCreditsApplied   Float?     @default(0)
   pdfUrl          String?

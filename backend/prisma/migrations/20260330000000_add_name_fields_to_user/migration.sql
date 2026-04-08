@@ -1,0 +1,5 @@
+-- AlterTable: add missing columns to User
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "firstName" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "lastName" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "phone" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "preferences" JSONB DEFAULT '{}';

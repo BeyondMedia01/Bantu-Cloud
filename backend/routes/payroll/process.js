@@ -519,7 +519,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         select: {
           employeeId: true, gross: true,
           exemptBonus: true, exemptBonusUSD: true, exemptBonusZIG: true,
-          exemptSeverance: true, medicalAidCredit: true,
+          exemptSeverance: true, exemptSeveranceUSD: true, exemptSeveranceZIG: true, medicalAidCredit: true,
           payrollRun: { select: { startDate: true } }
         },
       });
@@ -530,7 +530,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           cumExemptBonus: 0,
           cumExemptBonusUSD: 0,
           cumExemptBonusZIG: 0,
-          cumExemptSeverance: 0
+          cumExemptSeverance: 0,
+          cumExemptSeveranceUSD: 0,
+          cumExemptSeveranceZIG: 0,
         });
         rec.cumGross += ps.gross ?? 0;
         if (ps.payrollRun?.startDate) {
@@ -541,6 +543,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         rec.cumExemptBonusUSD += ps.exemptBonusUSD || 0;
         rec.cumExemptBonusZIG += ps.exemptBonusZIG || 0;
         rec.cumExemptSeverance += ps.exemptSeverance || 0;
+        rec.cumExemptSeveranceUSD += ps.exemptSeveranceUSD || 0;
+        rec.cumExemptSeveranceZIG += ps.exemptSeveranceZIG || 0;
       }
     }
 
@@ -857,8 +861,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       const remBonusExZIG = Math.max(0, bonusExemptionZIG - ytd.cumExemptBonusZIG);
       const remBonusEx = run.currency === 'ZiG' ? remBonusExZIG : remBonusExUSD;
 
-      const remSevExUSD = Math.max(0, severanceExemptionUSD - ytd.cumExemptSeverance);
-      const remSevExZIG = Math.max(0, severanceExemptionZIG - ytd.cumExemptSeverance);
+      const remSevExUSD = Math.max(0, severanceExemptionUSD - (ytd.cumExemptSeveranceUSD || ytd.cumExemptSeverance));
+      const remSevExZIG = Math.max(0, severanceExemptionZIG - (ytd.cumExemptSeveranceZIG || ytd.cumExemptSeverance));
       const remSevEx = run.currency === 'ZiG' ? remSevExZIG : remSevExUSD;
 
       // FDS_AVERAGE: derive the average monthly gross (YTD + this month) to pass
@@ -1101,6 +1105,8 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         exemptBonusUSD: taxResultUSD?.exemptBonus,
         exemptBonusZIG: taxResultZIG?.exemptBonus,
         exemptSeverance: taxResult.exemptSeverance,
+        exemptSeveranceUSD: run.dualCurrency ? taxResultUSD?.exemptSeverance : (run.currency === 'USD' ? taxResult.exemptSeverance : null),
+        exemptSeveranceZIG: run.dualCurrency ? taxResultZIG?.exemptSeverance : (run.currency === 'ZiG' ? taxResult.exemptSeverance : null),
         medicalAidCredit: taxResult.medicalAidCredit,
         taxCreditsApplied: taxResult.taxCreditsApplied,
       });

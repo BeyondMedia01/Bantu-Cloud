@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Payslip" ADD COLUMN     "exemptSeveranceUSD" DOUBLE PRECISION DEFAULT 0,
+ADD COLUMN     "exemptSeveranceZIG" DOUBLE PRECISION DEFAULT 0;
