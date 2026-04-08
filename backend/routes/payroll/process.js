@@ -776,10 +776,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       let effectiveBaseRate = emp.baseRate;
       if (unpaidLeave) {
         const unpaidDays = unpaidLeave.totalDays || 0;
-        if (unpaidDays >= workingDaysPerMonth) {
+        const wDays = emp.daysPerPeriod || workingDaysPerPeriodDefault || 22;
+        if (unpaidDays >= wDays) {
           effectiveBaseRate = 0;
         } else {
-          effectiveBaseRate = emp.baseRate * (1 - unpaidDays / workingDaysPerMonth);
+          effectiveBaseRate = emp.baseRate * (1 - unpaidDays / wDays);
         }
       }
 

@@ -121,18 +121,26 @@ router.get('/:runId/reconcile', requirePermission('process_payroll'), async (req
       if (!emp) continue;
 
       // Annual PAYE: calculate on full year's cumulative gross (annualBrackets already annualise internally)
+      // Tax directive: count only the months the directive was actually active within this year.
+      const dStart = emp.taxDirectiveEffective ? new Date(emp.taxDirectiveEffective) : null;
+      const dEnd   = emp.taxDirectiveExpiry   ? new Date(emp.taxDirectiveExpiry)   : null;
+      const directiveOverlapsYear = (!dStart || dStart <= yearEnd) && (!dEnd || dEnd >= yearStart);
+      let directiveActiveMonths = 0;
+      if (directiveOverlapsYear && agg.months > 0) {
+        const from = (dStart && dStart > yearStart) ? dStart : yearStart;
+        const to   = (dEnd   && dEnd   < yearEnd)   ? dEnd   : yearEnd;
+        const rawMonths = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth()) + 1;
+        directiveActiveMonths = Math.min(Math.max(0, rawMonths), agg.months);
+      }
+
       const annualResult = calcPaye({
         baseSalary: agg.cumulativeGross,
         currency: run.currency || 'USD',
         taxBrackets,
         annualBrackets: annualBracketsReconcile,
         taxCredits: (emp.taxCredits || 0) * agg.months,
-        taxDirectivePerc: ((!emp.taxDirectiveEffective || new Date(emp.taxDirectiveEffective) <= yearEnd) &&
-          (!emp.taxDirectiveExpiry || new Date(emp.taxDirectiveExpiry) >= yearStart))
-          ? (emp.taxDirectivePerc || 0) : 0,
-        taxDirectiveAmt: ((!emp.taxDirectiveEffective || new Date(emp.taxDirectiveEffective) <= yearEnd) &&
-          (!emp.taxDirectiveExpiry || new Date(emp.taxDirectiveExpiry) >= yearStart))
-          ? (emp.taxDirectiveAmt || 0) * agg.months : 0,
+        taxDirectivePerc: directiveOverlapsYear ? (emp.taxDirectivePerc || 0) : 0,
+        taxDirectiveAmt:  directiveOverlapsYear ? (emp.taxDirectiveAmt || 0) * directiveActiveMonths : 0,
       });
 
       const correctAnnualPaye = annualResult.totalPaye;
