@@ -159,6 +159,59 @@ const generateP16PDF = (data, stream) => {
     .text('WCIF, SDF and NEC Levy are employer-borne contributions and do not reduce employee net pay.', 30);
   doc.fillColor('black');
 
+  // ── IT7 Income Category Breakdown ────────────────────────────────────────────
+  doc.moveDown(1.5);
+  doc.font('Helvetica-Bold').fontSize(9).fillColor('#1a2e4a')
+    .text('IT7 INCOME CATEGORY BREAKDOWN', 30);
+  doc.moveDown(0.4);
+
+  const CAT_COLS = [
+    { label: 'Employee',     key: 'name',             x: 30,  w: 150 },
+    { label: 'Basic Salary', key: 'totalBasicSalary', x: 182, w: 100 },
+    { label: 'Bonus',        key: 'totalBonus',       x: 284, w: 100 },
+    { label: 'Gratuity',     key: 'totalGratuity',    x: 386, w: 100 },
+    { label: 'Allowances',   key: 'totalAllowances',  x: 488, w: 100 },
+    { label: 'Overtime',     key: 'totalOvertime',    x: 590, w: 100 },
+    { label: 'Commission',   key: 'totalCommission',  x: 692, w: 100 },
+    { label: 'Benefits',     key: 'totalBenefits',    x: 794, w: 96  },
+  ];
+
+  y = doc.y;
+  doc.rect(28, y - 2, 862, ROW_H + 2).fill('#1a2e4a');
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor('white');
+  CAT_COLS.forEach(col => {
+    doc.text(col.label, col.x, y, { width: col.w, align: col.key === 'name' ? 'left' : 'right' });
+  });
+  doc.fillColor('black');
+  y += ROW_H;
+  doc.font('Helvetica').fontSize(8);
+
+  (data.rows || []).forEach((row, i) => {
+    if (y > PAGE_BOTTOM) {
+      doc.addPage({ layout: 'landscape', size: 'A3', margin: 30 });
+      y = 40;
+    }
+    const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
+    doc.rect(28, y - 2, 862, ROW_H).fill(bg);
+    doc.fillColor('#1a2e4a');
+    const emp = row.employee || {};
+    const catCells = {
+      name:             `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
+      totalBasicSalary: fmt(row.totalBasicSalary),
+      totalBonus:       fmt(row.totalBonus),
+      totalGratuity:    fmt(row.totalGratuity),
+      totalAllowances:  fmt(row.totalAllowances),
+      totalOvertime:    fmt(row.totalOvertime),
+      totalCommission:  fmt(row.totalCommission),
+      totalBenefits:    fmt(row.totalBenefits),
+    };
+    CAT_COLS.forEach(col => {
+      doc.text(catCells[col.key], col.x, y, { width: col.w, align: col.key === 'name' ? 'left' : 'right' });
+    });
+    doc.fillColor('black');
+    y += ROW_H;
+  });
+
   doc.end();
 };
 

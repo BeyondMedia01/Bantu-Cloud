@@ -57,15 +57,22 @@ router.get('/tax', requirePermission('export_reports'), async (req, res) => {
       },
     });
 
-    // Aggregate per employee
+    // Aggregate per employee — base statutory totals
     const byEmployee = {};
     for (const ps of payslips) {
       const key = ps.employeeId;
       if (!byEmployee[key]) {
         byEmployee[key] = {
           employee: ps.employee,
-          company: ps.payrollRun.company,
+          company: ps.payrollRun.company,  // needed by generateP16PDF header
           totalGross: 0,
+          totalBasicSalary: 0,
+          totalBonus: 0,
+          totalGratuity: 0,
+          totalAllowances: 0,
+          totalOvertime: 0,
+          totalCommission: 0,
+          totalBenefits: 0,
           totalPaye: 0,
           totalAidsLevy: 0,
           totalNssa: 0,
@@ -75,14 +82,44 @@ router.get('/tax', requirePermission('export_reports'), async (req, res) => {
           totalNecLevy: 0,
         };
       }
-      byEmployee[key].totalGross      += ps.gross;
-      byEmployee[key].totalPaye       += ps.paye;
-      byEmployee[key].totalAidsLevy   += ps.aidsLevy;
-      byEmployee[key].totalNssa       += ps.nssaEmployee;
-      byEmployee[key].totalNet        += ps.netPay;
-      byEmployee[key].totalWcif       += ps.wcifEmployer   || 0;
-      byEmployee[key].totalSdf        += ps.sdfContribution || 0;
-      byEmployee[key].totalNecLevy    += ps.necLevy        || 0;
+      const e = byEmployee[key];
+      e.totalGross      += ps.gross        || 0;
+      e.totalPaye       += ps.paye         || 0;
+      e.totalAidsLevy   += ps.aidsLevy     || 0;
+      e.totalNssa       += ps.nssaEmployee || 0;
+      e.totalNet        += ps.netPay       || 0;
+      e.totalWcif       += ps.wcifEmployer   || 0;
+      e.totalSdf        += ps.sdfContribution || 0;
+      e.totalNecLevy    += ps.necLevy        || 0;
+    }
+
+    // Pull transactions to populate IT7 category breakdown
+    const runIds = [...new Set(payslips.map(p => p.payrollRunId))];
+    const employeeIds = Object.keys(byEmployee);
+    const transactions = await prisma.payrollTransaction.findMany({
+      where: { payrollRunId: { in: runIds }, employeeId: { in: employeeIds } },
+      select: {
+        employeeId: true,
+        amount: true,
+        transactionCode: { select: { type: true, incomeCategory: true, code: true } },
+      },
+    });
+
+    for (const t of transactions) {
+      const e = byEmployee[t.employeeId];
+      if (!e) continue;
+      const tc = t.transactionCode;
+      if (!tc || tc.type !== 'EARNING') continue;
+      const amt = Math.abs(t.amount || 0);
+      const cat = tc.incomeCategory;
+      const code = (tc.code || '').toUpperCase();
+      if (cat === 'BASIC_SALARY' || (!cat && code.includes('BASIC'))) e.totalBasicSalary += amt;
+      else if (cat === 'BONUS')       e.totalBonus      += amt;
+      else if (cat === 'GRATUITY')    e.totalGratuity   += amt;
+      else if (cat === 'ALLOWANCE')   e.totalAllowances += amt;
+      else if (cat === 'OVERTIME')    e.totalOvertime   += amt;
+      else if (cat === 'COMMISSION')  e.totalCommission += amt;
+      else if (cat === 'BENEFIT')     e.totalBenefits   += amt;
     }
 
     const data = Object.values(byEmployee);
