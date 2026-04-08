@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/companies
 router.post('/', requirePermission('manage_companies'), async (req, res) => {
-  const { name, registrationNumber, taxId, address, contactEmail, contactPhone } = req.body;
+  const { name, registrationNumber, taxId, address, contactEmail, contactPhone, nssaNumber } = req.body;
   if (!name) return res.status(400).json({ message: 'name is required' });
 
   try {
@@ -38,7 +38,7 @@ router.post('/', requirePermission('manage_companies'), async (req, res) => {
 
     const company = await prisma.company.create({
       data: {
-        clientId, name, registrationNumber, taxId, address, contactEmail, contactPhone,
+        clientId, name, registrationNumber, taxId, address, contactEmail, contactPhone, nssaNumber,
         ...(req.body.wcifRate !== undefined && { wcifRate: req.body.wcifRate === null ? null : parseFloat(req.body.wcifRate) }),
         ...(req.body.sdfRate  !== undefined && { sdfRate:  req.body.sdfRate  === null ? null : parseFloat(req.body.sdfRate) }),
         ...(req.body.zimdefRate !== undefined && { zimdefRate: req.body.zimdefRate === null ? null : parseFloat(req.body.zimdefRate) }),
@@ -77,7 +77,7 @@ router.get('/:id', async (req, res) => {
 
 // PUT /api/companies/:id
 router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
-  const { name, registrationNumber, taxId, address, contactEmail, contactPhone, wcifRate, sdfRate } = req.body;
+  const { name, registrationNumber, taxId, address, contactEmail, contactPhone, wcifRate, sdfRate, nssaNumber } = req.body;
   try {
     const company = await prisma.company.findUnique({ where: { id: req.params.id }, select: { clientId: true } });
     if (!company) return res.status(404).json({ message: 'Company not found' });
@@ -90,7 +90,7 @@ router.put('/:id', requirePermission('manage_companies'), async (req, res) => {
     const updated = await prisma.company.update({
       where: { id: req.params.id },
       data: {
-        name, registrationNumber, taxId, address, contactEmail, contactPhone,
+        name, registrationNumber, taxId, address, contactEmail, contactPhone, nssaNumber,
         ...(wcifRate !== undefined && { wcifRate: wcifRate === null ? null : parseFloat(wcifRate) }),
         ...(sdfRate  !== undefined && { sdfRate:  sdfRate  === null ? null : parseFloat(sdfRate) }),
         ...(req.body.zimdefRate !== undefined && { zimdefRate: req.body.zimdefRate === null ? null : parseFloat(req.body.zimdefRate) }),

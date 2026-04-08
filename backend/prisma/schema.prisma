@@ -212,6 +212,7 @@ model Company {
   name               String
   registrationNumber String?
   taxId              String?
+  nssaNumber         String?      // NSSA employer registration number
   address            String?
   contactEmail       String?
   contactPhone       String?
