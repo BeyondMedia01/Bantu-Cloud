@@ -314,7 +314,6 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const prescribedRateUSD = s('LOAN_PRESCRIBED_RATE_USD');
     const prescribedRateZIG = s('LOAN_PRESCRIBED_RATE_ZIG');
-    const currentPrescribedRate = run.currency === 'ZiG' ? prescribedRateZIG : prescribedRateUSD;
 
     const elderlyCreditUSD = s('ELDERLY_TAX_CREDIT_USD');
     const elderlyCreditZIG = s('ELDERLY_TAX_CREDIT_ZIG');
@@ -603,13 +602,14 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           }
         }
       } else {
+        const empPrescribedRate = emp.currency === 'ZiG' ? prescribedRateZIG : prescribedRateUSD;
         for (const loan of empLoans) {
           const loanRate = (loan.interestRate != null && !isNaN(loan.interestRate)) ? loan.interestRate : 0;
-          if (loanRate < currentPrescribedRate) {
+          if (loanRate < empPrescribedRate) {
             const paidAmt = loan.repayments.reduce((sum, r) => sum + (r.amount || 0), 0);
             const currentBalance = Math.max(0, loan.amount - paidAmt);
             if (currentBalance > 0) {
-              const monthlyBenefit = (currentBalance * (currentPrescribedRate - loanRate)) / 100 / 12;
+              const monthlyBenefit = (currentBalance * (empPrescribedRate - loanRate)) / 100 / 12;
               totalLoanBenefit += monthlyBenefit;
             }
           }
