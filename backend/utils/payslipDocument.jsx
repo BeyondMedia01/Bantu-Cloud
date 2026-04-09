@@ -152,8 +152,13 @@ const PayslipDocument = ({ data }) => {
     companyName, period, issuedDate, employeeName, employeeCode, nationalId,
     jobTitle, department, costCenter, paymentMethod, bankName, accountNumber,
     currency, lineItems = [], grossPay, totalDeductions, netSalary,
-    netPayUSD, netPayZIG, leaveBalance, leaveTaken,
+    netPayUSD, netPayZIG,
+    grossUSD, grossZIG,
+    exchangeRate,
+    leaveBalance, leaveTaken,
   } = data;
+
+  const isDual = grossUSD != null && grossZIG != null;
 
   const earnings   = lineItems.filter(i => (i.allowance ?? 0) > 0);
   const deductions = lineItems.filter(i => (i.deduction  ?? 0) > 0);
@@ -254,12 +259,26 @@ const PayslipDocument = ({ data }) => {
           {/* Box 1 — Total Earnings */}
           <View style={[s.ribbonBox, { backgroundColor: DARK_NAVY }]}>
             <Text style={[s.ribbonLabel, { color: 'rgba(255,255,255,0.7)' }]}>TOTAL EARNINGS</Text>
-            <Text style={[s.ribbonAmt, { color: 'white' }]}>{usd(grossPay)}</Text>
+            {isDual ? (
+              <>
+                <Text style={[s.ribbonAmt, { color: 'white', fontSize: 11 }]}>USD {fmt(grossUSD)}</Text>
+                <Text style={[s.ribbonAmt, { color: 'rgba(255,255,255,0.8)', fontSize: 9, marginTop: 2 }]}>ZiG {fmt(grossZIG)}</Text>
+              </>
+            ) : (
+              <Text style={[s.ribbonAmtLg, { color: 'white' }]}>{usd(grossPay)}</Text>
+            )}
           </View>
           {/* Box 2 — Total Deductions */}
           <View style={[s.ribbonBox, { backgroundColor: '#f1f5f9' }]}>
             <Text style={[s.ribbonLabel, { color: TEXT_MUTED }]}>TOTAL DEDUCTIONS</Text>
-            <Text style={[s.ribbonAmt, { color: RED }]}>{usd(totalDeductions)}</Text>
+            {isDual ? (
+              <>
+                <Text style={[s.ribbonAmt, { color: RED, fontSize: 11 }]}>USD {fmt((grossUSD ?? 0) - (netPayUSD ?? 0))}</Text>
+                <Text style={[s.ribbonAmt, { color: RED, fontSize: 9, marginTop: 2 }]}>ZiG {fmt((grossZIG ?? 0) - (netPayZIG ?? 0))}</Text>
+              </>
+            ) : (
+              <Text style={[s.ribbonAmt, { color: RED }]}>{usd(totalDeductions)}</Text>
+            )}
           </View>
           {/* Box 3 — Net Salary */}
           <View style={[s.ribbonBox, { backgroundColor: BANTU_GREEN }]}>
@@ -274,6 +293,15 @@ const PayslipDocument = ({ data }) => {
             )}
           </View>
         </View>
+
+        {/* Exchange rate footnote for dual/ZiG runs */}
+        {exchangeRate != null && exchangeRate !== 1 && (
+          <View style={{ marginHorizontal: 10, marginTop: 3 }}>
+            <Text style={{ fontSize: 6, color: TEXT_MUTED }}>
+              Exchange rate applied: 1 USD = {Number(exchangeRate).toFixed(4)} ZiG
+            </Text>
+          </View>
+        )}
 
         {/* ── Section 7: Footer (absolute, always at page bottom) ─────── */}
         <View style={s.footer} fixed>

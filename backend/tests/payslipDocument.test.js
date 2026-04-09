@@ -32,6 +32,24 @@ describe('payslipDocument', () => {
       .rejects.toMatchObject({ code: 'BANK_DETAILS_MISSING' });
   });
 
+  it('shows USD and ZiG lines in ribbon for dual-currency payslips', async () => {
+    const data = {
+      ...MOCK,
+      grossUSD: 1500, grossZIG: 41250,
+      payeUSD: 300,   payeZIG:  8250,
+      aidsLevyUSD: 9, aidsLevyZIG: 247.5,
+      nssaUSD: 35,    nssaZIG:  962.5,
+      netPayUSD: 1156, netPayZIG: 31790,
+      netSalary: 1156,
+      grossPay: 3000,
+      totalDeductions: 603.5 + 9900,
+      exchangeRate: 27.5,
+    };
+    const buf = await generatePayslipBuffer(data);
+    expect(buf).toBeInstanceOf(Buffer);
+    expect(buf.length).toBeGreaterThan(1000);
+  });
+
   it('renders zero YTD without doubling (first-run employee)', async () => {
     const data = {
       ...MOCK,
