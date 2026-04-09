@@ -1099,6 +1099,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         netPay: netPayAfterLoans,
         netPayUSD,
         netPayZIG,
+        exchangeRate: (run.dualCurrency || run.currency === 'ZiG') ? (run.exchangeRate || null) : null,
         ...dualFields,
         // Statutory state tracking
         exemptBonus: taxResult.exemptBonus,

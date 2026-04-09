@@ -588,6 +588,7 @@ model Payslip {
   exemptSeveranceZIG  Float?     @default(0)
   medicalAidCredit    Float?     @default(0)
   taxCreditsApplied   Float?     @default(0)
+  exchangeRate        Float?     // USD→ZiG rate used when this payslip was calculated
   pdfUrl          String?
   createdAt       DateTime   @default(now())
   employee        Employee   @relation(fields: [employeeId], references: [id])
