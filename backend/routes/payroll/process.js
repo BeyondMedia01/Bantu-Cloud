@@ -47,18 +47,20 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
       ? await prisma.company.findUnique({ where: { id: req.companyId } })
       : null;
 
+    // Always use the USD tax table — ZIMRA publishes one set of brackets in USD.
+    // ZiG amounts are converted to USD for PAYE calculation via the exchange rate.
     const taxTable = company
       ? await prisma.taxTable.findFirst({
         where: {
           clientId: company.clientId,
-          currency,
+          currency: 'USD',
           isActive: true,
         },
         include: { brackets: true },
       }) ?? await prisma.taxTable.findFirst({
         where: {
           clientId: company.clientId,
-          currency,
+          currency: 'USD',
           effectiveDate: { lte: new Date() },
           OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
         },
@@ -228,28 +230,23 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     const taxBracketsUSD = taxTableUSD?.brackets ?? [];
     const annualBracketsUSD = taxBracketsUSD.length > 0 && (taxTableUSD?.isAnnual ?? true);
 
-    let taxBracketsZIG = [];
-    let annualBracketsZIG = false;
-    if (run.currency === 'ZiG') {  // dualCurrency runs consolidate into USD — ZiG table not needed
-      const taxTableZIG = await fetchTaxTable(run.company.clientId, 'ZiG', run.startDate);
-      taxBracketsZIG = taxTableZIG?.brackets ?? [];
-      annualBracketsZIG = taxBracketsZIG.length > 0 && (taxTableZIG?.isAnnual ?? true);
-    }
+    // ZiG runs use the USD tax table — ZIMRA publishes one set of brackets denominated
+    // in USD; ZiG amounts are converted to USD for PAYE calculation via the exchange rate.
+    // Dual-currency runs already consolidate into USD, so no separate ZiG table is needed.
+    const taxBracketsZIG = taxBracketsUSD;
+    const annualBracketsZIG = annualBracketsUSD;
 
-    const taxBrackets = run.currency === 'ZiG' ? taxBracketsZIG : taxBracketsUSD;
-    const annualBrackets = run.currency === 'ZiG' ? annualBracketsZIG : annualBracketsUSD;
+    const taxBrackets = taxBracketsUSD;
+    const annualBrackets = annualBracketsUSD;
 
     // Guard: block processing when required tax table is missing.
     // Without brackets the engine returns zero PAYE — a silent under-deduction that
     // produces an incorrect P2 and exposes the employer to ZIMRA penalties.
-    const primaryBrackets = run.currency === 'ZiG' ? taxBracketsZIG : taxBracketsUSD;
-    if (primaryBrackets.length === 0) {
+    if (taxBracketsUSD.length === 0) {
       return res.status(422).json({
-        message: `No active ${run.currency} tax table found. Configure and activate a tax table under Tax Configuration before processing payroll.`,
+        message: `No active USD tax table found. Configure and activate a USD tax table under Tax Configuration before processing payroll.`,
       });
     }
-    // Apportionment method: dual-currency runs consolidate all earnings into USD first,
-    // so only the USD tax table is required. No separate ZiG table is needed.
 
     // Load all payroll settings in a single DB query — no hardcoded fallbacks.
     // Values are seeded by autoSeedSystemSettings() on server start.
@@ -916,7 +913,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             const solved = grossUpNet({
               targetNet: grossUpTargetNet,
               currency: isZIG ? 'ZiG' : 'USD',
-              taxBrackets: isZIG ? taxBracketsZIG : taxBracketsUSD,
+              taxBrackets: taxBracketsUSD,
               annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
               nssaCeiling: isZIG ? effectiveNssaCeilingZIG : nssaCeilingUSD,
               pensionContribution, pensionCap,
