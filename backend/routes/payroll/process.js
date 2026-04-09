@@ -908,7 +908,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             const cappedPension = pensionCap != null
               ? Math.min(pensionContribution, pensionCap)
               : pensionContribution;
-            const medForGrossUp = isZIG ? 0 : ((adj.medicalAid || 0) + (inputMedicalAidUSD || inputMedicalAid || 0));
+            const medForGrossUp = isZIG
+              ? 0
+              : ((adj.medicalAid || 0) + (inputMedicalAidUSD || inputMedicalAid || 0) +
+                 (run.dualCurrency ? (inputMedicalAidZIG || 0) / xr : 0));
             const grossUpTargetNet = baseRate + cappedPension + medForGrossUp;
             const solved = grossUpNet({
               targetNet: grossUpTargetNet,
