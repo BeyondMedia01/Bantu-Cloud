@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-const { calculatePaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES } = require('./taxEngine');
+import { calculatePaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES } from './taxEngine.js';
+
+// Integration note: FDS_AVERAGE dual-run currGross must include both USD and ZiG inputs.
+// Fix is in process.js (fdsAvgPAYEBasis block): currGross adds inputEarningsZIG / xr for dual runs.
+// Covered by manual verification — full payroll loop tests are not present in this file.
 
 // ─── Shared ZIMRA 2026 USD annual tax brackets ──────────────────────────────
 // Populated from the live database (confirmed in audit March 2026)

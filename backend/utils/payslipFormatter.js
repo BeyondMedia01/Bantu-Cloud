@@ -251,6 +251,16 @@ async function payslipToBuffer(payslipId) {
     netSalary: payslip.netPay,
     netPayUSD: payslip.netPayUSD,
     netPayZIG: payslip.netPayZIG,
+    exchangeRate: payslip.exchangeRate ?? null,
+    // Dual-currency breakdown — null for single-currency runs
+    grossUSD:     payslip.grossUSD     ?? null,
+    grossZIG:     payslip.grossZIG     ?? null,
+    payeUSD:      payslip.payeUSD      ?? null,
+    payeZIG:      payslip.payeZIG      ?? null,
+    aidsLevyUSD:  payslip.aidsLevyUSD  ?? null,
+    aidsLevyZIG:  payslip.aidsLevyZIG  ?? null,
+    nssaUSD:      payslip.nssaUSD      ?? null,
+    nssaZIG:      payslip.nssaZIG      ?? null,
     leaveBalance: leaveBal?.balance ?? (payslip.employee.leaveBalance || 0),
     leaveTaken: leaveBal?.taken ?? (payslip.employee.leaveTaken || 0),
   };

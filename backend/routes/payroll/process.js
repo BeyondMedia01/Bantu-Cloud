@@ -272,7 +272,22 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const nssaCeilingUSD = s('NSSA_CEILING_USD');
     const nssaCeilingZIG = s('NSSA_CEILING_ZIG');
-    const nssaCeiling = run.currency === 'ZiG' ? nssaCeilingZIG : nssaCeilingUSD;
+    // For ZiG or dual-currency runs, derive ZiG NSSA ceiling dynamically from USD ceiling × latest rate.
+    // Mirrors the same logic used in the preview endpoint for consistency.
+    let effectiveNssaCeilingZIG = nssaCeilingZIG;
+    if ((run.currency === 'ZiG' || run.dualCurrency) && req.companyId) {
+      const latestRate = await prisma.currencyRate.findFirst({
+        where: {
+          companyId: req.companyId,
+          fromCurrency: 'USD',
+          toCurrency: 'ZiG',
+          effectiveDate: { lte: runStart },
+        },
+        orderBy: { effectiveDate: 'desc' },
+      });
+      if (latestRate && nssaCeilingUSD > 0) effectiveNssaCeilingZIG = nssaCeilingUSD * latestRate.rate;
+    }
+    const nssaCeiling = run.currency === 'ZiG' ? effectiveNssaCeilingZIG : nssaCeilingUSD;
 
     const bonusExemptionUSD = s('BONUS_EXEMPTION_USD');
     const bonusExemptionZIG = s('BONUS_EXEMPTION_ZIG');
@@ -299,7 +314,6 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const prescribedRateUSD = s('LOAN_PRESCRIBED_RATE_USD');
     const prescribedRateZIG = s('LOAN_PRESCRIBED_RATE_ZIG');
-    const currentPrescribedRate = run.currency === 'ZiG' ? prescribedRateZIG : prescribedRateUSD;
 
     const elderlyCreditUSD = s('ELDERLY_TAX_CREDIT_USD');
     const elderlyCreditZIG = s('ELDERLY_TAX_CREDIT_ZIG');
@@ -588,13 +602,14 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           }
         }
       } else {
+        const empPrescribedRate = emp.currency === 'ZiG' ? prescribedRateZIG : prescribedRateUSD;
         for (const loan of empLoans) {
           const loanRate = (loan.interestRate != null && !isNaN(loan.interestRate)) ? loan.interestRate : 0;
-          if (loanRate < currentPrescribedRate) {
+          if (loanRate < empPrescribedRate) {
             const paidAmt = loan.repayments.reduce((sum, r) => sum + (r.amount || 0), 0);
             const currentBalance = Math.max(0, loan.amount - paidAmt);
             if (currentBalance > 0) {
-              const monthlyBenefit = (currentBalance * (currentPrescribedRate - loanRate)) / 100 / 12;
+              const monthlyBenefit = (currentBalance * (empPrescribedRate - loanRate)) / 100 / 12;
               totalLoanBenefit += monthlyBenefit;
             }
           }
@@ -873,7 +888,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         // Estimate current month gross (base + TC earnings in primary currency).
         // For dual-currency runs the USD side is the FDS_AVERAGE reference currency.
         const currGross = run.dualCurrency
-          ? (emp.currency === 'USD' ? baseRate : baseRate / xr) + inputEarningsUSD
+          ? (emp.currency === 'USD' ? baseRate : baseRate / xr) + inputEarningsUSD + (inputEarningsZIG / xr)
           : baseRate + inputEarnings;
         fdsAvgPAYEBasis = round2((ytd.cumGross + currGross) / (ytd.uniqueMonths.size + 1));
       }
@@ -893,14 +908,17 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             const cappedPension = pensionCap != null
               ? Math.min(pensionContribution, pensionCap)
               : pensionContribution;
-            const medForGrossUp = isZIG ? 0 : ((adj.medicalAid || 0) + (inputMedicalAidUSD || inputMedicalAid || 0));
+            const medForGrossUp = isZIG
+              ? 0
+              : ((adj.medicalAid || 0) + (inputMedicalAidUSD || inputMedicalAid || 0) +
+                 (run.dualCurrency ? (inputMedicalAidZIG || 0) / xr : 0));
             const grossUpTargetNet = baseRate + cappedPension + medForGrossUp;
             const solved = grossUpNet({
               targetNet: grossUpTargetNet,
               currency: isZIG ? 'ZiG' : 'USD',
               taxBrackets: isZIG ? taxBracketsZIG : taxBracketsUSD,
               annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
-              nssaCeiling: isZIG ? nssaCeilingZIG : nssaCeilingUSD,
+              nssaCeiling: isZIG ? effectiveNssaCeilingZIG : nssaCeilingUSD,
               pensionContribution, pensionCap,
               medicalAid: medForGrossUp,
               taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
@@ -967,7 +985,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             pensionCap: pensionCapZIG > 0 ? pensionCapZIG : null,
             medicalAid: inputMedicalAidZIG,
             taxCredits: elderlyCreditZIG_val > 0 ? elderlyCreditZIG_val : (emp.taxCredits || 0),
-            nssaCeiling: nssaCeilingZIG,
+            nssaCeiling: effectiveNssaCeilingZIG,
             nssaExcludedEarnings: inputNssaExcludedZIG,
             payeExcludedEarnings: inputPayeExcludedZIG,
             loanBenefit: totalLoanBenefitZIG,
@@ -1099,6 +1117,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         netPay: netPayAfterLoans,
         netPayUSD,
         netPayZIG,
+        exchangeRate: (run.dualCurrency || run.currency === 'ZiG') ? (run.exchangeRate || null) : null,
         ...dualFields,
         // Statutory state tracking
         exemptBonus: taxResult.exemptBonus,
