@@ -888,7 +888,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         // Estimate current month gross (base + TC earnings in primary currency).
         // For dual-currency runs the USD side is the FDS_AVERAGE reference currency.
         const currGross = run.dualCurrency
-          ? (emp.currency === 'USD' ? baseRate : baseRate / xr) + inputEarningsUSD
+          ? (emp.currency === 'USD' ? baseRate : baseRate / xr) + inputEarningsUSD + (inputEarningsZIG / xr)
           : baseRate + inputEarnings;
         fdsAvgPAYEBasis = round2((ytd.cumGross + currGross) / (ytd.uniqueMonths.size + 1));
       }
