@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-const { calculatePaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES } = require('./taxEngine');
+import { calculatePaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES } from './taxEngine.js';
 
 // Integration note: FDS_AVERAGE dual-run currGross must include both USD and ZiG inputs.
 // Fix is in process.js (fdsAvgPAYEBasis block): currGross adds inputEarningsZIG / xr for dual runs.

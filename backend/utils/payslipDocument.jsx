@@ -283,7 +283,7 @@ const PayslipDocument = ({ data }) => {
           {/* Box 3 — Net Salary */}
           <View style={[s.ribbonBox, { backgroundColor: BANTU_GREEN }]}>
             <Text style={[s.ribbonLabel, { color: DARK_NAVY, fontFamily: 'Helvetica-Bold' }]}>NET SALARY</Text>
-            {netPayUSD != null && netPayZIG != null ? (
+            {isDual ? (
               <>
                 <Text style={[s.ribbonAmt, { color: DARK_NAVY, fontSize: 11 }]}>USD {fmt(netPayUSD)}</Text>
                 <Text style={[s.ribbonAmt, { color: DARK_NAVY, fontSize: 9, marginTop: 2 }]}>ZiG {fmt(netPayZIG)}</Text>
