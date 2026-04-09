@@ -272,7 +272,22 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const nssaCeilingUSD = s('NSSA_CEILING_USD');
     const nssaCeilingZIG = s('NSSA_CEILING_ZIG');
-    const nssaCeiling = run.currency === 'ZiG' ? nssaCeilingZIG : nssaCeilingUSD;
+    // For ZiG or dual-currency runs, derive ZiG NSSA ceiling dynamically from USD ceiling × latest rate.
+    // Mirrors the same logic used in the preview endpoint for consistency.
+    let effectiveNssaCeilingZIG = nssaCeilingZIG;
+    if ((run.currency === 'ZiG' || run.dualCurrency) && req.companyId) {
+      const latestRate = await prisma.currencyRate.findFirst({
+        where: {
+          companyId: req.companyId,
+          fromCurrency: 'USD',
+          toCurrency: 'ZiG',
+          effectiveDate: { lte: runStart },
+        },
+        orderBy: { effectiveDate: 'desc' },
+      });
+      if (latestRate && nssaCeilingUSD > 0) effectiveNssaCeilingZIG = nssaCeilingUSD * latestRate.rate;
+    }
+    const nssaCeiling = run.currency === 'ZiG' ? effectiveNssaCeilingZIG : nssaCeilingUSD;
 
     const bonusExemptionUSD = s('BONUS_EXEMPTION_USD');
     const bonusExemptionZIG = s('BONUS_EXEMPTION_ZIG');
@@ -900,7 +915,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
               currency: isZIG ? 'ZiG' : 'USD',
               taxBrackets: isZIG ? taxBracketsZIG : taxBracketsUSD,
               annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
-              nssaCeiling: isZIG ? nssaCeilingZIG : nssaCeilingUSD,
+              nssaCeiling: isZIG ? effectiveNssaCeilingZIG : nssaCeilingUSD,
               pensionContribution, pensionCap,
               medicalAid: medForGrossUp,
               taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
@@ -967,7 +982,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             pensionCap: pensionCapZIG > 0 ? pensionCapZIG : null,
             medicalAid: inputMedicalAidZIG,
             taxCredits: elderlyCreditZIG_val > 0 ? elderlyCreditZIG_val : (emp.taxCredits || 0),
-            nssaCeiling: nssaCeilingZIG,
+            nssaCeiling: effectiveNssaCeilingZIG,
             nssaExcludedEarnings: inputNssaExcludedZIG,
             payeExcludedEarnings: inputPayeExcludedZIG,
             loanBenefit: totalLoanBenefitZIG,
