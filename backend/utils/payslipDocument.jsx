@@ -71,6 +71,7 @@ const s = StyleSheet.create({
   subHdrDesc:  { flex: 1, color: 'rgba(255,255,255,0.65)', fontSize: 6 },
   subHdrUnits: { width: 38, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
   subHdrAmt:   { width: 65, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
+  subHdrAmtZIG:{ width: 58, color: 'rgba(178,219,100,0.85)', fontSize: 6, textAlign: 'right' },
   subHdrYtd:   { width: 52, color: 'rgba(255,255,255,0.65)', fontSize: 6, textAlign: 'right' },
   tableRow:    { flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 5 },
   rowEven:     { backgroundColor: '#f7f9fc' },
@@ -79,6 +80,8 @@ const s = StyleSheet.create({
   rowUnits:    { width: 38, fontSize: 7, textAlign: 'right', color: TEXT_MUTED },
   rowAmt:      { width: 65, fontFamily: 'Helvetica-Bold', fontSize: 7.5,
                  textAlign: 'right', color: DARK_NAVY },
+  rowAmtZIG:   { width: 58, fontFamily: 'Helvetica-Bold', fontSize: 7.5,
+                 textAlign: 'right', color: '#0369a1' },
   rowYtd:      { width: 52, fontSize: 7, textAlign: 'right', color: TEXT_MUTED },
 
   // Employer contributions
@@ -125,7 +128,8 @@ const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, getYtd, isDu
       <View style={s.subHeaders}>
         <Text style={s.subHdrDesc}>DESCRIPTION</Text>
         <Text style={s.subHdrUnits}>UNITS</Text>
-        <Text style={[s.subHdrAmt, isDual ? { width: 80 } : {}]}>{isDual ? 'USD / ZiG' : 'AMOUNT'}</Text>
+        <Text style={s.subHdrAmt}>{isDual ? 'USD' : 'AMOUNT'}</Text>
+        {isDual && <Text style={s.subHdrAmtZIG}>ZiG</Text>}
         <Text style={s.subHdrYtd}>YTD</Text>
       </View>
     </View>
@@ -141,12 +145,12 @@ const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, getYtd, isDu
           <Text style={s.rowUnits}>
             {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
           </Text>
-          <View style={[s.rowAmt, isDual ? { width: 80, alignItems: 'flex-end' } : {}]}>
-            <Text style={[s.rowAmt, { width: undefined }]}>{usd(usdAmt)}</Text>
-            {isDual && zigAmt != null && zigAmt !== 0 ? (
-              <Text style={{ fontSize: 6, textAlign: 'right', color: '#475569', fontFamily: 'Helvetica' }}>ZiG {fmt(zigAmt)}</Text>
-            ) : null}
-          </View>
+          <Text style={s.rowAmt}>{usd(usdAmt)}</Text>
+          {isDual && (
+            <Text style={s.rowAmtZIG}>
+              {zigAmt != null && zigAmt !== 0 ? `ZiG ${fmt(zigAmt)}` : '—'}
+            </Text>
+          )}
           <Text style={s.rowYtd}>{usd(getYtd(item) ?? usdAmt)}</Text>
         </View>
       );
@@ -175,7 +179,7 @@ const PayslipDocument = ({ data }) => {
 
   return (
     <Document>
-      <Page size="A4" style={s.page}>
+      <Page size="A4" orientation={isDual ? 'landscape' : 'portrait'} style={s.page}>
 
         {/* ── Section 1: Identity Header ─────────────────────────────── */}
         <View style={s.header}>
