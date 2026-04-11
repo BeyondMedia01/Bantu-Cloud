@@ -8,7 +8,8 @@
  * @param {Array} params.historicalTransactions - Previous transactions for the same tax year
  */
 function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions, historicalTransactions }) {
-  const ytdMap = {};
+  const ytdMap    = {};  // USD amounts by TC id
+  const ytdMapZIG = {};  // ZiG amounts by TC id
 
   const ytdStat = {
     basicSalary: currentPayslip.basicSalaryApplied || 0,
@@ -25,6 +26,12 @@ function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions,
     medicalAidCredit: currentPayslip.medicalAidCredit || 0,
   };
 
+  const ytdStatZIG = {
+    paye: currentPayslip.payeZIG || 0,
+    aidsLevy: currentPayslip.aidsLevyZIG || 0,
+    nssaEmployee: currentPayslip.nssaZIG || 0,
+  };
+
   // Add historical payslip totals
   historicalPayslips.forEach(ps => {
     ytdStat.basicSalary += ps.basicSalaryApplied || 0;
@@ -39,18 +46,25 @@ function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions,
     ytdStat.wcifEmployer += ps.wcifEmployer || 0;
     ytdStat.necEmployer += ps.necEmployer || 0;
     ytdStat.medicalAidCredit += ps.medicalAidCredit || 0;
+
+    ytdStatZIG.paye         += ps.payeZIG    || 0;
+    ytdStatZIG.aidsLevy     += ps.aidsLevyZIG || 0;
+    ytdStatZIG.nssaEmployee += ps.nssaZIG    || 0;
   });
 
-  // Calculate YTD for each transaction code
-  currentTransactions.forEach(t => {
-    ytdMap[t.transactionCodeId] = (ytdMap[t.transactionCodeId] || 0) + (t.amount || 0);
-  });
+  // Calculate YTD for each transaction code, split by currency
+  const accumulateTx = (t) => {
+    if (t.currency === 'ZiG') {
+      ytdMapZIG[t.transactionCodeId] = (ytdMapZIG[t.transactionCodeId] || 0) + (t.amount || 0);
+    } else {
+      ytdMap[t.transactionCodeId] = (ytdMap[t.transactionCodeId] || 0) + (t.amount || 0);
+    }
+  };
 
-  historicalTransactions.forEach(t => {
-    ytdMap[t.transactionCodeId] = (ytdMap[t.transactionCodeId] || 0) + (t.amount || 0);
-  });
+  currentTransactions.forEach(accumulateTx);
+  historicalTransactions.forEach(accumulateTx);
 
-  return { ytdMap, ytdStat };
+  return { ytdMap, ytdMapZIG, ytdStat, ytdStatZIG };
 }
 
 /**

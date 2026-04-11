@@ -5,7 +5,7 @@ const { generatePayslipBuffer } = require('./pdfService');
 /**
  * Shared logic to build payslip line items.
  */
-function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary }) {
+function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, ytdStatZIG, ytdMapZIG, basicSalary }) {
   const isDual = payslip.payrollRun?.dualCurrency || false;
 
   const isMedicalAidTc = (tc) => {
@@ -49,7 +49,7 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
       name: 'Basic Salary',
       allowance: basicSalary, allowanceZIG: basicSalaryZIG,
       deduction: 0, deductionZIG: null,
-      employer: 0, ytd: ytdStat.basicSalary,
+      employer: 0, ytd: ytdStat.basicSalary, ytdZIG: isDual ? (basicSalaryZIG ?? null) : null,
     },
   ];
 
@@ -63,6 +63,7 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
       deduction: 0, deductionZIG: null,
       employer: 0,
       ytd: ytdMap[g.tcId] ?? g.amountUSD,
+      ytdZIG: isDual ? (ytdMapZIG[g.tcId] ?? g.amountZIG ?? null) : null,
       units: g.units ?? null,
       unitsType: g.unitsType ?? null,
     });
@@ -74,28 +75,28 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
     allowance: 0, allowanceZIG: null,
     deduction: isDual ? (payslip.payeUSD ?? payslip.paye) : payslip.paye,
     deductionZIG: isDual ? (payslip.payeZIG ?? null) : null,
-    employer: 0, ytd: ytdStat.paye,
+    employer: 0, ytd: ytdStat.paye, ytdZIG: isDual ? (ytdStatZIG?.paye ?? null) : null,
   });
   if ((payslip.medicalAidCredit || 0) > 0) {
-    lines.push({ name: 'Medical Aid Credit', allowance: payslip.medicalAidCredit, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: 0, ytd: ytdStat.medicalAidCredit });
+    lines.push({ name: 'Medical Aid Credit', allowance: payslip.medicalAidCredit, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: 0, ytd: ytdStat.medicalAidCredit, ytdZIG: null });
   }
   lines.push({
     name: 'AIDS Levy',
     allowance: 0, allowanceZIG: null,
     deduction: isDual ? (payslip.aidsLevyUSD ?? payslip.aidsLevy) : payslip.aidsLevy,
     deductionZIG: isDual ? (payslip.aidsLevyZIG ?? null) : null,
-    employer: 0, ytd: ytdStat.aidsLevy,
+    employer: 0, ytd: ytdStat.aidsLevy, ytdZIG: isDual ? (ytdStatZIG?.aidsLevy ?? null) : null,
   });
   lines.push({
     name: 'NSSA Employee',
     allowance: 0, allowanceZIG: null,
     deduction: isDual ? (payslip.nssaUSD ?? payslip.nssaEmployee) : payslip.nssaEmployee,
     deductionZIG: isDual ? (payslip.nssaZIG ?? null) : null,
-    employer: 0, ytd: ytdStat.nssaEmployee,
+    employer: 0, ytd: ytdStat.nssaEmployee, ytdZIG: isDual ? (ytdStatZIG?.nssaEmployee ?? null) : null,
   });
 
   if (payslip.necLevy > 0) {
-    lines.push({ name: 'NEC Employee', allowance: 0, allowanceZIG: null, deduction: payslip.necLevy, deductionZIG: null, employer: 0, ytd: ytdStat.necLevy });
+    lines.push({ name: 'NEC Employee', allowance: 0, allowanceZIG: null, deduction: payslip.necLevy, deductionZIG: null, employer: 0, ytd: ytdStat.necLevy, ytdZIG: null });
   }
 
   // Voluntary/Other Deductions
@@ -107,13 +108,14 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
       deductionZIG: isDual ? g.amountZIG : null,
       employer: 0,
       ytd: ytdMap[g.tcId] ?? g.amountUSD,
+      ytdZIG: isDual ? (ytdMapZIG[g.tcId] ?? g.amountZIG ?? null) : null,
       units: g.units ?? null,
       unitsType: g.unitsType ?? null,
     });
   });
 
   if (payslip.loanDeductions > 0) {
-    lines.push({ name: 'Loan Repayments', allowance: 0, allowanceZIG: null, deduction: payslip.loanDeductions, deductionZIG: null, employer: 0, ytd: ytdStat.loanDeductions });
+    lines.push({ name: 'Loan Repayments', allowance: 0, allowanceZIG: null, deduction: payslip.loanDeductions, deductionZIG: null, employer: 0, ytd: ytdStat.loanDeductions, ytdZIG: null });
   }
 
   // Medical Aid
@@ -126,6 +128,7 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
       deductionZIG: isDual ? g.amountZIG : null,
       employer: amt,
       ytd: ytdMap[g.tcId] ?? amt,
+      ytdZIG: isDual ? (ytdMapZIG[g.tcId] ?? g.amountZIG ?? null) : null,
       units: g.units ?? null,
       unitsType: g.unitsType ?? null,
     });
@@ -220,14 +223,14 @@ async function payslipToBuffer(payslipId) {
   const [historicalTxs, historicalPayslips] = await Promise.all([
     prisma.payrollTransaction.findMany({
       where: { employeeId: payslip.employeeId, payrollRunId: { in: historicRunIds } },
-      select: { transactionCodeId: true, amount: true }
+      select: { transactionCodeId: true, amount: true, currency: true }
     }),
     prisma.payslip.findMany({
       where: { employeeId: payslip.employeeId, payrollRunId: { in: historicRunIds } }
     })
   ]);
 
-  const { ytdMap, ytdStat } = calculateYTD({
+  const { ytdMap, ytdMapZIG, ytdStat, ytdStatZIG } = calculateYTD({
     currentPayslip: payslip,
     historicalPayslips,
     currentTransactions: transactions,
@@ -235,7 +238,7 @@ async function payslipToBuffer(payslipId) {
   });
 
   const basicSalary = payslip.basicSalaryApplied > 0 ? payslip.basicSalaryApplied : (payslip.employee.baseRate ?? 0);
-  const lineItems = buildPayslipLineItems({ payslip, transactions: transactionsWithUnits, ytdStat, ytdMap, basicSalary });
+  const lineItems = buildPayslipLineItems({ payslip, transactions: transactionsWithUnits, ytdStat, ytdMap, ytdStatZIG, ytdMapZIG, basicSalary });
 
   // Leave balances are stored per calendar year (not tax year).
   const leaveYear = new Date(payslip.payrollRun.startDate).getFullYear();
