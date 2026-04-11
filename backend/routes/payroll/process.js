@@ -278,7 +278,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           companyId: req.companyId,
           fromCurrency: 'USD',
           toCurrency: 'ZiG',
-          effectiveDate: { lte: runStart },
+          effectiveDate: { lte: new Date(run.startDate) },
         },
         orderBy: { effectiveDate: 'desc' },
       });
