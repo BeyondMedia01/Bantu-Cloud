@@ -140,20 +140,21 @@ const Field = ({ label, value, style }) => (
   </View>
 );
 
-// Dual-currency column widths (A4 portrait):
-// units(38) + USD(50) + ZiG(50) + YTD(42) = 180 → description gets ~75pt
-const DUAL_AMT_W = 50, DUAL_YTD_W = 42;
+// Dual-currency column widths (A4 portrait, no YTD column):
+// units(38) + USD(62) + ZiG(62) = 162 → description gets ~103pt (no wrapping)
+// Single: units(38) + AMOUNT(80) = 118 → description gets ~147pt
+const DUAL_AMT_W = 62;
+const SINGLE_AMT_W = 80;
 
-const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, getYtd, isDual }) => (
+const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, isDual }) => (
   <View style={s.tableHalf}>
     <View style={s.tableHeader}>
       <Text style={[s.tableTitle, { color: titleColor }]}>{title}</Text>
       <View style={s.subHeaders}>
         <Text style={s.subHdrDesc}>DESCRIPTION</Text>
         <Text style={s.subHdrUnits}>UNITS</Text>
-        <Text style={[s.subHdrAmt, isDual ? { width: DUAL_AMT_W } : {}]}>{isDual ? 'USD' : 'AMOUNT'}</Text>
+        <Text style={[s.subHdrAmt, { width: isDual ? DUAL_AMT_W : SINGLE_AMT_W }]}>{isDual ? 'USD' : 'AMOUNT'}</Text>
         {isDual && <Text style={[s.subHdrAmtZIG, { width: DUAL_AMT_W }]}>ZiG</Text>}
-        <Text style={[s.subHdrYtd, isDual ? { width: DUAL_YTD_W } : {}]}>YTD</Text>
       </View>
     </View>
     {rows.map((item, idx) => {
@@ -168,13 +169,12 @@ const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, getYtd, isDu
           <Text style={s.rowUnits}>
             {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
           </Text>
-          <Text style={[s.rowAmt, isDual ? { width: DUAL_AMT_W } : {}]}>{usd(usdAmt)}</Text>
+          <Text style={[s.rowAmt, { width: isDual ? DUAL_AMT_W : SINGLE_AMT_W }]}>{usd(usdAmt)}</Text>
           {isDual && (
             <Text style={[s.rowAmtZIG, { width: DUAL_AMT_W }]}>
               {zigAmt != null && zigAmt !== 0 ? `ZiG ${fmt(zigAmt)}` : '—'}
             </Text>
           )}
-          <Text style={[s.rowYtd, isDual ? { width: DUAL_YTD_W } : {}]}>{usd(getYtd(item) ?? usdAmt)}</Text>
         </View>
       );
     })}
@@ -260,7 +260,6 @@ const PayslipDocument = ({ data }) => {
             rows={earnings}
             getAmt={e => e.allowance}
             getAmtZIG={e => e.allowanceZIG}
-            getYtd={e => e.ytd}
             isDual={isDual}
           />
           <TableSection
@@ -268,7 +267,6 @@ const PayslipDocument = ({ data }) => {
             rows={deductions}
             getAmt={d => d.deduction}
             getAmtZIG={d => d.deductionZIG}
-            getYtd={d => d.ytd}
             isDual={isDual}
           />
         </View>
