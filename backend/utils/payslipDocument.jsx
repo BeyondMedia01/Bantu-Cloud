@@ -95,6 +95,22 @@ const s = StyleSheet.create({
                  textAlign: 'right', color: '#3730a3' },
   empRowYtd:   { width: 58, fontSize: 7, textAlign: 'right', color: TEXT_MUTED },
 
+  // YTD block
+  ytdSection:  { marginHorizontal: 10, marginTop: 5 },
+  ytdHeader:   { backgroundColor: '#2d3748', padding: 5, paddingBottom: 3 },
+  ytdTitle:    { color: '#fbbf24', fontFamily: 'Helvetica-Bold', fontSize: 8 },
+  ytdSubHdrs:  { flexDirection: 'row', marginTop: 4 },
+  ytdRow:      { flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 5 },
+  ytdRowDesc:  { flex: 1, color: TEXT_DARK, fontSize: 7.5 },
+  ytdRowUSD:   { width: 72, fontFamily: 'Helvetica-Bold', fontSize: 7.5,
+                 textAlign: 'right', color: DARK_NAVY },
+  ytdRowZIG:   { width: 72, fontFamily: 'Helvetica-Bold', fontSize: 7.5,
+                 textAlign: 'right', color: '#0369a1' },
+  ytdGroupLabel:{ flexDirection: 'row', paddingVertical: 2, paddingHorizontal: 5,
+                  backgroundColor: '#e8edf3' },
+  ytdGroupText: { flex: 1, color: TEXT_MUTED, fontSize: 6.5,
+                  fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
+
   // Summary ribbon — 3 boxes
   ribbon:      { flexDirection: 'row', marginHorizontal: 10, marginTop: 5, gap: 4 },
   ribbonBox:   { flex: 1, padding: 10, borderRadius: 3 },
@@ -274,6 +290,48 @@ const PayslipDocument = ({ data }) => {
             ))}
           </View>
         )}
+
+        {/* ── Section 5b: YTD Summary Block ──────────────────────────── */}
+        <View style={s.ytdSection}>
+          <View style={s.ytdHeader}>
+            <Text style={s.ytdTitle}>YEAR-TO-DATE SUMMARY</Text>
+            <View style={s.ytdSubHdrs}>
+              <Text style={[s.subHdrDesc, { flex: 1 }]}>DESCRIPTION</Text>
+              <Text style={[s.subHdrAmt, { width: 72 }]}>YTD (USD)</Text>
+              {isDual && <Text style={[s.subHdrAmtZIG, { width: 72 }]}>YTD (ZiG)</Text>}
+            </View>
+          </View>
+          {/* Earnings group */}
+          <View style={s.ytdGroupLabel}>
+            <Text style={s.ytdGroupText}>Earnings</Text>
+          </View>
+          {earnings.map((item, idx) => (
+            <View key={`ye-${idx}`} style={[s.ytdRow, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
+              <Text style={s.ytdRowDesc}>{item.name}</Text>
+              <Text style={s.ytdRowUSD}>{usd(item.ytd ?? item.allowance)}</Text>
+              {isDual && (
+                <Text style={s.ytdRowZIG}>
+                  {item.ytdZIG != null ? `ZiG ${fmt(item.ytdZIG)}` : '—'}
+                </Text>
+              )}
+            </View>
+          ))}
+          {/* Deductions group */}
+          <View style={s.ytdGroupLabel}>
+            <Text style={s.ytdGroupText}>Deductions</Text>
+          </View>
+          {deductions.map((item, idx) => (
+            <View key={`yd-${idx}`} style={[s.ytdRow, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
+              <Text style={s.ytdRowDesc}>{item.name}</Text>
+              <Text style={s.ytdRowUSD}>{usd(item.ytd ?? item.deduction)}</Text>
+              {isDual && (
+                <Text style={s.ytdRowZIG}>
+                  {item.ytdZIG != null ? `ZiG ${fmt(item.ytdZIG)}` : '—'}
+                </Text>
+              )}
+            </View>
+          ))}
+        </View>
 
         {/* ── Section 6: Three-Box Summary Ribbon ────────────────────── */}
         <View style={s.ribbon}>
