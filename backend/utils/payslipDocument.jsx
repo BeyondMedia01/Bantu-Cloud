@@ -118,30 +118,39 @@ const Field = ({ label, value, style }) => (
   </View>
 );
 
-const TableSection = ({ title, titleColor, rows, getAmt, getYtd }) => (
+const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, getYtd, isDual }) => (
   <View style={s.tableHalf}>
     <View style={s.tableHeader}>
       <Text style={[s.tableTitle, { color: titleColor }]}>{title}</Text>
       <View style={s.subHeaders}>
         <Text style={s.subHdrDesc}>DESCRIPTION</Text>
         <Text style={s.subHdrUnits}>UNITS</Text>
-        <Text style={s.subHdrAmt}>AMOUNT</Text>
+        <Text style={[s.subHdrAmt, isDual ? { width: 80 } : {}]}>{isDual ? 'USD / ZiG' : 'AMOUNT'}</Text>
         <Text style={s.subHdrYtd}>YTD</Text>
       </View>
     </View>
-    {rows.map((item, idx) => (
-      <View key={idx} style={[s.tableRow, idx % 2 === 0 ? s.rowEven : {}]}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.rowDesc}>{item.name}</Text>
-          {item.description ? <Text style={s.rowSubDesc}>{item.description}</Text> : null}
+    {rows.map((item, idx) => {
+      const usdAmt = getAmt(item);
+      const zigAmt = isDual ? getAmtZIG(item) : null;
+      return (
+        <View key={idx} style={[s.tableRow, idx % 2 === 0 ? s.rowEven : {}]}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.rowDesc}>{item.name}</Text>
+            {item.description ? <Text style={s.rowSubDesc}>{item.description}</Text> : null}
+          </View>
+          <Text style={s.rowUnits}>
+            {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
+          </Text>
+          <View style={[s.rowAmt, isDual ? { width: 80, alignItems: 'flex-end' } : {}]}>
+            <Text style={[s.rowAmt, { width: undefined }]}>{usd(usdAmt)}</Text>
+            {isDual && zigAmt != null && zigAmt !== 0 ? (
+              <Text style={{ fontSize: 6, textAlign: 'right', color: '#475569', fontFamily: 'Helvetica' }}>ZiG {fmt(zigAmt)}</Text>
+            ) : null}
+          </View>
+          <Text style={s.rowYtd}>{usd(getYtd(item) ?? usdAmt)}</Text>
         </View>
-        <Text style={s.rowUnits}>
-          {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
-        </Text>
-        <Text style={s.rowAmt}>{usd(getAmt(item))}</Text>
-        <Text style={s.rowYtd}>{usd(getYtd(item) ?? getAmt(item))}</Text>
-      </View>
-    ))}
+      );
+    })}
   </View>
 );
 
@@ -223,13 +232,17 @@ const PayslipDocument = ({ data }) => {
             title="EARNINGS" titleColor={BANTU_GREEN}
             rows={earnings}
             getAmt={e => e.allowance}
+            getAmtZIG={e => e.allowanceZIG}
             getYtd={e => e.ytd}
+            isDual={isDual}
           />
           <TableSection
             title="DEDUCTIONS" titleColor="#fb7185"
             rows={deductions}
             getAmt={d => d.deduction}
+            getAmtZIG={d => d.deductionZIG}
             getYtd={d => d.ytd}
+            isDual={isDual}
           />
         </View>
 

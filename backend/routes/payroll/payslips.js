@@ -180,6 +180,7 @@ router.get('/:runId/summary/pdf', requirePermission('export_reports'), async (re
       companyName: run.company?.name || 'Master Roll',
       period: `${run.startDate.toLocaleDateString()} – ${run.endDate.toLocaleDateString()}`,
       currency: run.dualCurrency ? 'USD + ZiG' : (run.currency || 'USD'),
+      isDual: !!run.dualCurrency,
       groups: sortedGroups,
     }, res);
   } catch (error) {

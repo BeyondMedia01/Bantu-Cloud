@@ -441,8 +441,12 @@ const generatePayrollSummaryPDF = (data, stream) => {
   const doc = new PDFDocument({ margin: 20, size: 'A3', layout: 'landscape' });
   doc.pipe(stream);
 
-  const { companyName, period, currency: ccy = 'USD', groups = [] } = data;
+  const { companyName, period, currency: ccy = 'USD', groups = [], isDual = false } = data;
   const fmtN = (n) => (Number(n) > 0 || Number(n) < 0) ? Number(n).toFixed(2) : '—';
+  // For dual runs, show "USD X / ZiG Y" in a single cell
+  const fmtDual = (usd, zig) => isDual
+    ? `${fmtN(usd)}\nZiG ${fmtN(zig)}`
+    : fmtN(usd);
   const NAVY = '#1a2e4a', GREY = '#64748b';
 
   // ── Header ──────────────────────────────────────────────────────────────────
@@ -454,6 +458,7 @@ const generatePayrollSummaryPDF = (data, stream) => {
   doc.moveDown(0.8);
 
   // ── Column Definitions ──────────────────────────────────────────────────────
+  // Dual runs use taller rows and some columns show "USD / ZiG" stacked text
   const cols = [
     { label: 'Code', w: 40, align: 'left' },
     { label: 'Name', w: 100, align: 'left' },
@@ -461,26 +466,27 @@ const generatePayrollSummaryPDF = (data, stream) => {
     { label: 'Basic', w: 65, align: 'right' },
     { label: 'Allow/Ben', w: 65, align: 'right' },
     { label: 'Gross', w: 75, align: 'right' },
-    { label: 'PAYE', w: 65, align: 'right' },
-    { label: 'AIDS', w: 45, align: 'right' },
-    { label: 'NSSA Emp', w: 60, align: 'right' },
+    { label: isDual ? 'PAYE USD/ZiG' : 'PAYE', w: isDual ? 80 : 65, align: 'right' },
+    { label: isDual ? 'AIDS USD/ZiG' : 'AIDS', w: isDual ? 80 : 45, align: 'right' },
+    { label: isDual ? 'NSSA Emp USD/ZiG' : 'NSSA Emp', w: isDual ? 85 : 60, align: 'right' },
     { label: 'Pension', w: 60, align: 'right' },
-    { label: 'Loans', w: 60, align: 'right' },
-    { label: 'Other Ded', w: 60, align: 'right' },
-    { label: 'Net Pay', w: 85, align: 'right' },
+    { label: 'Loans', w: 55, align: 'right' },
+    { label: 'Other Ded', w: 55, align: 'right' },
+    { label: isDual ? 'Net USD/ZiG' : 'Net Pay', w: isDual ? 90 : 85, align: 'right' },
     { label: 'NSSA Empr', w: 60, align: 'right' },
-    { label: 'ZIMDEF', w: 60, align: 'right' },
-    { label: 'NEC Match', w: 65, align: 'right' },
-    { label: 'CTC', w: 85, align: 'right' }, // Cost to Company
+    { label: 'ZIMDEF', w: 55, align: 'right' },
+    { label: 'NEC Match', w: 60, align: 'right' },
+    { label: 'CTC', w: 75, align: 'right' },
   ];
-  const HDR_H = 20, ROW_H = 16;
+  const totalW = cols.reduce((s, c) => s + c.w, 0);
+  const HDR_H = 20, ROW_H = isDual ? 22 : 16;
 
   const drawHeader = (y) => {
-    doc.rect(20, y, 1150, HDR_H).fill(NAVY);
+    doc.rect(20, y, totalW + 10, HDR_H).fill(NAVY);
     let cx = 25;
     cols.forEach(col => {
-      doc.font('Helvetica-Bold').fontSize(8).fillColor('white')
-        .text(col.label, cx, y + 5, { width: col.w - 10, align: col.align });
+      doc.font('Helvetica-Bold').fontSize(isDual ? 7 : 8).fillColor('white')
+        .text(col.label, cx, y + 5, { width: col.w - 4, align: col.align });
       cx += col.w;
     });
     return y + HDR_H;
@@ -488,52 +494,53 @@ const generatePayrollSummaryPDF = (data, stream) => {
 
   let currentY = drawHeader(doc.y);
 
-  const grandTotals = { gross: 0, paye: 0, aids: 0, nssaE: 0, nssaR: 0, net: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0, pension: 0, otherDed: 0, loans: 0, allowBen: 0, basic: 0 };
+  const grandTotals = { gross: 0, paye: 0, payeZIG: 0, aids: 0, aidsZIG: 0, nssaE: 0, nssaEZIG: 0, nssaR: 0, net: 0, netZIG: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0, pension: 0, otherDed: 0, loans: 0, allowBen: 0, basic: 0 };
 
   groups.forEach((group) => {
     if (currentY > 780) { doc.addPage({ size: 'A3', layout: 'landscape', margin: 20 }); currentY = drawHeader(30); }
 
     // Group Header
-    doc.rect(20, currentY, 1150, ROW_H).fill('#e2e8f0');
+    doc.rect(20, currentY, totalW + 10, ROW_H).fill('#e2e8f0');
     doc.font('Helvetica-Bold').fontSize(10).fillColor(NAVY).text(group.name.toUpperCase(), 30, currentY + 4);
     currentY += ROW_H;
 
-    const groupTotals = { gross: 0, paye: 0, aids: 0, nssaE: 0, nssaR: 0, net: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0, pension: 0, otherDed: 0, loans: 0, allowBen: 0, basic: 0 };
+    const groupTotals = { gross: 0, paye: 0, payeZIG: 0, aids: 0, aidsZIG: 0, nssaE: 0, nssaEZIG: 0, nssaR: 0, net: 0, netZIG: 0, necE: 0, necR: 0, zimdef: 0, ctc: 0, pension: 0, otherDed: 0, loans: 0, allowBen: 0, basic: 0 };
 
     group.payslips.forEach((p, idx) => {
       if (currentY > 800) { doc.addPage({ size: 'A3', layout: 'landscape', margin: 20 }); currentY = drawHeader(30); }
-      doc.rect(20, currentY, 1150, ROW_H).fill(idx % 2 === 0 ? 'white' : '#f8fafc');
+      doc.rect(20, currentY, totalW + 10, ROW_H).fill(idx % 2 === 0 ? 'white' : '#f8fafc');
 
       const emp = p.employee || {};
-      // Calculate Allowances/Benefits (Gross - Basic)
       const allowBen = (p.gross || 0) - (p.basicSalaryApplied || emp.baseRate || 0);
       const ctc = (p.gross || 0) + (p.nssaEmployer || 0) + (p.zimdefEmployer || 0) + (p.wcifEmployer || 0) + (p.necEmployer || 0);
 
       const cells = [
-        emp.employeeCode || '—',
-        `${emp.firstName || ''} ${emp.lastName || ''}`,
-        emp.position || '—',
-        fmtN(p.basicSalaryApplied || emp.baseRate),
-        fmtN(allowBen),
-        fmtN(p.gross),
-        fmtN(p.paye),
-        fmtN(p.aidsLevy),
-        fmtN(p.nssaEmployee),
-        fmtN(p.pensionActual || p.pensionApplied || 0),
-        fmtN(p.loanDeductions),
-        fmtN(p.otherDeductionsActual || 0),
-        fmtN(p.netPay),
-        fmtN(p.nssaEmployer),
-        fmtN(p.zimdefEmployer),
-        fmtN(p.necEmployer),
-        fmtN(ctc),
+        { v: emp.employeeCode || '—' },
+        { v: `${emp.firstName || ''} ${emp.lastName || ''}` },
+        { v: emp.position || '—' },
+        { v: fmtN(p.basicSalaryApplied || emp.baseRate) },
+        { v: fmtN(allowBen) },
+        { v: fmtN(p.gross), bold: true },
+        { v: isDual ? `${fmtN(p.payeUSD ?? p.paye)}\nZiG ${fmtN(p.payeZIG ?? 0)}` : fmtN(p.paye) },
+        { v: isDual ? `${fmtN(p.aidsLevyUSD ?? p.aidsLevy)}\nZiG ${fmtN(p.aidsLevyZIG ?? 0)}` : fmtN(p.aidsLevy) },
+        { v: isDual ? `${fmtN(p.nssaUSD ?? p.nssaEmployee)}\nZiG ${fmtN(p.nssaZIG ?? 0)}` : fmtN(p.nssaEmployee) },
+        { v: fmtN(p.pensionActual || p.pensionApplied || 0) },
+        { v: fmtN(p.loanDeductions) },
+        { v: fmtN(p.otherDeductionsActual || 0) },
+        { v: isDual ? `${fmtN(p.netPayUSD ?? p.netPay)}\nZiG ${fmtN(p.netPayZIG ?? 0)}` : fmtN(p.netPay), bold: true },
+        { v: fmtN(p.nssaEmployer) },
+        { v: fmtN(p.zimdefEmployer) },
+        { v: fmtN(p.necEmployer) },
+        { v: fmtN(ctc), bold: true },
       ];
 
       let cx = 25;
-      cells.forEach((val, ci) => {
+      cells.forEach((cell, ci) => {
         const col = cols[ci];
-        const font = (ci === 5 || ci === 12 || ci === 16) ? 'Helvetica-Bold' : 'Helvetica';
-        doc.font(font).fontSize(8.5).fillColor('#1e293b').text(val, cx, currentY + 5, { width: col.w - 10, align: col.align });
+        const font = cell.bold ? 'Helvetica-Bold' : 'Helvetica';
+        const fs = isDual ? 7.5 : 8.5;
+        doc.font(font).fontSize(fs).fillColor('#1e293b')
+          .text(cell.v, cx, currentY + 3, { width: col.w - 4, align: col.align, lineGap: isDual ? 1 : 0 });
         cx += col.w;
       });
 
@@ -542,13 +549,17 @@ const generatePayrollSummaryPDF = (data, stream) => {
         t.basic += p.basicSalaryApplied || emp.baseRate || 0;
         t.allowBen += allowBen;
         t.gross += p.gross || 0;
-        t.paye += p.paye || 0;
-        t.aids += p.aidsLevy || 0;
-        t.nssaE += p.nssaEmployee || 0;
+        t.paye += p.payeUSD ?? p.paye ?? 0;
+        t.payeZIG += p.payeZIG || 0;
+        t.aids += p.aidsLevyUSD ?? p.aidsLevy ?? 0;
+        t.aidsZIG += p.aidsLevyZIG || 0;
+        t.nssaE += p.nssaUSD ?? p.nssaEmployee ?? 0;
+        t.nssaEZIG += p.nssaZIG || 0;
         t.pension += p.pensionActual || p.pensionApplied || 0;
         t.loans += p.loanDeductions || 0;
         t.otherDed += p.otherDeductionsActual || 0;
-        t.net += p.netPay || 0;
+        t.net += p.netPayUSD ?? p.netPay ?? 0;
+        t.netZIG += p.netPayZIG || 0;
         t.nssaR += p.nssaEmployer || 0;
         t.zimdef += p.zimdefEmployer || 0;
         t.necR += p.necEmployer || 0;
@@ -560,15 +571,20 @@ const generatePayrollSummaryPDF = (data, stream) => {
     });
 
     // Subtotal Row
-    doc.rect(20, currentY, 1150, ROW_H).fill('#f1f5f9');
+    doc.rect(20, currentY, totalW + 10, ROW_H).fill('#f1f5f9');
     doc.font('Helvetica-Bold').fontSize(8.5).fillColor(NAVY).text(`SUBTOTAL: ${group.name}`, 30, currentY + 5);
-
-    // Display subtotals for main money columns
-    const stCells = { 3: groupTotals.basic, 4: groupTotals.allowBen, 5: groupTotals.gross, 6: groupTotals.paye, 7: groupTotals.aids, 8: groupTotals.nssaE, 9: groupTotals.pension, 10: groupTotals.loans, 11: groupTotals.otherDed, 12: groupTotals.net, 13: groupTotals.nssaR, 14: groupTotals.zimdef, 15: groupTotals.necR, 16: groupTotals.ctc };
+    const stMap = [, , , groupTotals.basic, groupTotals.allowBen, groupTotals.gross,
+      isDual ? `${fmtN(groupTotals.paye)}\nZiG ${fmtN(groupTotals.payeZIG)}` : fmtN(groupTotals.paye),
+      isDual ? `${fmtN(groupTotals.aids)}\nZiG ${fmtN(groupTotals.aidsZIG)}` : fmtN(groupTotals.aids),
+      isDual ? `${fmtN(groupTotals.nssaE)}\nZiG ${fmtN(groupTotals.nssaEZIG)}` : fmtN(groupTotals.nssaE),
+      fmtN(groupTotals.pension), fmtN(groupTotals.loans), fmtN(groupTotals.otherDed),
+      isDual ? `${fmtN(groupTotals.net)}\nZiG ${fmtN(groupTotals.netZIG)}` : fmtN(groupTotals.net),
+      fmtN(groupTotals.nssaR), fmtN(groupTotals.zimdef), fmtN(groupTotals.necR), fmtN(groupTotals.ctc),
+    ];
     let scx = 25;
     cols.forEach((col, ci) => {
-      if (stCells[ci] !== undefined) {
-        doc.text(fmtN(stCells[ci]), scx, currentY + 5, { width: col.w - 10, align: col.align });
+      if (stMap[ci] !== undefined) {
+        doc.text(String(stMap[ci]), scx, currentY + 3, { width: col.w - 4, align: col.align, lineGap: 1 });
       }
       scx += col.w;
     });
@@ -578,14 +594,20 @@ const generatePayrollSummaryPDF = (data, stream) => {
   // Grand Total Section
   doc.moveDown(1);
   const footerY = currentY + 10;
-  doc.rect(20, footerY, 1150, 30).fill('#cbd5e1');
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(NAVY).text('GRAND TOTALS', 30, footerY + 10);
-
+  doc.rect(20, footerY, totalW + 10, isDual ? 38 : 30).fill('#cbd5e1');
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(NAVY).text('GRAND TOTALS', 30, footerY + 8);
+  const gtMap = [, , , grandTotals.basic, grandTotals.allowBen, grandTotals.gross,
+    isDual ? `${fmtN(grandTotals.paye)}\nZiG ${fmtN(grandTotals.payeZIG)}` : fmtN(grandTotals.paye),
+    isDual ? `${fmtN(grandTotals.aids)}\nZiG ${fmtN(grandTotals.aidsZIG)}` : fmtN(grandTotals.aids),
+    isDual ? `${fmtN(grandTotals.nssaE)}\nZiG ${fmtN(grandTotals.nssaEZIG)}` : fmtN(grandTotals.nssaE),
+    fmtN(grandTotals.pension), fmtN(grandTotals.loans), fmtN(grandTotals.otherDed),
+    isDual ? `${fmtN(grandTotals.net)}\nZiG ${fmtN(grandTotals.netZIG)}` : fmtN(grandTotals.net),
+    fmtN(grandTotals.nssaR), fmtN(grandTotals.zimdef), fmtN(grandTotals.necR), fmtN(grandTotals.ctc),
+  ];
   let gcx = 25;
-  const gtCells = { 3: grandTotals.basic, 4: grandTotals.allowBen, 5: grandTotals.gross, 6: grandTotals.paye, 7: grandTotals.aids, 8: grandTotals.nssaE, 9: grandTotals.pension, 10: grandTotals.loans, 11: grandTotals.otherDed, 12: grandTotals.net, 13: grandTotals.nssaR, 14: grandTotals.zimdef, 15: grandTotals.necR, 16: grandTotals.ctc };
   cols.forEach((col, ci) => {
-    if (gtCells[ci] !== undefined) {
-      doc.text(fmtN(gtCells[ci]), gcx, footerY + 10, { width: col.w - 10, align: col.align });
+    if (gtMap[ci] !== undefined) {
+      doc.text(String(gtMap[ci]), gcx, footerY + 8, { width: col.w - 4, align: col.align, lineGap: 1 });
     }
     gcx += col.w;
   });

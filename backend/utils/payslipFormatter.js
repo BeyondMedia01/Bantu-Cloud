@@ -6,13 +6,8 @@ const { generatePayslipBuffer } = require('./pdfService');
  * Shared logic to build payslip line items.
  */
 function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSalary }) {
-  console.log('[payslip lines] tx count:', transactions.length, '| details:', JSON.stringify(
-    transactions.map(t => ({ amount: t.amount, type: t.transactionCode?.type, name: t.transactionCode?.name, code: t.transactionCode?.code }))
-  ));
+  const isDual = payslip.payrollRun?.dualCurrency || false;
 
-  const earningTxs = transactions.filter(
-    (t) => t.transactionCode.type === 'EARNING' || t.transactionCode.type === 'BENEFIT'
-  );
   const isMedicalAidTc = (tc) => {
     const name = (tc.name || '').toLowerCase();
     const code = (tc.code || '').toLowerCase();
@@ -21,88 +16,136 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, basicSa
       code === '301';
   };
 
-  const deductionTxs = transactions.filter(
-    (t) => t.transactionCode.type === 'DEDUCTION' && !isMedicalAidTc(t.transactionCode)
-  );
-  const medicalAidTxs = transactions.filter(
-    (t) => t.transactionCode.type === 'DEDUCTION' && isMedicalAidTc(t.transactionCode)
-  );
+  // For dual runs, group USD and ZiG transactions by TC into merged rows.
+  // For single-currency runs, all transactions are single-currency so no grouping needed.
+  const groupTxsByTc = (txs) => {
+    if (!isDual) return txs.map(t => ({ tc: t.transactionCode, tcId: t.transactionCodeId, amountUSD: t.amount, amountZIG: null, description: t.description, units: t.units, unitsType: t.unitsType }));
+    const map = new Map();
+    for (const t of txs) {
+      if (!map.has(t.transactionCodeId)) {
+        map.set(t.transactionCodeId, { tc: t.transactionCode, tcId: t.transactionCodeId, amountUSD: 0, amountZIG: 0, description: t.description, units: t.units, unitsType: t.unitsType });
+      }
+      const entry = map.get(t.transactionCodeId);
+      if (t.currency === 'ZiG') entry.amountZIG += t.amount;
+      else entry.amountUSD += t.amount;
+    }
+    return [...map.values()];
+  };
+
+  const isEarningTc = (tc) => tc.type === 'EARNING' || tc.type === 'BENEFIT';
+  const isDeductionTc = (tc) => tc.type === 'DEDUCTION' && !isMedicalAidTc(tc);
+  const isMedAidTc   = (tc) => tc.type === 'DEDUCTION' && isMedicalAidTc(tc);
+
+  const earningGroups   = groupTxsByTc(transactions.filter(t => isEarningTc(t.transactionCode)));
+  const deductionGroups = groupTxsByTc(transactions.filter(t => isDeductionTc(t.transactionCode)));
+  const medicalAidGroups = groupTxsByTc(transactions.filter(t => isMedAidTc(t.transactionCode)));
+
+  // Derive ZiG basic salary for dual runs: grossZIG minus ZiG earning transactions
+  const zigEarningsSum = isDual ? earningGroups.reduce((s, g) => s + (g.amountZIG || 0), 0) : 0;
+  const basicSalaryZIG = isDual ? Math.max(0, (payslip.grossZIG || 0) - zigEarningsSum) : null;
 
   const lines = [
-    { name: 'Basic Salary', allowance: basicSalary, deduction: 0, employer: 0, ytd: ytdStat.basicSalary },
+    {
+      name: 'Basic Salary',
+      allowance: basicSalary, allowanceZIG: basicSalaryZIG,
+      deduction: 0, deductionZIG: null,
+      employer: 0, ytd: ytdStat.basicSalary,
+    },
   ];
 
-  // Add Earnings/Benefits
-  earningTxs.forEach(t => {
+  // Earnings/Benefits
+  earningGroups.forEach(g => {
     lines.push({
-      name: t.transactionCode.name,
-      description: t.description,
-      allowance: t.amount,
-      deduction: 0,
+      name: g.tc.name,
+      description: g.description,
+      allowance: g.amountUSD,
+      allowanceZIG: isDual ? g.amountZIG : null,
+      deduction: 0, deductionZIG: null,
       employer: 0,
-      ytd: ytdMap[t.transactionCodeId] ?? t.amount,
-      units: t.units ?? null,
-      unitsType: t.unitsType ?? null,
+      ytd: ytdMap[g.tcId] ?? g.amountUSD,
+      units: g.units ?? null,
+      unitsType: g.unitsType ?? null,
     });
   });
 
-  // Add Statutory rows with YTD
-  lines.push({ name: 'PAYE', allowance: 0, deduction: payslip.paye, employer: 0, ytd: ytdStat.paye });
+  // Statutory deductions — show USD and ZiG splits for dual runs
+  lines.push({
+    name: 'PAYE',
+    allowance: 0, allowanceZIG: null,
+    deduction: isDual ? (payslip.payeUSD ?? payslip.paye) : payslip.paye,
+    deductionZIG: isDual ? (payslip.payeZIG ?? null) : null,
+    employer: 0, ytd: ytdStat.paye,
+  });
   if ((payslip.medicalAidCredit || 0) > 0) {
-    lines.push({ name: 'Medical Aid Credit', allowance: payslip.medicalAidCredit, deduction: 0, employer: 0, ytd: ytdStat.medicalAidCredit });
+    lines.push({ name: 'Medical Aid Credit', allowance: payslip.medicalAidCredit, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: 0, ytd: ytdStat.medicalAidCredit });
   }
-  lines.push({ name: 'AIDS Levy', allowance: 0, deduction: payslip.aidsLevy, employer: 0, ytd: ytdStat.aidsLevy });
-  lines.push({ name: 'NSSA Employee', allowance: 0, deduction: payslip.nssaEmployee, employer: 0, ytd: ytdStat.nssaEmployee });
+  lines.push({
+    name: 'AIDS Levy',
+    allowance: 0, allowanceZIG: null,
+    deduction: isDual ? (payslip.aidsLevyUSD ?? payslip.aidsLevy) : payslip.aidsLevy,
+    deductionZIG: isDual ? (payslip.aidsLevyZIG ?? null) : null,
+    employer: 0, ytd: ytdStat.aidsLevy,
+  });
+  lines.push({
+    name: 'NSSA Employee',
+    allowance: 0, allowanceZIG: null,
+    deduction: isDual ? (payslip.nssaUSD ?? payslip.nssaEmployee) : payslip.nssaEmployee,
+    deductionZIG: isDual ? (payslip.nssaZIG ?? null) : null,
+    employer: 0, ytd: ytdStat.nssaEmployee,
+  });
 
   if (payslip.necLevy > 0) {
-    lines.push({ name: 'NEC Employee', allowance: 0, deduction: payslip.necLevy, employer: 0, ytd: ytdStat.necLevy });
+    lines.push({ name: 'NEC Employee', allowance: 0, allowanceZIG: null, deduction: payslip.necLevy, deductionZIG: null, employer: 0, ytd: ytdStat.necLevy });
   }
 
-  // Add Voluntary/Other Deductions
-  deductionTxs.forEach(t => {
+  // Voluntary/Other Deductions
+  deductionGroups.forEach(g => {
     lines.push({
-      name: t.transactionCode.name,
-      allowance: 0,
-      deduction: t.amount,
+      name: g.tc.name,
+      allowance: 0, allowanceZIG: null,
+      deduction: g.amountUSD,
+      deductionZIG: isDual ? g.amountZIG : null,
       employer: 0,
-      ytd: ytdMap[t.transactionCodeId] ?? t.amount,
-      units: t.units ?? null,
-      unitsType: t.unitsType ?? null,
+      ytd: ytdMap[g.tcId] ?? g.amountUSD,
+      units: g.units ?? null,
+      unitsType: g.unitsType ?? null,
     });
   });
 
   if (payslip.loanDeductions > 0) {
-    lines.push({ name: 'Loan Repayments', allowance: 0, deduction: payslip.loanDeductions, employer: 0, ytd: ytdStat.loanDeductions });
+    lines.push({ name: 'Loan Repayments', allowance: 0, allowanceZIG: null, deduction: payslip.loanDeductions, deductionZIG: null, employer: 0, ytd: ytdStat.loanDeductions });
   }
 
-  // Medical Aid — shown in both deductions (employee) and employer contributions
-  medicalAidTxs.forEach(t => {
+  // Medical Aid
+  medicalAidGroups.forEach(g => {
+    const amt = g.amountUSD;
     lines.push({
-      name: t.transactionCode.name,
-      allowance: 0,
-      deduction: t.amount,
-      employer: t.amount,
-      ytd: ytdMap[t.transactionCodeId] ?? t.amount,
-      units: t.units ?? null,
-      unitsType: t.unitsType ?? null,
+      name: g.tc.name,
+      allowance: 0, allowanceZIG: null,
+      deduction: amt,
+      deductionZIG: isDual ? g.amountZIG : null,
+      employer: amt,
+      ytd: ytdMap[g.tcId] ?? amt,
+      units: g.units ?? null,
+      unitsType: g.unitsType ?? null,
     });
   });
 
   // Employer Contributions
   if (payslip.nssaEmployer > 0) {
-    lines.push({ name: 'NSSA Employer', allowance: 0, deduction: 0, employer: payslip.nssaEmployer, ytd: ytdStat.nssaEmployer });
+    lines.push({ name: 'NSSA Employer', allowance: 0, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: payslip.nssaEmployer, ytd: ytdStat.nssaEmployer });
   }
   if (payslip.zimdefEmployer > 0) {
-    lines.push({ name: 'ZIMDEF (Manpower)', allowance: 0, deduction: 0, employer: payslip.zimdefEmployer, ytd: ytdStat.zimdefEmployer });
+    lines.push({ name: 'ZIMDEF (Manpower)', allowance: 0, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: payslip.zimdefEmployer, ytd: ytdStat.zimdefEmployer });
   }
   if (payslip.sdfContribution > 0) {
-    lines.push({ name: 'SDF (Training)', allowance: 0, deduction: 0, employer: payslip.sdfContribution, ytd: ytdStat.sdfContribution });
+    lines.push({ name: 'SDF (Training)', allowance: 0, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: payslip.sdfContribution, ytd: ytdStat.sdfContribution });
   }
   if (payslip.wcifEmployer > 0) {
-    lines.push({ name: 'WCIF (Insurance)', allowance: 0, deduction: 0, employer: payslip.wcifEmployer, ytd: ytdStat.wcifEmployer });
+    lines.push({ name: 'WCIF (Insurance)', allowance: 0, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: payslip.wcifEmployer, ytd: ytdStat.wcifEmployer });
   }
   if (payslip.necEmployer > 0) {
-    lines.push({ name: 'NEC Employer', allowance: 0, deduction: 0, employer: payslip.necEmployer, ytd: ytdStat.necEmployer });
+    lines.push({ name: 'NEC Employer', allowance: 0, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: payslip.necEmployer, ytd: ytdStat.necEmployer });
   }
 
   return lines;
