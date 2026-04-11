@@ -140,38 +140,36 @@ const Field = ({ label, value, style }) => (
   </View>
 );
 
-// Dual-currency column widths (A4 portrait, no YTD column):
-// units(38) + USD(62) + ZiG(62) = 162 → description gets ~103pt (no wrapping)
-// Single: units(38) + AMOUNT(80) = 118 → description gets ~147pt
-const DUAL_AMT_W = 62;
-const SINGLE_AMT_W = 80;
+// Column flex ratios inside each half-table:
+// Dual:   DESCRIPTION(flex:2) | UNITS(flex:0.55) | USD(flex:1) | ZiG(flex:1)
+// Single: DESCRIPTION(flex:2) | UNITS(flex:0.55) | AMOUNT(flex:1.4)
 
 const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, isDual }) => (
   <View style={s.tableHalf}>
     <View style={s.tableHeader}>
       <Text style={[s.tableTitle, { color: titleColor }]}>{title}</Text>
-      <View style={s.subHeaders}>
-        <Text style={s.subHdrDesc}>DESCRIPTION</Text>
-        <Text style={s.subHdrUnits}>UNITS</Text>
-        <Text style={[s.subHdrAmt, { width: isDual ? DUAL_AMT_W : SINGLE_AMT_W }]}>{isDual ? 'USD' : 'AMOUNT'}</Text>
-        {isDual && <Text style={[s.subHdrAmtZIG, { width: DUAL_AMT_W }]}>ZiG</Text>}
+      <View style={[s.subHeaders, { flexWrap: 'nowrap' }]}>
+        <Text style={[s.subHdrDesc, { flex: 2 }]}>DESCRIPTION</Text>
+        <Text style={[s.subHdrUnits, { flex: 0.55 }]}>UNITS</Text>
+        <Text style={[s.subHdrAmt, { flex: isDual ? 1 : 1.4, width: undefined }]}>{isDual ? 'USD' : 'AMOUNT'}</Text>
+        {isDual && <Text style={[s.subHdrAmtZIG, { flex: 1, width: undefined }]}>ZiG</Text>}
       </View>
     </View>
     {rows.map((item, idx) => {
       const usdAmt = getAmt(item);
       const zigAmt = isDual ? getAmtZIG(item) : null;
       return (
-        <View key={idx} style={[s.tableRow, idx % 2 === 0 ? s.rowEven : {}]}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.rowDesc}>{item.name}</Text>
+        <View key={idx} style={[s.tableRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? s.rowEven : {}]}>
+          <View style={{ flex: 2 }}>
+            <Text style={[s.rowDesc, { flexWrap: 'nowrap' }]} numberOfLines={2}>{item.name}</Text>
             {item.description ? <Text style={s.rowSubDesc}>{item.description}</Text> : null}
           </View>
-          <Text style={s.rowUnits}>
+          <Text style={[s.rowUnits, { flex: 0.55, width: undefined }]} numberOfLines={1}>
             {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
           </Text>
-          <Text style={[s.rowAmt, { width: isDual ? DUAL_AMT_W : SINGLE_AMT_W }]}>{usd(usdAmt)}</Text>
+          <Text style={[s.rowAmt, { flex: isDual ? 1 : 1.4, width: undefined }]} numberOfLines={1}>{usd(usdAmt)}</Text>
           {isDual && (
-            <Text style={[s.rowAmtZIG, { width: DUAL_AMT_W }]}>
+            <Text style={[s.rowAmtZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
               {zigAmt != null && zigAmt !== 0 ? `ZiG ${fmt(zigAmt)}` : '—'}
             </Text>
           )}
@@ -276,17 +274,17 @@ const PayslipDocument = ({ data }) => {
           <View style={s.empSection}>
             <View style={s.empHeader}>
               <Text style={s.empTitle}>STATUTORY EMPLOYER CONTRIBUTIONS</Text>
-              <View style={s.empSubHdrs}>
-                <Text style={[s.subHdrDesc, { flex: 1 }]}>DESCRIPTION</Text>
-                <Text style={s.subHdrAmt}>AMOUNT (USD)</Text>
-                <Text style={s.subHdrYtd}>YTD (USD)</Text>
+              <View style={[s.empSubHdrs, { flexWrap: 'nowrap' }]}>
+                <Text style={[s.subHdrDesc, { flex: 2 }]}>DESCRIPTION</Text>
+                <Text style={[s.subHdrAmt, { flex: 1, width: undefined, textAlign: 'right' }]}>AMOUNT (USD)</Text>
+                <Text style={[s.subHdrYtd, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD (USD)</Text>
               </View>
             </View>
             {employers.map((c, idx) => (
-              <View key={idx} style={[s.empRow, idx % 2 === 0 ? { backgroundColor: '#f0f4ff' } : {}]}>
-                <Text style={s.empRowDesc}>{c.name}</Text>
-                <Text style={s.empRowAmt}>{usd(c.employer)}</Text>
-                {c.ytd != null && <Text style={s.empRowYtd}>{usd(c.ytd)}</Text>}
+              <View key={idx} style={[s.empRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? { backgroundColor: '#f0f4ff' } : {}]}>
+                <Text style={[s.empRowDesc, { flex: 2 }]} numberOfLines={2}>{c.name}</Text>
+                <Text style={[s.empRowAmt, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(c.employer)}</Text>
+                {c.ytd != null && <Text style={[s.empRowYtd, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(c.ytd)}</Text>}
               </View>
             ))}
           </View>
@@ -296,10 +294,10 @@ const PayslipDocument = ({ data }) => {
         <View style={s.ytdSection}>
           <View style={s.ytdHeader}>
             <Text style={s.ytdTitle}>YEAR-TO-DATE SUMMARY</Text>
-            <View style={s.ytdSubHdrs}>
-              <Text style={[s.subHdrDesc, { flex: 1 }]}>DESCRIPTION</Text>
-              <Text style={[s.subHdrAmt, { width: 72 }]}>YTD (USD)</Text>
-              {isDual && <Text style={[s.subHdrAmtZIG, { width: 72 }]}>YTD (ZiG)</Text>}
+            <View style={[s.ytdSubHdrs, { flexWrap: 'nowrap' }]}>
+              <Text style={[s.subHdrDesc, { flex: 2 }]}>DESCRIPTION</Text>
+              <Text style={[s.subHdrAmt, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD (USD)</Text>
+              {isDual && <Text style={[s.subHdrAmtZIG, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD (ZiG)</Text>}
             </View>
           </View>
           {/* Earnings group */}
@@ -307,11 +305,11 @@ const PayslipDocument = ({ data }) => {
             <Text style={s.ytdGroupText}>Earnings</Text>
           </View>
           {earnings.map((item, idx) => (
-            <View key={`ye-${idx}`} style={[s.ytdRow, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
-              <Text style={s.ytdRowDesc}>{item.name}</Text>
-              <Text style={s.ytdRowUSD}>{usd(item.ytd ?? item.allowance)}</Text>
+            <View key={`ye-${idx}`} style={[s.ytdRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
+              <Text style={[s.ytdRowDesc, { flex: 2 }]} numberOfLines={2}>{item.name}</Text>
+              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(item.ytd ?? item.allowance)}</Text>
               {isDual && (
-                <Text style={s.ytdRowZIG}>
+                <Text style={[s.ytdRowZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
                   {item.ytdZIG != null ? `ZiG ${fmt(item.ytdZIG)}` : '—'}
                 </Text>
               )}
@@ -322,11 +320,11 @@ const PayslipDocument = ({ data }) => {
             <Text style={s.ytdGroupText}>Deductions</Text>
           </View>
           {deductions.map((item, idx) => (
-            <View key={`yd-${idx}`} style={[s.ytdRow, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
-              <Text style={s.ytdRowDesc}>{item.name}</Text>
-              <Text style={s.ytdRowUSD}>{usd(item.ytd ?? item.deduction)}</Text>
+            <View key={`yd-${idx}`} style={[s.ytdRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
+              <Text style={[s.ytdRowDesc, { flex: 2 }]} numberOfLines={2}>{item.name}</Text>
+              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(item.ytd ?? item.deduction)}</Text>
               {isDual && (
-                <Text style={s.ytdRowZIG}>
+                <Text style={[s.ytdRowZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
                   {item.ytdZIG != null ? `ZiG ${fmt(item.ytdZIG)}` : '—'}
                 </Text>
               )}
