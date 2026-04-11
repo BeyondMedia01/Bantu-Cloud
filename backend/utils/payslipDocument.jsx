@@ -121,16 +121,21 @@ const Field = ({ label, value, style }) => (
   </View>
 );
 
+// Column widths differ between single and dual currency to fit A4 portrait.
+// Dual: units hidden (saves 38pt), amounts narrowed → description gets ~111pt.
+// Single: original widths unchanged.
+const DUAL_USD_W = 52, DUAL_ZIG_W = 50, DUAL_YTD_W = 42;
+
 const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, getYtd, isDual }) => (
   <View style={s.tableHalf}>
     <View style={s.tableHeader}>
       <Text style={[s.tableTitle, { color: titleColor }]}>{title}</Text>
       <View style={s.subHeaders}>
         <Text style={s.subHdrDesc}>DESCRIPTION</Text>
-        <Text style={s.subHdrUnits}>UNITS</Text>
-        <Text style={s.subHdrAmt}>{isDual ? 'USD' : 'AMOUNT'}</Text>
-        {isDual && <Text style={s.subHdrAmtZIG}>ZiG</Text>}
-        <Text style={s.subHdrYtd}>YTD</Text>
+        {!isDual && <Text style={s.subHdrUnits}>UNITS</Text>}
+        <Text style={[s.subHdrAmt, isDual ? { width: DUAL_USD_W } : {}]}>{isDual ? 'USD' : 'AMOUNT'}</Text>
+        {isDual && <Text style={[s.subHdrAmtZIG, { width: DUAL_ZIG_W }]}>ZiG</Text>}
+        <Text style={[s.subHdrYtd, isDual ? { width: DUAL_YTD_W } : {}]}>YTD</Text>
       </View>
     </View>
     {rows.map((item, idx) => {
@@ -139,19 +144,21 @@ const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, getYtd, isDu
       return (
         <View key={idx} style={[s.tableRow, idx % 2 === 0 ? s.rowEven : {}]}>
           <View style={{ flex: 1 }}>
-            <Text style={s.rowDesc}>{item.name}</Text>
+            <Text style={[s.rowDesc, isDual ? { fontSize: 7 } : {}]}>{item.name}</Text>
             {item.description ? <Text style={s.rowSubDesc}>{item.description}</Text> : null}
           </View>
-          <Text style={s.rowUnits}>
-            {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
-          </Text>
-          <Text style={s.rowAmt}>{usd(usdAmt)}</Text>
+          {!isDual && (
+            <Text style={s.rowUnits}>
+              {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
+            </Text>
+          )}
+          <Text style={[s.rowAmt, isDual ? { width: DUAL_USD_W, fontSize: 7 } : {}]}>{usd(usdAmt)}</Text>
           {isDual && (
-            <Text style={s.rowAmtZIG}>
+            <Text style={[s.rowAmtZIG, { width: DUAL_ZIG_W, fontSize: 7 }]}>
               {zigAmt != null && zigAmt !== 0 ? `ZiG ${fmt(zigAmt)}` : '—'}
             </Text>
           )}
-          <Text style={s.rowYtd}>{usd(getYtd(item) ?? usdAmt)}</Text>
+          <Text style={[s.rowYtd, isDual ? { width: DUAL_YTD_W } : {}]}>{usd(getYtd(item) ?? usdAmt)}</Text>
         </View>
       );
     })}

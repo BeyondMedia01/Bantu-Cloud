@@ -36,9 +36,9 @@ const s = StyleSheet.create({
   colHdr:     { backgroundColor: DARK_NAVY, flexDirection: 'row', padding: 4,
                 marginHorizontal: 10, marginTop: 14 },
   colHdrText: { color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 7.5 },
-  colAmt:     { width: 62, color: 'white', fontFamily: 'Helvetica-Bold',
+  colAmt:     { width: 55, color: 'white', fontFamily: 'Helvetica-Bold',
                 fontSize: 7.5, textAlign: 'right' },
-  colAmtSm:   { width: 62, color: 'rgba(255,255,255,0.7)', fontFamily: 'Helvetica-Bold',
+  colAmtSm:   { width: 50, color: 'rgba(178,219,100,0.85)', fontFamily: 'Helvetica-Bold',
                 fontSize: 6.5, textAlign: 'right' },
 
   deptLabel:  { color: DARK_NAVY, fontFamily: 'Helvetica-Bold', fontSize: 9,
@@ -53,9 +53,9 @@ const s = StyleSheet.create({
   dataRow:    { flexDirection: 'row', paddingHorizontal: 4, paddingVertical: 2 },
   dataDesc:   { flex: 1, color: TEXT_DARK },
   dataUnits:  { width: 36, textAlign: 'right', color: TEXT_MUTED, fontSize: 7 },
-  dataAmt:    { width: 62, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
-  dataAmtZIG: { width: 62, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: '#0369a1' },
-  dataAmtGrey:{ width: 62, textAlign: 'right', color: TEXT_MUTED },
+  dataAmt:    { width: 55, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
+  dataAmtZIG: { width: 50, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: '#0369a1' },
+  dataAmtGrey:{ width: 55, textAlign: 'right', color: TEXT_MUTED },
 
   netPay:     { flexDirection: 'row', paddingHorizontal: 10, paddingTop: 4,
                 paddingBottom: 2, gap: 16, justifyContent: 'flex-end' },
@@ -69,15 +69,15 @@ const s = StyleSheet.create({
   subtotal:   { backgroundColor: '#f1f5f9', flexDirection: 'row', padding: 5,
                 marginHorizontal: 10, marginBottom: 4 },
   subtotLabel:{ flex: 1, fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: DARK_NAVY },
-  subtotAmt:  { width: 62, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
-  subtotAmtZIG:{ width: 62, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: '#0369a1' },
+  subtotAmt:  { width: 55, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
+  subtotAmtZIG:{ width: 50, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: '#0369a1' },
 
   grandTotal: { backgroundColor: DARK_NAVY, flexDirection: 'row', padding: 7,
                 marginHorizontal: 10, marginTop: 6 },
   gtLabel:    { flex: 1, color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 9 },
-  gtAmt:      { width: 62, textAlign: 'right', color: 'white',
+  gtAmt:      { width: 55, textAlign: 'right', color: 'white',
                 fontFamily: 'Helvetica-Bold', fontSize: 9 },
-  gtAmtZIG:   { width: 62, textAlign: 'right', color: BANTU_GREEN,
+  gtAmtZIG:   { width: 50, textAlign: 'right', color: BANTU_GREEN,
                 fontFamily: 'Helvetica-Bold', fontSize: 9 },
 
   footer:     { position: 'absolute', bottom: 12, left: 12, right: 12,
@@ -134,15 +134,15 @@ const SummaryDocument = ({ data }) => {
           {/* Earnings section */}
           <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
             <Text style={[s.colHdrText, { flex: 1 }]}>EARNINGS</Text>
-            <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-            <Text style={s.colAmt}>USD</Text>
+            {!isDual && <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>}
+            <Text style={s.colAmt}>{isDual ? 'USD' : 'AMOUNT'}</Text>
             {isDual && <Text style={s.colAmtSm}>ZiG</Text>}
           </View>
           {/* Deductions section */}
           <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
             <Text style={[s.colHdrText, { flex: 1 }]}>DEDUCTIONS</Text>
-            <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-            <Text style={s.colAmt}>USD</Text>
+            {!isDual && <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>}
+            <Text style={s.colAmt}>{isDual ? 'USD' : 'AMOUNT'}</Text>
             {isDual && <Text style={s.colAmtSm}>ZiG</Text>}
           </View>
           {/* Employer section */}
@@ -201,9 +201,11 @@ const SummaryDocument = ({ data }) => {
                           return e ? (
                             <View key={i} style={s.dataRow}>
                               <Text style={s.dataDesc}>{e.name}</Text>
-                              <Text style={[s.dataUnits, { width: 36 }]}>
-                                {e.units != null ? `${e.units}${e.unitsType ? ' ' + e.unitsType : ''}` : ''}
-                              </Text>
+                              {!pIsDual && (
+                                <Text style={s.dataUnits}>
+                                  {e.units != null ? `${e.units}${e.unitsType ? ' ' + e.unitsType : ''}` : ''}
+                                </Text>
+                              )}
                               <Text style={s.dataAmt}>{fmt(e.allowance)}</Text>
                               {pIsDual && (
                                 <Text style={s.dataAmtZIG}>
@@ -221,9 +223,11 @@ const SummaryDocument = ({ data }) => {
                           return d ? (
                             <View key={i} style={s.dataRow}>
                               <Text style={s.dataDesc}>{normalizeLabel(d.name)}</Text>
-                              <Text style={[s.dataUnits, { width: 36 }]}>
-                                {d.units != null ? `${d.units}${d.unitsType ? ' ' + d.unitsType : ''}` : ''}
-                              </Text>
+                              {!pIsDual && (
+                                <Text style={s.dataUnits}>
+                                  {d.units != null ? `${d.units}${d.unitsType ? ' ' + d.unitsType : ''}` : ''}
+                                </Text>
+                              )}
                               <Text style={s.dataAmt}>{fmt(d.deduction)}</Text>
                               {pIsDual && (
                                 <Text style={s.dataAmtZIG}>
@@ -273,13 +277,13 @@ const SummaryDocument = ({ data }) => {
                   <View style={s.subtotal} wrap={false}>
                     <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
                       <Text style={[s.subtotLabel, { flex: 1 }]}>SUBTOTAL — {(group.name || 'General').toUpperCase()}</Text>
-                      <Text style={[s.subtotAmt, { width: 36 }]} />
+                      {!isDual && <Text style={[s.subtotAmt, { width: 36 }]} />}
                       <Text style={s.subtotAmt}>{fmt(groupEarningsUSD)}</Text>
                       {isDual && <Text style={s.subtotAmtZIG}>{fmt(groupEarningsZIG)}</Text>}
                     </View>
                     <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
                       <View style={{ flex: 1 }} />
-                      <Text style={[s.subtotAmt, { width: 36 }]} />
+                      {!isDual && <Text style={[s.subtotAmt, { width: 36 }]} />}
                       <Text style={s.subtotAmt}>{fmt(groupDeductionsUSD)}</Text>
                       {isDual && <Text style={s.subtotAmtZIG}>{fmt(groupDeductionsZIG)}</Text>}
                     </View>
@@ -298,13 +302,13 @@ const SummaryDocument = ({ data }) => {
         <View style={s.grandTotal} wrap={false}>
           <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
             <Text style={[s.gtLabel, { flex: 1 }]}>GRAND TOTALS</Text>
-            <Text style={[s.gtAmt, { width: 36 }]} />
+            {!isDual && <Text style={[s.gtAmt, { width: 36 }]} />}
             <Text style={s.gtAmt}>{fmt(grandEarningsUSD)}</Text>
             {isDual && <Text style={s.gtAmtZIG}>{fmt(grandEarningsZIG)}</Text>}
           </View>
           <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
             <View style={{ flex: 1 }} />
-            <Text style={[s.gtAmt, { width: 36 }]} />
+            {!isDual && <Text style={[s.gtAmt, { width: 36 }]} />}
             <Text style={s.gtAmt}>{fmt(grandDeductionsUSD)}</Text>
             {isDual && <Text style={s.gtAmtZIG}>{fmt(grandDeductionsZIG)}</Text>}
           </View>
