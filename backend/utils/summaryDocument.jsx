@@ -112,7 +112,7 @@ const SummaryDocument = ({ data }) => {
 
   return (
     <Document>
-      <Page size={isDual ? 'A3' : 'A4'} orientation={isDual ? 'landscape' : 'portrait'} style={s.page}>
+      <Page size="A4" style={s.page}>
 
         {/* Header */}
         <View style={s.header} fixed>

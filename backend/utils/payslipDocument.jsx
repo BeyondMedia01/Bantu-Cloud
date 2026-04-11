@@ -179,7 +179,7 @@ const PayslipDocument = ({ data }) => {
 
   return (
     <Document>
-      <Page size="A4" orientation={isDual ? 'landscape' : 'portrait'} style={s.page}>
+      <Page size="A4" style={s.page}>
 
         {/* ── Section 1: Identity Header ─────────────────────────────── */}
         <View style={s.header}>
