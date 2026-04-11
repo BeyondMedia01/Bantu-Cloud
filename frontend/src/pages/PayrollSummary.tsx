@@ -242,13 +242,6 @@ const PayrollSummary: React.FC = () => {
               </button>
             )}
             <button
-              onClick={handlePdfDownload}
-              disabled={!!exporting}
-              className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 text-white rounded-full text-sm font-bold hover:bg-slate-700 disabled:opacity-50"
-            >
-              <FileText size={14} /> {exporting === 'pdf' ? 'Generating…' : 'Master Roll'}
-            </button>
-            <button
               onClick={handlePayslipSummaryPreview}
               disabled={!!exporting}
               className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm font-bold hover:bg-red-100 disabled:opacity-50"

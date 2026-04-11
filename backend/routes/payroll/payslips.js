@@ -274,18 +274,19 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
             return { ...t, amount: num(t.amount), ...unitsData };
           });
 
-        const displayLines = buildPayslipLineItems({ 
-          payslip: normPs, 
+        const displayLines = buildPayslipLineItems({
+          payslip: { ...normPs, payrollRun: run },
           transactions: empTxs,
           basicSalary,
-          ytdStat: {}, 
+          ytdStat: {},
           ytdMap: {}
-        }); 
+        });
 
         groupsMap[gName].push({
           ...normPs,
           displayLines,
           currency: run.currency,
+          isDual: !!run.dualCurrency,
         });
       } catch (lineErr) {
         console.error('Skipping payslip in summary:', ps.id, lineErr.message);
@@ -300,6 +301,8 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
     const buffer = await generatePayslipSummaryBuffer({
       companyName: run.company?.name || 'Bantu - HR & Payroll',
       period: `${run.startDate.getFullYear()}/${(run.startDate.getMonth() + 1).toString().padStart(2, '0')}`,
+      isDual: !!run.dualCurrency,
+      exchangeRate: run.exchangeRate ?? null,
       groups: sortedGroups,
     });
 
