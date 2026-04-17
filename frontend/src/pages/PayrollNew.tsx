@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, AlertCircle } from 'lucide-react';
-import { PayrollAPI } from '../api/client';
+import { ArrowLeft, Play, AlertCircle, RefreshCw } from 'lucide-react';
+import { PayrollAPI, CurrencyRateAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 
 type CurrencyMode = 'USD' | 'ZiG' | 'DUAL';
@@ -17,6 +17,13 @@ const PayrollNew: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [latestRate, setLatestRate] = useState<{ rate: number; source: string } | null>(null);
+
+  useEffect(() => {
+    CurrencyRateAPI.getLatest()
+      .then((r: any) => setLatestRate({ rate: r.data.rate, source: r.data.source || 'RBZ' }))
+      .catch(() => {});
+  }, []);
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setError('');
@@ -143,9 +150,20 @@ const PayrollNew: React.FC = () => {
         {/* Exchange rate — shown for ZiG-only or Dual */}
         {needsExchangeRate && (
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              USD → ZiG Exchange Rate <span className="text-red-400">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                USD → ZiG Exchange Rate <span className="text-red-400">*</span>
+              </label>
+              {latestRate && (
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, exchangeRate: String(latestRate.rate) }))}
+                  className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:underline"
+                >
+                  <RefreshCw size={11} /> Use latest {latestRate.source} rate ({latestRate.rate})
+                </button>
+              )}
+            </div>
             <input
               type="number"
               required
@@ -153,7 +171,7 @@ const PayrollNew: React.FC = () => {
               step="any"
               value={form.exchangeRate}
               onChange={set('exchangeRate')}
-              placeholder="e.g. 27.5"
+              placeholder={latestRate ? `e.g. ${latestRate.rate}` : 'e.g. 27.5'}
               className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm"
             />
             <p className="text-xs text-slate-400">How many ZiG equal 1 USD (e.g. 27.5 means 1 USD = 27.5 ZiG)</p>

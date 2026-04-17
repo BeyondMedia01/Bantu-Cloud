@@ -205,7 +205,7 @@ function calculatePaye({
   const finalAidsLevy = payeAfterCredits > 0 ? (finalTotalPaye * (aidsLevy / totalPaye)) : 0;
   const finalPayeNet  = finalTotalPaye - finalAidsLevy;
 
-  const totalDeductions = nssaEmployee + effectivePension + medicalAid + totalPaye;
+  const totalDeductions = nssaEmployee + effectivePension + medicalAid + finalTotalPaye;
   const netSalary       = cashEarnings - totalDeductions;
 
   return {

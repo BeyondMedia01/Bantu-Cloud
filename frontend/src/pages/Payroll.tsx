@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Plus, FileText, ChevronRight, Play, Check, SendHorizonal, Download, Banknote, ChevronDown } from 'lucide-react';
+import { Plus, FileText, ChevronRight, Play, Check, SendHorizonal, Download, Banknote, ChevronDown, Pencil, X } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { useNavigate } from 'react-router-dom';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
@@ -16,6 +16,9 @@ const Payroll: React.FC = () => {
   const [actionError, setActionError] = useState('');
   const [bankDropdown, setBankDropdown] = useState<string | null>(null);
   const bankDropdownRef = useRef<HTMLDivElement>(null);
+  const [editingRate, setEditingRate] = useState<string | null>(null); // runId being edited
+  const [rateInput, setRateInput] = useState('');
+  const [rateSaving, setRateSaving] = useState(false);
 
   const loadRuns = () => {
     PayrollAPI.getAll()
@@ -95,6 +98,26 @@ const Payroll: React.FC = () => {
     }
   };
 
+  const handleSaveRate = async (e: React.MouseEvent, runId: string) => {
+    e.stopPropagation();
+    const parsed = parseFloat(rateInput);
+    if (isNaN(parsed) || parsed <= 1) {
+      showToast('Exchange rate must be greater than 1', 'error');
+      return;
+    }
+    setRateSaving(true);
+    try {
+      await PayrollAPI.update(runId, { exchangeRate: parsed });
+      setEditingRate(null);
+      loadRuns();
+      showToast('Exchange rate updated', 'success');
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to update exchange rate', 'error');
+    } finally {
+      setRateSaving(false);
+    }
+  };
+
   const statusColor: Record<string, string> = {
     COMPLETED: 'bg-emerald-50 text-emerald-700',
     PROCESSING: 'bg-blue-50 text-blue-700',
@@ -124,7 +147,7 @@ const Payroll: React.FC = () => {
       )}
 
       {loading ? (
-        <SkeletonTable headers={['Period', 'Run Date', 'Currency', 'Employees', 'Status', '']} />
+        <SkeletonTable headers={['Period', 'Run Date', 'Currency', 'Rate', 'Employees', 'Status', '']} />
       ) : runs.length === 0 ? (
         <div className="text-center py-20 bg-primary rounded-2xl border border-border shadow-sm">
           <FileText size={40} className="mx-auto mb-3 text-slate-200" />
@@ -139,7 +162,7 @@ const Payroll: React.FC = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-slate-50">
-                {['Period', 'Run Date', 'Currency', 'Employees', 'Status', ''].map((h) => (
+                {['Period', 'Run Date', 'Currency', 'Rate', 'Employees', 'Status', ''].map((h) => (
                   <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -160,6 +183,49 @@ const Payroll: React.FC = () => {
                     {run.dualCurrency ? (
                       <span className="text-blue-600">USD + ZiG</span>
                     ) : run.currency}
+                  </td>
+                  <td className="px-5 py-4 text-sm" onClick={(e) => e.stopPropagation()}>
+                    {(run.dualCurrency || run.currency === 'ZiG') ? (
+                      editingRate === run.id ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            autoFocus
+                            type="number"
+                            min="1.0001"
+                            step="any"
+                            value={rateInput}
+                            onChange={(e) => setRateInput(e.target.value)}
+                            className="w-24 px-2 py-1 text-xs border border-accent-blue rounded-lg focus:outline-none"
+                            onKeyDown={(e) => { if (e.key === 'Escape') setEditingRate(null); }}
+                          />
+                          <button
+                            onClick={(e) => handleSaveRate(e, run.id)}
+                            disabled={rateSaving}
+                            className="px-2 py-1 text-xs font-bold bg-accent-blue text-white rounded-lg disabled:opacity-50"
+                          >
+                            {rateSaving ? '…' : 'Save'}
+                          </button>
+                          <button onClick={() => setEditingRate(null)} className="text-slate-400 hover:text-slate-600">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-slate-600">{run.exchangeRate ? `${run.exchangeRate}` : '—'}</span>
+                          {['DRAFT', 'APPROVED', 'ERROR'].includes(run.status) && (
+                            <button
+                              onClick={() => { setEditingRate(run.id); setRateInput(String(run.exchangeRate || '')); }}
+                              className="text-slate-300 hover:text-accent-blue transition-colors"
+                              title="Edit exchange rate"
+                            >
+                              <Pencil size={12} />
+                            </button>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
                   </td>
                   <td className="px-5 py-4 text-sm">
                     {run.status === 'COMPLETED'

@@ -228,7 +228,7 @@ router.get('/:runId', async (req, res) => {
 // ─── PUT /api/payroll/:runId ──────────────────────────────────────────────────
 
 router.put('/:runId', requirePermission('approve_payroll'), async (req, res) => {
-  const { status, notes } = req.body;
+  const { status, notes, exchangeRate } = req.body;
   const VALID_TRANSITIONS = {
     DRAFT: ['PENDING_APPROVAL', 'APPROVED'],
     PENDING_APPROVAL: ['APPROVED', 'DRAFT'],
@@ -264,16 +264,30 @@ router.put('/:runId', requirePermission('approve_payroll'), async (req, res) => 
       });
     }
 
+    if (exchangeRate !== undefined) {
+      const parsedXr = parseFloat(exchangeRate);
+      if ((run.dualCurrency || run.currency === 'ZiG') && (isNaN(parsedXr) || parsedXr <= 1)) {
+        return res.status(400).json({ message: 'Exchange rate must be greater than 1' });
+      }
+      if (!['DRAFT', 'APPROVED', 'ERROR'].includes(run.status)) {
+        return res.status(400).json({ message: 'Exchange rate can only be updated on DRAFT, APPROVED, or ERROR runs' });
+      }
+    }
+
     const updated = await prisma.payrollRun.update({
       where: { id: run.id },
       data: {
         ...(status && { status }),
         ...(notes !== undefined && { notes }),
+        ...(exchangeRate !== undefined && { exchangeRate: parseFloat(exchangeRate) }),
       },
     });
 
     if (status) {
       await audit({ req, action: `PAYROLL_STATUS_${status}`, resource: 'payroll_run', resourceId: run.id });
+    }
+    if (exchangeRate !== undefined) {
+      await audit({ req, action: 'PAYROLL_EXCHANGE_RATE_UPDATED', resource: 'payroll_run', resourceId: run.id });
     }
 
     res.json({ data: updated });
