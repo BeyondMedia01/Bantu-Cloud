@@ -940,7 +940,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
           baseZIG = totalBasicUSD * (splitPerc / 100) * xr;
         } else if (emp.splitZigMode === 'FIXED' && (emp.splitZigValue || 0) > 0) {
           baseZIG = emp.splitZigValue;
-          baseUSD = Math.max(0, totalBasicUSD - (baseZIG / xr));
+          baseUSD = totalBasicUSD; // USD and ZiG are separate fixed components — additive, not a split
         } else {
           // Fallback/NONE: Use the employee's primary currency only to avoid doubling the consolidated gross
           if (emp.currency === 'ZiG') {
