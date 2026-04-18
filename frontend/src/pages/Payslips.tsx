@@ -31,6 +31,12 @@ const Payslips: React.FC = () => {
       .finally(() => setLoading(false));
   }, [runId]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) window.URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   // Derive all unique earning TC codes used across all payslips (maintains insertion order)
   const allEarningTCs = useMemo(() => {
     const seen = new Map<string, { code: string; name: string }>();

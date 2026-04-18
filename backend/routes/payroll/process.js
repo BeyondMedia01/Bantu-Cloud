@@ -366,6 +366,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     }
 
     const adjustments = req.body?.adjustments || {};
+    if ((run.dualCurrency || run.currency === 'ZiG') && !(run.exchangeRate > 1)) {
+      console.warn(`[PAYROLL] Run ${run.id} is ZiG/dual but exchangeRate is ${run.exchangeRate} — falling back to 1. All ZiG conversions will be wrong.`);
+    }
     const xr = (run.exchangeRate > 0) ? run.exchangeRate : 1;
 
     // Banker's-rounding helper — ZIMRA requires figures to 2 d.p. at each step
@@ -574,8 +577,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       const adj = adjustments[emp.id] || {};
       const empInputs = inputsByEmployee[emp.id] || [];
       const empDefaults = defaultsByEmployee[emp.id] || [];
-      console.log(`[PAYE DEBUG] ${emp.firstName} ${emp.lastName} | inputs: ${empInputs.map(i => `${i.transactionCode?.name}(USD:${i.employeeUSD},ZiG:${i.employeeZiG})`).join(', ')} | defaults: ${empDefaults.map(d => `${d.transactionCode?.name}(${d.value} ${d.currency})`).join(', ')}`);
-      const empRepayments = repaymentsByEmployee[emp.id] || [];
+const empRepayments = repaymentsByEmployee[emp.id] || [];
       const empLoans = loansByEmployee[emp.id] || [];
 
       // Calculate Deemed Interest Benefit (ZIMRA):
@@ -595,13 +597,16 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             const paidAmt = loan.repayments.reduce((sum, r) => sum + (r.amount || 0), 0);
             const currentBalance = Math.max(0, loan.amount - paidAmt);
             if (currentBalance > 0) {
-              const monthlyBenefit = (currentBalance * (empPrescribedRate - loanRate)) / 100 / 12;
+              const monthlyBenefit = round2((currentBalance * (empPrescribedRate - loanRate)) / 100 / 12);
               if (emp.currency === 'USD') totalLoanBenefitUSD += monthlyBenefit;
               else totalLoanBenefitZIG += monthlyBenefit;
             }
           }
         }
       } else {
+        // Prescribed rate is keyed to the employee's loan currency (inferred from emp.currency).
+        // If emp.currency differs from run.currency, convert the resulting benefit amount
+        // to run currency so it feeds the PAYE calculation on the correct basis.
         const empPrescribedRate = emp.currency === 'ZiG' ? prescribedRateZIG : prescribedRateUSD;
         for (const loan of empLoans) {
           const loanRate = (loan.interestRate != null && !isNaN(loan.interestRate)) ? loan.interestRate : 0;
@@ -609,7 +614,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
             const paidAmt = loan.repayments.reduce((sum, r) => sum + (r.amount || 0), 0);
             const currentBalance = Math.max(0, loan.amount - paidAmt);
             if (currentBalance > 0) {
-              const monthlyBenefit = (currentBalance * (empPrescribedRate - loanRate)) / 100 / 12;
+              let monthlyBenefit = round2((currentBalance * (empPrescribedRate - loanRate)) / 100 / 12);
+              // Convert to run currency when emp.currency ≠ run.currency
+              if (emp.currency === 'ZiG' && run.currency === 'USD') monthlyBenefit = round2(monthlyBenefit / xr);
+              else if (emp.currency === 'USD' && run.currency === 'ZiG') monthlyBenefit = round2(monthlyBenefit * xr);
               totalLoanBenefit += monthlyBenefit;
             }
           }
@@ -634,7 +642,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       // Auto-calculate 'Shortime' (201) if units are entered but monetary amounts are zero
       for (const i of empInputs) {
         if (i.transactionCode.code === '201' && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
-          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault;
+          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault || 22;
           const dayRate = emp.baseRate / divisor;
           const amt = round2(dayRate * i.units);
           if (emp.currency === 'ZiG') i.employeeZiG = amt;
@@ -651,7 +659,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         const isOvertime = tc.incomeCategory === 'OVERTIME' || tc.name.toLowerCase().includes('overtime');
         
         if (isOvertime && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
-          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault;
+          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault || 22;
           const dayRate = emp.baseRate / divisor;
           const hourlyRate = dayRate / 8;
           // Use defaultValue if set; otherwise try to parse multiplier from the TC name (e.g. "Overtime 1.0x" → 1.0)
@@ -887,8 +895,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       if (emp.taxMethod === 'FDS_AVERAGE') {
         // Estimate current month gross (base + TC earnings in primary currency).
         // For dual-currency runs the USD side is the FDS_AVERAGE reference currency.
+        // baseRate is already in run currency (USD for dual runs) after the conversion at line 825.
+        // Do not divide again by xr for ZiG employees — that was a double-conversion.
         const currGross = run.dualCurrency
-          ? (emp.currency === 'USD' ? baseRate : baseRate / xr) + inputEarningsUSD + (inputEarningsZIG / xr)
+          ? baseRate + inputEarningsUSD + (inputEarningsZIG / xr)
           : baseRate + inputEarnings;
         fdsAvgPAYEBasis = round2((ytd.cumGross + currGross) / (ytd.uniqueMonths.size + 1));
       }
@@ -1051,7 +1061,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         // Dual-currency: deduct loans from USD net first
         let availableUSD = Math.max(0, taxResultUSD.netSalary - inputDeductionsUSD);
         for (const rep of empRepayments) {
-          if (rep.amount > availableUSD + 0.001) continue; // can't fully cover — skip
+          if (rep.amount > availableUSD + 0.001) {
+            console.warn(`[LOANS] Skipped repayment ${rep.id} (${rep.amount} USD) for employee ${emp.id} — insufficient net pay (available: ${availableUSD.toFixed(2)})`);
+            continue;
+          }
           appliedRepaymentIds.add(rep.id);
           loanDeductions += rep.amount;
           availableUSD -= rep.amount;
@@ -1070,7 +1083,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       } else {
         let availableNet = Math.max(0, taxResult.netSalary - inputDeductions);
         for (const rep of empRepayments) {
-          if (rep.amount > availableNet + 0.001) continue; // can't fully cover — skip
+          if (rep.amount > availableNet + 0.001) {
+            console.warn(`[LOANS] Skipped repayment ${rep.id} (${rep.amount}) for employee ${emp.id} — insufficient net pay (available: ${availableNet.toFixed(2)})`);
+            continue;
+          }
           appliedRepaymentIds.add(rep.id);
           loanDeductions += rep.amount;
           availableNet -= rep.amount;
@@ -1082,11 +1098,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         if (splitPct && splitPct > 0 && splitPct < 100 && run.exchangeRate && run.exchangeRate !== 1) {
           const usdShare = splitPct / 100;
           if (run.currency === 'USD') {
-            netPayUSD = netPayAfterLoans * usdShare;
-            netPayZIG = netPayAfterLoans * (1 - usdShare) * run.exchangeRate;
+            netPayUSD = round2(netPayAfterLoans * usdShare);
+            netPayZIG = round2(netPayAfterLoans * (1 - usdShare) * run.exchangeRate);
           } else {
-            netPayZIG = netPayAfterLoans * (1 - usdShare);
-            netPayUSD = (netPayAfterLoans * usdShare) / run.exchangeRate;
+            netPayZIG = round2(netPayAfterLoans * (1 - usdShare));
+            netPayUSD = round2((netPayAfterLoans * usdShare) / run.exchangeRate);
           }
         }
         dualFields = {};
@@ -1121,11 +1137,11 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
         ...dualFields,
         // Statutory state tracking
         exemptBonus: taxResult.exemptBonus,
-        exemptBonusUSD: taxResultUSD?.exemptBonus,
-        exemptBonusZIG: taxResultZIG?.exemptBonus,
+        exemptBonusUSD: run.dualCurrency ? (taxResultUSD.exemptBonus ?? null) : null,
+        exemptBonusZIG: run.dualCurrency ? (taxResultZIG.exemptBonus ?? null) : null,
         exemptSeverance: taxResult.exemptSeverance,
-        exemptSeveranceUSD: run.dualCurrency ? taxResultUSD?.exemptSeverance : (run.currency === 'USD' ? taxResult.exemptSeverance : null),
-        exemptSeveranceZIG: run.dualCurrency ? taxResultZIG?.exemptSeverance : (run.currency === 'ZiG' ? taxResult.exemptSeverance : null),
+        exemptSeveranceUSD: run.dualCurrency ? (taxResultUSD.exemptSeverance ?? null) : (run.currency === 'USD' ? taxResult.exemptSeverance : null),
+        exemptSeveranceZIG: run.dualCurrency ? (taxResultZIG.exemptSeverance ?? null) : (run.currency === 'ZiG' ? taxResult.exemptSeverance : null),
         medicalAidCredit: taxResult.medicalAidCredit,
         taxCreditsApplied: taxResult.taxCreditsApplied,
       });

@@ -15,6 +15,12 @@ const router = express.Router({ mergeParams: true });
 
 router.get('/:runId/payslips', async (req, res) => {
   try {
+    if (req.companyId) {
+      const run = await prisma.payrollRun.findUnique({ where: { id: req.params.runId }, select: { companyId: true } });
+      if (!run) return res.status(404).json({ message: 'Payroll run not found' });
+      if (run.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
+    }
+
     const [payslips, transactions] = await Promise.all([
       prisma.payslip.findMany({
         where: { payrollRunId: req.params.runId },
@@ -90,7 +96,7 @@ router.get('/:runId/payslips/:id/pdf', async (req, res) => {
     if (req.companyId && payslip.payrollRun.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    if (req.user.role === 'EMPLOYEE' && req.employeeId && payslip.employeeId !== req.employeeId) {
+    if (req.user?.role === 'EMPLOYEE' && req.employeeId && payslip.employeeId !== req.employeeId) {
       return res.status(403).json({ message: 'Access denied' });
     }
 

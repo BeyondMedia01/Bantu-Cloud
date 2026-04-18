@@ -546,6 +546,7 @@ model PayrollInput {
   @@index([payrollRunId, employeeId])
   @@index([period])
   @@index([employeeId, period])
+  @@index([period, processed])
 }
 
 model Payslip {
@@ -594,6 +595,7 @@ model Payslip {
   employee        Employee   @relation(fields: [employeeId], references: [id])
   payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
 
+  @@unique([employeeId, payrollRunId])
   @@index([employeeId])
   @@index([payrollRunId])
 }

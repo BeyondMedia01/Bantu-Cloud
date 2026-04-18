@@ -207,7 +207,14 @@ router.delete('/:empId/salary-structure/:id', requirePermission('manage_employee
       action: 'SALARY_COMPONENT_DELETED',
       resource: 'employee_transaction',
       resourceId: id,
-      details: { empId, transactionCodeId: existing.transactionCodeId }
+      details: {
+        empId,
+        transactionCodeId: existing.transactionCodeId,
+        value: existing.value,
+        currency: existing.currency,
+        effectiveFrom: existing.effectiveFrom,
+        effectiveTo: existing.effectiveTo,
+      }
     });
     res.json({ message: 'Deleted' });
   } catch (error) {

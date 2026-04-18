@@ -177,7 +177,7 @@ async function payslipToBuffer(payslipId) {
   const [transactions, payrollInputs] = await Promise.all([
     prisma.payrollTransaction.findMany({
       where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
-      include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true } } },
+      include: { transactionCode: { select: { id: true, code: true, name: true, type: true, preTax: true, incomeCategory: true } } },
       orderBy: { createdAt: 'asc' },
     }),
     prisma.payrollInput.findMany({

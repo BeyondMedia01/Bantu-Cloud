@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
     // Resolve employee — EMPLOYEE role uses their own record
     let employeeId = bodyEmpId;
     if (req.user.role === 'EMPLOYEE') {
-      const emp = await prisma.employee.findUnique({ where: { userId: req.user.userId }, select: { id: true, basicSalaryUSD: true, basicSalaryZiG: true } });
+      const emp = await prisma.employee.findUnique({ where: { userId: req.user.userId }, select: { id: true } });
       if (!emp) return res.status(404).json({ message: 'Employee record not found' });
       employeeId = emp.id;
     }
@@ -82,12 +82,12 @@ router.post('/', async (req, res) => {
     const workingDaysPerPeriodDefault = parseFloat(wdSettings['WORKING_DAYS_PER_PERIOD'] ?? wdSettings['WORKING_DAYS_PER_MONTH'] ?? 0);
     const emp = await prisma.employee.findUnique({
       where: { id: employeeId },
-      select: { basicSalaryUSD: true, basicSalaryZiG: true, currency: true, daysPerPeriod: true },
+      select: { baseRate: true, currency: true, daysPerPeriod: true },
     });
-    
-    const divisor = emp?.daysPerPeriod || workingDaysPerPeriodDefault;
-    const monthlySalary = emp?.basicSalaryUSD || 0;
-    const ratePerDay = monthlySalary > 0 ? monthlySalary / divisor : 0;
+
+    const divisor = emp?.daysPerPeriod || workingDaysPerPeriodDefault || 22;
+    const monthlySalary = emp?.baseRate || 0;
+    const ratePerDay = monthlySalary > 0 && divisor > 0 ? monthlySalary / divisor : 0;
     const totalAmount = parseFloat((daysFloat * ratePerDay).toFixed(2));
     const currency = emp?.currency || 'USD';
 
@@ -226,7 +226,7 @@ router.post('/:id/process', requirePermission('manage_payroll'), async (req, res
         employeeId: enc.employeeId,
         transactionCodeId: tc.id,
         employeeUSD: enc.currency === 'USD' ? enc.totalAmount : 0,
-        employeeZiG: enc.currency === 'ZIG' ? enc.totalAmount : 0,
+        employeeZiG: enc.currency === 'ZiG' ? enc.totalAmount : 0,
         duration: 'Once',
         period,
         notes: `Leave encashment: ${enc.days} days ${enc.leaveType}`,

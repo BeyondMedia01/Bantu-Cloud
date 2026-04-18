@@ -595,7 +595,7 @@ const EmployeeEdit: React.FC = () => {
             </div>
             <p className="mt-4 text-[10px] text-emerald-600/70 leading-relaxed font-medium">
               {form.splitZigMode === 'PERCENTAGE' && "The ZiG basic will be calculated as a percentage of the USD base rate. The remainder stays as USD basic."}
-              {form.splitZigMode === 'FIXED' && "The ZiG basic is fixed. The USD basic will be the total USD base rate minus the USD-equivalent of this ZiG amount."}
+              {form.splitZigMode === 'FIXED' && "The ZiG basic is fixed and separate. The employee receives both the full USD basic and the fixed ZiG amount."}
               {form.splitZigMode === 'NONE' && "The employee is paid entirely in the primary currency selected above."}
             </p>
           </div>

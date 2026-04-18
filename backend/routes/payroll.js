@@ -69,8 +69,9 @@ router.post(
     }
 
     const isDual = dualCurrency === true || dualCurrency === 'true';
-    if (isDual && (!exchangeRate || parseFloat(exchangeRate) <= 1)) {
-      return res.status(400).json({ message: 'A valid USD→ZiG exchange rate (>1) is required for dual-currency runs' });
+    const isZiG = !isDual && (currency === 'ZiG');
+    if ((isDual || isZiG) && (!exchangeRate || parseFloat(exchangeRate) <= 1)) {
+      return res.status(400).json({ message: 'A valid USD→ZiG exchange rate (>1) is required for ZiG payroll runs' });
     }
 
     try {
@@ -238,7 +239,7 @@ router.put('/:runId', requirePermission('approve_payroll'), async (req, res) => 
   try {
     const run = await prisma.payrollRun.findUnique({
       where: { id: req.params.runId },
-      include: { payrollCalendar: true }
+      include: { payrollCalendar: true, company: true }
     });
     if (!run) return res.status(404).json({ message: 'Payroll run not found' });
     if (req.companyId && run.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
