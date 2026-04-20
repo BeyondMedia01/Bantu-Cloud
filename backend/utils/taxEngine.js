@@ -323,15 +323,28 @@ function calculateSplitSalaryPaye({
   
   const usdRatio = totalCashUSD > 0 ? (cashUSD / totalCashUSD) : 1;
 
-  // Apportionment helpers
+  // Apportionment helpers for tax amounts (PAYE, NSSA, etc.)
   const apportionUSD = (val) => r2(val * usdRatio);
   const apportionZIG = (val) => r2(val * (1 - usdRatio) * xr);
+
+  // Gross is computed directly from each currency's inputs to avoid float
+  // drift from the USD→ZiG round-trip (e.g. 3000/xr*xr can yield 2999.99).
+  const grossUSD = r2(
+    (usdParams.baseSalary || 0) + (usdParams.overtimeAmount || 0) +
+    (usdParams.bonus || 0) + (usdParams.severanceAmount || 0) +
+    (usdParams.taxableBenefits || 0) + (usdParams.motorVehicleBenefit || 0)
+  );
+  const grossZIG = r2(
+    (zigParams.baseSalary || 0) + (zigParams.overtimeAmount || 0) +
+    (zigParams.bonus || 0) + (zigParams.severanceAmount || 0) +
+    (zigParams.taxableBenefits || 0) + (zigParams.motorVehicleBenefit || 0)
+  );
 
   return {
     totalResult,
     usdRatio,
     usd: {
-      gross:            apportionUSD(totalResult.grossSalary),
+      gross:            grossUSD,
       paye:             apportionUSD(totalResult.payeBeforeLevy),
       aidsLevy:         apportionUSD(totalResult.aidsLevy),
       nssaEmployee:     apportionUSD(totalResult.nssaEmployee),
@@ -343,7 +356,7 @@ function calculateSplitSalaryPaye({
       medicalAidCredit: apportionUSD(totalResult.medicalAidCredit),
     },
     zig: {
-      gross:            apportionZIG(totalResult.grossSalary),
+      gross:            grossZIG,
       paye:             apportionZIG(totalResult.payeBeforeLevy),
       aidsLevy:         apportionZIG(totalResult.aidsLevy),
       nssaEmployee:     apportionZIG(totalResult.nssaEmployee),
