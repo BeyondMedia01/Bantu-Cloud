@@ -237,29 +237,26 @@ const startServer = async () => {
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Searching for port on: ${process.env.PORT || 5005}`);
 
-  try {
-    // Run auto-boot actions
-    console.log('Running auto-boot actions (Holidays, Transaction Codes, Settings)...');
+  const portStr = process.env.PORT || '5005';
+  const parsedPort = parseInt(portStr, 10);
+  app.listen(parsedPort, () => {
+    console.log('-------------------------------------------');
+    console.log(`🚀 Server ready on port ${parsedPort}`);
+    console.log('-------------------------------------------');
+
+    // Run seeding after server is listening so a slow DB connection
+    // (e.g. Neon cold start) does not block Render's health check.
     const { autoSeedHolidays } = require('./utils/holidays');
     const { autoSeedTransactionCodes } = require('./utils/transactionCodes');
     const { autoSeedSystemSettings } = require('./utils/systemSettingsSeed');
-    
-    await autoSeedHolidays();
-    await autoSeedTransactionCodes();
-    await autoSeedSystemSettings();
-    console.log('Auto-boot actions complete.');
 
-    const portStr = process.env.PORT || '5005';
-    const parsedPort = parseInt(portStr, 10);
-    app.listen(parsedPort, () => {
-      console.log('-------------------------------------------');
-      console.log(`🚀 Server ready on port ${parsedPort}`);
-      console.log('-------------------------------------------');
-    });
-  } catch (err) {
-    console.error('❌ FATAL STARTUP ERROR:', err);
-    process.exit(1);
-  }
+    Promise.resolve()
+      .then(() => autoSeedHolidays())
+      .then(() => autoSeedTransactionCodes())
+      .then(() => autoSeedSystemSettings())
+      .then(() => console.log('Auto-boot actions complete.'))
+      .catch((err) => console.error('⚠️ Auto-boot seeding error (non-fatal):', err.message));
+  });
 };
 
 startServer();
