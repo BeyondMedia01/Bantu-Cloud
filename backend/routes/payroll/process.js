@@ -830,8 +830,8 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
 
       let baseRate = effectiveBaseRate;
       if (effectiveBaseRate > 0 && emp.currency && emp.currency !== run.currency && run.exchangeRate && run.exchangeRate !== 1 && !run.dualCurrency) {
-        if (run.currency === 'ZiG' && emp.currency === 'USD') baseRate = effectiveBaseRate * run.exchangeRate;
-        else if (run.currency === 'USD' && emp.currency === 'ZiG') baseRate = effectiveBaseRate / run.exchangeRate;
+        if (run.currency === 'ZiG' && emp.currency === 'USD') baseRate = round2(effectiveBaseRate * run.exchangeRate);
+        else if (run.currency === 'USD' && emp.currency === 'ZiG') baseRate = round2(effectiveBaseRate / run.exchangeRate);
       }
 
       let necLevy = 0;
@@ -1123,7 +1123,7 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
         // Use a minimum of 0.01 to avoid rounding-to-zero for low ZiG salaries at high exchange rates.
         basicSalaryApplied: run.dualCurrency
           ? Math.max(baseRate > 0 ? 0.01 : 0, round2(emp.currency === 'USD' ? baseRate : baseRate / xr))
-          : baseRate,
+          : round2(baseRate),
         wcifEmployer: taxResult.wcifEmployer,
         sdfContribution: taxResult.sdfContribution,
         zimdefEmployer: taxResult.zimdefEmployer,
