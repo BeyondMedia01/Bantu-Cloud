@@ -26,7 +26,7 @@ router.post('/', requirePermission('approve_payroll'), async (req, res) => {
     if (calendar.isClosed) return res.status(400).json({ message: 'Period is already closed' });
 
     // Verify the calendar belongs to this client
-    if (req.clientId && calendar.clientId !== req.clientId) {
+    if (!req.clientId || calendar.clientId !== req.clientId) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -56,10 +56,32 @@ router.post('/', requirePermission('approve_payroll'), async (req, res) => {
         data: { status: 'OVERDUE' },
       });
 
-      // Clear current-period leaveTaken counter for all employees under this client
-      // (ensures next period starts with 0 "taken" days on payslips while YTD LeaveBalance remains intact)
+      // Get all active employees for this client to accrue their monthly leave
+      const activeEmployees = await tx.employee.findMany({
+        where: {
+          clientId: calendar.clientId,
+          dischargeDate: null // Only active employees accrue leave
+        },
+        select: { id: true, leaveEntitlement: true, leaveBalance: true }
+      });
+
+      for (const emp of activeEmployees) {
+        // Assume annual basis, default to 30 days if not set
+        const annualEntitlement = emp.leaveEntitlement || 30; 
+        const monthlyAccrual = annualEntitlement / 12;
+
+        await tx.employee.update({
+          where: { id: emp.id },
+          data: {
+            leaveBalance: { increment: monthlyAccrual },
+            leaveTaken: 0
+          }
+        });
+      }
+
+      // Clear current-period leaveTaken counter for discharged employees directly so they zero out too
       await tx.employee.updateMany({
-        where: { clientId: calendar.clientId },
+        where: { clientId: calendar.clientId, dischargeDate: { not: null } },
         data: { leaveTaken: 0 },
       });
 
@@ -79,7 +101,7 @@ router.post('/', requirePermission('approve_payroll'), async (req, res) => {
 });
 
 // GET /api/period-end/status?payrollCalendarId= — check period status
-router.get('/status', async (req, res) => {
+router.get('/status', requirePermission('approve_payroll'), async (req, res) => {
   const { payrollCalendarId } = req.query;
   if (!payrollCalendarId) return res.status(400).json({ message: 'payrollCalendarId is required' });
 
@@ -90,6 +112,10 @@ router.get('/status', async (req, res) => {
     ]);
 
     if (!calendar) return res.status(404).json({ message: 'Payroll calendar not found' });
+
+    if (!req.clientId || calendar.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
 
     // Find all unprocessed inputs for this client (any period) — includes stale inputs from prior months
     const clientCompanyIds = await prisma.company.findMany({
@@ -146,7 +172,7 @@ router.post('/un-close', requirePermission('approve_payroll'), async (req, res) 
     if (!calendar.isClosed) return res.status(400).json({ message: 'Period is not closed' });
 
     // Verify ownership
-    if (req.clientId && calendar.clientId !== req.clientId) {
+    if (!req.clientId || calendar.clientId !== req.clientId) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
