@@ -525,8 +525,8 @@ const PayrollInputGrid: React.FC = () => {
                       </div>
                       <button
                         onClick={() => removeColumn(tc.id)}
-                        className="text-slate-300 hover:text-red-400 flex-shrink-0"
-                        title={`Remove ${tc.code}`}
+                        className="text-slate-400 hover:text-red-400 flex-shrink-0"
+                        aria-label={`Remove ${tc.code}`}
                       >
                         <X size={11} />
                       </button>
@@ -682,7 +682,7 @@ const PayrollInputGrid: React.FC = () => {
                     return (
                       <td key={tc.id} className="px-2 py-3 text-right">
                         <span className="text-sm font-bold text-slate-600">
-                          {total > 0 ? total.toFixed(2) : <span className="text-slate-300">—</span>}
+                          {total > 0 ? total.toFixed(2) : <span className="text-slate-400">—</span>}
                         </span>
                       </td>
                     );

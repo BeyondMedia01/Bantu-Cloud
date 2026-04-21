@@ -48,12 +48,12 @@ const Login: React.FC = () => {
 
       <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-2">Welcome back</h1>
+          <h2 className="text-2xl font-bold mb-2">Welcome back</h2>
           <p className="text-slate-500 font-medium">Please enter your details to continue</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">
+          <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">
             {error}
           </div>
         )}

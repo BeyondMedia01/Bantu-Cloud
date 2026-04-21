@@ -77,7 +77,7 @@ const AssignModal: React.FC<{
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-bold text-navy text-lg">Assign Shift</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
 
         <div className="space-y-4">
@@ -241,9 +241,9 @@ const Roster: React.FC = () => {
 
       {/* Week navigator */}
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={prevWeek} className="p-2 rounded-lg border border-border hover:bg-slate-50"><ChevronLeft size={16} /></button>
+        <button onClick={prevWeek} aria-label="Previous week" className="p-2 rounded-lg border border-border hover:bg-slate-50"><ChevronLeft size={16} /></button>
         <button onClick={goToday} className="px-4 py-1.5 text-xs font-bold border border-border rounded-full hover:bg-slate-50">Today</button>
-        <button onClick={nextWeek} className="p-2 rounded-lg border border-border hover:bg-slate-50"><ChevronRight size={16} /></button>
+        <button onClick={nextWeek} aria-label="Next week" className="p-2 rounded-lg border border-border hover:bg-slate-50"><ChevronRight size={16} /></button>
         <span className="text-sm font-bold text-navy ml-1">
           {fmtDisplay(dates[0])} – {fmtDisplay(dates[6])} {weekStart.getFullYear()}
         </span>

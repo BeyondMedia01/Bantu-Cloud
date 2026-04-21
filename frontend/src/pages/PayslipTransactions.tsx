@@ -86,8 +86,9 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Search by Employee or Code..." 
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue"
+                placeholder="Search by Employee or Code..."
+                aria-label="Search transactions"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/30"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -158,7 +159,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-slate-300">
+                  <td colSpan={6} className="px-6 py-20 text-center text-slate-500">
                     <Hash size={48} className="mx-auto mb-4 opacity-20" />
                     <p className="italic font-medium">No transactions recorded in the ledger yet.</p>
                   </td>

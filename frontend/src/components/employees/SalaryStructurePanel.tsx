@@ -263,6 +263,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
         </div>
       ) : (
         <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-slate-50">

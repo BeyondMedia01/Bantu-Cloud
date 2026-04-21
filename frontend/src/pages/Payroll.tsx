@@ -159,6 +159,7 @@ const Payroll: React.FC = () => {
         </div>
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-slate-50">
@@ -195,7 +196,7 @@ const Payroll: React.FC = () => {
                             step="any"
                             value={rateInput}
                             onChange={(e) => setRateInput(e.target.value)}
-                            className="w-24 px-2 py-1 text-xs border border-accent-blue rounded-lg focus:outline-none"
+                            className="w-24 px-2 py-1 text-xs border border-accent-blue rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
                             onKeyDown={(e) => { if (e.key === 'Escape') setEditingRate(null); }}
                           />
                           <button
@@ -224,7 +225,7 @@ const Payroll: React.FC = () => {
                         </div>
                       )
                     ) : (
-                      <span className="text-slate-300">—</span>
+                      <span className="text-slate-400">—</span>
                     )}
                   </td>
                   <td className="px-5 py-4 text-sm">

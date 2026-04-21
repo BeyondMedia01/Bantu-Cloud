@@ -199,7 +199,7 @@ const LeaveEncashments: React.FC = () => {
       {/* Encashment Request Form */}
       {showForm && (
         <div className="bg-primary border border-border rounded-2xl p-6 shadow-sm">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-5">Request Encashment</h3>
+          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-5">Request Encashment</h2>
           <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Employee <span className="text-red-400">*</span></label>

@@ -115,6 +115,7 @@ const LeaveBalances: React.FC = () => {
         <select
           value={yearFilter}
           onChange={(e) => setYearFilter(e.target.value)}
+          aria-label="Filter by year"
           className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
         >
           {[0, 1, 2].map((offset) => {
@@ -125,6 +126,7 @@ const LeaveBalances: React.FC = () => {
         <select
           value={employeeFilter}
           onChange={(e) => setEmployeeFilter(e.target.value)}
+          aria-label="Filter by employee"
           className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
         >
           <option value="">All Employees</option>

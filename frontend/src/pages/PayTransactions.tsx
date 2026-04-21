@@ -222,10 +222,10 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
       {/* Create / Edit Modal */}
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="pay-transaction-modal-title" className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-bold">{modal.mode === 'create' ? 'Add Transaction Code' : `Edit — ${modal.tc?.code}`}</h3>
-              <button onClick={closeModal} className="p-1 hover:bg-slate-100 rounded-lg"><X size={18} /></button>
+              <h3 id="pay-transaction-modal-title" className="text-lg font-bold">{modal.mode === 'create' ? 'Add Transaction Code' : `Edit — ${modal.tc?.code}`}</h3>
+              <button onClick={closeModal} aria-label="Close" className="p-1 hover:bg-slate-100 rounded-lg"><X size={18} /></button>
             </div>
 
             <div className="px-6 py-5 flex flex-col gap-4">

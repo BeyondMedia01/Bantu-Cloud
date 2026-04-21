@@ -52,13 +52,13 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
     <div className="bg-primary rounded-2xl border border-border p-5 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} aria-label="Previous month" className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors">
+        <button onClick={prevMonth} aria-label="Previous month" className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
           <ChevronLeft size={16} />
         </button>
         <p className="text-sm font-bold text-navy">
           {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </p>
-        <button onClick={nextMonth} aria-label="Next month" className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors">
+        <button onClick={nextMonth} aria-label="Next month" className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
           <ChevronRight size={16} />
         </button>
       </div>

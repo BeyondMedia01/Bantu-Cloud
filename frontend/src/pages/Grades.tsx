@@ -127,9 +127,9 @@ const Grades: React.FC = () => {
           onSubmit={handleSave}
           className="bg-primary border border-border rounded-2xl p-6 shadow-sm mb-6"
         >
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">
+          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">
             {editId ? 'Edit Grade' : 'New Grade'}
-          </h3>
+          </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div className="sm:col-span-2">
@@ -224,6 +224,7 @@ const Grades: React.FC = () => {
         </div>
       ) : (
         <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-slate-50">
@@ -277,8 +278,8 @@ const Grades: React.FC = () => {
       {/* Delete confirmation */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-navy mb-2">Delete "{confirmDelete.name}"?</h3>
+          <div role="dialog" aria-modal="true" aria-labelledby="grades-delete-modal-title" className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 id="grades-delete-modal-title" className="font-bold text-navy mb-2">Delete "{confirmDelete.name}"?</h3>
             <p className="text-sm text-slate-500 font-medium mb-1">
               {(confirmDelete._count?.employees ?? 0) > 0
                 ? `This grade has ${confirmDelete._count!.employees} employee(s) assigned. Employees will remain but lose their grade association.`

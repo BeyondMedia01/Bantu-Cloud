@@ -97,6 +97,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
          </div>
          <select 
           className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:border-accent-blue shadow-sm min-w-[200px]"
+          aria-label="Filter by export type"
           value={filterType}
           onChange={e => setFilterType(e.target.value)}
          >

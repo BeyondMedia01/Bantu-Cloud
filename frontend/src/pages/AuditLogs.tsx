@@ -87,11 +87,11 @@ const EmptyState: React.FC = () => (
     <td colSpan={6} className="px-8 py-24 text-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center">
-          <Shield size={28} className="text-slate-200" />
+          <Shield size={28} className="text-slate-500" />
         </div>
         <div>
           <p className="text-sm font-bold text-slate-400">No events found</p>
-          <p className="text-xs text-slate-300 mt-1">Adjust your filters or expand the date range</p>
+          <p className="text-xs text-slate-500 mt-1">Adjust your filters or expand the date range</p>
         </div>
       </div>
     </td>
@@ -227,7 +227,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                 placeholder="Search by email…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-navy placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-accent-blue/20 transition-all border-none"
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-blue/20 transition-all border-none"
               />
             </div>
 
@@ -260,9 +260,10 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                 <input
                   type="text"
                   placeholder="e.g. PAYROLL_CREATED"
+                  aria-label="Filter by action"
                   value={filterAction}
                   onChange={e => setFilterAction(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
+                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -272,9 +273,10 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                 <input
                   type="text"
                   placeholder="e.g. employee"
+                  aria-label="Filter by resource"
                   value={filterResource}
                   onChange={e => setFilterResource(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
+                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -283,6 +285,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                 </label>
                 <input
                   type="date"
+                  aria-label="Filter from date"
                   value={filterDateFrom}
                   onChange={e => setFilterDateFrom(e.target.value)}
                   className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
@@ -294,6 +297,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                 </label>
                 <input
                   type="date"
+                  aria-label="Filter to date"
                   value={filterDateTo}
                   onChange={e => setFilterDateTo(e.target.value)}
                   className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
@@ -358,7 +362,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                         <div className="flex flex-col gap-0.5">
                           <p className="text-xs font-bold text-navy leading-none">{date}</p>
                           <p className="text-[11px] font-mono text-slate-400 leading-none mt-1">{time}</p>
-                          <p className="text-[10px] text-slate-300 leading-none mt-0.5">{formatRelative(log.createdAt)}</p>
+                          <p className="text-[10px] text-slate-500 leading-none mt-0.5">{formatRelative(log.createdAt)}</p>
                         </div>
                       </td>
 
@@ -370,10 +374,10 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                           </div>
                           <div>
                             <p className="text-xs font-bold text-navy leading-none truncate max-w-[160px]">
-                              {log.userEmail ?? <span className="text-slate-300 italic">System</span>}
+                              {log.userEmail ?? <span className="text-slate-500 italic">System</span>}
                             </p>
                             {log.userId && (
-                              <p className="text-[10px] font-mono text-slate-300 leading-none mt-1 truncate max-w-[160px]">{log.userId.slice(0, 8)}…</p>
+                              <p className="text-[10px] font-mono text-slate-500 leading-none mt-1 truncate max-w-[160px]">{log.userId.slice(0, 8)}…</p>
                             )}
                           </div>
                         </div>
@@ -399,14 +403,14 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                             {log.resourceId.slice(0, 8)}…
                           </p>
                         ) : (
-                          <span className="text-slate-200 text-xs">—</span>
+                          <span className="text-slate-400 text-xs">—</span>
                         )}
                       </td>
 
                       {/* IP */}
                       <td className="px-6 py-4">
                         <p className="text-[11px] font-mono text-slate-400">
-                          {log.ipAddress ?? <span className="text-slate-200">—</span>}
+                          {log.ipAddress ?? <span className="text-slate-400">—</span>}
                         </p>
                       </td>
                     </tr>
@@ -426,7 +430,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                                   {JSON.stringify(log.details, null, 2)}
                                 </pre>
                               ) : (
-                                <p className="text-xs text-slate-300 italic">No additional details recorded</p>
+                                <p className="text-xs text-slate-500 italic">No additional details recorded</p>
                               )}
                             </div>
                           </div>

@@ -178,7 +178,7 @@ const PayrollInputs: React.FC = () => {
       {/* Create form */}
       {showForm && (
         <form onSubmit={handleCreate} className="bg-primary border border-border rounded-2xl p-6 shadow-sm mb-6">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">New Payroll Input</h3>
+          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">New Payroll Input</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <div>
@@ -383,6 +383,7 @@ const PayrollInputs: React.FC = () => {
         </div>
       ) : (
         <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-slate-50">
@@ -493,10 +494,10 @@ const PayrollInputs: React.FC = () => {
       {/* Edit modal */}
       {editInput && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="edit-payroll-input-title" className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-bold">Edit Payroll Input</h3>
-              <button onClick={() => { setEditInput(null); setError(''); }} className="p-1 hover:bg-slate-100 rounded-lg">
+              <h3 id="edit-payroll-input-title" className="text-lg font-bold">Edit Payroll Input</h3>
+              <button onClick={() => { setEditInput(null); setError(''); }} aria-label="Close" className="p-1 hover:bg-slate-100 rounded-lg">
                 <X size={18} />
               </button>
             </div>

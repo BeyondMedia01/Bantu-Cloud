@@ -720,13 +720,13 @@ const PayslipInput: React.FC = () => {
       {/* ── Import Modal ────────────────────────────────────────────── */}
       {importOpen && (
         <div className="fixed inset-0 bg-navy/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 text-navy">
+          <div role="dialog" aria-modal="true" aria-labelledby="import-variable-pay-title" className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 text-navy">
             <div className="p-6 border-b border-border flex justify-between items-center bg-slate-50">
               <div>
-                <h3 className="text-xl font-bold">Import Variable Pay</h3>
+                <h3 id="import-variable-pay-title" className="text-xl font-bold">Import Variable Pay</h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">Bulk upload earnings, deductions and benefits.</p>
               </div>
-              <button onClick={() => { setImportOpen(false); setImportResults(null); }} className="p-2 hover:bg-white rounded-full transition-colors">
+              <button onClick={() => { setImportOpen(false); setImportResults(null); }} aria-label="Close" className="p-2 hover:bg-white rounded-full transition-colors">
                 <X size={20} className="text-slate-400" />
               </button>
             </div>

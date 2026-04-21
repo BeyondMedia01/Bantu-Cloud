@@ -138,7 +138,7 @@ const Reports: React.FC = () => {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none"
+            className="bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
           >
             {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -188,7 +188,7 @@ const Reports: React.FC = () => {
                   <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                    className="bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none"
+                    className="bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
                   >
                     {MONTHS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>

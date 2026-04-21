@@ -42,14 +42,14 @@ const CompanyNew: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{error}</div>
+        <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{error}</div>
       )}
 
       <form onSubmit={handleSubmit} className="bg-primary rounded-2xl border border-border p-8 shadow-sm flex flex-col gap-5">
         <Field label="Company Name" required>
           <input required value={form.name} onChange={set('name')} placeholder="e.g. Acme Zimbabwe (Pvt) Ltd" />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Registration Number">
             <input value={form.registrationNumber} onChange={set('registrationNumber')} placeholder="e.g. 1234/2020" />
           </Field>
@@ -60,7 +60,7 @@ const CompanyNew: React.FC = () => {
         <Field label="Address">
           <input value={form.address} onChange={set('address')} placeholder="e.g. 1 Main St, Harare" />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Contact Email">
             <input type="email" value={form.contactEmail} onChange={set('contactEmail')} placeholder="info@company.co.zw" />
           </Field>
@@ -87,12 +87,14 @@ const CompanyNew: React.FC = () => {
 };
 
 const Field: React.FC<{ label: string; required?: boolean; children: React.ReactElement }> = ({ label, required, children }) => {
+  const id = React.useId();
   const child = React.cloneElement(children as React.ReactElement<any>, {
+    id,
     className: 'w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium text-sm',
   });
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+      <label htmlFor={id} className="text-xs font-bold text-slate-400 uppercase tracking-wider">
         {label}{required && <span className="text-red-400 ml-1">*</span>}
       </label>
       {child}

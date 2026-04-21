@@ -93,7 +93,7 @@ const Register: React.FC = () => {
 
           {/* Phone */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Phone Number <span className="text-slate-300">(for 2FA)</span></label>
+            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Phone Number <span className="text-slate-400">(for 2FA)</span></label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Phone size={18} /></span>
               <input

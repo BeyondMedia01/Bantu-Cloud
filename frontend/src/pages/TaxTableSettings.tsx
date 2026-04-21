@@ -262,7 +262,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
               <div className="p-5 border-b border-border bg-slate-50/50 flex justify-between items-center">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-navy">{activeTable.name}</h3>
+                    <h2 className="font-bold text-navy">{activeTable.name}</h2>
                     {activeTable.isActive && (
                       <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest">
                         <Zap size={9} /> Active
@@ -305,6 +305,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                 </div>
               </div>
 
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border bg-slate-50">
@@ -427,6 +428,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                   )}
                 </tbody>
               </table>
+              </div>
 
               {/* Batch save footer */}
               {pendingRows.length > 0 && (

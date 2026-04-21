@@ -184,6 +184,7 @@ const PublicHolidays: React.FC = () => {
             <p className="text-sm text-slate-400 mt-1">Click "Seed Zimbabwe Holidays" to populate this year's holidays.</p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-slate-50">
@@ -219,6 +220,7 @@ const PublicHolidays: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

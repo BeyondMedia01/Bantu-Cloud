@@ -95,7 +95,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-bold mb-1">Robust Role-Based Access Control (RBAC)</h3>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="text-sm text-slate-500 leading-relaxed">
             Roles define base templates (e.g., Auditors view everything, Officers edit payroll). <strong>Granular Permissions</strong> override these defaults, giving you surgical control over exactly what each user can execute, edit, or export. <i>Admins automatically inherit all permissions.</i>
           </p>
         </div>
@@ -115,8 +115,9 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Search by name or email..." 
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue shadow-sm"
+                placeholder="Search by name or email..."
+                aria-label="Search users"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/30 shadow-sm"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />

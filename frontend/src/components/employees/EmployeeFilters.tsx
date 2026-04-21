@@ -30,7 +30,7 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
           id="employee-search"
           type="text"
           placeholder="Search by name, code, or position…"
-          className="flex-1 bg-transparent focus:outline-none font-medium placeholder:text-slate-300 text-sm text-navy"
+          className="flex-1 bg-transparent focus:outline-none font-medium placeholder:text-slate-400 text-sm text-navy"
           value={filters.search}
           onChange={(e) => onFilterChange('search', e.target.value)}
         />

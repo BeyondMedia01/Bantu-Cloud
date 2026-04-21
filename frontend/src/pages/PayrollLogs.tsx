@@ -59,7 +59,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
         <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0">
           <AlertCircle size={22} />
         </div>
-        <p className="text-sm text-slate-300 leading-relaxed">
+        <p className="text-sm text-slate-500 leading-relaxed">
           <strong className="text-white">Read-Only Archive.</strong> Entries in this log are append-only and cannot be edited or deleted by any user. This ensures full compliance integrity for audits and regulatory reviews.
         </p>
       </div>
@@ -72,6 +72,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
             <input
               type="text"
               placeholder="Search by entity, entity ID, or user..."
+              aria-label="Search payroll logs"
               className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue shadow-sm"
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -83,6 +84,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
               <select
                 value={filterAction}
                 onChange={e => setFilterAction(e.target.value)}
+                aria-label="Filter by action"
                 className="appearance-none pl-8 pr-8 py-2 bg-white border border-border rounded-xl text-sm font-semibold focus:outline-none focus:border-accent-blue shadow-sm text-slate-600"
               >
                 <option value="">All Actions</option>
@@ -93,6 +95,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
               <select
                 value={filterStatus}
                 onChange={e => setFilterStatus(e.target.value)}
+                aria-label="Filter by status"
                 className="appearance-none px-4 py-2 bg-white border border-border rounded-xl text-sm font-semibold focus:outline-none focus:border-accent-blue shadow-sm text-slate-600"
               >
                 <option value="">All Statuses</option>

@@ -123,7 +123,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
           </div>
           <div>
             <h3 className="font-bold text-lg mb-1 tracking-tight">Capped Compliance</h3>
-            <p className="text-sm text-slate-300 leading-relaxed font-medium">
+            <p className="text-sm text-slate-500 leading-relaxed font-medium">
               Pensionable earnings are automatically capped at regulatory thresholds (USD {settings.ceilingUSD.toLocaleString()}). All calculations follow the {settings.employeeRate}% + {settings.employerRate}% split.
             </p>
           </div>
@@ -148,8 +148,9 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Search by Employee..." 
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-blue-500"
+                placeholder="Search by Employee..."
+                aria-label="Search contributions"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -227,7 +228,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-slate-300 font-medium">
+                  <td colSpan={6} className="px-6 py-20 text-center text-slate-500 font-medium">
                     <Hash size={48} className="mx-auto mb-4 opacity-10" />
                     <p className="italic">No pension contribution records found for this period.</p>
                   </td>

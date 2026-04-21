@@ -65,6 +65,7 @@ const PayIncrease: React.FC = () => {
             </div>
           </div>
           <div className="bg-slate-50 rounded-xl overflow-hidden border border-border">
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">

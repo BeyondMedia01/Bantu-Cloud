@@ -52,7 +52,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                 id="em-first-name"
                 type="text"
                 required
-                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
+                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-medium"
                 value={formData.firstName}
                 onChange={e => setFormData({ ...formData, firstName: e.target.value })}
               />
@@ -63,7 +63,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                 id="em-last-name"
                 type="text"
                 required
-                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
+                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-medium"
                 value={formData.lastName}
                 onChange={e => setFormData({ ...formData, lastName: e.target.value })}
               />
@@ -78,7 +78,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                 type="text"
                 required
                 placeholder="63-123456-X-42"
-                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
+                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-medium"
                 value={formData.nationalId}
                 onChange={e => setFormData({ ...formData, nationalId: e.target.value })}
               />
@@ -88,7 +88,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
               <input
                 id="em-department"
                 type="text"
-                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-medium"
+                className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-medium"
                 value={formData.department}
                 onChange={e => setFormData({ ...formData, department: e.target.value })}
               />
@@ -110,7 +110,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                   type="number"
                   step="0.01"
                   required
-                  className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
+                  className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-bold text-navy"
                   value={formData.baseSalary}
                   onChange={e => setFormData({ ...formData, baseSalary: parseFloat(e.target.value) })}
                 />
@@ -119,7 +119,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                 <label htmlFor="em-currency" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency</label>
                 <select
                   id="em-currency"
-                  className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
+                  className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-bold text-navy"
                   value={formData.currency}
                   onChange={e => setFormData({ ...formData, currency: e.target.value })}
                 >
@@ -134,7 +134,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                    type="number"
                    step="0.01"
                    placeholder="0.00"
-                   className="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-green font-bold text-accent-green"
+                   className="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/20 font-bold text-accent-green"
                    value={formData.taxableBenefits}
                    onChange={e => setFormData({ ...formData, taxableBenefits: parseFloat(e.target.value) })}
                 />
@@ -148,7 +148,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                    id="em-medical-aid"
                    type="number"
                    step="0.01"
-                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
+                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-bold text-navy"
                    value={formData.medicalAid}
                    onChange={e => setFormData({ ...formData, medicalAid: parseFloat(e.target.value) })}
                 />
@@ -159,7 +159,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                    id="em-nec-deduction"
                    type="number"
                    step="0.01"
-                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
+                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-bold text-navy"
                    value={formData.necDeduction}
                    onChange={e => setFormData({ ...formData, necDeduction: parseFloat(e.target.value) })}
                 />
@@ -170,7 +170,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
                    id="em-leave-balance"
                    type="number"
                    step="0.5"
-                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue font-bold text-navy"
+                   className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-bold text-navy"
                    value={formData.leaveBalance}
                    onChange={e => setFormData({ ...formData, leaveBalance: parseFloat(e.target.value) })}
                 />

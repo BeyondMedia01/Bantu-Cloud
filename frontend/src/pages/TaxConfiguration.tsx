@@ -154,8 +154,8 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
       {/* Simple Modal Placeholder */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-navy/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-              <h3 className="text-2xl font-bold text-navy mb-6">{editingBand ? 'Edit Tax Band' : 'New Tax Band'}</h3>
+           <div role="dialog" aria-modal="true" aria-labelledby="tax-band-modal-title" className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+              <h3 id="tax-band-modal-title" className="text-2xl font-bold text-navy mb-6">{editingBand ? 'Edit Tax Band' : 'New Tax Band'}</h3>
               <p className="text-slate-500 text-sm mb-8">This feature is coming soon. Use the API or Database direct for now.</p>
               <button 
                 onClick={() => setIsModalOpen(false)}

@@ -145,12 +145,14 @@ const LeaveEdit: React.FC = () => {
 };
 
 const Field: React.FC<{ label: string; children: React.ReactElement }> = ({ label, children }) => {
+  const id = React.useId();
   const child = React.cloneElement(children as React.ReactElement<any>, {
+    id,
     className: `w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm ${(children.props as any).className || ''}`,
   });
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</label>
+      <label htmlFor={id} className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</label>
       {child}
     </div>
   );

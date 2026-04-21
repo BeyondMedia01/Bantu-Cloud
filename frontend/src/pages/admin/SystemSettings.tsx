@@ -58,6 +58,7 @@ const SystemSettings: React.FC = () => {
 
       <form onSubmit={handleSave}>
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden mb-4">
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-slate-50">

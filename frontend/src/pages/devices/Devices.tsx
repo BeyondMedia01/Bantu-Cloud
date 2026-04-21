@@ -238,7 +238,7 @@ const Devices: React.FC = () => {
                         {d.isActive ? <Wifi size={16} className="text-emerald-600" /> : <WifiOff size={16} className="text-slate-400" />}
                       </div>
                       <div>
-                        <h3 className="font-bold text-navy">{d.name}</h3>
+                        <h2 className="font-bold text-navy">{d.name}</h2>
                         <p className="text-xs text-slate-400 font-semibold">
                           {VENDOR_LABELS[d.vendor] || d.vendor}{d.location ? ` · ${d.location}` : ''}
                         </p>
@@ -251,23 +251,23 @@ const Devices: React.FC = () => {
 
                   <div className="text-xs text-slate-500 font-medium space-y-1 mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-300 w-16">Address</span>
+                      <span className="text-slate-500 w-16">Address</span>
                       <span className="font-mono text-slate-600">{d.ipAddress}:{d.port}</span>
                     </div>
                     {d.serialNumber && (
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-300 w-16">Serial</span>
+                        <span className="text-slate-500 w-16">Serial</span>
                         <span className="font-mono text-slate-600">{d.serialNumber}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-300 w-16">Last sync</span>
+                      <span className="text-slate-500 w-16">Last sync</span>
                       <span className={d.lastSyncStatus === 'error' ? 'text-red-500' : 'text-slate-600'}>
                         {fmtRelative(d.lastSyncAt)}{d.lastSyncStatus === 'error' ? ' (error)' : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-300 w-16">Records</span>
+                      <span className="text-slate-500 w-16">Records</span>
                       <span className="text-slate-600">{d._count?.attendanceLogs ?? 0} logs</span>
                     </div>
                   </div>

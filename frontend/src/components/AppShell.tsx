@@ -255,7 +255,7 @@ const AppShell: React.FC = () => {
             <Link to="/profile" title={user?.name || 'Profile'} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-border hover:bg-slate-200 transition-colors">
               <User size={15} className="text-slate-400" />
             </Link>
-            <button onClick={handleLogout} aria-label="Sign out" className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400" title="Sign out">
+            <button onClick={handleLogout} aria-label="Sign out" className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 min-w-[36px] min-h-[36px] flex items-center justify-center">
               <LogOut size={16} />
             </button>
           </div>

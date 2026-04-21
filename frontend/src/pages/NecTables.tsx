@@ -366,6 +366,7 @@ const NecTables: React.FC = () => {
               </div>
 
               {/* Grades table */}
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border bg-slate-50">
@@ -582,6 +583,7 @@ const NecTables: React.FC = () => {
                   )}
                 </tbody>
               </table>
+              </div>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center p-20 text-slate-400">

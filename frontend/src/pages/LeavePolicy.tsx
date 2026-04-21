@@ -126,9 +126,9 @@ const LeavePolicy: React.FC = () => {
       {/* Policy Form */}
       {showForm && (
         <div className="bg-primary border border-border rounded-2xl p-6 shadow-sm">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-5">
+          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-5">
             {editId ? 'Edit Policy' : 'New Leave Policy'}
-          </h3>
+          </h2>
           <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
@@ -191,6 +191,7 @@ const LeavePolicy: React.FC = () => {
         </div>
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-slate-50">

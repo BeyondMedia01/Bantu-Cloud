@@ -97,6 +97,7 @@ const LoanDetail: React.FC = () => {
         <div className="p-4 border-b border-border">
           <h3 className="font-bold">Repayment Schedule</h3>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-border bg-slate-50">
@@ -138,6 +139,7 @@ const LoanDetail: React.FC = () => {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
