@@ -75,7 +75,7 @@ const PayrollSummary: React.FC = () => {
     finally { setExporting(''); }
   };
 
-  const handlePdfDownload = async () => {
+  const _handlePdfDownload = async () => {
     if (!runId) return;
     setExporting('pdf');
     try {
