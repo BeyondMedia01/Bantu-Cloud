@@ -39,6 +39,11 @@ async function getPayslipsForRun(runId, companyId) {
           firstName: true, lastName: true, employeeCode: true,
           bankName: true, bankBranch: true, accountNumber: true,
           currency: true, paymentMethod: true,
+          bankAccounts: {
+            orderBy: { priority: 'asc' },
+            take: 1,
+            select: { accountNumber: true, bankName: true, bankBranch: true, branchCode: true },
+          },
         },
       },
     },
@@ -71,9 +76,23 @@ router.get('/:format/:runId', requirePermission('export_reports'), async (req, r
     const period = run.startDate ? new Date(run.startDate) : new Date();
     const periodStr = `${period.getFullYear()}-${String(period.getMonth() + 1).padStart(2, '0')}`;
 
+    // Resolve bank details: prefer legacy fields, fall back to EmployeeBankAccount
+    const resolvedPayslips = payslips.map((p) => {
+      const linked = p.employee.bankAccounts?.[0];
+      return {
+        ...p,
+        _bank: {
+          accountNumber: p.employee.accountNumber || linked?.accountNumber || '',
+          bankName:      p.employee.bankName      || linked?.bankName      || '',
+          bankBranch:    p.employee.bankBranch     || linked?.bankBranch    || '',
+          branchCode:    linked?.branchCode || p.employee.bankBranch || '',
+        },
+      };
+    });
+
     // Filter to bank-payment employees only
-    const bankPayees = payslips.filter(
-      (p) => p.employee.paymentMethod !== 'CASH' && p.employee.accountNumber
+    const bankPayees = resolvedPayslips.filter(
+      (p) => p.employee.paymentMethod !== 'CASH' && p._bank.accountNumber
     );
 
     if (bankPayees.length === 0) {
@@ -90,8 +109,8 @@ router.get('/:format/:runId', requirePermission('export_reports'), async (req, r
         const net = run.dualCurrency ? (p.netPayUSD ?? p.netPay) : p.netPay;
         return csvRow([
           `${p.employee.firstName} ${p.employee.lastName}`,
-          p.employee.accountNumber,
-          p.employee.bankBranch || '',
+          p._bank.accountNumber,
+          p._bank.bankBranch,
           net.toFixed(2),
           run.dualCurrency ? 'USD' : run.currency,
           `${p.employee.employeeCode}-${periodStr}`,
@@ -113,9 +132,9 @@ router.get('/:format/:runId', requirePermission('export_reports'), async (req, r
         return csvRow([
           String(i + 1).padStart(6, '0'),
           `${p.employee.firstName} ${p.employee.lastName}`,
-          p.employee.accountNumber,
+          p._bank.accountNumber,
           '003',                          // Stanbic BIC/bank code in ZW clearing
-          p.employee.bankBranch || '',
+          p._bank.branchCode,
           net.toFixed(2),
           run.dualCurrency ? 'USD' : run.currency,
           `${p.employee.employeeCode}-${periodStr}`,
@@ -138,9 +157,9 @@ router.get('/:format/:runId', requirePermission('export_reports'), async (req, r
           'RTGS',
           '',                             // populated by the uploading user in their portal
           `${p.employee.firstName} ${p.employee.lastName}`,
-          p.employee.accountNumber,
-          p.employee.bankName || '',
-          p.employee.bankBranch || '',
+          p._bank.accountNumber,
+          p._bank.bankName,
+          p._bank.bankBranch,
           net.toFixed(2),
           run.dualCurrency ? 'USD' : run.currency,
           `${p.employee.employeeCode}-${periodStr}`,
