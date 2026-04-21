@@ -109,7 +109,7 @@ router.post('/login', async (req, res) => {
     const companyId = user.employee?.companyId ?? null;
     const employeeId = user.employee?.id ?? null;
 
-    const token = await signToken({ userId: user.id, role: user.role, clientId });
+    const token = await signToken({ userId: user.id, role: user.role, clientId, companyId, employeeId });
     // Point #12: Null-guard for user.name
     res.json({ token, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User' });
   } catch (error) {

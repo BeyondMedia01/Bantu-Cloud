@@ -41,28 +41,44 @@ const companyContext = async (req, res, next) => {
 
   try {
     if (role === 'CLIENT_ADMIN') {
-      const ca = await prisma.clientAdmin.findUnique({ where: { userId } });
-      if (!ca) return res.status(403).json({ message: 'Client admin record not found' });
+      const clientIdFromToken = req.user.clientId;
+      if (!clientIdFromToken) {
+        // Fallback for tokens issued before this change
+        const ca = await prisma.clientAdmin.findUnique({ where: { userId } });
+        if (!ca) return res.status(403).json({ message: 'Client admin record not found' });
+        req.clientId = ca.clientId;
+      } else {
+        req.clientId = clientIdFromToken;
+      }
 
-      const company = await prisma.company.findUnique({ where: { id: companyId } });
-      if (!company || company.clientId !== ca.clientId) {
+      const company = await prisma.company.findUnique({ where: { id: companyId }, select: { clientId: true } });
+      if (!company || company.clientId !== req.clientId) {
         return res.status(403).json({ message: 'Access denied: company does not belong to your client' });
       }
 
       req.companyId = companyId;
-      req.clientId = ca.clientId;
       return next();
     }
 
     if (role === 'EMPLOYEE') {
-      const emp = await prisma.employee.findUnique({ where: { userId } });
-      if (!emp || emp.companyId !== companyId) {
+      const tokenCompanyId = req.user.companyId;
+      if (tokenCompanyId && tokenCompanyId !== companyId) {
         return res.status(403).json({ message: 'Access denied: not your company' });
+      }
+      if (!tokenCompanyId) {
+        // Fallback for tokens issued before this change
+        const emp = await prisma.employee.findUnique({ where: { userId } });
+        if (!emp || emp.companyId !== companyId) {
+          return res.status(403).json({ message: 'Access denied: not your company' });
+        }
+        req.clientId = emp.clientId;
+        req.employeeId = emp.id;
+      } else {
+        req.clientId = req.user.clientId;
+        req.employeeId = req.user.employeeId;
       }
 
       req.companyId = companyId;
-      req.clientId = emp.clientId;
-      req.employeeId = emp.id;
       return next();
     }
 

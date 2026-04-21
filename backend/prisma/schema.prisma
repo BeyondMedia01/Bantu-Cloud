@@ -386,6 +386,8 @@ model Employee {
   @@index([necGradeId])
   @@index([clientId, companyId])
   @@index([companyId, employmentType])
+  @@index([companyId, dischargeDate])
+  @@index([companyId, dischargeDate, paymentMethod])
 }
 
 model EmployeeBankAccount {
@@ -490,6 +492,8 @@ model PayrollRun {
   loanRepayments    LoanRepayment[]
 
   @@index([companyId])
+  @@index([companyId, status])
+  @@index([companyId, status, runDate])
   @@index([payrollCalendarId])
 }
 
@@ -984,6 +988,8 @@ model LeaveRequest {
   employee   Employee    @relation(fields: [employeeId], references: [id])
 
   @@index([employeeId])
+  @@index([status])
+  @@index([employeeId, status])
 }
 
 // ─── Loans ────────────────────────────────────────────────────────────────────
@@ -1004,6 +1010,8 @@ model Loan {
   repayments       LoanRepayment[]
 
   @@index([employeeId])
+  @@index([status])
+  @@index([employeeId, status])
 }
 
 model LoanRepayment {
