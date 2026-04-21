@@ -347,6 +347,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
               })}
             </tbody>
           </table>
+          </div>
 
           {inactive.length > 0 && (
             <div className="border-t border-border px-5 py-3">

@@ -324,6 +324,7 @@ const ClientAdminStructure: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

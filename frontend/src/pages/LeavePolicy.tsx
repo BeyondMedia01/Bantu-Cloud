@@ -227,6 +227,7 @@ const LeavePolicy: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

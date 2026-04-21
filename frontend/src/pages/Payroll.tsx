@@ -333,6 +333,7 @@ const Payroll: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

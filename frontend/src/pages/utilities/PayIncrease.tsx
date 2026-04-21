@@ -82,6 +82,7 @@ const PayIncrease: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
           <button onClick={() => setResult(null)} className="mt-4 text-sm font-bold text-accent-blue hover:underline">
             Apply Another Increase

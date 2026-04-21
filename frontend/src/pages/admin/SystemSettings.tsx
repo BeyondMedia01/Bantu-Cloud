@@ -90,6 +90,7 @@ const SystemSettings: React.FC = () => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         <button

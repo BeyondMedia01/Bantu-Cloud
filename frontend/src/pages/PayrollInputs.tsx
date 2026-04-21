@@ -489,6 +489,7 @@ const PayrollInputs: React.FC = () => {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
       {/* Edit modal */}

@@ -200,6 +200,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Create Rate Modal */}

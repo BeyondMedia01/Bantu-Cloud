@@ -128,6 +128,7 @@ const AdminClients: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
