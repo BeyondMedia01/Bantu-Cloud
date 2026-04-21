@@ -75,17 +75,7 @@ const PayrollSummary: React.FC = () => {
     finally { setExporting(''); }
   };
 
-  const _handlePdfDownload = async () => {
-    if (!runId) return;
-    setExporting('pdf');
-    try {
-      const res = await PayrollAPI.downloadSummaryPdf(runId);
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url; a.download = `payroll-summary-${runId}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-    } finally { setExporting(''); }
-  };
+
 
   const handlePayslipSummaryDownload = async () => {
     if (!runId) return;
