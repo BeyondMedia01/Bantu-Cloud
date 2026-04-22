@@ -124,6 +124,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
 import { ToastProvider } from './context/ToastContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { Toaster } from './components/ui/sonner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -269,6 +270,7 @@ const App: React.FC = () => {
               </Routes>
             </Suspense>
             </BrowserRouter>
+            <Toaster />
           </ToastProvider>
         </SettingsProvider>
       </QueryClientProvider>
