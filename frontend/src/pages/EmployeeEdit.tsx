@@ -3,6 +3,7 @@ import { useToast } from '../context/ToastContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download } from 'lucide-react';
 import { EmployeeAPI, BranchAPI, DepartmentAPI, NecTableAPI, TaxTableAPI, SystemSettingsAPI, DocumentsAPI } from '../api/client';
+import { Field } from '../components/common/Field';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { getActiveCompanyId } from '../lib/companyContext';
 import SalaryStructurePanel from '../components/employees/SalaryStructurePanel';
@@ -862,21 +863,5 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
     {children}
   </div>
 );
-
-const Field: React.FC<{ label: string; required?: boolean; className?: string; children: React.ReactElement }> = ({ label, required, className, children }) => {
-  const id = React.useId();
-  const child = React.cloneElement(children as React.ReactElement<any>, {
-    id,
-    className: 'w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium text-sm',
-  });
-  return (
-    <div className={`flex flex-col gap-1.5 ${className || ''}`}>
-      <label htmlFor={id} className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-        {label}{required && <span className="text-red-400 ml-1">*</span>}
-      </label>
-      {child}
-    </div>
-  );
-};
 
 export default EmployeeEdit;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
+import { Field } from '../components/common/Field';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
 
@@ -98,20 +99,6 @@ const LeaveNew: React.FC = () => {
           </button>
         </div>
       </form>
-    </div>
-  );
-};
-
-const Field: React.FC<{ label: string; children: React.ReactElement }> = ({ label, children }) => {
-  const id = label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const child = React.cloneElement(children as React.ReactElement<any>, {
-    id,
-    className: `w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm ${(children.props as any).className || ''}`,
-  });
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</label>
-      {child}
     </div>
   );
 };
