@@ -558,3 +558,82 @@
 - **Issue:** The `fetchSummaries` catch block calls `console.error('Failed to fetch payslip summaries')` and does nothing visible to the user. If the API call fails (network error, 401, 500), the table simply shows the "No payroll summaries found" empty state, which is indistinguishable from a genuine empty dataset. Finance users may conclude no records exist and take incorrect action (e.g., re-processing payroll that already ran).
 - **Fix:** Add a `fetchError` state (matching the pattern in `PayrollCore.tsx` and `PayslipExports.tsx`) and render an error banner when the fetch fails. Replace `console.error` with the `useToast` pattern used on other pages.
 
+---
+
+## Task 4b Findings — Leave / Loan / Utilities / Tax pages
+
+### [B-054][High][Business Logic] `LeaveNew.tsx` days calculation counts calendar days — weekends and public holidays inflate the leave deduction
+- **File:** `frontend/src/pages/LeaveNew.tsx:23–25`
+- **Issue:** `days` is calculated as `Math.ceil((endDate - startDate) / 86400000) + 1`, which is a straight calendar-day count inclusive of weekends and public holidays. A request from Monday to Friday shows 5 days, but Monday to the following Sunday shows 7 days. Leave policies in Zimbabwe (and most HR systems) are measured in working days. The same raw formula is duplicated in `LeaveEdit.tsx:43–45`. The `totalDays` value sent to the backend drives leave balance deductions and payable days for encashment — inflating it by counting weekends means employees' balances are incorrectly reduced and encashment pay is overstated.
+- **Fix:** Replace the calendar-day formula with a working-day counter that iterates the date range and excludes weekends (Saturday/Sunday) and any public holiday list from the server. Alternatively, delegate the `totalDays` calculation entirely to the backend where a public-holiday calendar can be applied consistently.
+
+### [B-055][High][Business Logic] `LeaveNew.tsx` / `LeaveEdit.tsx` — no balance check before submission; leave can be recorded beyond available balance
+- **File:** `frontend/src/pages/LeaveNew.tsx:27–39`, `frontend/src/pages/LeaveEdit.tsx:47–58`
+- **Issue:** Neither form fetches the employee's current leave balance for the selected `type` before submitting. There is no client-side guard preventing a user from recording 30 days of annual leave for an employee whose balance is 5 days. The blue "N days" info box provides a day count preview but shows no available-balance comparison and does not block submission. Users will create over-drawn leave records unless the backend also enforces a ceiling (not confirmed here), and even then the first feedback comes as a generic API error after submit — a poor UX that may mislead staff.
+- **Fix:** When `employeeId` and `type` are both selected, fetch `LeaveBalanceAPI.getForEmployee(employeeId)` and compare `days` against `selectedBalance.balance`. Show an inline warning if `days > balance` and disable or warn on the submit button. This pattern is already implemented in `LeaveEncashments.tsx:61–68`.
+
+### [B-056][High][Business Logic] `LeaveEncashments.tsx` estimated amount preview is always `USD 0.00` — broken formula produces no useful information
+- **File:** `frontend/src/pages/LeaveEncashments.tsx:232–235`
+- **Issue:** The estimated encashment amount is computed as `parseFloat(form.days) * (selectedBalance?.leavePolicy ? 1 : 0)`. Because `selectedBalance.leavePolicy` is a policy object (always truthy when present), this resolves to `days * 1` — meaning the "estimate" is just the raw day count in USD, not an amount derived from daily rate. Furthermore, when no policy is embedded, it returns `0`. Neither result is the correct `ratePerDay × days` figure. The displayed `Est. amount: USD 0.00` (or a misleading USD day-count integer) gives users no guidance on how much the encashment will pay out.
+- **Fix:** Fetch the employee's `baseRate` (or derive `ratePerDay = baseRate / 22`) alongside the balance fetch, then compute `parseFloat(form.days) * ratePerDay`. Display the currency correctly (the employee's primary currency, not hardcoded USD).
+
+### [B-057][High][Business Logic] `BackPay.tsx` effective date accepts future dates — back pay can be committed for periods that have not yet occurred
+- **File:** `frontend/src/pages/utilities/BackPay.tsx:172–177`
+- **Issue:** The `effectiveDate` input has no `max` constraint and `goStep1to2` only checks `if (!effectiveDate)`. A user can enter a future date (e.g., 2027-01-01), proceed through the wizard, and generate back-pay payroll inputs for runs that do not yet exist. The backend will find zero completed runs for a future date and return an empty preview — but the commit step can still be reached, producing payroll inputs with a future effective date that will interfere with normal pay cycles.
+- **Fix:** Add `max={new Date().toISOString().slice(0, 10)}` to the date input and add a validation check in `goStep1to2`: `if (effectiveDate > today) return setError('Effective date must be in the past')`.
+
+### [B-058][Medium][Business Logic] `LoanDetail.tsx` "Outstanding" balance is calculated as `principal − sum(paid repayments)` — ignores interest; understates true balance
+- **File:** `frontend/src/pages/LoanDetail.tsx:42–43`
+- **Issue:** `outstanding = loan.amount - paid` where `paid = repayments.filter(r => r.status === 'PAID').reduce((s, r) => s + r.amount, 0)`. `loan.amount` is the principal only. Each repayment `amount` from the backend is the full amortised instalment (principal + interest). As the employee pays instalments, `outstanding` will cross into negative territory once total payments exceed the principal, even though the loan is not yet fully paid (interest has consumed some payments). The Summary card will show a red negative "Outstanding" balance, which is alarming and incorrect.
+- **Fix:** Outstanding balance should be `loan.outstandingBalance` from the server if it is maintained, or `(loan.monthlyInstalment * loan.termMonths) - paid` (total repayable minus paid). Alternatively derive it as `loan.totalRepayable - paid` where `totalRepayable` is stored on the loan record. Remove the client-side `loan.amount - paid` calculation.
+
+### [B-059][Medium][Business Logic] `LoanDetail.tsx` "Mark Paid" fires without confirmation — a misclick permanently marks a future instalment as paid
+- **File:** `frontend/src/pages/LoanDetail.tsx:24–31`
+- **Issue:** `handleMarkPaid` calls `LoanAPI.markRepaymentPaid(repaymentId)` directly on button click with no confirmation modal. There is no undo. For an upcoming instalment that is not yet due, a misclick produces a premature PAID record that distorts the outstanding balance, affects loan-status transitions (ACTIVE → PAID_OFF), and creates a false audit trail.
+- **Fix:** Wrap the call in a `ConfirmModal` similar to the pattern used elsewhere: "Mark instalment #N (due DATE, amount X) as paid? This cannot be undone."
+
+### [B-060][Medium][Business Logic] `PayIncrease.tsx` effective date accepts future dates and past dates without any validation — a future date silently applies an increase that has not yet taken effect
+- **File:** `frontend/src/pages/utilities/PayIncrease.tsx:26–45`
+- **Issue:** The bulk pay increase form sends whatever date is entered directly to the API. There is no client-side guard against future dates (scheduling a salary change that should not yet be applied to running payroll) or unreasonably old past dates (e.g., 2010-01-01, which could trigger erroneous back-pay calculations in downstream reporting). The validation at line 28 only checks `!form.effectiveDate`. A future date will update every employee's `baseRate` immediately but with an effective date that makes it appear the salary change was planned for the future — creating confusion when payroll runs use current base rates.
+- **Fix:** Add a warning (not a hard block) when `effectiveDate > today`: "Effective date is in the future — the new rate will be applied immediately but recorded as future-dated." Add a hard block if `effectiveDate` is more than 5 years in the past.
+
+### [B-061][Medium][Business Logic] `PayIncrease.tsx` no confirmation step before an irreversible bulk base-rate mutation affecting all active employees
+- **File:** `frontend/src/pages/utilities/PayIncrease.tsx:26–45`
+- **Issue:** Submitting the form immediately calls `UtilitiesAPI.payIncrease(payload)` with no confirmation dialog. A 10% percentage increase applied to all active employees with no department/type filter is irreversible at the database level (the previous `baseRate` values are overwritten). The form has no preview step and no undo mechanism. A typo in the percentage field (e.g., `100` instead of `10`) would double every employee's salary instantly.
+- **Fix:** Add a preview step or a `ConfirmModal` that displays: "Apply a {X}% increase to {N} employees effective {date}? This will overwrite current base rates and cannot be automatically reversed." Require typing "CONFIRM" or similar for operations affecting more than a configurable threshold of employees.
+
+### [B-062][Medium][Business Logic] `NSSASettings.tsx` accepts a rate of `0` — silently disables NSSA deductions with no warning
+- **File:** `frontend/src/pages/utilities/NSSASettings.tsx:95–101`
+- **Issue:** The employee rate, employer rate, and WCIF rate inputs all have `min="0"`, allowing the rates to be set to zero. The `handleChange` fallback `parseFloat(value) || 0` actively maps empty/invalid input to `0`. If an administrator accidentally clears a rate field and saves, NSSA contributions are set to zero for all future payroll runs. There is no warning that a zero rate disables a statutory deduction, nor any minimum validation. Zimbabwe law mandates NSSA contributions — a zero rate would make every payslip non-compliant.
+- **Fix:** Change `min` to `"0.01"` (or add a custom validator). Show a prominent warning banner when any rate is set to `0`: "A zero rate will disable this statutory deduction — ensure this is intentional."
+
+### [B-063][Medium][Business Logic] `CurrencyRates.tsx` rate input accepts `0` and negative values via `min="0"` HTML attribute only — no JS guard; a zero rate would divide-by-zero in ZiG payroll
+- **File:** `frontend/src/pages/CurrencyRates.tsx:233–242`
+- **Issue:** The rate input uses `min="0"` (HTML5 attribute). HTML `min` is bypassed when the form is submitted programmatically or the browser's built-in validation is suppressed. The `handleCreate` validation at line 36 only checks `!form.rate` — it does not check `parseFloat(form.rate) > 0`. A rate of `0` would pass the guard and be saved. The backend ZiG payroll engine divides by the exchange rate to convert between currencies; a stored rate of 0 would cause a division-by-zero or produce `Infinity` values silently in every ZiG payroll calculation until corrected.
+- **Fix:** Add `if (parseFloat(form.rate) <= 0) { setFormError('Rate must be greater than zero.'); return; }` in `handleCreate` before the API call. Change `min="0"` to `min="0.0001"`.
+
+### [B-064][Medium][Business Logic] `CurrencyRates.tsx` no staleness warning — latest rate shown with no indicator of how old it is; stale rates silently corrupt ZiG payroll
+- **File:** `frontend/src/pages/CurrencyRates.tsx:119–123`
+- **Issue:** The "Current ZiG Rate" card shows only the rate value. There is no timestamp or age indicator next to the current rate. The `latestZig` object has an `effectiveDate` field but it is not displayed in the hero card. The ZiG/USD rate is highly volatile (RBZ adjusts it frequently); if a rate entered weeks ago is still the "latest", every ZiG payroll calculation uses an outdated rate. Without a staleness warning, administrators have no prompt to update the rate before running payroll.
+- **Fix:** Display the `effectiveDate` of `latestZig` in the hero card. Add an amber warning banner when `today - latestZig.effectiveDate > 7 days`: "Exchange rate is N days old — verify against the current RBZ rate before running payroll."
+
+### [B-065][Low][Business Logic] `LeaveBalances.tsx` balance adjustment field accepts any number with no lower bound — negative adjustment can drive balance below zero without warning
+- **File:** `frontend/src/pages/LeaveBalances.tsx:184–208`
+- **Issue:** The inline adjustment input (`type="number" step="0.5"`) has no `min` or `max` attribute, and `handleAdjust` calls `parseFloat(adjValue)` with no range check. A user can type `-999` to set an employee's balance deeply negative. There is no warning shown before confirming the adjustment, and no confirmation modal guards the "OK" button. A mistyped adjustment (e.g., `–30` instead of `–3`) silently creates a large negative leave balance that will propagate into any encashment value calculations.
+- **Fix:** Add a `ConfirmModal` before calling `LeaveBalanceAPI.adjust`. Validate that `currentBalance + adjustment >= 0` and show a warning if the result would go negative: "This adjustment would result in a negative balance of X days — confirm to proceed."
+
+### [B-066][Low][Business Logic] `frontend/src/lib/tax.ts` hardcodes NSSA employee rate at `4.5%` but NSSA settings page and info banner quote `3.5%` — mismatch produces incorrect client-side PAYE estimates
+- **File:** `frontend/src/lib/tax.ts:8`
+- **Issue:** `STATUTORY_RATES.NSSA_EMPLOYEE = 0.045` (4.5%). The `NSSASettings.tsx` page defaults `employeeRate: 3.5` and the information banner explicitly states "Standard rates: **3.5% employee**". The backend `taxEngine.js` uses the rate stored in the database (configured via the NSSA Settings API). The client-side `calculatePAYE` in `tax.ts` uses the hardcoded `0.045`. This discrepancy means every client-side PAYE estimate (used in `BenefitCalculator`, `PayrollInputGrid`, and `BackPay` preview) over-deducts NSSA by 1 percentage point and therefore understates taxable income, producing a PAYE estimate that is lower than what the backend engine will actually compute. For an employee earning USD 700 (the ceiling), the NSSA over-deduction is USD 7/month — 1pp × ceiling.
+- **Fix:** Either (a) remove the hardcoded constant and fetch the NSSA rate from the `NSSASettingsAPI` at the call site, passing it as a parameter to `calculatePAYE`; or (b) align the hardcoded constant with the legally correct 3.5% rate and add a comment referencing the NSSA Settings page. Option (a) is preferred for correctness.
+
+### [B-067][Low][Business Logic] `BenefitCalculator.tsx` housing benefit uses `baseSalary × 7%` of gross salary — ZIMRA rule applies to gross including benefits, not base salary alone
+- **File:** `frontend/src/components/tax/BenefitCalculator.tsx:25–27`
+- **Issue:** `calculateHousing()` for employer-owned housing returns `baseSalary * 0.07`. The ZIMRA rule (IT exemption schedule) applies 7% to *total gross earnings* (basic + allowances + other taxable items), not just the base/basic salary. For an employee with a base salary of USD 1,000 and USD 400 in allowances, the correct taxable benefit is `1,400 × 7% = USD 98`, but the calculator returns `1,000 × 7% = USD 70`. The under-stated benefit means the payroll input produced by "Apply" is too low, understating taxable income by USD 28/month in this example.
+- **Fix:** The `BenefitCalculatorProps` interface should accept a `grossSalary` prop in addition to (or instead of) `baseSalary`, and `calculateHousing` should multiply `grossSalary * 0.07`. Update all call sites to pass total gross.
+
+### [B-068][Low][Business Logic] `LeavePolicy.tsx` delete silently fails without showing an error toast when delete API call fails
+- **File:** `frontend/src/pages/LeavePolicy.tsx:88–98`
+- **Issue:** `confirmDelete` catches API errors and calls `setError(...)`, which renders an inline error banner above the form. However, after a delete failure the `ConfirmModal` has already been dismissed (`setDeleteTarget(null)` in `finally`). The error state is rendered in the form area which may not be visible if the user has scrolled down to the policy table. There is also no `showToast` call, so the failure notification is easily missed. If the backend rejects the delete (e.g., the policy is still referenced by active balances), the user sees no clear feedback.
+- **Fix:** Replace the `setError` in the catch block of `confirmDelete` with `showToast(message, 'error')` (importing `useToast`), consistent with the pattern used in `Leave.tsx:69` and other pages. The inline error can remain as a secondary indicator.
+
