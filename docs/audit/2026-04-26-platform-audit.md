@@ -733,3 +733,82 @@
 - **Issue:** `if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;` — the singleton is stored on `globalThis` **only in non-production** environments. In production every module `require('../lib/prisma')` within the same process returns the same module-cached instance (Node's module cache provides this), so production is fine as long as a single process runs. However, if worker.js and index.js are ever run as separate Node processes in the same container (or if a future bundler inlines the module), each process creates its own `PrismaClient` with a separate connection pool. The comment is absent — the intent is unclear to future maintainers, and the asymmetry between dev and prod is surprising.
 - **Fix:** Either (a) store the singleton on `globalThis` unconditionally and document why (`globalThis` avoids module re-instantiation in hot-reload environments), or (b) remove the `globalThis` pattern entirely and rely on Node's module cache for both environments — simpler and correct for a single-process server. Add a comment explaining the chosen approach.
 
+---
+
+## Task 5b — Frontend Components Code Quality Sweep (2026-04-27)
+
+### [C-017][High][Code Quality] `AppShell.tsx` — `useEffect` for auto-logout has missing `handleLogout` dependency; stale closure captures initial `navigate`
+- **File:** `frontend/src/components/AppShell.tsx:81`
+- **Issue:** `useEffect(() => { if (isIdle) handleLogout(); }, [isIdle])` omits `handleLogout` from the dependency array. `handleLogout` calls `logout()` and `navigate('/login')`, capturing the `navigate` reference from the component's initial render. Because `handleLogout` is a plain function defined inside the component it is recreated on every render, but the effect's stale closure will always reference the first instance. If `navigate` ever becomes stale (e.g., after a React Router context update) the redirect silently fails and the session is not terminated. React's exhaustive-deps lint rule will flag this but the eslint-disable comment on line 61 suggests the project may be suppressing these warnings broadly.
+- **Fix:** Either wrap `handleLogout` in `useCallback` with `[navigate]` dependency and add it to the effect's dep array, or inline the logout logic directly: `useEffect(() => { if (isIdle) { logout(); navigate('/login'); } }, [isIdle, navigate])`.
+
+### [C-018][High][Code Quality] `AppShell.tsx` — `loadCompanies` captured in `useEffect` with empty dep array; `user` role check uses stale closure
+- **File:** `frontend/src/components/AppShell.tsx:61`
+- **Issue:** `useEffect(loadCompanies, [])` is intentionally suppressed with `// eslint-disable-line react-hooks/exhaustive-deps`. `loadCompanies` closes over `user` (from `getUser()` at line 16). If the JWT is refreshed mid-session and `getUser()` returns a new object with a different role, `loadCompanies` will not re-run and `companies`/`activeCompany` state will reflect stale data. Additionally, `loadCompanies` calls `setActiveCompany` and `setActiveCompanyId` after the async `CompanyAPI.getAll()` resolves with no mounted-guard — if the component unmounts during the fetch (e.g., immediate logout), this causes a React state-update-on-unmounted-component warning.
+- **Fix:** Add a mounted guard to `loadCompanies` (`let mounted = true; ... if (mounted) setCompanies(...)`) and add a cleanup. Reconsider whether `user` should be in the dep array or extracted into a ref.
+
+### [C-019][High][Code Quality] `useIdleTimer.ts` — activity handler captures `isWarning` from closure; stale value causes reset to fire during warning window after first render
+- **File:** `frontend/src/hooks/useIdleTimer.ts:55`
+- **Issue:** `const activityHandler = () => { if (!isWarning) { resetTimer(); } }` is defined inside the `useEffect` at line 54 whose dependency array is `[resetTimer, isWarning]`. This means the event listeners are removed and re-added every time `isWarning` changes — which happens on every countdown tick that toggles the warning state. Re-adding listeners on each `isWarning` flip introduces a brief window (~0ms) where no listener is attached. More critically, because `activityEvents.forEach(addEventListener)` is called again inside the same effect that also calls `resetTimer()` as the "initial start", toggling `isWarning` from `false` to `true` re-runs `resetTimer()` immediately, resetting the very countdown that just started.
+- **Fix:** Use a `ref` for `isWarning` inside the hook (`const isWarningRef = useRef(false)`) so the activity handler always reads the current value without needing to be recreated. The effect dependency array can then be `[resetTimer]` only, and the listener registration happens once per `resetTimer` identity change.
+
+### [C-020][Medium][Code Quality] `EmployeeAuditTab.tsx` — fetch errors swallowed silently; user sees empty state instead of an error message
+- **File:** `frontend/src/components/EmployeeAuditTab.tsx:16`
+- **Issue:** `.catch(err => console.error('Failed to load audit logs:', err))` logs to the console but sets no error state. When the API call fails, `loading` becomes `false` via `finally` and `logs` remains `[]`, so the component renders the "No audit history found" empty state. A user will assume there is no audit history when in fact a network or auth error occurred. There is no way to distinguish an API failure from a genuinely empty log.
+- **Fix:** Add `const [error, setError] = useState<string | null>(null)` and in the catch block set it: `setError('Failed to load audit history. Please try again.')`. Render the error message in place of the empty state when `error` is non-null. Optionally use `useToast` for consistency with other components.
+
+### [C-021][Medium][Code Quality] `SalaryStructurePanel.tsx` — `load()` silently swallows fetch errors; user sees empty list with no indication of failure
+- **File:** `frontend/src/components/employees/SalaryStructurePanel.tsx:45`
+- **Issue:** The `catch` block in `load()` is `// silent` — there is no `setError` call and no toast. When `EmployeeSalaryStructureAPI.getAll` or `TransactionCodeAPI.getAll` fails (e.g., 401, 500, network timeout), `loading` becomes `false`, `records` remains `[]`, and the component renders "No salary components defined." — indistinguishable from a genuinely empty structure. This is especially problematic because salary structure data is payroll-critical; a user may act on what appears to be an empty structure.
+- **Fix:** Replace the silent catch with `setError('Failed to load salary structure. Please refresh.')` and render the error string in a visible banner when present. Mirror the error display pattern already used for `handleSave` errors.
+
+### [C-022][Medium][Code Quality] `SalaryStructurePanel.tsx` — `window.confirm()` used for destructive actions; blocks UI thread and is inconsistent with the rest of the app which uses `ConfirmModal`
+- **File:** `frontend/src/components/employees/SalaryStructurePanel.tsx:87,97`
+- **Issue:** Both `handleEndDate` and `handleDelete` call `window.confirm(...)` for confirmation. The rest of the application uses the shared `ConfirmModal` component (backed by shadcn Dialog). `window.confirm` cannot be styled, blocks the JS thread, is suppressed in some embedded browser contexts, and cannot be tested with React Testing Library. This is inconsistent with the established UX pattern.
+- **Fix:** Replace both `window.confirm` calls with the shared `ConfirmModal` (control via a `pendingAction` state variable). This matches the pattern used elsewhere in the codebase.
+
+### [C-023][Medium][Code Quality] `IntelligenceWidget.tsx` — fetch errors silently logged only; fraud/alert data loss is not surfaced to the user
+- **File:** `frontend/src/components/IntelligenceWidget.tsx:29`
+- **Issue:** The `catch` block only calls `console.error('Failed to load intelligence data')` with no user-visible feedback. If the API fails, `loading` becomes `false` and both `alerts` and `fraudFlags` remain `[]`, causing the widget to return `null` (line 40) — it disappears silently from the dashboard. Fraud detection is a security-sensitive feature; a silent failure that hides the widget is indistinguishable from "no fraud detected."
+- **Fix:** Track an `error` state and render a small inline error banner (e.g., "Compliance alerts unavailable") instead of returning `null` on error. This ensures the widget's absence is distinguishable from a clean bill of health.
+
+### [C-024][Medium][Code Quality] `FilingDeadlinesCard.tsx` — index used as `key` on deadline list items; reorder causes React reconciliation bugs
+- **File:** `frontend/src/components/dashboard/FilingDeadlinesCard.tsx:125`
+- **Issue:** `deadlines.map((d, i) => { ... return <div key={i} ...>` uses the array index as the React key. `getUpcomingDeadlines` recalculates on each render and its output order depends on date comparison — if the caller's `holidays` prop changes (e.g., after a lazy-loaded holidays fetch completes), the sorted array reorders but React uses stable-by-index keys and may incorrectly reuse DOM nodes, producing visual glitches or stale content in list items.
+- **Fix:** Use a stable composite key such as `` key={`${d.tag}-${d.dueDate.toISOString()}`} ``. All deadline objects have a unique `(tag, dueDate)` combination after filtering and sorting.
+
+### [C-025][Medium][Code Quality] `EmployeeModal.tsx` — no error handling on `onSave`; submit failures are invisible to the user
+- **File:** `frontend/src/components/EmployeeModal.tsx:25`
+- **Issue:** `handleSubmit` calls `onSave(formData)` without catching any errors or accepting a return value. If the parent's `onSave` implementation throws or rejects (e.g., API returns 422 validation error), the modal does not display any feedback. There is also no `submitting` loading state, so the Save button can be clicked multiple times before the first request completes.
+- **Fix:** Convert `handleSubmit` to `async`, add a `submitting` state, and accept a `Promise` from `onSave`. Wrap in try/catch and display the error message via a local `error` state or `useToast`. Disable the Save button while `submitting` is true.
+
+### [C-026][Medium][Code Quality] `SettingsContext.tsx` — `updatePreferences` optimistically updates state before server confirm; server failure leaves UI out of sync with persisted data
+- **File:** `frontend/src/context/SettingsContext.tsx:74`
+- **Issue:** `updatePreferences` calls `setPreferences(merged)` and `applyTheme(newPrefs.theme)` synchronously before the `await UserAPI.update(...)` call. If the server update fails, the UI shows the new preference (e.g., dark theme applied) but the server still has the old value. On next page load, `fetchPrefs` restores the server's version, causing a visible theme flash. There is no rollback and no user-visible error.
+- **Fix:** Either (a) do pessimistic update: `await UserAPI.update(...)` first, then `setPreferences`; or (b) keep optimistic update but add a rollback on failure: save `previous = preferences` before the update, and in the catch block call `setPreferences(previous)` and `applyTheme(previous.theme)`. Show a toast on failure using `useToast` (which is available in the project).
+
+### [C-027][Low][Code Quality] `AppShell.tsx` — `NavLink` component defined inside the render function; recreated on every parent render, defeats React reconciliation
+- **File:** `frontend/src/components/AppShell.tsx:128`
+- **Issue:** `const NavLink = ({ link }) => { ... }` is declared inside the `AppShell` component body. React treats this as a new component type on each parent render, causing every `NavLink` instance to unmount and remount rather than update. This also prevents React DevTools from showing a stable component name in the tree. `SidebarContent` at line 147 has the same issue.
+- **Fix:** Move `NavLink` and `SidebarContent` outside the `AppShell` function and pass required values (e.g., `collapsed`, `location`) as explicit props. This allows React to reconcile them as stable component types.
+
+### [C-028][Low][Code Quality] `EmployeeTableSkeleton.tsx` — duplicates `SkeletonTable` functionality; `SkeletonTable` already exists as a generic replacement
+- **File:** `frontend/src/components/employees/EmployeeTableSkeleton.tsx`
+- **Issue:** `EmployeeTableSkeleton` is a 42-line hand-coded skeleton that exactly replicates the employee table structure. The generic `SkeletonTable` component (`frontend/src/components/common/SkeletonTable.tsx`) was introduced to eliminate these duplicates and already handles an employee-style first column. Having both means bug fixes or style changes must be applied in two places.
+- **Fix:** Replace `EmployeeTableSkeleton` with `<SkeletonTable headers={['Employee', 'ID', 'Position', 'Department', 'Branch', 'Status', 'Actions']} rows={5} />` at all call sites and delete the file.
+
+### [C-029][Low][Code Quality] `MiniCalendar.tsx` — calendar day cells use day number as `key`; duplicate keys occur when padding nulls share the same `key` namespace
+- **File:** `frontend/src/components/dashboard/MiniCalendar.tsx:75`
+- **Issue:** `cells.map((day, i) => { if (!day) return <div key={`e-${i}`} />; ... return <div key={day} ...>`. The real-day divs use `key={day}` (a number 1–31). This is unique within the month view, but if `selectedDay` is on the same month as `viewDate`, the rendered `key={day}` cells and any parent-rendered siblings could collide. More importantly, when the month changes, `day` numbers repeat — React's reconciler may incorrectly reuse nodes from the previous month. Using the index `i` (already available) would be more stable here.
+- **Fix:** Use `key={`cell-${i}`}` for all cells (both nulls and real days). The index is stable within a single render of a given month's grid.
+
+### [C-030][Low][Code Quality] `IdleTimerModal.tsx` — progress bar width calculation hardcodes divisor `10`; assumes a fixed 10-second countdown regardless of `timeout`/`warningThreshold` config
+- **File:** `frontend/src/components/common/IdleTimerModal.tsx:37`
+- **Issue:** `style={{ width: \`${(remainingTime / 10) * 100}%\` }}` assumes the countdown always starts at 10 seconds. `useIdleTimer` is called from `AppShell` with `timeout: 60000` and `warningThreshold: 50000`, giving a 10-second window — so this happens to be correct today. But the divisor is a magic number not derived from props, making the component fragile if the timeout config changes. If `warningThreshold` is ever set to 45000 (15-second window), the bar will exceed 100% for the first 5 seconds.
+- **Fix:** Pass the total countdown duration as a prop (`totalSeconds: number`) and use `(remainingTime / totalSeconds) * 100`. Alternatively, accept `maxRemainingTime` as a prop initialised to the first `remainingTime` value received.
+
+### [C-031][Low][Code Quality] `useDashboardData.ts` — `getActiveCompanyId()` called imperatively inside query hooks; company ID not reactive to `activeCompanyChanged` events
+- **File:** `frontend/src/hooks/useDashboardData.ts:22`
+- **Issue:** `const companyId = getActiveCompanyId()` is called at hook body level (outside any effect) using a synchronous read from `sessionStorage` via `companyContext`. When the user switches companies in `AppShell` (which dispatches a `window.dispatchEvent(new Event('activeCompanyChanged'))` and calls `navigate(homeLink)`), React Query's `queryKey` depends on `companyId` captured at the time the hook rendered. If the dashboard component does not unmount and remount on company switch, the `companyId` in the query key stays stale and no re-fetch is triggered. The page reload (via `navigate`) currently masks this bug, but it will surface if navigation ever becomes soft.
+- **Fix:** Subscribe to the `activeCompanyChanged` event inside the hook (or a wrapper context) and force a re-render to pick up the new `companyId`. Alternatively, store `activeCompanyId` in React state or a context value so it participates in normal React rendering.
+
