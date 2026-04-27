@@ -7,8 +7,8 @@
  * The STATUTORY_RATES constants below serve as fallback defaults only.
  */
 
-/** Round to 2 decimal places to prevent floating-point drift across employees */
-const r2 = (n) => Math.round(n * 100) / 100;
+/** Round to 2 decimal places — Number.EPSILON prevents 1.005→1.00 float drift */
+const r2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
 const STATUTORY_RATES = {
   AIDS_LEVY: 0.03,
@@ -305,10 +305,12 @@ function calculateSplitSalaryPaye({
     payeExcludedEarnings: consolidate(usdParams.payeExcludedEarnings, zigParams.payeExcludedEarnings),
     loanBenefit:         consolidate(usdParams.loanBenefit, zigParams.loanBenefit),
     fdsAveragePAYEBasis: usdParams.fdsAveragePAYEBasis ? consolidate(usdParams.fdsAveragePAYEBasis, zigParams.fdsAveragePAYEBasis) : null,
-    // Statutory thresholds remain in USD for the consolidated calculation
+    // Statutory thresholds remain in USD for the consolidated calculation.
+    // NSSA ceiling: each currency stream has its own ceiling, so the consolidated
+    // ceiling is the sum of both in USD (usdCeiling + zigCeiling/xr).
     bonusExemption:      usdParams.bonusExemption || 0,
     severanceExemption:  usdParams.severanceExemption || 0,
-    nssaCeiling:         usdParams.nssaCeiling || 700,
+    nssaCeiling:         (usdParams.nssaCeiling || 0) + ((zigParams.nssaCeiling || 0) / xr),
     pensionCap:          usdParams.pensionCap,
   };
 

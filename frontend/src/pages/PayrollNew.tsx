@@ -30,7 +30,7 @@ const PayrollNew: React.FC = () => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
   };
 
-  const needsExchangeRate = form.currencyMode === 'ZiG' || form.currencyMode === 'DUAL';
+  const needsExchangeRate = form.currencyMode === 'DUAL';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +54,11 @@ const PayrollNew: React.FC = () => {
         payload.exchangeRate = form.exchangeRate;
       } else {
         payload.currency = form.currencyMode;
-        payload.exchangeRate = form.currencyMode === 'ZiG' ? form.exchangeRate : '1';
+        // For ZiG-only runs auto-use the latest rate (needed for any cross-currency employees).
+        // Exchange rate is not shown or required in the UI for single-currency runs.
+        payload.exchangeRate = form.currencyMode === 'ZiG'
+          ? String(latestRate?.rate ?? 1)
+          : '1';
       }
       await PayrollAPI.create(payload);
       navigate('/payroll');
@@ -147,7 +151,7 @@ const PayrollNew: React.FC = () => {
           </div>
         </div>
 
-        {/* Exchange rate — shown for ZiG-only or Dual */}
+        {/* Exchange rate — shown for Dual currency only */}
         {needsExchangeRate && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
