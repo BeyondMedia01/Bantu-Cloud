@@ -488,3 +488,73 @@
 - **File:** `frontend/.env.example` (newly added per repo status), `frontend/src/api/client.ts:10`
 - **Issue:** Vite injects every `VITE_*` env var into the client bundle at build time. Any secret accidentally added to `.env.example` (or to the production `.env`) under the `VITE_` prefix is shipped to users. The example file is currently uncommitted (per `git status`) and was added in this branch; if it includes a Stripe key, an SMS API key, or any other token under a `VITE_` name, it will be exfiltrated by every production user. The risk is low because the current `.env.example` likely contains only `VITE_API_URL`, but the convention should be enforced now while the file is a fresh addition.
 - **Fix:** Document in `frontend/.env.example` that any `VITE_*` variable is publicly visible. Add a CI check (`grep -E '^VITE_(STRIPE|TWILIO|SMS|API_KEY|SECRET)'  frontend/.env*`) that fails the build if a likely-secret pattern appears. Confirm only `VITE_API_URL` (and similar non-sensitive endpoint URLs) are ever defined under that prefix.
+
+---
+
+## Task 4a Findings — Frontend Payroll/Payslip Pages
+
+### [B-041][High][Business Logic] Exchange rate validated as `> 1` but ZiG/USD rate could legitimately be below 2 or have changed — threshold is business-logic assumption baked into UI
+- **File:** `frontend/src/pages/Payroll.tsx:104`, `frontend/src/pages/PayrollNew.tsx:39`
+- **Issue:** Both the inline rate editor (`handleSaveRate`) and the new-run form (`handleSubmit`) reject any exchange rate `<= 1` with "Exchange rate must be greater than 1". This prevents the entry of any ZiG/USD rate that is ≤ 1 — which is not impossible given Zimbabwe's currency history. More critically, there is no staleness warning: if the stored rate is weeks old and the RBZ has moved significantly, users can process payroll at a badly outdated rate with no alert. The `latestRate` banner in PayrollNew is informational only and disappears once the user types their own value.
+- **Fix:** Lower the rejection threshold to `> 0` (any positive rate is arithmetically valid). Add a staleness check: if the rate stored on a run differs from `latestRate.rate` by more than e.g. 5%, surface a dismissible warning before allowing the run to proceed. Persist the rate-fetch timestamp and warn if it is older than 24 hours.
+
+### [B-042][High][Business Logic] `totalDeductions` in `Payslips.tsx` computed as `gross − netPay` on the frontend, diverging from the backend's summed statutory fields
+- **File:** `frontend/src/pages/Payslips.tsx:303`
+- **Issue:** Line 303 calculates `const totalDeductions = p.gross - p.netPay`. This is a derived approximation that ignores the backend's individual deduction fields (`paye`, `nssaEmployee`, `aidsLevy`, `loanDeductions`, etc.). If the backend stores rounding differences or uses different currency sources for `gross` vs `netPay` (especially in dual-currency runs), the displayed "Total Deductions" column will not match the sum-of-parts and will differ from what appears on the printed payslip PDF. Employees or auditors comparing the screen to the PDF will see conflicting figures.
+- **Fix:** Replace the derived `gross - netPay` with an explicit sum: `(p.paye ?? 0) + (p.nssaEmployee ?? 0) + (p.aidsLevy ?? 0) + (p.loanDeductions ?? 0)` — the same approach used correctly in `PayrollSummary.tsx:374`.
+
+### [B-043][High][Business Logic] No date-range validation: `endDate` can be before `startDate` in `PayrollNew.tsx`
+- **File:** `frontend/src/pages/PayrollNew.tsx:96–117`
+- **Issue:** The period start and end date inputs are both `type="date"` with `required` but no cross-field validation. A user can set `startDate = 2025-03-31` and `endDate = 2025-03-01` and submit successfully. The API may silently accept it and create a zero-employee-day run or one with inverted tax periods, producing incorrect PAYE calculations for that period. There is also no guard against future dates or absurdly distant dates (e.g. year 2099).
+- **Fix:** In `handleSubmit`, add: `if (form.endDate <= form.startDate) return setError('Period end must be after period start')`. Optionally set `min={form.startDate}` on the end-date input. Add a sanity cap: warn if the period spans more than 31 days.
+
+### [B-044][High][Business Logic] Payroll "Process" action available on `DRAFT` runs bypassing the submit→approve workflow
+- **File:** `frontend/src/pages/Payroll.tsx:263–271`
+- **Issue:** The action buttons render "Process" for `run.status === 'DRAFT' || run.status === 'APPROVED' || run.status === 'ERROR'`. This means a `DRAFT` run can be processed directly without ever being submitted for approval or approved — completely bypassing the two-step submit→approve gate. On a system with separation-of-duties requirements (required for ZIMRA compliance), this allows a payroll preparer to both prepare and execute a payroll run unilaterally.
+- **Fix:** Remove `'DRAFT'` from the condition that shows the "Process" button. Process should only be available for `APPROVED` (and `ERROR` for reruns). The submit→approve flow enforces segregation. If single-user environments need a shortcut, make it a company-level setting, not unconditional.
+
+### [B-045][Medium][Business Logic] Dual-currency PAYE and NSSA summary cards always show USD totals even for ZiG components — ZiG PAYE not surfaced
+- **File:** `frontend/src/pages/PayrollSummary.tsx:320–321`
+- **Issue:** The "Total PAYE" and "Total NSSA" summary cards render `isDual ? '$' : ccy + ' '` — meaning for a dual-currency run, PAYE is always shown as a USD dollar amount. But in a dual run the backend calculates PAYE independently in both USD and ZiG. The ZiG PAYE component is silently dropped from the dashboard card. A finance user reviewing the summary would see an understated PAYE liability (USD-only), which could cause incorrect ZIMRA P2 remittance preparation.
+- **Fix:** For dual-currency runs, split the PAYE and NSSA cards into two rows (USD and ZiG), summing `payslips.reduce((s, p) => s + (p.payeUSD ?? p.paye ?? 0), 0)` and `payslips.reduce((s, p) => s + (p.payeZIG ?? 0), 0)` separately, with appropriate currency labels.
+
+### [B-046][Medium][Business Logic] `PayrollInputs.tsx` amount column always prefixes `$` regardless of selected currency
+- **File:** `frontend/src/pages/PayrollInputs.tsx:432`
+- **Issue:** The read-only table cell at line 432 renders `${Number(inp.amount).toLocaleString(...)}` (hardcoded `$` USD symbol) for every row, regardless of `inp.currency`. A ZiG-denominated input would show `$500.00` instead of `Z 500.00`, misleading users who manage mixed-currency inputs about which currency each entry is in.
+- **Fix:** Replace the hardcoded `$` with `inp.currency === 'ZiG' ? 'Z ' : '$ '` (matching the prefix pattern used in the edit form at lines 231–234).
+
+### [B-047][Medium][Business Logic] `PayrollInputGrid.tsx` client-side PAYE estimate uses a hardcoded ZiG NSSA ceiling of `20000` ignoring the NSSASettings API value
+- **File:** `frontend/src/pages/PayrollInputGrid.tsx:158`
+- **Issue:** When building `resolvedTaxConfig` for the client-side PAYE estimator, the ZiG NSSA ceiling is set to the literal `20000` rather than reading `nssa.ceilingZIG` from the API response: `nssaCeiling: currency === 'ZiG' ? 20000 : (nssa?.ceilingUSD ?? 700)`. If the RBZ/NSSA changes the ZiG ceiling (which is expected as ZiG stabilises), the frontend grid will keep estimating NSSA against the old hardcoded figure even after the admin updates the NSSA Settings, producing misleading preview figures that diverge from actual payroll calculations.
+- **Fix:** Replace `20000` with `nssa?.ceilingZIG ?? 20000` so the setting is driven from the database value fetched at line 124.
+
+### [B-048][Medium][Business Logic] `PayrollInputGrid.tsx` "unusual value" warning threshold of `50000` is currency-agnostic — fires too early for ZiG, too late for USD
+- **File:** `frontend/src/pages/PayrollInputGrid.tsx:236`
+- **Issue:** `if (!isNaN(num) && num > 50000)` triggers the amber "Unusually high amount" warning at the same absolute threshold regardless of whether the cell is in USD or ZiG. USD 50,000 is a plausible senior executive monthly salary; ZiG 50,000 at a mid-2025 rate of ~27 ZiG/USD is only ~USD 1,850 — well within normal range for many employees. The warning will fire constantly on ordinary ZiG salaries, causing alert fatigue and causing users to ignore it.
+- **Fix:** Apply a currency-aware threshold: e.g. `(currency === 'ZiG' ? 2_000_000 : 50_000)`. The exact value should be configurable or derived from the NSSA ceiling as a multiple.
+
+### [B-049][Medium][Business Logic] `Payslips.tsx` "Send All Payslips" two-step confirm only shows employee count — does not warn if run is not yet in COMPLETED status
+- **File:** `frontend/src/pages/Payslips.tsx:186–193`
+- **Issue:** The "Send All Payslips" confirm prompt reads "Send to N employees?" and has Confirm/Cancel. However, the page is accessible for any run status (DRAFT, PROCESSING, ERROR, etc.) because the route `/payroll/:runId/payslips` is not gated on `run.status === 'COMPLETED'`. A user could trigger `sendAllPayslips` on a DRAFT run that has no payslips or has stale/zero figures. Employees would receive payslips showing $0.00 or preliminary numbers.
+- **Fix:** Disable or hide the "Send All Payslips" button unless `run?.status === 'COMPLETED'`. Add to the confirm message: "This will permanently send final payslips — ensure the run is complete before proceeding."
+
+### [B-050][Medium][Business Logic] `PayrollSummary.tsx` "Rerun Payroll" fires immediately without confirmation on a completed, potentially already-disbursed payroll
+- **File:** `frontend/src/pages/PayrollSummary.tsx:207–232`
+- **Issue:** The "Rerun Payroll" button calls `PayrollAPI.process(runId!)` in an inline `onClick` handler with no confirmation dialog. Rerunning recalculates all payslips, potentially changing PAYE, net pay, and statutory amounts on a run that may have already been disbursed to employees' bank accounts. There is a guard for `!run.payrollCalendar?.isClosed` but no explicit warning to the user that payroll has already been paid and rerunning will produce conflicting records.
+- **Fix:** Wrap the rerun trigger in a `ConfirmModal` (the component is imported elsewhere in the project) with a clear warning: "This run may have already been disbursed. Rerunning will recalculate all payslips — do not rerun after bank files have been submitted." Require the user to explicitly confirm.
+
+### [B-051][Low][Business Logic] `PayrollCore.tsx` Edit and Delete action buttons are rendered but have no `onClick` handlers — silent dead UI
+- **File:** `frontend/src/pages/PayrollCore.tsx:136–141`
+- **Issue:** The Edit (`<Edit />`) and Delete (`<Trash />`) buttons in the PayrollCore table have no `onClick` props. Clicking them does nothing, but they appear fully interactive (hover styles active). For a foundational payroll record page managing multi-currency salary splits, silently non-functional edit/delete buttons could cause users to believe changes were saved when they were not, or to assume records cannot be modified and work around them incorrectly.
+- **Fix:** Either implement the handlers or replace the buttons with a disabled state and tooltip explaining the feature is coming. Do not ship visually-active controls that perform no action.
+
+### [B-052][Low][Business Logic] `PayslipTransactions.tsx` allows deleting transaction ledger entries without any guard on whether the parent payslip is finalised
+- **File:** `frontend/src/pages/PayslipTransactions.tsx:28–39`
+- **Issue:** `confirmDelete` calls `PayslipTransactionAPI.delete(deleteTarget)` after a single `ConfirmModal` dialog. There is no check on whether the transaction belongs to a finalized payslip summary (`isFinalized === true`). Deleting a ledger entry from a finalised payslip breaks the audit trail and the point-in-time exchange-rate integrity that the page banner explicitly describes as a compliance requirement.
+- **Fix:** Before calling delete, fetch or check the parent payslip's `isFinalized` flag. If true, replace the delete button with a locked icon and display "Cannot delete — payslip is finalised." Mirror the same guard on the backend (`PayslipTransactionAPI.delete` route).
+
+### [B-053][Low][Business Logic] `PayslipSummaries.tsx` fetch errors are silently swallowed — users see an empty table with no error message
+- **File:** `frontend/src/pages/PayslipSummaries.tsx:13–19`
+- **Issue:** The `fetchSummaries` catch block calls `console.error('Failed to fetch payslip summaries')` and does nothing visible to the user. If the API call fails (network error, 401, 500), the table simply shows the "No payroll summaries found" empty state, which is indistinguishable from a genuine empty dataset. Finance users may conclude no records exist and take incorrect action (e.g., re-processing payroll that already ran).
+- **Fix:** Add a `fetchError` state (matching the pattern in `PayrollCore.tsx` and `PayslipExports.tsx`) and render an error banner when the fetch fails. Replace `console.error` with the `useToast` pattern used on other pages.
+
