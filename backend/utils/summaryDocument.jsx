@@ -168,13 +168,14 @@ const SummaryDocument = ({ data }) => {
                 const emp        = p.employee || {};
                 const lines      = p.displayLines || [];
                 const pIsDual    = p.isDual ?? isDual;
-                const earnings   = lines.filter(l => (l.allowance ?? 0) > 0 && !l.taxCredit);
+                const earnings   = lines.filter(l => (l.allowance ?? 0) > 0);          // all rows shown
+                const earningsSumRows = earnings.filter(l => !l.taxCredit);              // excludes tax credits from totals
                 const deductions = lines.filter(l => (l.deduction  ?? 0) > 0);
                 const employers  = lines.filter(l => (l.employer   ?? 0) > 0);
                 const maxRows    = Math.max(earnings.length, deductions.length, employers.length, 1);
 
-                const totalAllowUSD = earnings.reduce((a, e) => a + (e.allowance ?? 0), 0);
-                const totalAllowZIG = pIsDual ? earnings.reduce((a, e) => a + (e.allowanceZIG ?? 0), 0) : 0;
+                const totalAllowUSD = earningsSumRows.reduce((a, e) => a + (e.allowance ?? 0), 0);
+                const totalAllowZIG = pIsDual ? earningsSumRows.reduce((a, e) => a + (e.allowanceZIG ?? 0), 0) : 0;
                 const totalDedUSD   = deductions.reduce((a, d) => a + (d.deduction ?? 0), 0);
                 const totalDedZIG   = pIsDual ? deductions.reduce((a, d) => a + (d.deductionZIG ?? 0), 0) : 0;
                 const totalEmpr     = employers.reduce((a, r) => a + (r.employer ?? 0), 0);
