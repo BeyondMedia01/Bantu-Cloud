@@ -69,9 +69,10 @@ router.post(
     }
 
     const isDual = dualCurrency === true || dualCurrency === 'true';
-    const isZiG = !isDual && (currency === 'ZiG');
-    if ((isDual || isZiG) && (!exchangeRate || parseFloat(exchangeRate) <= 1)) {
-      return res.status(400).json({ message: 'A valid USD→ZiG exchange rate (>1) is required for ZiG payroll runs' });
+    // Exchange rate is only required for dual-currency runs (USD + ZiG consolidated).
+    // Pure ZiG runs use ZiG tax brackets directly — no exchange rate needed.
+    if (isDual && (!exchangeRate || parseFloat(exchangeRate) <= 1)) {
+      return res.status(400).json({ message: 'A valid USD→ZiG exchange rate (>1) is required for dual-currency payroll runs' });
     }
 
     try {

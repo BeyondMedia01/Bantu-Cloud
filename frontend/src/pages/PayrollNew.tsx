@@ -54,11 +54,9 @@ const PayrollNew: React.FC = () => {
         payload.exchangeRate = form.exchangeRate;
       } else {
         payload.currency = form.currencyMode;
-        // For ZiG-only runs auto-use the latest rate (needed for any cross-currency employees).
-        // Exchange rate is not shown or required in the UI for single-currency runs.
-        payload.exchangeRate = form.currencyMode === 'ZiG'
-          ? String(latestRate?.rate ?? 1)
-          : '1';
+        // ZiG runs use ZiG tax brackets directly — no exchange rate involved.
+        // USD runs default to 1.
+        payload.exchangeRate = '1';
       }
       await PayrollAPI.create(payload);
       navigate('/payroll');
