@@ -268,19 +268,6 @@ async function autoSeedSystemSettings() {
     }
   }
 
-  // ── One-time migrations: correct stale default values ──────────────────────
-  // NSSA_CEILING_ZIG was previously seeded as 20000 but the correct value is 18000.
-  // Only migrate if the current active value is still the old incorrect default.
-  const zigCeilingSetting = await prisma.systemSetting.findFirst({
-    where: { settingName: 'NSSA_CEILING_ZIG', isActive: true },
-  });
-  if (zigCeilingSetting && zigCeilingSetting.settingValue === '20000') {
-    console.log('[Seed] Migrating NSSA_CEILING_ZIG from 20000 → 18000');
-    await prisma.systemSetting.update({
-      where: { id: zigCeilingSetting.id },
-      data: { settingValue: '18000', lastUpdatedBy: 'System Auto-Seed Migration' },
-    });
-  }
 }
 
 module.exports = { autoSeedSystemSettings };
