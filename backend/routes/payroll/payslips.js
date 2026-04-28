@@ -269,6 +269,8 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
           loanDeductions: num(ps.loanDeductions),
           netPay: num(ps.netPay),
           gross: num(ps.gross),
+          medicalAidCredit: num(ps.medicalAidCredit),
+          pensionApplied: num(ps.pensionApplied),
         };
 
         // Get transactions for this employee, normalise amounts, and attach units from PayrollInput
