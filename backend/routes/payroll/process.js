@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
-const { calculatePaye, calculateSplitSalaryPaye, grossUpNet } = require('../../utils/taxEngine');
+const { calculatePaye, calculateZigPaye, calculateSplitSalaryPaye, grossUpNet } = require('../../utils/taxEngine');
 const { generatePayrollSummaryPDF, generatePayslipSummaryPDF, generatePayslipSummaryBuffer } = require('../../utils/pdfService');
 const { getSettings } = require('../../lib/systemSettings');
 const { audit } = require('../../lib/audit');
@@ -998,6 +998,42 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
         taxResultUSD = splitResult.usd;
         taxResultZIG = splitResult.zig;
         taxResult    = splitResult.totalResult;
+      } else if (run.currency === 'ZiG') {
+        // ZiG single-currency: ZIMRA brackets are USD-denominated, so convert
+        // ZiG inputs → USD, run calculatePaye, convert results back to ZiG.
+        const sharedRates = {
+          nssaEmployeeRate: effectiveNssaEmpRate,
+          nssaEmployerRate: effectiveNssaEmprRate,
+          wcifRate, sdfRate, zimdefRate,
+          aidsLevyRate, medicalAidCreditRate,
+          taxDirectivePerc: effectiveTaxDirectivePerc,
+          taxDirectiveAmt: effectiveTaxDirectiveAmt,
+        };
+        taxResult = calculateZigPaye(
+          {
+            baseSalary:          effectiveBaseSalary,
+            taxableBenefits:     adj.taxableBenefits || 0,
+            motorVehicleBenefit: resolveVehicleBenefit(emp, 'ZiG'),
+            overtimeAmount:      (adj.overtimeAmount || 0) + inputEarnings,
+            bonus:               adj.bonus || 0,
+            bonusExemption:      remBonusEx,
+            severanceAmount:     adj.severanceAmount || 0,
+            severanceExemption:  remSevEx,
+            pensionContribution: (adj.pensionContribution || 0) + inputPension,
+            pensionCap:          monthlyPensionCapZIG,
+            medicalAid:          (adj.medicalAid || 0) + inputMedicalAid,
+            taxCredits:          elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
+            nssaCeiling:         nssaCeiling,
+            nssaExcludedEarnings: inputNssaExcluded,
+            payeExcludedEarnings: inputPayeExcluded,
+            loanBenefit:         totalLoanBenefit,
+            fdsAveragePAYEBasis: fdsAvgPAYEBasis,
+          },
+          xr,
+          taxBracketsUSD,
+          emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
+          sharedRates,
+        );
       } else {
         taxResult = calculatePaye({
           baseSalary: effectiveBaseSalary, currency: run.currency,
@@ -1007,13 +1043,11 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
           bonus: adj.bonus || 0, bonusExemption: remBonusEx,
           severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevEx,
           pensionContribution: (adj.pensionContribution || 0) + inputPension,
-          pensionCap: run.currency === 'ZiG' ? monthlyPensionCapZIG : monthlyPensionCapUSD,
+          pensionCap: monthlyPensionCapUSD,
           medicalAid: (adj.medicalAid || 0) + inputMedicalAid,
-          // Elderly credit replaces (not adds to) emp.taxCredits — ZIMRA grants one credit type per employee.
           taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
           wcifRate, sdfRate,
           taxBrackets,
-          // FDS_FORECASTING: always annualise regardless of tax-table isAnnual flag
           annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBrackets,
           nssaCeiling,
           nssaEmployeeRate: effectiveNssaEmpRate,
