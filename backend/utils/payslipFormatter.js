@@ -79,7 +79,8 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, ytdStat
     employer: 0, ytd: ytdStat.paye, ytdZIG: isDual ? (ytdStatZIG?.paye ?? null) : null,
   });
   if ((payslip.medicalAidCredit || 0) > 0) {
-    lines.push({ name: 'Medical Aid Credit', allowance: payslip.medicalAidCredit, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: 0, ytd: ytdStat.medicalAidCredit, ytdZIG: null });
+    // taxCredit: true — display-only, must NOT be summed into earnings/gross totals
+    lines.push({ name: 'Medical Aid Credit', allowance: payslip.medicalAidCredit, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: 0, ytd: ytdStat.medicalAidCredit, ytdZIG: null, taxCredit: true });
   }
   lines.push({
     name: 'AIDS Levy',

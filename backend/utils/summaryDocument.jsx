@@ -168,7 +168,7 @@ const SummaryDocument = ({ data }) => {
                 const emp        = p.employee || {};
                 const lines      = p.displayLines || [];
                 const pIsDual    = p.isDual ?? isDual;
-                const earnings   = lines.filter(l => (l.allowance ?? 0) > 0);
+                const earnings   = lines.filter(l => (l.allowance ?? 0) > 0 && !l.taxCredit);
                 const deductions = lines.filter(l => (l.deduction  ?? 0) > 0);
                 const employers  = lines.filter(l => (l.employer   ?? 0) > 0);
                 const maxRows    = Math.max(earnings.length, deductions.length, employers.length, 1);
