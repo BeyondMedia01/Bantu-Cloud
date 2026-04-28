@@ -95,7 +95,8 @@ const s = StyleSheet.create({
 // ── Main Document ─────────────────────────────────────────────────────────────
 
 const SummaryDocument = ({ data }) => {
-  const { companyName, period, date, time, groups = [], isDual = false, exchangeRate } = data;
+  const { companyName, period, date, time, groups = [], isDual = false, exchangeRate, currency } = data;
+  const ccy = isDual ? 'USD' : (currency || 'USD');
 
   let grandEarningsUSD = 0, grandEarningsZIG = 0;
   let grandDeductionsUSD = 0, grandDeductionsZIG = 0;
@@ -135,14 +136,14 @@ const SummaryDocument = ({ data }) => {
           <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
             <Text style={[s.colHdrText, { flex: 1 }]}>EARNINGS</Text>
             <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-            <Text style={s.colAmt}>{isDual ? 'USD' : 'AMOUNT'}</Text>
+            <Text style={s.colAmt}>{isDual ? 'USD' : ccy}</Text>
             {isDual && <Text style={s.colAmtSm}>ZiG</Text>}
           </View>
           {/* Deductions section */}
           <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
             <Text style={[s.colHdrText, { flex: 1 }]}>DEDUCTIONS</Text>
             <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-            <Text style={s.colAmt}>{isDual ? 'USD' : 'AMOUNT'}</Text>
+            <Text style={s.colAmt}>{isDual ? 'USD' : ccy}</Text>
             {isDual && <Text style={s.colAmtSm}>ZiG</Text>}
           </View>
           {/* Employer section */}
@@ -250,7 +251,7 @@ const SummaryDocument = ({ data }) => {
                     {/* Net Pay line */}
                     <View style={s.netPay}>
                       <Text style={s.netLabel}>NET PAY</Text>
-                      <Text style={s.netValue}>USD {fmt(netUSD)}</Text>
+                      <Text style={s.netValue}>{ccy} {fmt(netUSD)}</Text>
                       {pIsDual && netZIG > 0 && (
                         <Text style={s.netValueZIG}>ZiG {fmt(netZIG)}</Text>
                       )}

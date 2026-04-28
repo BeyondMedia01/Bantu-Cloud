@@ -308,6 +308,7 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
       companyName: run.company?.name || 'Bantu - HR & Payroll',
       period: `${run.startDate.getFullYear()}/${(run.startDate.getMonth() + 1).toString().padStart(2, '0')}`,
       isDual: !!run.dualCurrency,
+      currency: run.currency || 'USD',
       exchangeRate: run.exchangeRate ?? null,
       groups: sortedGroups,
     });
