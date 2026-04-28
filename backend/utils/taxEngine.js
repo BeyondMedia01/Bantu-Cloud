@@ -266,76 +266,6 @@ function grossUpNet({ targetNet, currency = 'USD', maxIterations = 50, tolerance
 }
 
 /**
- * Calculates PAYE for a single-currency ZiG employee using ZIMRA USD tax brackets.
- *
- * ZIMRA's FDS brackets are USD-denominated. For a ZiG payroll:
- *   1. Convert all ZiG inputs to USD (÷ exchangeRate)
- *   2. Run calculatePaye in USD
- *   3. Convert all monetary results back to ZiG (× exchangeRate)
- *
- * This avoids the error of treating ZiG amounts as USD in the band lookup,
- * which would push even modest ZiG salaries into the top tax bracket.
- *
- * @param {Object} zigParams   - Same fields as calculatePaye, all in ZiG
- * @param {number} exchangeRate - USD → ZiG interbank rate
- * @param {Array}  taxBracketsUSD - Active USD tax table brackets
- * @param {boolean} annualBrackets - Whether brackets are annual (FDS)
- * @param {Object} sharedParams - Rates passed through (nssaEmployeeRate, aidsLevyRate, etc.)
- */
-function calculateZigPaye(zigParams, exchangeRate, taxBracketsUSD, annualBrackets, sharedParams) {
-  const xr = exchangeRate > 0 ? exchangeRate : 1;
-  const toUSD = (v) => (v != null && v !== 0) ? v / xr : (v ?? 0);
-
-  // Convert all ZiG monetary inputs to their USD equivalent
-  const usdResult = calculatePaye({
-    baseSalary:          toUSD(zigParams.baseSalary),
-    currency:            'USD',
-    taxableBenefits:     toUSD(zigParams.taxableBenefits     || 0),
-    motorVehicleBenefit: toUSD(zigParams.motorVehicleBenefit || 0),
-    overtimeAmount:      toUSD(zigParams.overtimeAmount      || 0),
-    bonus:               toUSD(zigParams.bonus               || 0),
-    bonusExemption:      toUSD(zigParams.bonusExemption      || 0),
-    severanceAmount:     toUSD(zigParams.severanceAmount      || 0),
-    severanceExemption:  toUSD(zigParams.severanceExemption  || 0),
-    pensionContribution: toUSD(zigParams.pensionContribution  || 0),
-    pensionCap:          zigParams.pensionCap != null ? toUSD(zigParams.pensionCap) : null,
-    medicalAid:          toUSD(zigParams.medicalAid           || 0),
-    taxCredits:          toUSD(zigParams.taxCredits           || 0),
-    nssaCeiling:         toUSD(zigParams.nssaCeiling          || 0),
-    nssaExcludedEarnings: toUSD(zigParams.nssaExcludedEarnings || 0),
-    payeExcludedEarnings: toUSD(zigParams.payeExcludedEarnings || 0),
-    loanBenefit:         toUSD(zigParams.loanBenefit          || 0),
-    fdsAveragePAYEBasis: zigParams.fdsAveragePAYEBasis != null ? toUSD(zigParams.fdsAveragePAYEBasis) : null,
-    taxBrackets:         taxBracketsUSD,
-    annualBrackets,
-    ...sharedParams,
-  });
-
-  // Scale every monetary result back to ZiG
-  const toZIG = (v) => r2(v * xr);
-  return {
-    grossSalary:       toZIG(usdResult.grossSalary),
-    taxableBenefits:   toZIG(usdResult.taxableBenefits),
-    exemptBonus:       toZIG(usdResult.exemptBonus),
-    exemptSeverance:   toZIG(usdResult.exemptSeverance),
-    pensionApplied:    toZIG(usdResult.pensionApplied),
-    nssaBasis:         toZIG(usdResult.nssaBasis),
-    nssaEmployee:      toZIG(usdResult.nssaEmployee),
-    nssaEmployer:      toZIG(usdResult.nssaEmployer),
-    wcifEmployer:      toZIG(usdResult.wcifEmployer),
-    zimdefEmployer:    toZIG(usdResult.zimdefEmployer),
-    sdfContribution:   toZIG(usdResult.sdfContribution),
-    taxableIncome:     toZIG(usdResult.taxableIncome),
-    payeBeforeLevy:    toZIG(usdResult.payeBeforeLevy),
-    medicalAidCredit:  toZIG(usdResult.medicalAidCredit),
-    aidsLevy:          toZIG(usdResult.aidsLevy),
-    taxCreditsApplied: toZIG(usdResult.taxCreditsApplied),
-    totalPaye:         toZIG(usdResult.totalPaye),
-    netSalary:         toZIG(usdResult.netSalary),
-  };
-}
-
-/**
  * Calculates PAYE for a split salary (USD + ZiG) using the ZIMRA apportionment method.
  * 1. Consolidate: Convert all ZiG income components to USD using the exchange rate.
  * 2. Calculate: Apply the USD tax table to the total USD-denominated gross.
@@ -442,4 +372,4 @@ function calculateSplitSalaryPaye({
   };
 }
 
-module.exports = { calculatePaye, calculateZigPaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES };
+module.exports = { calculatePaye, calculateSplitSalaryPaye, grossUpNet, STATUTORY_RATES };

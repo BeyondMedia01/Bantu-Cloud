@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../../lib/prisma');
 const { requirePermission } = require('../../lib/permissions');
-const { calculatePaye, calculateZigPaye, calculateSplitSalaryPaye, grossUpNet } = require('../../utils/taxEngine');
+const { calculatePaye, calculateSplitSalaryPaye, grossUpNet } = require('../../utils/taxEngine');
 const { generatePayrollSummaryPDF, generatePayslipSummaryPDF, generatePayslipSummaryBuffer } = require('../../utils/pdfService');
 const { getSettings } = require('../../lib/systemSettings');
 const { audit } = require('../../lib/audit');
@@ -208,26 +208,29 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       });
     };
 
-    // Fetch active tax table(s)
+    // Fetch active tax table(s) — USD for USD/dual runs, ZiG for ZiG runs
     const taxTableUSD = await fetchTaxTable(run.company.clientId, 'USD', run.startDate);
     const taxBracketsUSD = taxTableUSD?.brackets ?? [];
     const annualBracketsUSD = taxBracketsUSD.length > 0 && (taxTableUSD?.isAnnual ?? true);
 
-    // ZiG runs use the USD tax table — ZIMRA publishes one set of brackets denominated
-    // in USD; ZiG amounts are converted to USD for PAYE calculation via the exchange rate.
-    // Dual-currency runs already consolidate into USD, so no separate ZiG table is needed.
-    const taxBracketsZIG = taxBracketsUSD;
-    const annualBracketsZIG = annualBracketsUSD;
+    // ZiG runs use the ZiG tax table directly — no currency conversion is performed.
+    // ZiG brackets are configured in ZiG and applied straight to ZiG income.
+    const taxTableZIG = await fetchTaxTable(run.company.clientId, 'ZiG', run.startDate);
+    const taxBracketsZIG = taxTableZIG?.brackets ?? [];
+    const annualBracketsZIG = taxBracketsZIG.length > 0 && (taxTableZIG?.isAnnual ?? true);
 
-    const taxBrackets = taxBracketsUSD;
-    const annualBrackets = annualBracketsUSD;
+    const taxBrackets = run.currency === 'ZiG' ? taxBracketsZIG : taxBracketsUSD;
+    const annualBrackets = run.currency === 'ZiG' ? annualBracketsZIG : annualBracketsUSD;
 
     // Guard: block processing when required tax table is missing.
-    // Without brackets the engine returns zero PAYE — a silent under-deduction that
-    // produces an incorrect P2 and exposes the employer to ZIMRA penalties.
     if (taxBracketsUSD.length === 0) {
       return res.status(422).json({
         message: `No active USD tax table found. Configure and activate a USD tax table under Tax Configuration before processing payroll.`,
+      });
+    }
+    if (run.currency === 'ZiG' && taxBracketsZIG.length === 0) {
+      return res.status(422).json({
+        message: `No active ZiG tax table found. Configure and activate a ZiG tax table under Tax Configuration before processing this ZiG payroll run.`,
       });
     }
 
@@ -998,43 +1001,9 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
         taxResultUSD = splitResult.usd;
         taxResultZIG = splitResult.zig;
         taxResult    = splitResult.totalResult;
-      } else if (run.currency === 'ZiG') {
-        // ZiG single-currency: ZIMRA brackets are USD-denominated, so convert
-        // ZiG inputs → USD, run calculatePaye, convert results back to ZiG.
-        const sharedRates = {
-          nssaEmployeeRate: effectiveNssaEmpRate,
-          nssaEmployerRate: effectiveNssaEmprRate,
-          wcifRate, sdfRate, zimdefRate,
-          aidsLevyRate, medicalAidCreditRate,
-          taxDirectivePerc: effectiveTaxDirectivePerc,
-          taxDirectiveAmt: effectiveTaxDirectiveAmt,
-        };
-        taxResult = calculateZigPaye(
-          {
-            baseSalary:          effectiveBaseSalary,
-            taxableBenefits:     adj.taxableBenefits || 0,
-            motorVehicleBenefit: resolveVehicleBenefit(emp, 'ZiG'),
-            overtimeAmount:      (adj.overtimeAmount || 0) + inputEarnings,
-            bonus:               adj.bonus || 0,
-            bonusExemption:      remBonusEx,
-            severanceAmount:     adj.severanceAmount || 0,
-            severanceExemption:  remSevEx,
-            pensionContribution: (adj.pensionContribution || 0) + inputPension,
-            pensionCap:          monthlyPensionCapZIG,
-            medicalAid:          (adj.medicalAid || 0) + inputMedicalAid,
-            taxCredits:          elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
-            nssaCeiling:         nssaCeiling,
-            nssaExcludedEarnings: inputNssaExcluded,
-            payeExcludedEarnings: inputPayeExcluded,
-            loanBenefit:         totalLoanBenefit,
-            fdsAveragePAYEBasis: fdsAvgPAYEBasis,
-          },
-          xr,
-          taxBracketsUSD,
-          emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
-          sharedRates,
-        );
       } else {
+        // Single-currency (USD or ZiG): use the matching tax table directly.
+        // For ZiG runs, taxBrackets = ZiG brackets applied straight to ZiG figures — no conversion.
         taxResult = calculatePaye({
           baseSalary: effectiveBaseSalary, currency: run.currency,
           taxableBenefits: adj.taxableBenefits || 0,
@@ -1043,7 +1012,7 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
           bonus: adj.bonus || 0, bonusExemption: remBonusEx,
           severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevEx,
           pensionContribution: (adj.pensionContribution || 0) + inputPension,
-          pensionCap: monthlyPensionCapUSD,
+          pensionCap: run.currency === 'ZiG' ? monthlyPensionCapZIG : monthlyPensionCapUSD,
           medicalAid: (adj.medicalAid || 0) + inputMedicalAid,
           taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
           wcifRate, sdfRate,
