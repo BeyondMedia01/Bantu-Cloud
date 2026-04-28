@@ -167,7 +167,7 @@ const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, isDual }) =>
           <Text style={[s.rowUnits, { flex: 0.55, width: undefined }]} numberOfLines={1}>
             {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
           </Text>
-          <Text style={[s.rowAmt, { flex: isDual ? 1 : 1.4, width: undefined }]} numberOfLines={1}>{usd(usdAmt)}</Text>
+          <Text style={[s.rowAmt, { flex: isDual ? 1 : 1.4, width: undefined }]} numberOfLines={1}>{isDual && (usdAmt == null || usdAmt === 0) ? '—' : usd(usdAmt)}</Text>
           {isDual && (
             <Text style={[s.rowAmtZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
               {zigAmt != null && zigAmt !== 0 ? `ZiG ${fmt(zigAmt)}` : '—'}
@@ -194,8 +194,8 @@ const PayslipDocument = ({ data }) => {
 
   const isDual = grossUSD != null && grossZIG != null;
 
-  const earnings   = lineItems.filter(i => (i.allowance ?? 0) > 0);
-  const deductions = lineItems.filter(i => (i.deduction  ?? 0) > 0);
+  const earnings   = lineItems.filter(i => (i.allowance ?? 0) > 0 || (i.allowanceZIG ?? 0) > 0);
+  const deductions = lineItems.filter(i => (i.deduction  ?? 0) > 0 || (i.deductionZIG  ?? 0) > 0);
   const employers  = lineItems.filter(i => (i.employer   ?? 0) > 0);
 
   return (
@@ -322,7 +322,7 @@ const PayslipDocument = ({ data }) => {
           {deductions.map((item, idx) => (
             <View key={`yd-${idx}`} style={[s.ytdRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
               <Text style={[s.ytdRowDesc, { flex: 2 }]} numberOfLines={2}>{item.name}</Text>
-              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(item.ytd ?? item.deduction)}</Text>
+              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{isDual && !(item.ytd ?? item.deduction) ? '—' : usd(item.ytd ?? item.deduction)}</Text>
               {isDual && (
                 <Text style={[s.ytdRowZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
                   {item.ytdZIG != null ? `ZiG ${fmt(item.ytdZIG)}` : '—'}

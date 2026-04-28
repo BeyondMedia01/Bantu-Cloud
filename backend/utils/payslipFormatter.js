@@ -10,9 +10,10 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, ytdStat
 
   const isMedicalAidTc = (tc) => {
     const name = (tc.name || '').toLowerCase();
-    const code = (tc.code || '').toLowerCase();
+    const code = (tc.code || '').toUpperCase();
     return tc.incomeCategory === 'MEDICAL_AID' ||
       /medical\s*aid|med\s*aid/.test(name) ||
+      /MED_AID|MEDICAL_AID/.test(code) ||
       code === '301';
   };
 
@@ -120,15 +121,16 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, ytdStat
 
   // Medical Aid
   medicalAidGroups.forEach(g => {
-    const amt = g.amountUSD;
+    const amtUSD = g.amountUSD;
+    const amtZIG = g.amountZIG ?? null;
     lines.push({
       name: g.tc.name,
       allowance: 0, allowanceZIG: null,
-      deduction: amt,
-      deductionZIG: isDual ? g.amountZIG : null,
-      employer: amt,
-      ytd: ytdMap[g.tcId] ?? amt,
-      ytdZIG: isDual ? (ytdMapZIG[g.tcId] ?? g.amountZIG ?? null) : null,
+      deduction: amtUSD,
+      deductionZIG: isDual ? amtZIG : null,
+      employer: amtUSD,
+      ytd: ytdMap[g.tcId] ?? amtUSD,
+      ytdZIG: isDual ? (ytdMapZIG[g.tcId] ?? amtZIG ?? null) : null,
       units: g.units ?? null,
       unitsType: g.unitsType ?? null,
     });

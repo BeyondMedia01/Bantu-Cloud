@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Trash2, Loader, Edit, ChevronDown, ChevronUp,
-  CheckCircle2, X, AlertCircle, Zap, Eye,
+  CheckCircle2, X, AlertCircle, Zap, Eye, ShieldCheck, RefreshCw,
 } from 'lucide-react';
 import { TransactionCodeAPI } from '../../api/client';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -98,6 +98,29 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
   const [error, setError] = useState('');
   const [rules, setRules] = useState<any[]>(editData?.rules || []);
   const [ruleForm, setRuleForm] = useState({ conditionType: 'always', conditionValue: '', valueOverride: '', capAmount: '', description: '' });
+
+  // Auto-configure flags when incomeCategory changes to a special category
+  useEffect(() => {
+    if (form.incomeCategory === 'MEDICAL_AID') {
+      setForm(p => ({
+        ...p,
+        type: 'DEDUCTION',
+        preTax: false,
+        taxable: false,
+        pensionable: false,
+        affectsPaye: false,
+        affectsNssa: false,
+        affectsAidsLevy: false,
+      }));
+    } else if (form.incomeCategory === 'PENSION') {
+      setForm(p => ({
+        ...p,
+        type: 'DEDUCTION',
+        preTax: true,
+        taxable: false,
+      }));
+    }
+  }, [form.incomeCategory]);
   const [savingRule, setSavingRule] = useState(false);
   const [showRuleForm, setShowRuleForm] = useState(false);
 
@@ -162,11 +185,17 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
   };
 
   const fieldClass = 'w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue';
-  const checkRow = (label: string, key: string, hint?: string) => (
-    <label className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer">
-      <input type="checkbox" checked={(form as any)[key]} onChange={set(key)} className="w-4 h-4 accent-accent-blue mt-0.5 flex-shrink-0" />
+  const checkRow = (label: string, key: string, hint?: string, locked?: boolean) => (
+    <label className={`flex items-start gap-3 p-3 rounded-xl ${locked ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 cursor-pointer'}`}>
+      <input
+        type="checkbox"
+        checked={(form as any)[key]}
+        onChange={locked ? undefined : set(key)}
+        disabled={locked}
+        className="w-4 h-4 accent-accent-blue mt-0.5 flex-shrink-0"
+      />
       <div>
-        <p className="text-sm font-medium text-navy">{label}</p>
+        <p className="text-sm font-medium text-navy">{label}{locked && <span className="ml-2 text-[10px] font-bold text-amber-600 uppercase tracking-wide">locked by category</span>}</p>
         {hint && <p className="text-xs text-slate-400 mt-0.5">{hint}</p>}
       </div>
     </label>
@@ -267,19 +296,53 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
           {step === 2 && (
             <div className="flex flex-col gap-1">
               <p className="text-xs text-slate-400 mb-3">Control how this code interacts with statutory calculations.</p>
-              {checkRow('Affects PAYE', 'affectsPaye', 'Amount is included in taxable income for PAYE calculation')}
-              {checkRow('Affects NSSA', 'affectsNssa', 'Amount is included in pensionable earnings for NSSA contribution')}
-              {checkRow('Affects AIDS Levy', 'affectsAidsLevy', 'Included in the AIDS Levy (3% of PAYE) base')}
-              <div className="border-t border-border my-2" />
-              {checkRow('Taxable', 'taxable', 'General taxable flag used by the payroll engine')}
-              {checkRow('Pensionable', 'pensionable', 'Included in NSSA/pension contribution basis')}
-              {form.type === 'DEDUCTION' &&
-                checkRow('Pre-Tax Deduction', 'preTax', 'Deducted from gross before PAYE is calculated (e.g. approved pension schemes)')}
+
+              {/* Medical Aid info banner */}
+              {form.incomeCategory === 'MEDICAL_AID' && (
+                <div className="mb-3 p-3 rounded-xl bg-teal-50 border border-teal-200">
+                  <p className="text-xs font-bold text-teal-700 mb-1">Medical Aid Provider Code</p>
+                  <p className="text-xs text-teal-600">
+                    Flags are locked to the correct ZIMRA configuration. A 50% PAYE tax credit will be
+                    applied automatically on the contribution amount. You can create separate codes for
+                    each provider — e.g. <strong>Cimas</strong>, <strong>Bonvie</strong>, <strong>First Mutual</strong> —
+                    and assign the relevant one to each employee.
+                  </p>
+                </div>
+              )}
+
+              {/* Pension info banner */}
+              {form.incomeCategory === 'PENSION' && (
+                <div className="mb-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
+                  <p className="text-xs font-bold text-blue-700 mb-1">Pension / Retirement Fund Code</p>
+                  <p className="text-xs text-blue-600">
+                    Flags are locked. Contributions will be deducted pre-tax (reducing PAYE taxable income)
+                    up to the ZIMRA annual cap of $5,400 / 12 = $450 per month.
+                  </p>
+                </div>
+              )}
+
+              {(() => {
+                const isMedAid = form.incomeCategory === 'MEDICAL_AID';
+                const isPension = form.incomeCategory === 'PENSION';
+                const locked = isMedAid || isPension;
+                return (
+                  <>
+                    {checkRow('Affects PAYE', 'affectsPaye', 'Amount is included in taxable income for PAYE calculation', isMedAid)}
+                    {checkRow('Affects NSSA', 'affectsNssa', 'Amount is included in pensionable earnings for NSSA contribution', isMedAid)}
+                    {checkRow('Affects AIDS Levy', 'affectsAidsLevy', 'Included in the AIDS Levy (3% of PAYE) base', isMedAid)}
+                    <div className="border-t border-border my-2" />
+                    {checkRow('Taxable', 'taxable', 'General taxable flag used by the payroll engine', locked)}
+                    {checkRow('Pensionable', 'pensionable', 'Included in NSSA/pension contribution basis', isMedAid)}
+                    {form.type === 'DEDUCTION' &&
+                      checkRow('Pre-Tax Deduction', 'preTax', 'Deducted from gross before PAYE is calculated (e.g. approved pension schemes)', locked)}
+                  </>
+                );
+              })()}
 
               <div className="mt-4">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Formal Tax Rule (ZIMRA)</label>
-                <select 
-                  value={form.incomeCategory || ''} 
+                <select
+                  value={form.incomeCategory || ''}
                   onChange={e => setForm(p => ({ ...p, incomeCategory: e.target.value || null }))}
                   className={fieldClass}
                 >
@@ -294,7 +357,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                   <option value="BENEFIT">Benefit</option>
                 </select>
                 <p className="text-[10px] text-slate-400 mt-1">
-                  Use "Medical Aid" to ensure the 50% tax credit is applied automatically.
+                  Select "Medical Aid" for any provider (Cimas, Bonvie, First Mutual, etc.) — flags are auto-configured.
                 </p>
               </div>
             </div>
@@ -502,6 +565,205 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
   );
 };
 
+// ─── TaRMS audit panel ───────────────────────────────────────────────────────
+
+const SEVERITY_STYLE: Record<string, string> = {
+  error:   'bg-red-50 border-red-200 text-red-700',
+  warning: 'bg-amber-50 border-amber-200 text-amber-700',
+  info:    'bg-blue-50 border-blue-200 text-blue-600',
+  ok:      'bg-emerald-50 border-emerald-200 text-emerald-700',
+};
+
+const SEVERITY_BADGE: Record<string, string> = {
+  error:   'bg-red-100 text-red-700',
+  warning: 'bg-amber-100 text-amber-700',
+  info:    'bg-blue-100 text-blue-600',
+  ok:      'bg-emerald-100 text-emerald-700',
+};
+
+const SEVERITY_LABEL: Record<string, string> = {
+  error: 'Error', warning: 'Warning', info: 'Info', ok: 'OK',
+};
+
+const TYPE_COLOR_SMALL: Record<string, string> = {
+  EARNING:   'bg-emerald-100 text-emerald-700',
+  DEDUCTION: 'bg-red-100 text-red-700',
+  BENEFIT:   'bg-blue-100 text-blue-700',
+};
+
+interface TarmsResult {
+  id: string; code: string; name: string; type: string;
+  incomeCategory: string | null; taxable: boolean;
+  tarmsField: string; severity: string;
+  issues: { severity: string; message: string }[];
+}
+
+interface TarmsAuditPanelProps { onClose: () => void; }
+
+const TarmsAuditPanel: React.FC<TarmsAuditPanelProps> = ({ onClose }) => {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<{ summary: any; codes: TarmsResult[] } | null>(null);
+  const [filterSeverity, setFilterSeverity] = useState<string>('');
+  const [error, setError] = useState('');
+
+  const run = () => {
+    setLoading(true);
+    setError('');
+    TransactionCodeAPI.tarmsCheck()
+      .then((r: any) => setData(r.data))
+      .catch(() => setError('Failed to run TaRMS audit'))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(run, []);
+
+  const filtered = data
+    ? (filterSeverity ? data.codes.filter((c) => c.severity === filterSeverity) : data.codes)
+    : [];
+
+  const FILTERS = ['', 'error', 'warning', 'info', 'ok'] as const;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-end bg-black/30 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[92vh] overflow-hidden">
+        {/* Panel header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={18} className="text-accent-blue" />
+            <h2 className="font-bold text-lg">TaRMS Field Allocation Audit</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={run}
+              disabled={loading}
+              className="p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-lg disabled:opacity-40"
+              title="Re-run audit"
+            >
+              <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Summary bar */}
+        {data && (
+          <div className="flex gap-3 px-6 py-3 border-b border-border bg-slate-50/60">
+            {(['error', 'warning', 'info', 'ok'] as const).map((s) => (
+              <div key={s} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold ${SEVERITY_STYLE[s]}`}>
+                <span className="capitalize">{SEVERITY_LABEL[s]}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[11px] ${SEVERITY_BADGE[s]}`}>
+                  {s === 'error'   ? data.summary.errors   :
+                   s === 'warning' ? data.summary.warnings :
+                   s === 'info'    ? data.summary.info     : data.summary.ok}
+                </span>
+              </div>
+            ))}
+            <p className="ml-auto text-xs text-slate-400 self-center">{data.summary.total} active codes</p>
+          </div>
+        )}
+
+        {/* Severity filter pills */}
+        {data && (
+          <div className="flex gap-2 px-6 py-3 border-b border-border">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilterSeverity(f)}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                  filterSeverity === f ? 'bg-accent-blue text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                }`}
+              >
+                {f ? SEVERITY_LABEL[f] : 'All'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading && (
+            <div className="flex items-center justify-center h-40 text-slate-400">
+              <Loader size={22} className="animate-spin" />
+            </div>
+          )}
+
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+              <AlertCircle size={14} /> {error}
+            </div>
+          )}
+
+          {!loading && data && filtered.length === 0 && (
+            <p className="text-center text-slate-400 text-sm py-10">No codes match the selected filter.</p>
+          )}
+
+          {!loading && data && (
+            <div className="flex flex-col gap-3">
+              {filtered.map((c) => (
+                <div
+                  key={c.id}
+                  className={`rounded-xl border p-4 ${SEVERITY_STYLE[c.severity]}`}
+                >
+                  {/* Code header */}
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-black text-sm text-navy">{c.code}</span>
+                      <span className="text-sm font-medium text-slate-700">{c.name}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${TYPE_COLOR_SMALL[c.type]}`}>{c.type}</span>
+                      {c.incomeCategory && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                          {c.incomeCategory}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`flex-shrink-0 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${SEVERITY_BADGE[c.severity]}`}>
+                      {SEVERITY_LABEL[c.severity]}
+                    </span>
+                  </div>
+
+                  {/* TaRMS field mapping */}
+                  <div className="flex items-center gap-1.5 mb-2.5 text-xs font-medium text-slate-600">
+                    <span className="text-slate-400">TaRMS column →</span>
+                    <span className="font-bold text-navy">{c.tarmsField}</span>
+                  </div>
+
+                  {/* Issues */}
+                  {c.issues.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      {c.issues.map((issue, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                          <span>{issue.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {c.severity === 'ok' && (
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+                      <CheckCircle2 size={12} />
+                      <span>Correctly mapped to TaRMS.</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer note */}
+        <div className="px-6 py-3 border-t border-border bg-slate-50/60">
+          <p className="text-[11px] text-slate-400">
+            Audit checks active transaction codes only. Salary, NSSA, Medical Aid Credit, NEC, and Pension columns are sourced from payslip statutory fields — not transaction codes.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── main page ────────────────────────────────────────────────────────────────
 
 const Transactions: React.FC = () => {
@@ -514,6 +776,7 @@ const Transactions: React.FC = () => {
   const [error, setError] = useState('');
   const [filterType, setFilterType] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [showTarmsAudit, setShowTarmsAudit] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -567,6 +830,7 @@ const Transactions: React.FC = () => {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+      {showTarmsAudit && <TarmsAuditPanel onClose={() => setShowTarmsAudit(false)} />}
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
@@ -578,12 +842,21 @@ const Transactions: React.FC = () => {
             <p className="text-slate-500 font-medium text-sm">Define calculation rules, tax flags, and conditional overrides</p>
           </div>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
-        >
-          <Plus size={16} /> Create Code
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTarmsAudit(true)}
+            className="flex items-center gap-2 border border-border text-slate-600 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-slate-50"
+            title="Check TaRMS field allocations for all transaction codes"
+          >
+            <ShieldCheck size={15} /> TaRMS Audit
+          </button>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+          >
+            <Plus size={16} /> Create Code
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -642,7 +915,10 @@ const Transactions: React.FC = () => {
                           </td>
                           <td className="px-4 py-3">
                             <p className="text-sm font-medium">{c.name}</p>
-                            {c.description && <p className="text-xs text-slate-400 truncate max-w-[180px]">{c.description}</p>}
+                            {c.incomeCategory === 'MEDICAL_AID' && (
+                              <p className="text-[10px] text-teal-600 font-semibold">Medical Aid Provider</p>
+                            )}
+                            {c.description && !c.incomeCategory && <p className="text-xs text-slate-400 truncate max-w-[180px]">{c.description}</p>}
                           </td>
                           <td className="px-4 py-3">
                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${CALC_BADGE[c.calculationType] || 'bg-slate-100 text-slate-600'}`}>
@@ -656,9 +932,15 @@ const Transactions: React.FC = () => {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex gap-1 flex-wrap">
+                              {c.incomeCategory === 'MEDICAL_AID' && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-teal-50 text-teal-700 rounded">MED AID</span>
+                              )}
+                              {c.incomeCategory === 'PENSION' && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">PENSION</span>
+                              )}
                               {c.affectsPaye && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-50 text-red-600 rounded">PAYE</span>}
                               {c.affectsNssa && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded">NSSA</span>}
-                              {c.preTax && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">PRE-TAX</span>}
+                              {c.preTax && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded">PRE-TAX</span>}
                               {!c.taxable && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded">EXEMPT</span>}
                             </div>
                           </td>
@@ -710,6 +992,12 @@ const Transactions: React.FC = () => {
                                 <div>
                                   <p className="font-bold text-slate-400 uppercase tracking-wider mb-1">Statutory Flags</p>
                                   <div className="flex flex-col gap-0.5 text-slate-600">
+                                    {c.incomeCategory === 'MEDICAL_AID' && (
+                                      <span className="text-teal-700 font-bold text-xs mb-1">⚕ Medical Aid — 50% PAYE credit applied</span>
+                                    )}
+                                    {c.incomeCategory === 'PENSION' && (
+                                      <span className="text-blue-700 font-bold text-xs mb-1">🏦 Pension — pre-tax, capped at $450/month</span>
+                                    )}
                                     <span>{c.taxable ? '✓' : '✗'} Taxable</span>
                                     <span>{c.pensionable ? '✓' : '✗'} Pensionable</span>
                                     <span>{c.affectsPaye ? '✓' : '✗'} Affects PAYE</span>
