@@ -10,11 +10,14 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
   const [search, setSearch] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [settings, setSettings] = useState<NSSASettings>({ 
-    employeeRate: 3.5, 
-    employerRate: 3.5, 
+  const [settings, setSettings] = useState<NSSASettings>({
+    employeeRate: 3.5,
+    employerRate: 3.5,
     ceilingUSD: 700,
-    wcifRate: 0.01 
+    wcifRate: 0.01,
+    employeeRateZIG: 3.5,
+    employerRateZIG: 3.5,
+    ceilingZIG: 18000,
   });
   const [savingSettings, setSavingSettings] = useState(false);
 

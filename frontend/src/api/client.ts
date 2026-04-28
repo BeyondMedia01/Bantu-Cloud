@@ -522,6 +522,9 @@ export interface NSSASettings {
   employerRate: number;
   ceilingUSD: number;
   wcifRate: number;
+  employeeRateZIG: number;
+  employerRateZIG: number;
+  ceilingZIG: number;
 }
 
 export const NSSASettingsAPI = {

@@ -11,6 +11,9 @@ const NSSASettingsPage: React.FC = () => {
     employerRate: 3.5,
     ceilingUSD: 700,
     wcifRate: 0.01,
+    employeeRateZIG: 3.5,
+    employerRateZIG: 3.5,
+    ceilingZIG: 18000,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
