@@ -85,25 +85,8 @@ router.post('/preview', requirePermission('process_payroll'), async (req, res) =
     const previewMedicalAidCreditRate = ps('MEDICAL_AID_CREDIT_RATE') / 100;
     const previewNssaEmployeeRate = ps('NSSA_EMPLOYEE_RATE') / 100;
     const previewNssaCeilingUSD = ps('NSSA_CEILING_USD');
-
-    // For ZiG payrolls, derive the NSSA ceiling dynamically from the RBZ prevailing rate:
-    // ZiG ceiling = USD ceiling × most recent USD→ZiG rate for this company.
-    // Falls back to NSSA_CEILING_ZIG setting if no currency rate record exists.
-    let previewNssaCeiling = previewNssaCeilingUSD;
-    if (currency === 'ZiG' && req.companyId) {
-      const latestRate = await prisma.currencyRate.findFirst({
-        where: {
-          companyId: req.companyId,
-          fromCurrency: 'USD',
-          toCurrency: 'ZiG',
-          effectiveDate: { lte: new Date() },
-        },
-        orderBy: { effectiveDate: 'desc' },
-      });
-      previewNssaCeiling = latestRate
-        ? previewNssaCeilingUSD * latestRate.rate
-        : ps('NSSA_CEILING_ZIG');
-    }
+    // Each currency has its own independently configured ceiling — read directly from settings.
+    const previewNssaCeiling = currency === 'ZiG' ? ps('NSSA_CEILING_ZIG') : previewNssaCeilingUSD;
 
     const byEmployee = {};
     for (const inp of inputs) {
@@ -268,22 +251,10 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     const s = (key) => parseFloat(settings[key] ?? 0);
 
     const nssaCeilingUSD = s('NSSA_CEILING_USD');
-    const nssaCeilingZIG = s('NSSA_CEILING_ZIG');
-    // For ZiG or dual-currency runs, derive ZiG NSSA ceiling dynamically from USD ceiling × latest rate.
-    // Mirrors the same logic used in the preview endpoint for consistency.
-    let effectiveNssaCeilingZIG = nssaCeilingZIG;
-    if ((run.currency === 'ZiG' || run.dualCurrency) && req.companyId) {
-      const latestRate = await prisma.currencyRate.findFirst({
-        where: {
-          companyId: req.companyId,
-          fromCurrency: 'USD',
-          toCurrency: 'ZiG',
-          effectiveDate: { lte: new Date(run.startDate) },
-        },
-        orderBy: { effectiveDate: 'desc' },
-      });
-      if (latestRate && nssaCeilingUSD > 0) effectiveNssaCeilingZIG = nssaCeilingUSD * latestRate.rate;
-    }
+    // ZiG ceiling is read directly from settings — it is NOT derived from the USD ceiling
+    // or the exchange rate. Each currency has an independently configured ceiling so that
+    // changing one does not affect the other.
+    const effectiveNssaCeilingZIG = s('NSSA_CEILING_ZIG');
     const nssaCeiling = run.currency === 'ZiG' ? effectiveNssaCeilingZIG : nssaCeilingUSD;
 
     const bonusExemptionUSD = s('BONUS_EXEMPTION_USD');
@@ -308,6 +279,9 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
 
     const pensionCapUSD = s('PENSION_CAP_USD');
     const pensionCapZIG = s('PENSION_CAP_ZIG');
+    // ZIMRA cap is annual ($5,400/yr) — divide by 12 for the monthly engine limit ($450/mo)
+    const monthlyPensionCapUSD = pensionCapUSD > 0 ? Math.round((pensionCapUSD / 12) * 100) / 100 : null;
+    const monthlyPensionCapZIG = pensionCapZIG > 0 ? Math.round((pensionCapZIG / 12) * 100) / 100 : null;
 
     const prescribedRateUSD = s('LOAN_PRESCRIBED_RATE_USD');
     const prescribedRateZIG = s('LOAN_PRESCRIBED_RATE_ZIG');
@@ -684,8 +658,6 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
             /MED_AID|MEDICAL_AID/i.test(tcCode) ||
             (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
 
-        const isPension = tc.type === 'DEDUCTION' && (tc.incomeCategory === 'PENSION' || tc.preTax === true);
-
         if (run.dualCurrency) {
           if (isEarning) {
             inputEarningsUSD += input.employeeUSD || 0;
@@ -743,8 +715,10 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
         const tcName = tc.name || '';
         const tcCode = tc.code || '';
         const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
-          (/medical\s*aid|med\s*aid/i.test(tcName) ||
-            /MED_AID|MEDICAL_AID/i.test(tcCode));
+          (tc.incomeCategory === 'MEDICAL_AID' ||
+            /medical\s*aid|med\s*aid/i.test(tcName) ||
+            /MED_AID|MEDICAL_AID/i.test(tcCode) ||
+            (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
 
         // Treat EmployeeTransaction.value as stored in sd.currency — split into USD/ZiG amounts
         const empUSD = sd.currency === 'USD' ? sd.value : 0;
@@ -914,7 +888,7 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
         ? (() => {
             const isZIG = run.currency === 'ZiG';
             const pensionContribution = (adj.pensionContribution || 0) + (isZIG ? inputPensionZIG : inputPensionUSD || inputPension);
-            const pensionCap = isZIG ? (pensionCapZIG > 0 ? pensionCapZIG : null) : (pensionCapUSD > 0 ? pensionCapUSD : null);
+            const pensionCap = isZIG ? monthlyPensionCapZIG : monthlyPensionCapUSD;
             const cappedPension = pensionCap != null
               ? Math.min(pensionContribution, pensionCap)
               : pensionContribution;
@@ -975,7 +949,7 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
             bonus: adj.bonus || 0, bonusExemption: remBonusExUSD,
             severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevExUSD,
             pensionContribution: (adj.pensionContribution || 0) + inputPensionUSD,
-            pensionCap: pensionCapUSD > 0 ? pensionCapUSD : null,
+            pensionCap: monthlyPensionCapUSD,
             medicalAid: (adj.medicalAid || 0) + inputMedicalAidUSD,
             taxCredits: elderlyCreditUSD_val > 0 ? elderlyCreditUSD_val : (emp.taxCredits || 0),
             nssaCeiling: nssaCeilingUSD,
@@ -992,7 +966,7 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
             bonus: 0, bonusExemption: remBonusExZIG,
             severanceAmount: 0, severanceExemption: remSevExZIG,
             pensionContribution: inputPensionZIG,
-            pensionCap: pensionCapZIG > 0 ? pensionCapZIG : null,
+            pensionCap: monthlyPensionCapZIG,
             medicalAid: inputMedicalAidZIG,
             taxCredits: elderlyCreditZIG_val > 0 ? elderlyCreditZIG_val : (emp.taxCredits || 0),
             nssaCeiling: effectiveNssaCeilingZIG,
@@ -1027,9 +1001,7 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
           bonus: adj.bonus || 0, bonusExemption: remBonusEx,
           severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevEx,
           pensionContribution: (adj.pensionContribution || 0) + inputPension,
-          pensionCap: run.currency === 'ZiG'
-            ? (pensionCapZIG > 0 ? pensionCapZIG : null)
-            : (pensionCapUSD > 0 ? pensionCapUSD : null),
+          pensionCap: run.currency === 'ZiG' ? monthlyPensionCapZIG : monthlyPensionCapUSD,
           medicalAid: (adj.medicalAid || 0) + inputMedicalAid,
           // Elderly credit replaces (not adds to) emp.taxCredits — ZIMRA grants one credit type per employee.
           taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),

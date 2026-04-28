@@ -9,6 +9,7 @@ const NSSA_KEYS = {
   EMPLOYEE_RATE: 'NSSA_EMPLOYEE_RATE',
   EMPLOYER_RATE: 'NSSA_EMPLOYER_RATE',
   CEILING_USD:   'NSSA_CEILING_USD',
+  CEILING_ZIG:   'NSSA_CEILING_ZIG',
   WCIF_RATE:     'WCIF_RATE',
 };
 
@@ -28,6 +29,7 @@ router.get('/', async (req, res) => {
       employeeRate: parseFloat(byKey[NSSA_KEYS.EMPLOYEE_RATE] ?? '4.5'),
       employerRate: parseFloat(byKey[NSSA_KEYS.EMPLOYER_RATE] ?? '4.5'),
       ceilingUSD:   parseFloat(byKey[NSSA_KEYS.CEILING_USD]   ?? '700'),
+      ceilingZIG:   parseFloat(byKey[NSSA_KEYS.CEILING_ZIG]   ?? '0'),
       wcifRate:     parseFloat(byKey[NSSA_KEYS.WCIF_RATE]     ?? '0.01'),
     });
   } catch (err) {
@@ -36,14 +38,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-// PUT /api/nssa-settings — upsert the three NSSA values
+// PUT /api/nssa-settings — upsert NSSA values
 router.put('/', requirePermission('update_settings'), async (req, res) => {
-  const { employeeRate, employerRate, ceilingUSD, wcifRate } = req.body;
+  const { employeeRate, employerRate, ceilingUSD, ceilingZIG, wcifRate } = req.body;
 
   const updates = [
     { key: NSSA_KEYS.EMPLOYEE_RATE, value: String(employeeRate), desc: 'NSSA employee contribution rate (%)' },
     { key: NSSA_KEYS.EMPLOYER_RATE, value: String(employerRate), desc: 'NSSA employer contribution rate (%)' },
     { key: NSSA_KEYS.CEILING_USD,   value: String(ceilingUSD),   desc: 'NSSA maximum insurable earnings ceiling (USD/month)' },
+    { key: NSSA_KEYS.CEILING_ZIG,   value: String(ceilingZIG ?? 0), desc: 'NSSA maximum insurable earnings ceiling (ZiG/month)' },
     { key: NSSA_KEYS.WCIF_RATE,     value: String(wcifRate),     desc: 'Workmans Compensation Insurance Fund rate (%)' },
   ];
 
@@ -74,7 +77,7 @@ router.put('/', requirePermission('update_settings'), async (req, res) => {
       req,
       action: 'NSSA_SETTINGS_UPDATED',
       resource: 'system_setting',
-      details: { employeeRate, employerRate, ceilingUSD, wcifRate },
+      details: { employeeRate, employerRate, ceilingUSD, ceilingZIG, wcifRate },
     });
 
     res.json({ message: 'NSSA settings updated' });

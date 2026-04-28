@@ -331,6 +331,7 @@ export const TransactionCodeAPI = {
   createRule: (id: string, data: any) => api.post(`/transaction-codes/${id}/rules`, data),
   updateRule: (tcId: string, ruleId: string, data: any) => api.put(`/transaction-codes/${tcId}/rules/${ruleId}`, data),
   deleteRule: (tcId: string, ruleId: string) => api.delete(`/transaction-codes/${tcId}/rules/${ruleId}`),
+  tarmsCheck: () => api.get('/transaction-codes/tarms-check'),
 };
 
 export const TaxTableAPI = {
@@ -521,6 +522,7 @@ export interface NSSASettings {
   employeeRate: number;
   employerRate: number;
   ceilingUSD: number;
+  ceilingZIG: number;
   wcifRate: number;
 }
 

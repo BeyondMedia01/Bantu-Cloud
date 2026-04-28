@@ -10,6 +10,7 @@ const NSSASettingsPage: React.FC = () => {
     employeeRate: 3.5,
     employerRate: 3.5,
     ceilingUSD: 700,
+    ceilingZIG: 0,
     wcifRate: 0.01,
   });
   const [loading, setLoading] = useState(true);
@@ -46,8 +47,10 @@ const NSSASettingsPage: React.FC = () => {
   };
 
   const totalRate = (form.employeeRate + form.employerRate).toFixed(2);
-  const maxEmployeeContrib = ((form.employeeRate / 100) * form.ceilingUSD).toFixed(2);
-  const maxEmployerContrib = ((form.employerRate / 100) * form.ceilingUSD).toFixed(2);
+  const maxEmployeeContribUSD = ((form.employeeRate / 100) * form.ceilingUSD).toFixed(2);
+  const maxEmployerContribUSD = ((form.employerRate / 100) * form.ceilingUSD).toFixed(2);
+  const maxEmployeeContribZIG = ((form.employeeRate / 100) * form.ceilingZIG).toFixed(2);
+  const maxEmployerContribZIG = ((form.employerRate / 100) * form.ceilingZIG).toFixed(2);
 
   return (
     <div className="max-w-2xl">
@@ -149,42 +152,67 @@ const NSSASettingsPage: React.FC = () => {
                 <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Maximum Insurable Earnings</h3>
               </div>
 
-              <div className="max-w-xs">
-                <label className="block text-sm font-bold text-slate-600 mb-1.5">
-                  Earnings Ceiling (USD / month)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    value={form.ceilingUSD}
-                    onChange={(e) => handleChange('ceilingUSD', e.target.value)}
-                    className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                    required
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                    Earnings Ceiling (USD / month)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={form.ceilingUSD}
+                      onChange={(e) => handleChange('ceilingUSD', e.target.value)}
+                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium mt-1.5">
+                    Applies to USD payrolls only.
+                  </p>
                 </div>
-                <p className="text-xs text-slate-400 font-medium mt-1.5">
-                  Contributions are calculated on actual earnings up to this ceiling.
-                </p>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                    Earnings Ceiling (ZiG / month)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold font-mono">Z</span>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={form.ceilingZIG}
+                      onChange={(e) => handleChange('ceilingZIG', e.target.value)}
+                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium mt-1.5">
+                    Applies to ZiG payrolls only — set independently from the USD ceiling.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Summary */}
             <div className="bg-slate-50 border border-border rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Contribution Summary</p>
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-4 text-center mb-3">
                 <div>
                   <p className="text-xl font-bold text-navy">{totalRate}%</p>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">Total Rate</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-emerald-600">USD {maxEmployeeContrib}</p>
+                  <p className="text-base font-bold text-emerald-600">USD {maxEmployeeContribUSD}</p>
+                  <p className="text-xs text-emerald-500 font-medium">ZiG {maxEmployeeContribZIG}</p>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">Max Employee / mo</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-blue-600">USD {maxEmployerContrib}</p>
+                  <p className="text-base font-bold text-blue-600">USD {maxEmployerContribUSD}</p>
+                  <p className="text-xs text-blue-500 font-medium">ZiG {maxEmployerContribZIG}</p>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">Max Employer / mo</p>
                 </div>
               </div>
