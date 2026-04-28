@@ -7,10 +7,12 @@ const NSSASettingsPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [form, setForm] = useState<NSSASettings>({
-    employeeRate: 3.5,
-    employerRate: 3.5,
+    employeeRate: 4.5,
+    employerRate: 4.5,
+    employeeRateZIG: 4.5,
+    employerRateZIG: 4.5,
     ceilingUSD: 700,
-    ceilingZIG: 0,
+    ceilingZIG: 18000,
     wcifRate: 0.01,
   });
   const [loading, setLoading] = useState(true);
@@ -46,11 +48,10 @@ const NSSASettingsPage: React.FC = () => {
     }
   };
 
-  const totalRate = (form.employeeRate + form.employerRate).toFixed(2);
   const maxEmployeeContribUSD = ((form.employeeRate / 100) * form.ceilingUSD).toFixed(2);
   const maxEmployerContribUSD = ((form.employerRate / 100) * form.ceilingUSD).toFixed(2);
-  const maxEmployeeContribZIG = ((form.employeeRate / 100) * form.ceilingZIG).toFixed(2);
-  const maxEmployerContribZIG = ((form.employerRate / 100) * form.ceilingZIG).toFixed(2);
+  const maxEmployeeContribZIG = ((form.employeeRateZIG / 100) * form.ceilingZIG).toFixed(2);
+  const maxEmployerContribZIG = ((form.employerRateZIG / 100) * form.ceilingZIG).toFixed(2);
 
   return (
     <div className="max-w-2xl">
@@ -79,68 +80,79 @@ const NSSASettingsPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Rates card */}
+            {/* USD Rates card */}
             <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-1">
                 <Shield size={18} className="text-slate-400" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Contribution Rates</h3>
+                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">USD Payroll — Contribution Rates</h3>
               </div>
+              <p className="text-xs text-slate-400 font-medium mb-4">Applies to USD-currency payroll runs only.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
-                    Employee Rate (%)
-                  </label>
+                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employee Rate (%)</label>
                   <div className="relative">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={form.employeeRate}
+                    <input type="number" step="0.01" min="0" max="100" value={form.employeeRate}
                       onChange={(e) => handleChange('employeeRate', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                      required
-                    />
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
-                    Employer Rate (%)
-                  </label>
+                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employer Rate (%)</label>
                   <div className="relative">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={form.employerRate}
+                    <input type="number" step="0.01" min="0" max="100" value={form.employerRate}
                       onChange={(e) => handleChange('employerRate', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                      required
-                    />
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
                 </div>
+              </div>
+            </div>
 
+            {/* ZiG Rates card */}
+            <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Shield size={18} className="text-slate-400" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">ZiG Payroll — Contribution Rates</h3>
+              </div>
+              <p className="text-xs text-slate-400 font-medium mb-4">Applies to ZiG-currency payroll runs only. Changes here do not affect USD payroll.</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
-                    WCIF Rate (%)
-                  </label>
+                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employee Rate (%)</label>
                   <div className="relative">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={form.wcifRate}
-                      onChange={(e) => handleChange('wcifRate', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                      required
-                    />
+                    <input type="number" step="0.01" min="0" max="100" value={form.employeeRateZIG}
+                      onChange={(e) => handleChange('employeeRateZIG', e.target.value)}
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employer Rate (%)</label>
+                  <div className="relative">
+                    <input type="number" step="0.01" min="0" max="100" value={form.employerRateZIG}
+                      onChange={(e) => handleChange('employerRateZIG', e.target.value)}
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* WCIF card */}
+            <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Shield size={18} className="text-slate-400" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">WCIF Rate</h3>
+              </div>
+              <div className="max-w-xs">
+                <label className="block text-sm font-bold text-slate-600 mb-1.5">WCIF Rate (%)</label>
+                <div className="relative">
+                  <input type="number" step="0.01" min="0" max="100" value={form.wcifRate}
+                    onChange={(e) => handleChange('wcifRate', e.target.value)}
+                    className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                 </div>
               </div>
             </div>
@@ -200,20 +212,32 @@ const NSSASettingsPage: React.FC = () => {
             {/* Summary */}
             <div className="bg-slate-50 border border-border rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Contribution Summary</p>
-              <div className="grid grid-cols-3 gap-4 text-center mb-3">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-xl font-bold text-navy">{totalRate}%</p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Total Rate</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-2">USD Payroll</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">Max Employee</span>
+                      <span className="font-bold text-emerald-600">$ {maxEmployeeContribUSD}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">Max Employer</span>
+                      <span className="font-bold text-blue-600">$ {maxEmployerContribUSD}</span>
+                    </div>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-base font-bold text-emerald-600">USD {maxEmployeeContribUSD}</p>
-                  <p className="text-xs text-emerald-500 font-medium">ZiG {maxEmployeeContribZIG}</p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Max Employee / mo</p>
-                </div>
-                <div>
-                  <p className="text-base font-bold text-blue-600">USD {maxEmployerContribUSD}</p>
-                  <p className="text-xs text-blue-500 font-medium">ZiG {maxEmployerContribZIG}</p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Max Employer / mo</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-2">ZiG Payroll</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">Max Employee</span>
+                      <span className="font-bold text-emerald-600">Z {maxEmployeeContribZIG}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">Max Employer</span>
+                      <span className="font-bold text-blue-600">Z {maxEmployerContribZIG}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

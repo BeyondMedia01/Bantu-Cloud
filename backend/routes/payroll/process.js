@@ -239,6 +239,7 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
       'SEVERANCE_EXEMPTION_USD', 'SEVERANCE_EXEMPTION_ZIG',
       'WCIF_RATE', 'SDF_RATE',
       'NSSA_EMPLOYEE_RATE', 'NSSA_EMPLOYER_RATE',
+      'NSSA_EMPLOYEE_RATE_ZIG', 'NSSA_EMPLOYER_RATE_ZIG',
       'AIDS_LEVY_RATE', 'MEDICAL_AID_CREDIT_RATE',
       'PENSION_CAP_USD', 'PENSION_CAP_ZIG',
       'LOAN_PRESCRIBED_RATE_USD', 'LOAN_PRESCRIBED_RATE_ZIG',
@@ -271,8 +272,13 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (req,
     const wcifRate = run.company.wcifRate != null ? run.company.wcifRate / 100 : globalWcifRate;
     const sdfRate = run.company.sdfRate != null ? run.company.sdfRate / 100 : globalSdfRate;
 
-    const nssaEmployeeRate = s('NSSA_EMPLOYEE_RATE') / 100;
-    const nssaEmployerRate = s('NSSA_EMPLOYER_RATE') / 100;
+    // Per-currency NSSA rates — ZiG rates fall back to the USD rates if not separately configured
+    const nssaEmployeeRateUSD = s('NSSA_EMPLOYEE_RATE') / 100;
+    const nssaEmployerRateUSD = s('NSSA_EMPLOYER_RATE') / 100;
+    const nssaEmployeeRateZIG = (s('NSSA_EMPLOYEE_RATE_ZIG') || s('NSSA_EMPLOYEE_RATE')) / 100;
+    const nssaEmployerRateZIG = (s('NSSA_EMPLOYER_RATE_ZIG') || s('NSSA_EMPLOYER_RATE')) / 100;
+    const nssaEmployeeRate = run.currency === 'ZiG' ? nssaEmployeeRateZIG : nssaEmployeeRateUSD;
+    const nssaEmployerRate = run.currency === 'ZiG' ? nssaEmployerRateZIG : nssaEmployerRateUSD;
 
     const aidsLevyRate = s('AIDS_LEVY_RATE') / 100;
     const medicalAidCreditRate = s('MEDICAL_AID_CREDIT_RATE') / 100;

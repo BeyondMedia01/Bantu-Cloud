@@ -37,14 +37,28 @@ async function autoSeedSystemSettings() {
       settingName: 'NSSA_EMPLOYEE_RATE',
       settingValue: '4.5',
       dataType: 'NUMBER',
-      description: 'Employee NSSA contribution rate (percentage). Current ZIMRA rate: 4.5%.',
+      description: 'Employee NSSA contribution rate for USD payrolls (percentage). Current ZIMRA rate: 4.5%.',
       isActive: true
     },
     {
       settingName: 'NSSA_EMPLOYER_RATE',
       settingValue: '4.5',
       dataType: 'NUMBER',
-      description: 'Employer NSSA contribution rate (percentage). Current ZIMRA rate: 4.5%.',
+      description: 'Employer NSSA contribution rate for USD payrolls (percentage). Current ZIMRA rate: 4.5%.',
+      isActive: true
+    },
+    {
+      settingName: 'NSSA_EMPLOYEE_RATE_ZIG',
+      settingValue: '4.5',
+      dataType: 'NUMBER',
+      description: 'Employee NSSA contribution rate for ZiG payrolls (percentage). Independent from USD rate.',
+      isActive: true
+    },
+    {
+      settingName: 'NSSA_EMPLOYER_RATE_ZIG',
+      settingValue: '4.5',
+      dataType: 'NUMBER',
+      description: 'Employer NSSA contribution rate for ZiG payrolls (percentage). Independent from USD rate.',
       isActive: true
     },
     {
@@ -56,9 +70,9 @@ async function autoSeedSystemSettings() {
     },
     {
       settingName: 'NSSA_CEILING_ZIG',
-      settingValue: '20000',
+      settingValue: '18000',
       dataType: 'NUMBER',
-      description: 'NSSA insurable earnings ceiling in ZiG per month.',
+      description: 'NSSA insurable earnings ceiling in ZiG per month. Independent from USD ceiling.',
       isActive: true
     },
 
@@ -252,6 +266,20 @@ async function autoSeedSystemSettings() {
         }
       });
     }
+  }
+
+  // ── One-time migrations: correct stale default values ──────────────────────
+  // NSSA_CEILING_ZIG was previously seeded as 20000 but the correct value is 18000.
+  // Only migrate if the current active value is still the old incorrect default.
+  const zigCeilingSetting = await prisma.systemSetting.findFirst({
+    where: { settingName: 'NSSA_CEILING_ZIG', isActive: true },
+  });
+  if (zigCeilingSetting && zigCeilingSetting.settingValue === '20000') {
+    console.log('[Seed] Migrating NSSA_CEILING_ZIG from 20000 → 18000');
+    await prisma.systemSetting.update({
+      where: { id: zigCeilingSetting.id },
+      data: { settingValue: '18000', lastUpdatedBy: 'System Auto-Seed Migration' },
+    });
   }
 }
 

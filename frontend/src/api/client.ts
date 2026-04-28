@@ -521,6 +521,8 @@ export const SubscriptionAPI = {
 export interface NSSASettings {
   employeeRate: number;
   employerRate: number;
+  employeeRateZIG: number;
+  employerRateZIG: number;
   ceilingUSD: number;
   ceilingZIG: number;
   wcifRate: number;
