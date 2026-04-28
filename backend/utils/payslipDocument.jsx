@@ -19,7 +19,8 @@ const NAVY_LIGHT  = '#1e3a5f';
 
 const fmt = (n) =>
   Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const usd = (n) => `USD ${fmt(n)}`;
+const makeCcyFmt = (ccy) => (n) => `${ccy} ${fmt(n)}`;
+const usd = makeCcyFmt('USD');
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
@@ -142,21 +143,21 @@ const Field = ({ label, value, style }) => (
 
 // Column flex ratios inside each half-table:
 // Dual:   DESCRIPTION(flex:2) | UNITS(flex:0.55) | USD(flex:1) | ZiG(flex:1)
-// Single: DESCRIPTION(flex:2) | UNITS(flex:0.55) | AMOUNT(flex:1.4)
+// Single: DESCRIPTION(flex:2) | UNITS(flex:0.55) | CCY(flex:1.4)
 
-const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, isDual }) => (
+const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, isDual, ccyFmt, currency }) => (
   <View style={s.tableHalf}>
     <View style={s.tableHeader}>
       <Text style={[s.tableTitle, { color: titleColor }]}>{title}</Text>
       <View style={[s.subHeaders, { flexWrap: 'nowrap' }]}>
         <Text style={[s.subHdrDesc, { flex: 2 }]}>DESCRIPTION</Text>
         <Text style={[s.subHdrUnits, { flex: 0.55 }]}>UNITS</Text>
-        <Text style={[s.subHdrAmt, { flex: isDual ? 1 : 1.4, width: undefined }]}>{isDual ? 'USD' : 'AMOUNT'}</Text>
+        <Text style={[s.subHdrAmt, { flex: isDual ? 1 : 1.4, width: undefined }]}>{isDual ? 'USD' : (currency || 'USD')}</Text>
         {isDual && <Text style={[s.subHdrAmtZIG, { flex: 1, width: undefined }]}>ZiG</Text>}
       </View>
     </View>
     {rows.map((item, idx) => {
-      const usdAmt = getAmt(item);
+      const amt = getAmt(item);
       const zigAmt = isDual ? getAmtZIG(item) : null;
       return (
         <View key={idx} style={[s.tableRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? s.rowEven : {}]}>
@@ -167,7 +168,7 @@ const TableSection = ({ title, titleColor, rows, getAmt, getAmtZIG, isDual }) =>
           <Text style={[s.rowUnits, { flex: 0.55, width: undefined }]} numberOfLines={1}>
             {item.units != null ? `${item.units}${item.unitsType ? ' ' + item.unitsType : ''}` : ''}
           </Text>
-          <Text style={[s.rowAmt, { flex: isDual ? 1 : 1.4, width: undefined }]} numberOfLines={1}>{isDual && (usdAmt == null || usdAmt === 0) ? '—' : usd(usdAmt)}</Text>
+          <Text style={[s.rowAmt, { flex: isDual ? 1 : 1.4, width: undefined }]} numberOfLines={1}>{isDual && (amt == null || amt === 0) ? '—' : ccyFmt(amt)}</Text>
           {isDual && (
             <Text style={[s.rowAmtZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
               {zigAmt != null && zigAmt !== 0 ? `ZiG ${fmt(zigAmt)}` : '—'}
@@ -193,6 +194,8 @@ const PayslipDocument = ({ data }) => {
   } = data;
 
   const isDual = grossUSD != null && grossZIG != null;
+  const ccy = currency || 'USD';
+  const ccyFmt = makeCcyFmt(ccy);
 
   const earnings   = lineItems.filter(i => (i.allowance ?? 0) > 0 || (i.allowanceZIG ?? 0) > 0);
   const deductions = lineItems.filter(i => (i.deduction  ?? 0) > 0 || (i.deductionZIG  ?? 0) > 0);
@@ -259,6 +262,8 @@ const PayslipDocument = ({ data }) => {
             getAmt={e => e.allowance}
             getAmtZIG={e => e.allowanceZIG}
             isDual={isDual}
+            ccyFmt={ccyFmt}
+            currency={ccy}
           />
           <TableSection
             title="DEDUCTIONS" titleColor="#fb7185"
@@ -266,6 +271,8 @@ const PayslipDocument = ({ data }) => {
             getAmt={d => d.deduction}
             getAmtZIG={d => d.deductionZIG}
             isDual={isDual}
+            ccyFmt={ccyFmt}
+            currency={ccy}
           />
         </View>
 
@@ -276,15 +283,15 @@ const PayslipDocument = ({ data }) => {
               <Text style={s.empTitle}>STATUTORY EMPLOYER CONTRIBUTIONS</Text>
               <View style={[s.empSubHdrs, { flexWrap: 'nowrap' }]}>
                 <Text style={[s.subHdrDesc, { flex: 2 }]}>DESCRIPTION</Text>
-                <Text style={[s.subHdrAmt, { flex: 1, width: undefined, textAlign: 'right' }]}>AMOUNT (USD)</Text>
-                <Text style={[s.subHdrYtd, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD (USD)</Text>
+                <Text style={[s.subHdrAmt, { flex: 1, width: undefined, textAlign: 'right' }]}>AMOUNT ({ccy})</Text>
+                <Text style={[s.subHdrYtd, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD ({ccy})</Text>
               </View>
             </View>
             {employers.map((c, idx) => (
               <View key={idx} style={[s.empRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? { backgroundColor: '#f0f4ff' } : {}]}>
                 <Text style={[s.empRowDesc, { flex: 2 }]} numberOfLines={2}>{c.name}</Text>
-                <Text style={[s.empRowAmt, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(c.employer)}</Text>
-                {c.ytd != null && <Text style={[s.empRowYtd, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(c.ytd)}</Text>}
+                <Text style={[s.empRowAmt, { flex: 1, width: undefined }]} numberOfLines={1}>{ccyFmt(c.employer)}</Text>
+                {c.ytd != null && <Text style={[s.empRowYtd, { flex: 1, width: undefined }]} numberOfLines={1}>{ccyFmt(c.ytd)}</Text>}
               </View>
             ))}
           </View>
@@ -296,7 +303,7 @@ const PayslipDocument = ({ data }) => {
             <Text style={s.ytdTitle}>YEAR-TO-DATE SUMMARY</Text>
             <View style={[s.ytdSubHdrs, { flexWrap: 'nowrap' }]}>
               <Text style={[s.subHdrDesc, { flex: 2 }]}>DESCRIPTION</Text>
-              <Text style={[s.subHdrAmt, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD (USD)</Text>
+              <Text style={[s.subHdrAmt, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD ({ccy})</Text>
               {isDual && <Text style={[s.subHdrAmtZIG, { flex: 1, width: undefined, textAlign: 'right' }]}>YTD (ZiG)</Text>}
             </View>
           </View>
@@ -307,7 +314,7 @@ const PayslipDocument = ({ data }) => {
           {earnings.map((item, idx) => (
             <View key={`ye-${idx}`} style={[s.ytdRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
               <Text style={[s.ytdRowDesc, { flex: 2 }]} numberOfLines={2}>{item.name}</Text>
-              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{usd(item.ytd ?? item.allowance)}</Text>
+              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{ccyFmt(item.ytd ?? item.allowance)}</Text>
               {isDual && (
                 <Text style={[s.ytdRowZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
                   {item.ytdZIG != null ? `ZiG ${fmt(item.ytdZIG)}` : '—'}
@@ -322,7 +329,7 @@ const PayslipDocument = ({ data }) => {
           {deductions.map((item, idx) => (
             <View key={`yd-${idx}`} style={[s.ytdRow, { flexWrap: 'nowrap' }, idx % 2 === 0 ? { backgroundColor: '#f7f9fc' } : {}]}>
               <Text style={[s.ytdRowDesc, { flex: 2 }]} numberOfLines={2}>{item.name}</Text>
-              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{isDual && !(item.ytd ?? item.deduction) ? '—' : usd(item.ytd ?? item.deduction)}</Text>
+              <Text style={[s.ytdRowUSD, { flex: 1, width: undefined }]} numberOfLines={1}>{isDual && !(item.ytd ?? item.deduction) ? '—' : ccyFmt(item.ytd ?? item.deduction)}</Text>
               {isDual && (
                 <Text style={[s.ytdRowZIG, { flex: 1, width: undefined }]} numberOfLines={1}>
                   {item.ytdZIG != null ? `ZiG ${fmt(item.ytdZIG)}` : '—'}
@@ -343,7 +350,7 @@ const PayslipDocument = ({ data }) => {
                 <Text style={[s.ribbonAmt, { color: 'rgba(255,255,255,0.8)', fontSize: 9, marginTop: 2 }]}>ZiG {fmt(grossZIG)}</Text>
               </>
             ) : (
-              <Text style={[s.ribbonAmtLg, { color: 'white' }]}>{usd(grossPay)}</Text>
+              <Text style={[s.ribbonAmtLg, { color: 'white' }]}>{ccyFmt(grossPay)}</Text>
             )}
           </View>
           {/* Box 2 — Total Deductions */}
@@ -355,7 +362,7 @@ const PayslipDocument = ({ data }) => {
                 <Text style={[s.ribbonAmt, { color: RED, fontSize: 9, marginTop: 2 }]}>ZiG {fmt((grossZIG ?? 0) - (netPayZIG ?? 0))}</Text>
               </>
             ) : (
-              <Text style={[s.ribbonAmt, { color: RED }]}>{usd(totalDeductions)}</Text>
+              <Text style={[s.ribbonAmt, { color: RED }]}>{ccyFmt(totalDeductions)}</Text>
             )}
           </View>
           {/* Box 3 — Net Salary */}
@@ -367,7 +374,7 @@ const PayslipDocument = ({ data }) => {
                 <Text style={[s.ribbonAmt, { color: DARK_NAVY, fontSize: 9, marginTop: 2 }]}>ZiG {fmt(netPayZIG)}</Text>
               </>
             ) : (
-              <Text style={[s.ribbonAmtLg, { color: DARK_NAVY }]}>{usd(netSalary)}</Text>
+              <Text style={[s.ribbonAmtLg, { color: DARK_NAVY }]}>{ccyFmt(netSalary)}</Text>
             )}
           </View>
         </View>
