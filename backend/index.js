@@ -196,6 +196,9 @@ app.use('/api/devices',    require('./routes/devices'));
 // Intelligence
 app.use('/api/intelligence', require('./routes/intelligence'));
 
+// Temporary PAYE debug — remove after use
+app.use('/api/debug-paye', require('./routes/debugPayroll'));
+
 // Cron HTTP triggers (called by Render cron service or external scheduler)
 app.use('/api/cron', require('./routes/cron'));
 
