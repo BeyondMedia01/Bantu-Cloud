@@ -10,6 +10,7 @@ const BANTU_GREEN = '#B2DB64';
 const TEXT_DARK   = '#1e293b';
 const TEXT_MUTED  = '#64748b';
 const BORDER      = '#e2e8f0';
+const BLUE_ZIG    = '#0369a1';
 
 const fmt = (n) =>
   Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -26,70 +27,105 @@ const normalizeLabel = (name) => {
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  page:       { fontFamily: 'Helvetica', fontSize: 7.5, paddingBottom: 65 },
-  header:     { backgroundColor: DARK_NAVY, padding: 12, flexDirection: 'row',
-                justifyContent: 'space-between', alignItems: 'flex-start' },
-  company:    { color: BANTU_GREEN, fontFamily: 'Helvetica-Bold', fontSize: 14 },
-  meta:       { color: 'white', fontSize: 8, marginTop: 3 },
-  title:      { color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 20, textAlign: 'right' },
+  page: { fontFamily: 'Helvetica', fontSize: 7.5, paddingBottom: 50 },
 
-  colHdr:     { backgroundColor: DARK_NAVY, flexDirection: 'row', padding: 4,
-                marginHorizontal: 10, marginTop: 14 },
-  colHdrText: { color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 7.5 },
-  colAmt:     { width: 50, color: 'white', fontFamily: 'Helvetica-Bold',
-                fontSize: 7.5, textAlign: 'right' },
-  colAmtSm:   { width: 50, color: 'rgba(178,219,100,0.85)', fontFamily: 'Helvetica-Bold',
-                fontSize: 7.5, textAlign: 'right' },
+  // Header
+  header: { backgroundColor: DARK_NAVY, padding: 12, flexDirection: 'row',
+             justifyContent: 'space-between', alignItems: 'flex-start' },
+  company: { color: BANTU_GREEN, fontFamily: 'Helvetica-Bold', fontSize: 14 },
+  meta: { color: 'white', fontSize: 8, marginTop: 3 },
+  title: { color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 20, textAlign: 'right' },
 
-  deptLabel:  { color: DARK_NAVY, fontFamily: 'Helvetica-Bold', fontSize: 9,
-                paddingHorizontal: 10, paddingTop: 8, paddingBottom: 4 },
-  empName:    { color: DARK_NAVY, fontFamily: 'Helvetica-Bold', fontSize: 7.5,
-                paddingHorizontal: 10, paddingBottom: 3 },
+  // Department label bar
+  deptLabel: { backgroundColor: '#d1dce8', paddingHorizontal: 10, paddingVertical: 5,
+               marginTop: 10, fontFamily: 'Helvetica-Bold', fontSize: 9, color: DARK_NAVY,
+               letterSpacing: 0.5 },
 
-  threeCol:   { flexDirection: 'row', marginHorizontal: 10 },
-  colSection: { flex: 1, borderRightWidth: 0.3, borderColor: BORDER },
-  colTitle:   { backgroundColor: '#e8edf3', padding: 3, fontSize: 6.5,
-                fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
-  dataRow:    { flexDirection: 'row', paddingHorizontal: 4, paddingVertical: 2 },
-  dataDesc:   { flex: 1, color: TEXT_DARK },
-  dataUnits:  { width: 36, textAlign: 'right', color: TEXT_MUTED, fontSize: 7 },
-  dataAmt:    { width: 50, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
-  dataAmtZIG: { width: 50, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: '#0369a1' },
-  dataAmtGrey:{ width: 50, textAlign: 'right', color: TEXT_MUTED },
+  // Per-employee header line
+  empHeader: { flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 4,
+               borderBottomWidth: 0.5, borderColor: BORDER, backgroundColor: '#f8fafc' },
+  empHeaderField: { fontSize: 7.5, color: TEXT_MUTED, marginRight: 2 },
+  empHeaderValue: { fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: DARK_NAVY, marginRight: 14 },
 
-  netPay:     { flexDirection: 'row', paddingHorizontal: 10, paddingTop: 4,
-                paddingBottom: 2, gap: 16, justifyContent: 'flex-end' },
-  netLabel:   { color: '#059669', fontFamily: 'Helvetica-Bold', fontSize: 8, marginRight: 4 },
-  netValue:   { color: DARK_NAVY, fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
-  netValueZIG:{ color: '#0369a1', fontFamily: 'Helvetica-Bold', fontSize: 8, marginLeft: 6 },
+  // Two-column body
+  twoCol: { flexDirection: 'row', marginHorizontal: 10 },
+  colLeft: { flex: 1, borderRightWidth: 0.5, borderColor: BORDER },
+  colRight: { flex: 1 },
 
-  divider:    { borderBottomWidth: 0.3, borderColor: BORDER, marginHorizontal: 10,
-                marginTop: 4, marginBottom: 6 },
+  // Column sub-header (inside each employee block, per column)
+  colSubHdr: { flexDirection: 'row', backgroundColor: '#eef2f7', paddingHorizontal: 4,
+               paddingVertical: 3, borderBottomWidth: 0.3, borderColor: BORDER },
+  colSubHdrLabel: { flex: 1, fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: DARK_NAVY },
+  colSubHdrAmt: { width: 54, fontFamily: 'Helvetica-Bold', fontSize: 6.5,
+                  textAlign: 'right', color: DARK_NAVY },
+  colSubHdrAmtZIG: { width: 54, fontFamily: 'Helvetica-Bold', fontSize: 6.5,
+                     textAlign: 'right', color: BLUE_ZIG },
 
-  subtotal:   { backgroundColor: '#f1f5f9', flexDirection: 'row', padding: 5,
-                marginHorizontal: 10, marginBottom: 4 },
-  subtotLabel:{ flex: 1, fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: DARK_NAVY },
-  subtotAmt:  { width: 50, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
-  subtotAmtZIG:{ width: 50, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: '#0369a1' },
+  // Data rows
+  dataRow: { flexDirection: 'row', paddingHorizontal: 4, paddingVertical: 1.8 },
+  dataDesc: { flex: 1, color: TEXT_DARK, fontSize: 7.5 },
+  dataDescCredit: { flex: 1, color: TEXT_MUTED, fontSize: 7, fontStyle: 'italic' },
+  dataAmt: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+             color: DARK_NAVY, fontSize: 7.5 },
+  dataAmtZIG: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+               color: BLUE_ZIG, fontSize: 7.5 },
+  dataAmtMuted: { width: 54, textAlign: 'right', color: TEXT_MUTED, fontSize: 7 },
 
-  grandTotal: { backgroundColor: DARK_NAVY, flexDirection: 'row', padding: 7,
-                marginHorizontal: 10, marginTop: 6 },
-  gtLabel:    { flex: 1, color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 9 },
-  gtAmt:      { width: 50, textAlign: 'right', color: 'white',
-                fontFamily: 'Helvetica-Bold', fontSize: 9 },
-  gtAmtZIG:   { width: 50, textAlign: 'right', color: BANTU_GREEN,
-                fontFamily: 'Helvetica-Bold', fontSize: 9 },
+  // Employer contributions sub-section (right column, below deductions)
+  empContrDivider: { borderTopWidth: 0.3, borderColor: BORDER, marginHorizontal: 4, marginTop: 3 },
+  empContrLabel: { paddingHorizontal: 4, paddingTop: 2, paddingBottom: 1,
+                   fontSize: 6, color: TEXT_MUTED, fontFamily: 'Helvetica-Bold' },
 
-  footer:     { position: 'absolute', bottom: 12, left: 12, right: 12,
-                borderTopWidth: 0.5, borderColor: BORDER,
-                flexDirection: 'row', alignItems: 'center', paddingTop: 6 },
+  // Employee totals row (underline beneath each column)
+  empTotalRow: { flexDirection: 'row', borderTopWidth: 0.8, borderColor: DARK_NAVY,
+                 paddingHorizontal: 4, paddingTop: 2, paddingBottom: 2 },
+  empTotalLabel: { flex: 1, fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: DARK_NAVY },
+  empTotalAmt: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+                 color: DARK_NAVY, fontSize: 7.5 },
+  empTotalAmtZIG: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+                    color: BLUE_ZIG, fontSize: 7.5 },
+
+  // Net pay row (right-column total section)
+  netRow: { flexDirection: 'row', paddingHorizontal: 4, paddingTop: 3, paddingBottom: 3,
+            backgroundColor: '#f0fdf4' },
+  netLabel: { flex: 1, fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: '#059669' },
+  netAmt: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+            color: '#059669', fontSize: 7.5 },
+  netAmtZIG: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+               color: BLUE_ZIG, fontSize: 7.5 },
+
+  // Department total footer bar
+  deptTotalBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10,
+                  paddingVertical: 5, backgroundColor: '#dde4ee', marginTop: 2,
+                  borderTopWidth: 0.5, borderColor: '#b0bbcc' },
+  deptTotalFor: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: DARK_NAVY },
+  deptTotalEmps: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: DARK_NAVY, marginLeft: 10 },
+  deptTotalSpacer: { flex: 1 },
+  deptTotalNetLabel: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: DARK_NAVY, marginRight: 6 },
+  deptTotalAmt: { width: 60, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+                  color: DARK_NAVY, fontSize: 8 },
+  deptTotalAmtZIG: { width: 60, textAlign: 'right', fontFamily: 'Helvetica-Bold',
+                     color: BLUE_ZIG, fontSize: 8 },
+
+  // Grand total
+  grandTotal: { backgroundColor: DARK_NAVY, flexDirection: 'row', alignItems: 'center',
+                paddingHorizontal: 10, paddingVertical: 8, marginTop: 10 },
+  gtLabel: { flex: 1, color: 'white', fontFamily: 'Helvetica-Bold', fontSize: 9 },
+  gtNetLabel: { color: 'rgba(255,255,255,0.7)', fontFamily: 'Helvetica-Bold',
+                fontSize: 8, marginRight: 6 },
+  gtAmt: { width: 64, textAlign: 'right', color: 'white',
+           fontFamily: 'Helvetica-Bold', fontSize: 9 },
+  gtAmtZIG: { width: 64, textAlign: 'right', color: BANTU_GREEN,
+              fontFamily: 'Helvetica-Bold', fontSize: 9 },
+
+  // Footer
+  footer: { position: 'absolute', bottom: 12, left: 12, right: 12,
+            borderTopWidth: 0.5, borderColor: BORDER,
+            flexDirection: 'row', alignItems: 'center', paddingTop: 6 },
   footerLogo: { width: 22, height: 22, marginRight: 6 },
-  footerBrand:{ flex: 1, color: TEXT_MUTED, fontSize: 7, fontFamily: 'Helvetica-Bold',
-                textAlign: 'center' },
+  footerBrand: { flex: 1, color: TEXT_MUTED, fontSize: 7, fontFamily: 'Helvetica-Bold',
+                 textAlign: 'center' },
   footerConf: { color: TEXT_MUTED, fontSize: 7, textAlign: 'right' },
-
-  // Dual-currency currency badge labels
-  ccyBadge:   { fontSize: 6, color: TEXT_MUTED, paddingHorizontal: 4, paddingTop: 2 },
 });
 
 // ── Main Document ─────────────────────────────────────────────────────────────
@@ -98,24 +134,16 @@ const SummaryDocument = ({ data }) => {
   const { companyName, period, date, time, groups = [], isDual = false, exchangeRate, currency } = data;
   const ccy = isDual ? 'USD' : (currency || 'USD');
 
+  let grandNetUSD = 0, grandNetZIG = 0;
   let grandEarningsUSD = 0, grandEarningsZIG = 0;
   let grandDeductionsUSD = 0, grandDeductionsZIG = 0;
-  let grandEmployer = 0;
-  let grandNetUSD = 0, grandNetZIG = 0;
-
-  // Column header sub-labels for dual mode
-  const AmtColHeader = ({ label }) => (
-    <View style={{ flexDirection: 'row', gap: 0 }}>
-      <Text style={[s.colAmt]}>{label}</Text>
-      {isDual && <Text style={[s.colAmtSm]}>ZiG</Text>}
-    </View>
-  );
+  let grandHeadcount = 0;
 
   return (
     <Document>
       <Page size="A4" style={s.page}>
 
-        {/* Header */}
+        {/* ── Header ── */}
         <View style={s.header} fixed>
           <View>
             <Text style={s.company}>{(companyName || '').toUpperCase()}</Text>
@@ -130,55 +158,35 @@ const SummaryDocument = ({ data }) => {
           <Text style={s.title}>PAYROLL SUMMARY</Text>
         </View>
 
-        {/* Column headers */}
-        <View style={s.colHdr} fixed>
-          {/* Earnings section */}
-          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-            <Text style={[s.colHdrText, { flex: 1 }]}>EARNINGS</Text>
-            <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-            <Text style={s.colAmt}>{isDual ? 'USD' : ccy}</Text>
-            {isDual && <Text style={s.colAmtSm}>ZiG</Text>}
-          </View>
-          {/* Deductions section */}
-          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-            <Text style={[s.colHdrText, { flex: 1 }]}>DEDUCTIONS</Text>
-            <Text style={[s.colAmt, { width: 36 }]}>UNITS</Text>
-            <Text style={s.colAmt}>{isDual ? 'USD' : ccy}</Text>
-            {isDual && <Text style={s.colAmtSm}>ZiG</Text>}
-          </View>
-          {/* Employer section */}
-          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-            <Text style={[s.colHdrText, { flex: 1 }]}>EMPLOYER CONTRIB.</Text>
-            <Text style={s.colAmt}>AMOUNT</Text>
-          </View>
-        </View>
-
-        {/* Groups */}
+        {/* ── Department Groups ── */}
         {groups.map((group, gi) => {
+          let groupNetUSD = 0, groupNetZIG = 0;
           let groupEarningsUSD = 0, groupEarningsZIG = 0;
           let groupDeductionsUSD = 0, groupDeductionsZIG = 0;
-          let groupEmployer = 0;
-          let groupNetUSD = 0, groupNetZIG = 0;
+          const groupHeadcount = group.payslips.length;
 
           return (
             <View key={gi}>
+              {/* Department label */}
               <Text style={s.deptLabel}>{(group.name || 'General').toUpperCase()}</Text>
 
+              {/* Employees */}
               {group.payslips.map((p, pi) => {
-                const emp        = p.employee || {};
-                const lines      = p.displayLines || [];
-                const pIsDual    = p.isDual ?? isDual;
-                const earnings   = lines.filter(l => (l.allowance ?? 0) > 0);          // all rows shown
-                const earningsSumRows = earnings.filter(l => !l.taxCredit);              // excludes tax credits from totals
-                const deductions = lines.filter(l => (l.deduction  ?? 0) > 0);
-                const employers  = lines.filter(l => (l.employer   ?? 0) > 0);
-                const maxRows    = Math.max(earnings.length, deductions.length, employers.length, 1);
+                const emp     = p.employee || {};
+                const lines   = p.displayLines || [];
+                const pIsDual = p.isDual ?? isDual;
 
-                const totalAllowUSD = earningsSumRows.reduce((a, e) => a + (e.allowance ?? 0), 0);
+                // Split lines into categories
+                const earnings       = lines.filter(l => (l.allowance  ?? 0) > 0);
+                const earningsSumRows= earnings.filter(l => !l.taxCredit);
+                const deductions     = lines.filter(l => (l.deduction  ?? 0) > 0);
+                const employers      = lines.filter(l => (l.employer   ?? 0) > 0);
+
+                // Totals
+                const totalAllowUSD = earningsSumRows.reduce((a, e) => a + (e.allowance   ?? 0), 0);
                 const totalAllowZIG = pIsDual ? earningsSumRows.reduce((a, e) => a + (e.allowanceZIG ?? 0), 0) : 0;
-                const totalDedUSD   = deductions.reduce((a, d) => a + (d.deduction ?? 0), 0);
+                const totalDedUSD   = deductions.reduce((a, d) => a + (d.deduction  ?? 0), 0);
                 const totalDedZIG   = pIsDual ? deductions.reduce((a, d) => a + (d.deductionZIG ?? 0), 0) : 0;
-                const totalEmpr     = employers.reduce((a, r) => a + (r.employer ?? 0), 0);
                 const netUSD        = p.netPayUSD ?? p.netPay ?? (totalAllowUSD - totalDedUSD);
                 const netZIG        = pIsDual ? (p.netPayZIG ?? 0) : 0;
 
@@ -186,109 +194,146 @@ const SummaryDocument = ({ data }) => {
                 groupEarningsZIG   += totalAllowZIG;
                 groupDeductionsUSD += totalDedUSD;
                 groupDeductionsZIG += totalDedZIG;
-                groupEmployer      += totalEmpr;
                 groupNetUSD        += netUSD;
                 groupNetZIG        += netZIG;
 
+                const deptName = emp.department?.name || p.employee?.costCenter || group.name || '';
+
                 return (
                   <View key={pi} wrap={false}>
-                    <Text style={s.empName}>
-                      {emp.employeeCode}  {(emp.lastName || '').toUpperCase()}, {emp.firstName}
-                    </Text>
-                    <View style={s.threeCol}>
-                      {/* Earnings column */}
-                      <View style={s.colSection}>
-                        {Array.from({ length: maxRows }).map((_, i) => {
-                          const e = earnings[i];
-                          return e ? (
-                            <View key={i} style={s.dataRow}>
-                              <Text style={s.dataDesc}>{e.name}</Text>
-                              <Text style={s.dataUnits}>
-                                {e.units != null ? `${e.units}${e.unitsType ? ' ' + e.unitsType : ''}` : ''}
+                    {/* Employee header line */}
+                    <View style={s.empHeader}>
+                      <Text style={s.empHeaderField}>CODE: </Text>
+                      <Text style={s.empHeaderValue}>{emp.employeeCode || '—'}</Text>
+                      <Text style={s.empHeaderField}>NAME: </Text>
+                      <Text style={s.empHeaderValue}>
+                        {(emp.lastName || '').toUpperCase()}{emp.firstName ? ', ' + emp.firstName : ''}
+                      </Text>
+                      <Text style={s.empHeaderField}>DEPARTMENT: </Text>
+                      <Text style={s.empHeaderValue}>{(deptName || '').toUpperCase()}</Text>
+                    </View>
+
+                    {/* Two-column body */}
+                    <View style={s.twoCol}>
+                      {/* ── Left: Earnings ── */}
+                      <View style={s.colLeft}>
+                        <View style={s.colSubHdr}>
+                          <Text style={s.colSubHdrLabel}>EARNINGS</Text>
+                          <Text style={s.colSubHdrAmt}>{isDual ? 'USD' : ccy}</Text>
+                          {pIsDual && <Text style={s.colSubHdrAmtZIG}>ZiG</Text>}
+                        </View>
+                        {earnings.map((e, i) => (
+                          <View key={i} style={s.dataRow}>
+                            <Text style={e.taxCredit ? s.dataDescCredit : s.dataDesc}>
+                              {e.name}{e.taxCredit ? ' *' : ''}
+                            </Text>
+                            <Text style={e.taxCredit ? s.dataAmtMuted : s.dataAmt}>
+                              {fmt(e.allowance)}
+                            </Text>
+                            {pIsDual && (
+                              <Text style={e.taxCredit ? s.dataAmtMuted : s.dataAmtZIG}>
+                                {(e.allowanceZIG ?? 0) !== 0 ? fmt(e.allowanceZIG) : '—'}
                               </Text>
-                              <Text style={s.dataAmt}>{fmt(e.allowance)}</Text>
-                              {pIsDual && (
-                                <Text style={s.dataAmtZIG}>
-                                  {(e.allowanceZIG ?? 0) !== 0 ? fmt(e.allowanceZIG) : '—'}
-                                </Text>
-                              )}
-                            </View>
-                          ) : <View key={i} style={[s.dataRow, { height: 14 }]} />;
-                        })}
+                            )}
+                          </View>
+                        ))}
+                        {earnings.length === 0 && (
+                          <View style={[s.dataRow, { height: 14 }]} />
+                        )}
                       </View>
-                      {/* Deductions column */}
-                      <View style={s.colSection}>
-                        {Array.from({ length: maxRows }).map((_, i) => {
-                          const d = deductions[i];
-                          return d ? (
-                            <View key={i} style={s.dataRow}>
-                              <Text style={s.dataDesc}>{normalizeLabel(d.name)}</Text>
-                              <Text style={s.dataUnits}>
-                                {d.units != null ? `${d.units}${d.unitsType ? ' ' + d.unitsType : ''}` : ''}
+
+                      {/* ── Right: Deductions + Employer ── */}
+                      <View style={s.colRight}>
+                        <View style={s.colSubHdr}>
+                          <Text style={s.colSubHdrLabel}>DEDUCTIONS</Text>
+                          <Text style={s.colSubHdrAmt}>{isDual ? 'USD' : ccy}</Text>
+                          {pIsDual && <Text style={s.colSubHdrAmtZIG}>ZiG</Text>}
+                        </View>
+                        {deductions.map((d, i) => (
+                          <View key={i} style={s.dataRow}>
+                            <Text style={s.dataDesc}>{normalizeLabel(d.name)}</Text>
+                            <Text style={s.dataAmt}>{fmt(d.deduction)}</Text>
+                            {pIsDual && (
+                              <Text style={s.dataAmtZIG}>
+                                {(d.deductionZIG ?? 0) !== 0 ? fmt(d.deductionZIG) : '—'}
                               </Text>
-                              <Text style={s.dataAmt}>{fmt(d.deduction)}</Text>
-                              {pIsDual && (
-                                <Text style={s.dataAmtZIG}>
-                                  {(d.deductionZIG ?? 0) !== 0 ? fmt(d.deductionZIG) : '—'}
+                            )}
+                          </View>
+                        ))}
+                        {deductions.length === 0 && (
+                          <View style={[s.dataRow, { height: 14 }]} />
+                        )}
+                        {/* Employer contributions sub-section */}
+                        {employers.length > 0 && (
+                          <View>
+                            <View style={s.empContrDivider} />
+                            <Text style={s.empContrLabel}>EMPLOYER CONTRIBUTIONS</Text>
+                            {employers.map((r, i) => (
+                              <View key={i} style={s.dataRow}>
+                                <Text style={[s.dataDesc, { color: TEXT_MUTED, fontSize: 7 }]}>
+                                  {normalizeLabel(r.name)}
                                 </Text>
-                              )}
-                            </View>
-                          ) : <View key={i} style={[s.dataRow, { height: 14 }]} />;
-                        })}
-                      </View>
-                      {/* Employer column */}
-                      <View style={{ flex: 1 }}>
-                        {Array.from({ length: maxRows }).map((_, i) => {
-                          const r = employers[i];
-                          return r ? (
-                            <View key={i} style={s.dataRow}>
-                              <Text style={s.dataDesc}>{normalizeLabel(r.name)}</Text>
-                              <Text style={s.dataAmtGrey}>{fmt(r.employer)}</Text>
-                            </View>
-                          ) : <View key={i} style={[s.dataRow, { height: 14 }]} />;
-                        })}
+                                <Text style={s.dataAmtMuted}>{fmt(r.employer)}</Text>
+                                {pIsDual && <Text style={[s.dataAmtMuted, { width: 54 }]}>—</Text>}
+                              </View>
+                            ))}
+                          </View>
+                        )}
                       </View>
                     </View>
-                    {/* Net Pay line */}
-                    <View style={s.netPay}>
-                      <Text style={s.netLabel}>NET PAY</Text>
-                      <Text style={s.netValue}>{ccy} {fmt(netUSD)}</Text>
-                      {pIsDual && netZIG > 0 && (
-                        <Text style={s.netValueZIG}>ZiG {fmt(netZIG)}</Text>
-                      )}
+
+                    {/* Totals row (aligned two halves) */}
+                    <View style={s.twoCol}>
+                      {/* Left total: total earnings */}
+                      <View style={[s.colLeft, { borderRightWidth: 0.5, borderColor: BORDER }]}>
+                        <View style={s.empTotalRow}>
+                          <Text style={s.empTotalLabel}>TOTAL EARNINGS</Text>
+                          <Text style={s.empTotalAmt}>{fmt(totalAllowUSD)}</Text>
+                          {pIsDual && <Text style={s.empTotalAmtZIG}>{fmt(totalAllowZIG)}</Text>}
+                        </View>
+                      </View>
+                      {/* Right total: total deductions + net pay */}
+                      <View style={s.colRight}>
+                        <View style={s.empTotalRow}>
+                          <Text style={s.empTotalLabel}>TOTAL DEDUCTIONS</Text>
+                          <Text style={s.empTotalAmt}>{fmt(totalDedUSD)}</Text>
+                          {pIsDual && <Text style={s.empTotalAmtZIG}>{fmt(totalDedZIG)}</Text>}
+                        </View>
+                        <View style={s.netRow}>
+                          <Text style={s.netLabel}>NET PAY</Text>
+                          <Text style={s.netAmt}>{ccy} {fmt(netUSD)}</Text>
+                          {pIsDual && netZIG > 0 && (
+                            <Text style={s.netAmtZIG}>ZiG {fmt(netZIG)}</Text>
+                          )}
+                        </View>
+                      </View>
                     </View>
-                    <View style={s.divider} />
+
+                    {/* Spacer between employees */}
+                    <View style={{ height: 4 }} />
                   </View>
                 );
               })}
 
-              {/* Group subtotal */}
+              {/* Department total footer */}
               {(() => {
+                grandHeadcount     += groupHeadcount;
+                grandNetUSD        += groupNetUSD;
+                grandNetZIG        += groupNetZIG;
                 grandEarningsUSD   += groupEarningsUSD;
                 grandEarningsZIG   += groupEarningsZIG;
                 grandDeductionsUSD += groupDeductionsUSD;
                 grandDeductionsZIG += groupDeductionsZIG;
-                grandEmployer      += groupEmployer;
-                grandNetUSD        += groupNetUSD;
-                grandNetZIG        += groupNetZIG;
                 return (
-                  <View style={s.subtotal} wrap={false}>
-                    <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-                      <Text style={[s.subtotLabel, { flex: 1 }]}>SUBTOTAL — {(group.name || 'General').toUpperCase()}</Text>
-                      <Text style={[s.subtotAmt, { width: 36 }]} />
-                      <Text style={s.subtotAmt}>{fmt(groupEarningsUSD)}</Text>
-                      {isDual && <Text style={s.subtotAmtZIG}>{fmt(groupEarningsZIG)}</Text>}
-                    </View>
-                    <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-                      <View style={{ flex: 1 }} />
-                      <Text style={[s.subtotAmt, { width: 36 }]} />
-                      <Text style={s.subtotAmt}>{fmt(groupDeductionsUSD)}</Text>
-                      {isDual && <Text style={s.subtotAmtZIG}>{fmt(groupDeductionsZIG)}</Text>}
-                    </View>
-                    <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-                      <View style={{ flex: 1 }} />
-                      <Text style={s.subtotAmt}>{fmt(groupEmployer)}</Text>
-                    </View>
+                  <View style={s.deptTotalBar} wrap={false}>
+                    <Text style={s.deptTotalFor}>TOTAL FOR: {(group.name || 'General').toUpperCase()}</Text>
+                    <Text style={s.deptTotalEmps}>EMPLOYEES: {groupHeadcount}</Text>
+                    <View style={s.deptTotalSpacer} />
+                    <Text style={s.deptTotalNetLabel}>NET PAY:</Text>
+                    <Text style={s.deptTotalAmt}>{ccy} {fmt(groupNetUSD)}</Text>
+                    {isDual && groupNetZIG > 0 && (
+                      <Text style={s.deptTotalAmtZIG}>ZiG {fmt(groupNetZIG)}</Text>
+                    )}
                   </View>
                 );
               })()}
@@ -296,37 +341,15 @@ const SummaryDocument = ({ data }) => {
           );
         })}
 
-        {/* Grand Totals */}
+        {/* Grand Total */}
         <View style={s.grandTotal} wrap={false}>
-          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-            <Text style={[s.gtLabel, { flex: 1 }]}>GRAND TOTALS</Text>
-            <Text style={[s.gtAmt, { width: 36 }]} />
-            <Text style={s.gtAmt}>{fmt(grandEarningsUSD)}</Text>
-            {isDual && <Text style={s.gtAmtZIG}>{fmt(grandEarningsZIG)}</Text>}
-          </View>
-          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-            <View style={{ flex: 1 }} />
-            <Text style={[s.gtAmt, { width: 36 }]} />
-            <Text style={s.gtAmt}>{fmt(grandDeductionsUSD)}</Text>
-            {isDual && <Text style={s.gtAmtZIG}>{fmt(grandDeductionsZIG)}</Text>}
-          </View>
-          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 4 }}>
-            <View style={{ flex: 1 }} />
-            <Text style={s.gtAmt}>{fmt(grandEmployer)}</Text>
-          </View>
+          <Text style={s.gtLabel}>GRAND TOTAL — {grandHeadcount} EMPLOYEES</Text>
+          <Text style={s.gtNetLabel}>NET PAY:</Text>
+          <Text style={s.gtAmt}>{ccy} {fmt(grandNetUSD)}</Text>
+          {isDual && grandNetZIG > 0 && (
+            <Text style={s.gtAmtZIG}>ZiG {fmt(grandNetZIG)}</Text>
+          )}
         </View>
-
-        {/* Net Pay grand total for dual */}
-        {isDual && (
-          <View style={{ flexDirection: 'row', paddingHorizontal: 15, paddingTop: 6, justifyContent: 'flex-end', gap: 20 }}>
-            <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 9, color: DARK_NAVY }}>
-              GRAND NET PAY:  USD {fmt(grandNetUSD)}
-            </Text>
-            <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 9, color: '#0369a1' }}>
-              ZiG {fmt(grandNetZIG)}
-            </Text>
-          </View>
-        )}
 
         {/* Footer */}
         <View style={s.footer} fixed>
