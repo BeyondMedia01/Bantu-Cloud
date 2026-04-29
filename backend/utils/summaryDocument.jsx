@@ -134,10 +134,56 @@ const SummaryDocument = ({ data }) => {
   const { companyName, period, date, time, groups = [], isDual = false, exchangeRate, currency } = data;
   const ccy = isDual ? 'USD' : (currency || 'USD');
 
-  let grandNetUSD = 0, grandNetZIG = 0;
-  let grandEarningsUSD = 0, grandEarningsZIG = 0;
-  let grandDeductionsUSD = 0, grandDeductionsZIG = 0;
-  let grandHeadcount = 0;
+  // ── Pre-compute grand totals (line-item aggregation across all employees) ──
+  const grandEarningsMap = new Map();
+  const grandDeductionsMap = new Map();
+  const grandEmployersMap = new Map();
+  let grandNetUSD = 0, grandNetZIG = 0, grandHeadcount = 0;
+
+  for (const group of groups) {
+    grandHeadcount += group.payslips.length;
+    for (const p of group.payslips) {
+      const lines   = p.displayLines || [];
+      const pIsDual = p.isDual ?? isDual;
+      const earnings   = lines.filter(l => (l.allowance ?? 0) > 0);
+      const deductions = lines.filter(l => (l.deduction ?? 0) > 0);
+      const employers  = lines.filter(l => (l.employer  ?? 0) > 0);
+
+      for (const e of earnings) {
+        const ex = grandEarningsMap.get(e.name) || { usd: 0, zig: 0, taxCredit: !!e.taxCredit };
+        ex.usd += e.allowance ?? 0;
+        ex.zig += pIsDual ? (e.allowanceZIG ?? 0) : 0;
+        grandEarningsMap.set(e.name, ex);
+      }
+      for (const d of deductions) {
+        const key = normalizeLabel(d.name);
+        const ex = grandDeductionsMap.get(key) || { usd: 0, zig: 0 };
+        ex.usd += d.deduction ?? 0;
+        ex.zig += pIsDual ? (d.deductionZIG ?? 0) : 0;
+        grandDeductionsMap.set(key, ex);
+      }
+      for (const r of employers) {
+        const key = normalizeLabel(r.name);
+        const ex = grandEmployersMap.get(key) || { usd: 0 };
+        ex.usd += r.employer ?? 0;
+        grandEmployersMap.set(key, ex);
+      }
+
+      const earningsSumRows = earnings.filter(l => !l.taxCredit);
+      const totalAllowUSD = earningsSumRows.reduce((a, e) => a + (e.allowance ?? 0), 0);
+      const totalDedUSD   = deductions.reduce((a, d) => a + (d.deduction ?? 0), 0);
+      grandNetUSD += p.netPayUSD ?? p.netPay ?? (totalAllowUSD - totalDedUSD);
+      grandNetZIG += pIsDual ? (p.netPayZIG ?? 0) : 0;
+    }
+  }
+
+  const grandEarningsLines   = Array.from(grandEarningsMap.entries()).map(([name, v]) => ({ name, ...v }));
+  const grandDeductionsLines = Array.from(grandDeductionsMap.entries()).map(([name, v]) => ({ name, ...v }));
+  const grandEmployersLines  = Array.from(grandEmployersMap.entries()).map(([name, v]) => ({ name, ...v }));
+  const grandTotalEarningsUSD = grandEarningsLines.filter(l => !l.taxCredit).reduce((a, l) => a + l.usd, 0);
+  const grandTotalEarningsZIG = grandEarningsLines.filter(l => !l.taxCredit).reduce((a, l) => a + l.zig, 0);
+  const grandTotalDedUSD = grandDeductionsLines.reduce((a, l) => a + l.usd, 0);
+  const grandTotalDedZIG = grandDeductionsLines.reduce((a, l) => a + l.zig, 0);
 
   return (
     <Document>
@@ -316,39 +362,112 @@ const SummaryDocument = ({ data }) => {
               })}
 
               {/* Department total footer */}
-              {(() => {
-                grandHeadcount     += groupHeadcount;
-                grandNetUSD        += groupNetUSD;
-                grandNetZIG        += groupNetZIG;
-                grandEarningsUSD   += groupEarningsUSD;
-                grandEarningsZIG   += groupEarningsZIG;
-                grandDeductionsUSD += groupDeductionsUSD;
-                grandDeductionsZIG += groupDeductionsZIG;
-                return (
-                  <View style={s.deptTotalBar} wrap={false}>
-                    <Text style={s.deptTotalFor}>TOTAL FOR: {(group.name || 'General').toUpperCase()}</Text>
-                    <Text style={s.deptTotalEmps}>EMPLOYEES: {groupHeadcount}</Text>
-                    <View style={s.deptTotalSpacer} />
-                    <Text style={s.deptTotalNetLabel}>NET PAY:</Text>
-                    <Text style={s.deptTotalAmt}>{ccy} {fmt(groupNetUSD)}</Text>
-                    {isDual && groupNetZIG > 0 && (
-                      <Text style={s.deptTotalAmtZIG}>ZiG {fmt(groupNetZIG)}</Text>
-                    )}
-                  </View>
-                );
-              })()}
+              <View style={s.deptTotalBar} wrap={false}>
+                <Text style={s.deptTotalFor}>TOTAL FOR: {(group.name || 'General').toUpperCase()}</Text>
+                <Text style={s.deptTotalEmps}>EMPLOYEES: {groupHeadcount}</Text>
+                <View style={s.deptTotalSpacer} />
+                <Text style={s.deptTotalNetLabel}>NET PAY:</Text>
+                <Text style={s.deptTotalAmt}>{ccy} {fmt(groupNetUSD)}</Text>
+                {isDual && groupNetZIG > 0 && (
+                  <Text style={s.deptTotalAmtZIG}>ZiG {fmt(groupNetZIG)}</Text>
+                )}
+              </View>
             </View>
           );
         })}
 
-        {/* Grand Total */}
+        {/* ── Grand Totals Section ── */}
         <View style={s.grandTotal} wrap={false}>
-          <Text style={s.gtLabel}>GRAND TOTAL — {grandHeadcount} EMPLOYEES</Text>
-          <Text style={s.gtNetLabel}>NET PAY:</Text>
-          <Text style={s.gtAmt}>{ccy} {fmt(grandNetUSD)}</Text>
-          {isDual && grandNetZIG > 0 && (
-            <Text style={s.gtAmtZIG}>ZiG {fmt(grandNetZIG)}</Text>
-          )}
+          <Text style={s.gtLabel}>GRAND TOTALS</Text>
+        </View>
+
+        {/* Grand totals line-item breakdown */}
+        <View style={s.twoCol} wrap={false}>
+          {/* Left: aggregated earnings */}
+          <View style={s.colLeft}>
+            <View style={s.colSubHdr}>
+              <Text style={s.colSubHdrLabel}>EARNINGS</Text>
+              <Text style={s.colSubHdrAmt}>{isDual ? 'USD' : ccy}</Text>
+              {isDual && <Text style={s.colSubHdrAmtZIG}>ZiG</Text>}
+            </View>
+            {grandEarningsLines.map((e, i) => (
+              <View key={i} style={s.dataRow}>
+                <Text style={e.taxCredit ? s.dataDescCredit : s.dataDesc}>
+                  {e.name}{e.taxCredit ? ' *' : ''}
+                </Text>
+                <Text style={e.taxCredit ? s.dataAmtMuted : s.dataAmt}>{fmt(e.usd)}</Text>
+                {isDual && (
+                  <Text style={e.taxCredit ? s.dataAmtMuted : s.dataAmtZIG}>
+                    {e.zig !== 0 ? fmt(e.zig) : '—'}
+                  </Text>
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* Right: aggregated deductions + employer */}
+          <View style={s.colRight}>
+            <View style={s.colSubHdr}>
+              <Text style={s.colSubHdrLabel}>DEDUCTIONS</Text>
+              <Text style={s.colSubHdrAmt}>{isDual ? 'USD' : ccy}</Text>
+              {isDual && <Text style={s.colSubHdrAmtZIG}>ZiG</Text>}
+            </View>
+            {grandDeductionsLines.map((d, i) => (
+              <View key={i} style={s.dataRow}>
+                <Text style={s.dataDesc}>{d.name}</Text>
+                <Text style={s.dataAmt}>{fmt(d.usd)}</Text>
+                {isDual && (
+                  <Text style={s.dataAmtZIG}>{d.zig !== 0 ? fmt(d.zig) : '—'}</Text>
+                )}
+              </View>
+            ))}
+            {grandEmployersLines.length > 0 && (
+              <View>
+                <View style={s.empContrDivider} />
+                <Text style={s.empContrLabel}>EMPLOYER CONTRIBUTIONS</Text>
+                {grandEmployersLines.map((r, i) => (
+                  <View key={i} style={s.dataRow}>
+                    <Text style={[s.dataDesc, { color: TEXT_MUTED, fontSize: 7 }]}>{r.name}</Text>
+                    <Text style={s.dataAmtMuted}>{fmt(r.usd)}</Text>
+                    {isDual && <Text style={[s.dataAmtMuted, { width: 54 }]}>—</Text>}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Grand totals summary row */}
+        <View style={s.twoCol} wrap={false}>
+          <View style={[s.colLeft, { borderRightWidth: 0.5, borderColor: BORDER }]}>
+            <View style={s.empTotalRow}>
+              <Text style={s.empTotalLabel}>TOTAL EARNINGS</Text>
+              <Text style={s.empTotalAmt}>{fmt(grandTotalEarningsUSD)}</Text>
+              {isDual && <Text style={s.empTotalAmtZIG}>{fmt(grandTotalEarningsZIG)}</Text>}
+            </View>
+          </View>
+          <View style={s.colRight}>
+            <View style={s.empTotalRow}>
+              <Text style={s.empTotalLabel}>TOTAL DEDUCTIONS</Text>
+              <Text style={s.empTotalAmt}>{fmt(grandTotalDedUSD)}</Text>
+              {isDual && <Text style={s.empTotalAmtZIG}>{fmt(grandTotalDedZIG)}</Text>}
+            </View>
+            <View style={s.netRow}>
+              <Text style={s.netLabel}>NET PAY</Text>
+              <Text style={s.netAmt}>{ccy} {fmt(grandNetUSD)}</Text>
+              {isDual && grandNetZIG > 0 && (
+                <Text style={s.netAmtZIG}>ZiG {fmt(grandNetZIG)}</Text>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Total employees + end of report */}
+        <View style={{ alignItems: 'center', paddingTop: 14, paddingBottom: 6 }} wrap={false}>
+          <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 9, color: DARK_NAVY }}>
+            TOTAL EMPLOYEES: {grandHeadcount}
+          </Text>
+          <Text style={{ fontSize: 8, color: TEXT_MUTED, marginTop: 6 }}>END OF REPORT...</Text>
         </View>
 
         {/* Footer */}
