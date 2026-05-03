@@ -116,7 +116,7 @@ const ProfileSettings: React.FC = () => {
             </div>
           </div>
           <div className="flex justify-end">
-            <button type="submit" disabled={profileLoading} className="bg-brand text-navy font-bold text-sm px-5 py-2.5 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50">
+            <button type="submit" disabled={profileLoading} className="bg-brand text-navy font-bold text-sm px-4 py-2 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50">
               {profileLoading ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
@@ -158,7 +158,7 @@ const ProfileSettings: React.FC = () => {
           </div>
           <p className="text-xs text-slate-400 font-medium">Minimum 8 characters</p>
           <div className="flex justify-end">
-            <button type="submit" disabled={pwLoading} className="bg-brand text-navy font-bold text-sm px-5 py-2.5 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50">
+            <button type="submit" disabled={pwLoading} className="bg-brand text-navy font-bold text-sm px-4 py-2 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50">
               {pwLoading ? 'Updating…' : 'Update Password'}
             </button>
           </div>

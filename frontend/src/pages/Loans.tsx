@@ -43,7 +43,7 @@ const Loans: React.FC = () => {
         </div>
         <button
           onClick={() => navigate('/loans/new')}
-          className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+          className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90"
         >
           <Plus size={16} /> New Loan
         </button>

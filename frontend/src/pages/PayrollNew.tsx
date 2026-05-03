@@ -195,11 +195,11 @@ const PayrollNew: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 bg-brand text-navy px-8 py-3.5 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60"
+            className="flex items-center gap-2 bg-brand text-navy px-8 py-2 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60"
           >
             <Play size={16} /> {loading ? 'Creating Run…' : 'Create Payroll Run'}
           </button>
-          <button type="button" onClick={() => navigate('/payroll')} className="px-6 py-3.5 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+          <button type="button" onClick={() => navigate('/payroll')} className="px-4 py-2.5 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
             Cancel
           </button>
         </div>

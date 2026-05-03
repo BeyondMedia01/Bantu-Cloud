@@ -99,13 +99,13 @@ const EmployeeImport: React.FC = () => {
         <div className="flex gap-3 pl-9">
           <button
             onClick={() => downloadTemplate('xlsx')}
-            className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold hover:opacity-90 shadow"
+            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold hover:opacity-90 shadow"
           >
             <FileSpreadsheet size={16} /> Download Excel Template
           </button>
           <button
             onClick={() => downloadTemplate('csv')}
-            className="flex items-center gap-2 border border-border text-slate-600 px-5 py-2.5 rounded-full text-sm font-bold hover:bg-slate-50"
+            className="flex items-center gap-1.5 border border-border text-slate-600 px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-50"
           >
             <FileText size={16} /> Download CSV Template
           </button>
@@ -162,14 +162,14 @@ const EmployeeImport: React.FC = () => {
             <button
               onClick={handleUpload}
               disabled={uploading}
-              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
             >
               <Upload size={16} /> {uploading ? 'Importing…' : 'Import Employees'}
             </button>
             <button
               type="button"
               onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-              className="px-6 py-3 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50"
+              className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50"
             >
               Clear
             </button>
@@ -230,7 +230,7 @@ const EmployeeImport: React.FC = () => {
           {result.created > 0 && (
             <button
               onClick={() => navigate('/employees')}
-              className="mt-4 flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90"
+              className="mt-4 flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90"
             >
               View Employees
             </button>

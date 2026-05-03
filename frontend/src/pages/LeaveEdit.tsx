@@ -128,14 +128,14 @@ const LeaveEdit: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
+            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
           >
             <Save size={16} /> {loading ? 'Saving…' : 'Save Changes'}
           </button>
           <button
             type="button"
             onClick={() => navigate('/leave')}
-            className="px-6 py-3 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50"
+            className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50"
           >
             Cancel
           </button>

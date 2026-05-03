@@ -111,7 +111,7 @@ const Leave: React.FC = () => {
         </div>
         <button
           onClick={() => navigate('/leave/new')}
-          className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-2"
+          className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
         >
           <Plus size={18} /> Add Leave
         </button>

@@ -134,7 +134,7 @@ const PayrollCalendar: React.FC = () => {
         </div>
         <button
           onClick={() => { setShowForm(!showForm); setError(''); }}
-          className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full font-bold shadow hover:opacity-90 text-sm"
+          className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm"
         >
           {showForm ? <><X size={15} /> Cancel</> : <><Plus size={15} /> New Period</>}
         </button>
@@ -222,11 +222,11 @@ const PayrollCalendar: React.FC = () => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold hover:opacity-90 disabled:opacity-60 text-sm"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold hover:opacity-90 disabled:opacity-60 text-sm"
             >
               <Check size={15} /> {saving ? 'Creating…' : 'Create Period'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm">
               Cancel
             </button>
           </div>

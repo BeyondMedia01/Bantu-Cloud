@@ -23,7 +23,7 @@ const LicenseExpired: React.FC = () => {
       <div className="flex gap-4">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 px-6 py-3 border border-border rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 border border-border rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-colors"
         >
           <LogOut size={16} /> Sign Out
         </button>

@@ -61,7 +61,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
           <h2 className="text-3xl font-bold text-navy mb-1">Transaction Ledger</h2>
           <p className="text-slate-500 font-medium">Detailed audit trail of individual earnings and deductions per employee.</p>
         </div>
-        <button className="bg-brand text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2">
+        <button className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-1.5">
           <Plus size={20} /> Add Entry
         </button>
       </header>

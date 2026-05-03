@@ -108,11 +108,11 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setShowSettings(true)}
-            className="bg-white border border-border text-navy px-6 py-3 rounded-[9999px] font-bold hover:bg-slate-50 transition-colors flex items-center gap-2"
+            className="bg-white border border-border text-navy px-4 py-2 rounded-full font-bold hover:bg-slate-50 transition-colors flex items-center gap-1.5"
           >
             <Settings size={20} /> Configure NSSA
           </button>
-          <button className="bg-slate-100 text-navy px-6 py-3 rounded-[9999px] font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
+          <button className="bg-slate-100 text-navy px-4 py-2 rounded-full font-bold hover:bg-slate-200 transition-colors flex items-center gap-1.5">
             <Download size={20} /> Export NSSA Return
           </button>
         </div>

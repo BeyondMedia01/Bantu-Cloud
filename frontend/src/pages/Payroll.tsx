@@ -136,9 +136,9 @@ const Payroll: React.FC = () => {
         </div>
         <button
           onClick={() => navigate('/payroll/new')}
-          className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-2"
+          className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
         >
-          <Plus size={18} /> New Payroll Run
+          <Plus size={14} /> New Payroll Run
         </button>
       </header>
 
@@ -153,8 +153,8 @@ const Payroll: React.FC = () => {
           <FileText size={40} className="mx-auto mb-3 text-slate-200" />
           <p className="font-bold text-slate-500 mb-2">No payroll runs yet</p>
           <p className="text-sm text-slate-400 mb-6">Create your first payroll run to get started</p>
-          <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-2">
-            <Plus size={16} /> Create Payroll Run
+          <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-1.5">
+            <Plus size={14} /> Create Payroll Run
           </button>
         </div>
       ) : (
@@ -306,10 +306,10 @@ const Payroll: React.FC = () => {
                         <div ref={bankDropdownRef} className="relative" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => setBankDropdown(bankDropdown === run.id ? null : run.id)}
-                            className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100"
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100"
                             title="Download Bank Payment File"
                           >
-                            <Banknote size={11} /> Bank <ChevronDown size={10} />
+                            <Banknote size={12} /> Bank <ChevronDown size={10} />
                           </button>
                           {bankDropdown === run.id && (
                             <div className="absolute right-0 top-full mt-1 bg-white border border-border rounded-xl shadow-lg z-20 min-w-[110px] py-1">

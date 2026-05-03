@@ -99,7 +99,7 @@ const LeaveBalances: React.FC = () => {
           <button
             onClick={handleYearEnd}
             disabled={actionLoading === 'yearend'}
-            className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-full font-bold text-sm shadow hover:bg-purple-700 disabled:opacity-60"
+            className="flex items-center gap-1.5 bg-purple-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow hover:bg-purple-700 disabled:opacity-60"
           >
             <ChevronsRight size={15} className={actionLoading === 'yearend' ? 'animate-pulse' : ''} />
             Year-End Carry-Over

@@ -536,7 +536,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
         <div className="flex items-center justify-between px-6 py-4 border-t border-border">
           <button
             onClick={() => step > 1 ? setStep(step - 1) : onClose()}
-            className="px-5 py-2.5 rounded-full border border-border font-bold text-sm text-slate-500 hover:bg-slate-50"
+            className="px-4 py-2 rounded-full border border-border font-bold text-sm text-slate-500 hover:bg-slate-50"
           >
             {step === 1 ? 'Cancel' : 'Back'}
           </button>
@@ -545,7 +545,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={!canNext()}
-                className="flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-50"
+                className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-50"
               >
                 Next →
               </button>
@@ -553,7 +553,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-60"
+                className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-60"
               >
                 <CheckCircle2 size={15} /> {saving ? 'Saving…' : editData ? 'Update Code' : 'Create Code'}
               </button>
@@ -845,14 +845,14 @@ const Transactions: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowTarmsAudit(true)}
-            className="flex items-center gap-2 border border-border text-slate-600 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-slate-50"
+            className="flex items-center gap-1.5 border border-border text-slate-600 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-slate-50"
             title="Check TaRMS field allocations for all transaction codes"
           >
             <ShieldCheck size={15} /> TaRMS Audit
           </button>
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90"
           >
             <Plus size={16} /> Create Code
           </button>
@@ -1038,7 +1038,7 @@ const Transactions: React.FC = () => {
             <div className="text-center py-16 bg-primary rounded-2xl border border-border">
               <p className="font-bold text-slate-500 mb-1">No transaction codes yet</p>
               <p className="text-sm text-slate-400 mb-5">Create codes to define earnings, deductions, and benefits</p>
-              <button onClick={openCreate} className="inline-flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90">
+              <button onClick={openCreate} className="inline-flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90">
                 <Plus size={15} /> Create First Code
               </button>
             </div>

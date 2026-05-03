@@ -116,7 +116,7 @@ const LeavePolicy: React.FC = () => {
           <h1 className="text-2xl font-bold text-navy">Leave Policies</h1>
           <p className="text-slate-500 text-sm font-medium">Configure accrual rates, caps, and carry-over rules per leave type</p>
         </div>
-        <button onClick={openAdd} className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-2">
+        <button onClick={openAdd} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
           <Plus size={18} /> Add Policy
         </button>
       </header>
@@ -168,11 +168,11 @@ const LeavePolicy: React.FC = () => {
 
             <div className="sm:col-span-2 lg:col-span-3 flex gap-3 pt-2">
               <button type="submit" disabled={saving}
-                className="bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
+                className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
                 {saving ? 'Saving…' : editId ? 'Update Policy' : 'Create Policy'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
-                className="px-8 py-3 rounded-full font-bold border border-border hover:bg-slate-50">
+                className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50">
                 Cancel
               </button>
             </div>

@@ -275,7 +275,7 @@ const BackPay: React.FC = () => {
                   key={mode}
                   type="button"
                   onClick={() => setRateMode(mode)}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
                     rateMode === mode
                       ? 'bg-accent-blue text-white border-accent-blue'
                       : 'bg-slate-50 text-slate-500 border-border hover:border-accent-blue'
@@ -314,7 +314,7 @@ const BackPay: React.FC = () => {
           <div className="pt-2">
             <button
               onClick={goStep1to2}
-              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90"
             >
               Next: Select Employees <ArrowRight size={16} />
             </button>
@@ -419,13 +419,13 @@ const BackPay: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => { setError(''); setStep(1); }} className="px-6 py-3 rounded-full font-bold border border-border hover:bg-slate-50 text-sm">
+            <button onClick={() => { setError(''); setStep(1); }} className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50 text-sm">
               Back
             </button>
             <button
               onClick={goStep2to3}
               disabled={previewLoading}
-              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
             >
               {previewLoading ? (
                 <><RefreshCw size={15} className="animate-spin" /> Calculating…</>
@@ -535,14 +535,14 @@ const BackPay: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => { setError(''); setStep(2); }} className="px-6 py-3 rounded-full font-bold border border-border hover:bg-slate-50 text-sm">
+            <button onClick={() => { setError(''); setStep(2); }} className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50 text-sm">
               Back
             </button>
             {preview.summary.totalEmployees > 0 && (
               <button
                 onClick={handleCommit}
                 disabled={commitLoading}
-                className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
+                className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
               >
                 {commitLoading ? (
                   <><RefreshCw size={15} className="animate-spin" /> Generating…</>
@@ -610,13 +610,13 @@ const BackPay: React.FC = () => {
           <div className="flex gap-3">
             <button
               onClick={() => { setStep(1); setEffectiveDate(''); setUniformNewRate(''); setSelected([]); setEmpRates({}); setPreview(null); setCommit(null); setError(''); }}
-              className="px-6 py-3 rounded-full font-bold border border-border hover:bg-slate-50 text-sm"
+              className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50 text-sm"
             >
               Start Over
             </button>
             <button
               onClick={() => navigate('/utilities')}
-              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 text-sm"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm"
             >
               Back to Utilities
             </button>

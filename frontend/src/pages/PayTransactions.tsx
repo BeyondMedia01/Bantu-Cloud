@@ -120,7 +120,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
           <h2 className="text-3xl font-bold text-navy mb-1">Earnings & Deductions</h2>
           <p className="text-slate-500 font-medium">Define transaction codes and calculation logic for payslip line items.</p>
         </div>
-        <button onClick={openCreate} className="bg-brand text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2">
+        <button onClick={openCreate} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-1.5">
           <Plus size={20} /> Add Code
         </button>
       </header>

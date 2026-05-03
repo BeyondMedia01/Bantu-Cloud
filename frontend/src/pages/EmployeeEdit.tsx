@@ -316,7 +316,7 @@ const EmployeeEdit: React.FC = () => {
               </button>
               <button
                 onClick={() => setDocUploadFile(null)}
-                className="px-5 py-2.5 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+                className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
               >
                 Cancel
               </button>
@@ -359,7 +359,7 @@ const EmployeeEdit: React.FC = () => {
             key={t.id}
             type="button"
             onClick={() => setActiveTab(t.id as any)}
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
               activeTab === t.id ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
             }`}
           >
@@ -840,11 +840,11 @@ const EmployeeEdit: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60"
             >
               <Save size={16} /> {loading ? 'Saving…' : 'Save Changes'}
             </button>
-            <button type="button" onClick={() => navigate('/employees')} className="px-6 py-3 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+            <button type="button" onClick={() => navigate('/employees')} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
               Cancel
             </button>
           </div>

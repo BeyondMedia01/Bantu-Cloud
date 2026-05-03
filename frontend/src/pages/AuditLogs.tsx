@@ -178,8 +178,8 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-brand text-navy text-sm font-bold rounded-xl hover:opacity-90 transition-opacity shadow-sm">
-            <Download size={15} />
+          <button className="flex items-center gap-1.5 px-4 py-2 bg-brand text-navy text-sm font-bold rounded-full hover:opacity-90 transition-opacity shadow-sm">
+            <Download size={14} />
             Export
           </button>
         </div>
