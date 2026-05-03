@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Users, TrendingUp, TrendingDown, DollarSign, Banknote, ChevronDown, FileText, Eye } from 'lucide-react';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import { Dropdown } from '../components/ui/dropdown';
 
 const fmt = (n: number | null | undefined) =>
   n != null ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -14,7 +15,6 @@ const PayrollSummary: React.FC = () => {
   const [run, setRun] = useState<any>(null);
   const [payslips, setPayslips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bankDropdown, setBankDropdown] = useState(false);
   const [exporting, setExporting] = useState('');
   const [rerunSuccess, setRerunSuccess] = useState(false);
 
@@ -103,7 +103,6 @@ const PayrollSummary: React.FC = () => {
 
   const handleBankExport = async (format: 'cbz' | 'stanbic' | 'fidelity') => {
     if (!runId) return;
-    setBankDropdown(false);
     setExporting(format);
     try {
       const res = await BankFileAPI.download(format, runId);
@@ -266,28 +265,23 @@ const PayrollSummary: React.FC = () => {
             >
               <FileText size={14} /> NSSA
             </button>
-            <div className="relative">
-              <button
-                onClick={() => setBankDropdown(!bankDropdown)}
-                disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50"
-              >
-                <Banknote size={14} /> Bank <ChevronDown size={12} />
-              </button>
-              {bankDropdown && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-border rounded-xl shadow-lg z-20 min-w-[110px] py-1">
-                  {(['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => (
-                    <button
-                      key={fmt}
-                      onClick={() => handleBankExport(fmt)}
-                      className="w-full text-left px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 uppercase"
-                    >
-                      {fmt}
-                    </button>
-                  ))}
-                </div>
+            <Dropdown
+              align="right"
+              disabled={!!exporting}
+              trigger={(isOpen) => (
+                <button
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50"
+                >
+                  <Banknote size={14} /> Bank <ChevronDown size={12} className={isOpen ? 'rotate-180' : ''} />
+                </button>
               )}
-            </div>
+              sections={[{
+                items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
+                  label: fmt,
+                  onClick: () => handleBankExport(fmt),
+                })),
+              }]}
+            />
           </div>
         )}
       </div>
