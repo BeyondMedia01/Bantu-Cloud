@@ -557,8 +557,8 @@ const PayrollInputGrid: React.FC = () => {
                             }`}>
                               {tc.type.slice(0, 3)}
                             </span>
-                            <span className="font-medium text-xs normal-case">{tc.code}</span>
-                            <span className="text-slate-400 text-xs normal-case">{tc.name}</span>
+                            <span className="font-medium text-xs">{tc.code}</span>
+                            <span className="text-slate-400 text-xs">{tc.name}</span>
                           </>
                         ),
                       })),

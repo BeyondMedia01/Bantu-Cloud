@@ -101,13 +101,13 @@ export function Dropdown({
                     role="menuitem"
                     disabled={item.disabled}
                     onClick={() => handleItemClick(item)}
-                    className="w-full text-left px-3 py-1.5 text-xs font-bold text-slate-600 uppercase hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {item.renderItem ? item.renderItem() : (
-                      <>
+                      <span className="uppercase flex items-center gap-2">
                         {item.icon}
                         {item.label}
-                      </>
+                      </span>
                     )}
                   </button>
                 ))

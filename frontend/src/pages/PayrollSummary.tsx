@@ -270,6 +270,7 @@ const PayrollSummary: React.FC = () => {
               disabled={!!exporting}
               trigger={(isOpen) => (
                 <button
+                  disabled={!!exporting}
                   className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50"
                 >
                   <Banknote size={14} /> Bank <ChevronDown size={12} className={isOpen ? 'rotate-180' : ''} />
