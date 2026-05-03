@@ -20,7 +20,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-blue"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-green"></div>
       </div>
     );
   }
@@ -38,7 +38,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
-        <div className="p-2 bg-accent-blue/10 rounded-lg text-accent-blue">
+        <div className="p-2 bg-accent-green/10 rounded-lg text-accent-green">
           <History size={20} />
         </div>
         <div>
@@ -52,7 +52,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
           <div key={log.id} className="relative">
             {/* The dot */}
             <div className="absolute -left-[41px] top-0 w-6 h-6 rounded-full bg-white border-4 border-slate-100 flex items-center justify-center shadow-sm">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent-blue"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-accent-green"></div>
             </div>
 
             <div className="bg-white border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">

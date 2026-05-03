@@ -317,7 +317,7 @@ const PayrollSummary: React.FC = () => {
             {
               label: isDual ? 'Net Pay (USD)' : 'Total Net Pay',
               value: isDual ? `$${fmt(totals.netUSD)}` : `${ccy} ${fmt(totals.net)}`,
-              icon: DollarSign, color: 'text-accent-blue', bg: 'bg-blue-50',
+              icon: DollarSign, color: 'text-accent-green', bg: 'bg-blue-50',
             },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="bg-primary border border-border rounded-2xl p-4 shadow-sm">

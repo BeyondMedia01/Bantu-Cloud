@@ -95,7 +95,7 @@ const AuditLogs: React.FC = () => {
             aria-label="Filter by action"
             value={action}
             onChange={(e) => setAction(e.target.value)}
-            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
           />
           <input
             type="text"
@@ -103,7 +103,7 @@ const AuditLogs: React.FC = () => {
             aria-label="Filter by resource"
             value={resource}
             onChange={(e) => setResource(e.target.value)}
-            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
           />
           <input
             type="text"
@@ -111,21 +111,21 @@ const AuditLogs: React.FC = () => {
             aria-label="Filter by user email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
           />
           <input
             type="date"
             aria-label="Filter from date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
           />
           <input
             type="date"
             aria-label="Filter to date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+            className="px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
           />
         </div>
         <div className="flex gap-3 mt-3">

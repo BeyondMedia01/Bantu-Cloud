@@ -150,7 +150,7 @@ const PayrollCalendar: React.FC = () => {
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Period Type</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span>{form.periodType}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -164,14 +164,14 @@ const PayrollCalendar: React.FC = () => {
                 max="2040"
                 value={form.year}
                 onChange={(e) => setForm((p) => ({ ...p, year: Number(e.target.value) }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Month</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span>{MONTHS[form.month - 1] || 'Select month'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -186,7 +186,7 @@ const PayrollCalendar: React.FC = () => {
                 type="date"
                 value={form.startDate}
                 onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 required
               />
             </div>
@@ -196,7 +196,7 @@ const PayrollCalendar: React.FC = () => {
                 type="date"
                 value={form.endDate}
                 onChange={(e) => setForm((p) => ({ ...p, endDate: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 required
               />
             </div>
@@ -208,7 +208,7 @@ const PayrollCalendar: React.FC = () => {
                 max="31"
                 value={form.payDay ?? ''}
                 onChange={(e) => setForm((p) => ({ ...p, payDay: Number(e.target.value) }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
               />
             </div>
           </div>
@@ -270,7 +270,7 @@ const PayrollCalendar: React.FC = () => {
           <p className="text-slate-400 font-medium text-sm">No payroll periods found for the selected year.</p>
           <button
             onClick={() => setShowForm(true)}
-            className="mt-4 text-accent-blue text-sm font-bold hover:underline"
+            className="mt-4 text-accent-green text-sm font-bold hover:underline"
           >
             Create your first period →
           </button>

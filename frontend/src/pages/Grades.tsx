@@ -139,7 +139,7 @@ const Grades: React.FC = () => {
                 value={form.name}
                 onChange={field('name')}
                 placeholder="e.g. Grade A, Band 3, NEC Grade 7"
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 required
               />
             </div>
@@ -150,7 +150,7 @@ const Grades: React.FC = () => {
                 value={form.description}
                 onChange={field('description')}
                 placeholder="Optional description or category"
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
               />
             </div>
             <div>
@@ -164,7 +164,7 @@ const Grades: React.FC = () => {
                   value={form.minSalary}
                   onChange={field('minSalary')}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 />
               </div>
             </div>
@@ -179,7 +179,7 @@ const Grades: React.FC = () => {
                   value={form.maxSalary}
                   onChange={field('maxSalary')}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 />
               </div>
             </div>
@@ -217,7 +217,7 @@ const Grades: React.FC = () => {
           <p className="text-slate-400 font-medium text-sm">No grades defined yet.</p>
           <button
             onClick={() => setShowCreate(true)}
-            className="mt-4 text-accent-blue text-sm font-bold hover:underline"
+            className="mt-4 text-accent-green text-sm font-bold hover:underline"
           >
             Create your first grade →
           </button>

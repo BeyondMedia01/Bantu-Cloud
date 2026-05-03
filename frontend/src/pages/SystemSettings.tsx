@@ -48,7 +48,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'NUMBER': return <Hash size={16} className="text-accent-blue" />;
+      case 'NUMBER': return <Hash size={16} className="text-accent-green" />;
       case 'BOOLEAN': return <ToggleLeft size={16} className="text-emerald-500" />;
       case 'DATE': return <Calendar size={16} className="text-amber-500" />;
       default: return <Type size={16} className="text-slate-400" />;
@@ -76,7 +76,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
         type={setting.dataType === 'NUMBER' ? 'number' : setting.dataType === 'DATE' ? 'date' : 'text'}
         value={editValue}
         onChange={(e) => setEditValue(e.target.value)}
-        className="w-full max-w-[200px] border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none focus:border-accent-blue"
+        className="w-full max-w-[200px] border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none focus:border-accent-green"
       />
     );
   };
@@ -133,7 +133,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
             <input 
               type="text" 
               placeholder="Search setting keys or descriptions..." 
-              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />

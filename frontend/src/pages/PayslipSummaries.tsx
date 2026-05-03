@@ -89,7 +89,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                 type="text" 
                 placeholder="Search by Employee ID or Name..."
                 aria-label="Search payslip summaries"
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/30"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/30"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -102,7 +102,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Employee / Period</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Gross (USD/ZiG)</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Deductions</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-accent-blue">Total Net (USD)</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-accent-green">Total Net (USD)</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -112,7 +112,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                 <tr key={s.id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold group-hover:bg-blue-50 group-hover:text-accent-blue transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold group-hover:bg-blue-50 group-hover:text-accent-green transition-colors">
                         <User size={18} />
                       </div>
                       <div>
@@ -135,7 +135,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                   </td>
                   <td className="px-6 py-4">
                      <div className="flex flex-col">
-                        <span className="text-sm font-black text-accent-blue">${s.totalNetPayInUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className="text-sm font-black text-accent-green">${s.totalNetPayInUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         <span className="text-[9px] text-slate-400 font-bold uppercase">Rate: {s.exchangeRateUsed.toFixed(4)}</span>
                      </div>
                   </td>
@@ -202,7 +202,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-black text-accent-blue">${totalNetUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      <span className="text-sm font-black text-accent-green">${totalNetUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </td>
                     <td colSpan={2} />
                   </tr>

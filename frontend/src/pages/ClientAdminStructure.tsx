@@ -129,7 +129,7 @@ const ClientAdminStructure: React.FC = () => {
     tab === 'departments' ? departments :
     subCompanies;
 
-  const inputCls = "w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue";
+  const inputCls = "w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green";
 
   return (
     <div className="flex flex-col gap-8">
@@ -265,7 +265,7 @@ const ClientAdminStructure: React.FC = () => {
                   required
                   value={formData.name || ''}
                   onChange={(e) => setFormData((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
                 />
               </div>
               <div>
@@ -273,7 +273,7 @@ const ClientAdminStructure: React.FC = () => {
                 <input
                   value={formData.description || ''}
                   onChange={(e) => setFormData((f) => ({ ...f, description: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
                 />
               </div>
             </div>

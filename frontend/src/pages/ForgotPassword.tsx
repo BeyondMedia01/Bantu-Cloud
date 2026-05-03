@@ -27,7 +27,7 @@ const ForgotPassword: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 font-inter">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-accent-blue rounded-xl flex items-center justify-center text-white font-bold text-lg shadow">B</div>
+        <div className="w-10 h-10 bg-accent-green rounded-xl flex items-center justify-center text-white font-bold text-lg shadow">B</div>
         <span className="text-xl font-bold text-navy">Bantu Payroll</span>
       </div>
 
@@ -79,7 +79,7 @@ const ForgotPassword: React.FC = () => {
                   placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 />
               </div>
               <button

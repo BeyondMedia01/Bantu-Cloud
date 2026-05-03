@@ -67,7 +67,7 @@ const RemindersCard: React.FC<RemindersCardProps> = React.memo(({ reminders, loa
             const colorClass = AVATAR_COLORS[i % AVATAR_COLORS.length];
 
             return (
-              <div key={`${item.kind}-${item.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-accent-blue/30 transition-colors">
+              <div key={`${item.kind}-${item.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-accent-green/30 transition-colors">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${colorClass}`}>
                   {initials(item.name)}
                 </div>

@@ -44,7 +44,7 @@ const Register: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 font-inter">
       <div className="flex items-center gap-3 mb-10">
-        <div className="w-12 h-12 bg-accent-blue rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
+        <div className="w-12 h-12 bg-accent-green rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
         <h1 className="text-3xl font-bold tracking-tight text-navy">Bantu Payroll</h1>
       </div>
 
@@ -68,7 +68,7 @@ const Register: React.FC = () => {
                 <input
                   type="text"
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                   placeholder="Jane"
                   value={form.firstName}
                   onChange={set('firstName')}
@@ -82,7 +82,7 @@ const Register: React.FC = () => {
                 <input
                   type="text"
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                   placeholder="Smith"
                   value={form.lastName}
                   onChange={set('lastName')}
@@ -99,7 +99,7 @@ const Register: React.FC = () => {
               <input
                 type="tel"
                 required
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="+263 77 123 4567"
                 value={form.phone}
                 onChange={set('phone')}
@@ -118,7 +118,7 @@ const Register: React.FC = () => {
                 <input
                   type={type}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                   placeholder={placeholder}
                   value={(form as any)[field]}
                   onChange={set(field)}
@@ -135,7 +135,7 @@ const Register: React.FC = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="Min. 8 characters"
                 value={form.password}
                 onChange={set('password')}
@@ -175,7 +175,7 @@ const Register: React.FC = () => {
 
           <p className="text-center text-sm font-medium text-slate-500">
             Already have an account?
-            <Link to="/login" className="ml-2 font-bold text-accent-blue hover:underline">Sign in</Link>
+            <Link to="/login" className="ml-2 font-bold text-accent-green hover:underline">Sign in</Link>
           </p>
         </form>
       </div>

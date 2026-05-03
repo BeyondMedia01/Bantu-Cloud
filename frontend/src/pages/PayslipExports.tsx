@@ -67,7 +67,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       {/* Audit Info Card */}
       <div className="bg-slate-900 rounded-3xl p-6 text-white flex gap-6 items-center shadow-xl shadow-slate-200">
         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
-          <ShieldCheck size={32} className="text-accent-blue" />
+          <ShieldCheck size={32} className="text-accent-green" />
         </div>
         <div>
           <h3 className="text-lg font-bold mb-1">Export Integrity & Chain of Custody</h3>
@@ -91,7 +91,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
             <input 
               type="text" 
               placeholder="Search by Employee or Submitter..." 
-              className="w-full pl-10 pr-4 py-3 bg-primary border border-border rounded-2xl text-sm focus:outline-none focus:border-accent-blue shadow-sm"
+              className="w-full pl-10 pr-4 py-3 bg-primary border border-border rounded-2xl text-sm focus:outline-none focus:border-accent-green shadow-sm"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -99,7 +99,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
          <Dropdown
            className="min-w-[200px]"
            trigger={(isOpen) => (
-             <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+             <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
                <span className="truncate">{{ALL:'All Export Types',BANK_TRANSFER:'Bank Transfers',NSSA_REPORT:'NSSA Reports',ZIMRA_REPORT:'ZIMRA Reports',PAYSLIP_PDF:'Payslip PDFs'}[filterType] ?? filterType}</span>
                <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
              </button>
@@ -187,7 +187,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       </div>
       
       <div className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 text-slate-500">
-         <Info size={16} className="text-accent-blue" />
+         <Info size={16} className="text-accent-green" />
          <p className="text-xs font-medium italic">All bank account metadata attached to these exports are point-in-time snapshots extracted from PayrollCore records.</p>
       </div>
     </div>

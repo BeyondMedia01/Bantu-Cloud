@@ -122,7 +122,7 @@ const EmployeeProfile: React.FC = () => {
               value={form.bankName}
               onChange={set('bankName')}
               placeholder="Search or type bank name"
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
+              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
             />
           </div>
           <div>

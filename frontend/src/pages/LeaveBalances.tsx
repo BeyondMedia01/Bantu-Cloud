@@ -116,7 +116,7 @@ const LeaveBalances: React.FC = () => {
         <Dropdown
           className="w-full"
           trigger={(isOpen) => (
-            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span>{yearFilter}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -129,7 +129,7 @@ const LeaveBalances: React.FC = () => {
         <Dropdown
           className="w-full"
           trigger={(isOpen) => (
-            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{employees.find((e: any) => e.id === employeeFilter) ? `${employees.find((e: any) => e.id === employeeFilter).firstName} ${employees.find((e: any) => e.id === employeeFilter).lastName}` : 'All Employees'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -156,7 +156,7 @@ const LeaveBalances: React.FC = () => {
             return (
               <div key={empId} className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
                 <div className="px-5 py-3 bg-slate-50 border-b border-border flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-accent-blue text-white flex items-center justify-center text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-accent-green text-white flex items-center justify-center text-xs font-bold">
                     {emp?.firstName?.[0]}{emp?.lastName?.[0]}
                   </div>
                   <div>
@@ -208,7 +208,7 @@ const LeaveBalances: React.FC = () => {
                                 <button
                                   onClick={() => handleAdjust(b.id)}
                                   disabled={actionLoading === 'adj-' + b.id}
-                                  className="text-xs font-bold px-2 py-1 bg-accent-blue text-white rounded-lg"
+                                  className="text-xs font-bold px-2 py-1 bg-accent-green text-white rounded-lg"
                                 >
                                   OK
                                 </button>

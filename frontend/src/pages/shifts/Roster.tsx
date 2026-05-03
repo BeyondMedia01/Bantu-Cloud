@@ -87,7 +87,7 @@ const AssignModal: React.FC<{
             <Dropdown className="w-full" trigger={(isOpen) => {
               const emp = employees.find(e => e.id === form.employeeId);
               return (
-                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span className="truncate">{emp ? `${emp.firstName} ${emp.lastName} (${emp.employeeCode})` : 'Select employee…'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -102,7 +102,7 @@ const AssignModal: React.FC<{
             <Dropdown className="w-full" trigger={(isOpen) => {
               const sh = shifts.find(s => s.id === form.shiftId);
               return (
-                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span className="truncate">{sh ? `${sh.name}${sh.code ? ` (${sh.code})` : ''}` : 'Select shift…'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -116,12 +116,12 @@ const AssignModal: React.FC<{
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Start Date *</label>
               <input type="date" value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">End Date (blank = ongoing)</label>
               <input type="date" value={form.endDate} onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
           </div>
           <div>
@@ -132,7 +132,7 @@ const AssignModal: React.FC<{
                   onClick={() => toggleDay(i)}
                   className={`w-9 h-9 rounded-full text-xs font-bold border transition-colors ${
                     form.daysOfWeek.includes(i)
-                      ? 'bg-accent-blue text-white border-accent-blue'
+                      ? 'bg-accent-green text-white border-accent-green'
                       : 'bg-slate-50 text-slate-500 border-border hover:bg-slate-100'
                   }`}>
                   {day.charAt(0)}
@@ -144,7 +144,7 @@ const AssignModal: React.FC<{
             <label className="block text-xs font-bold text-slate-600 mb-1.5">Notes</label>
             <input type="text" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
               placeholder="Optional notes…"
-              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
           </div>
         </div>
 
@@ -277,11 +277,11 @@ const Roster: React.FC = () => {
                     const isToday = str === todayStr;
                     const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                     return (
-                      <th key={str} className={`px-2 py-3 text-center min-w-[90px] ${isToday ? 'bg-accent-blue/5' : ''}`}>
+                      <th key={str} className={`px-2 py-3 text-center min-w-[90px] ${isToday ? 'bg-accent-green/5' : ''}`}>
                         <div className={`text-[10px] font-black uppercase tracking-wider ${isWeekend ? 'text-slate-300' : 'text-slate-400'}`}>
                           {DAYS[d.getDay()]}
                         </div>
-                        <div className={`text-sm font-bold mt-0.5 ${isToday ? 'text-accent-blue' : isWeekend ? 'text-slate-400' : 'text-navy'}`}>
+                        <div className={`text-sm font-bold mt-0.5 ${isToday ? 'text-accent-green' : isWeekend ? 'text-slate-400' : 'text-navy'}`}>
                           {d.getDate()}
                         </div>
                       </th>
@@ -310,7 +310,7 @@ const Roster: React.FC = () => {
                         const isToday = str === todayStr;
                         const cell = grid[emp.id]?.[str];
                         return (
-                          <td key={str} className={`px-1.5 py-2 text-center ${isToday ? 'bg-accent-blue/5' : ''}`}>
+                          <td key={str} className={`px-1.5 py-2 text-center ${isToday ? 'bg-accent-green/5' : ''}`}>
                             {cell ? (
                               <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-bold ${shiftColor(cell.code || cell.shiftName || 'A')}`}>
                                 <span className="truncate max-w-[56px]">{cell.code || cell.shiftName}</span>
@@ -323,7 +323,7 @@ const Roster: React.FC = () => {
                             ) : (
                               <button
                                 onClick={() => openModal(emp.id, str)}
-                                className="text-slate-300 hover:text-accent-blue hover:bg-accent-blue/10 w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-colors">
+                                className="text-slate-300 hover:text-accent-green hover:bg-accent-green/10 w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-colors">
                                 <Plus size={14} />
                               </button>
                             )}

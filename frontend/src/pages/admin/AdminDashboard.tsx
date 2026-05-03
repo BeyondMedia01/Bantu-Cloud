@@ -45,7 +45,7 @@ const AdminDashboard: React.FC = () => {
             <Link
               key={c.path}
               to={c.path}
-              className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-blue hover:shadow-md transition-all text-left block"
+              className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-green hover:shadow-md transition-all text-left block"
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.color} mb-4`}>
                 {c.icon}
@@ -68,7 +68,7 @@ const AdminDashboard: React.FC = () => {
           <Link
             key={item.path}
             to={item.path}
-            className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-blue hover:shadow-md transition-all text-left block"
+            className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-green hover:shadow-md transition-all text-left block"
           >
             <p className="font-bold mb-1">{item.title}</p>
             <p className="text-sm text-slate-500 font-medium">{item.desc}</p>

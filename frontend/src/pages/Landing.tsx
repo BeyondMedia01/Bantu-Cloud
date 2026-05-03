@@ -10,7 +10,7 @@ const Landing: React.FC = () => {
       {/* Nav */}
       <nav className="sticky top-0 bg-primary/80 backdrop-blur border-b border-border z-50 px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-accent-blue rounded-xl flex items-center justify-center text-white font-bold text-lg">B</div>
+          <div className="w-9 h-9 bg-accent-green rounded-xl flex items-center justify-center text-white font-bold text-lg">B</div>
           <span className="text-lg font-bold">Bantu Payroll</span>
         </div>
         <div className="flex items-center gap-4">
@@ -23,11 +23,11 @@ const Landing: React.FC = () => {
 
       {/* Hero */}
       <section className="text-center py-24 px-6 max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-xs font-bold text-accent-blue uppercase tracking-wider mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-xs font-bold text-accent-green uppercase tracking-wider mb-8">
           <Shield size={12} /> ZIMRA & NSSA Compliant
         </div>
         <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6">
-          Payroll Made Simple<br />for <span className="text-accent-blue">Zimbabwe</span>
+          Payroll Made Simple<br />for <span className="text-accent-green">Zimbabwe</span>
         </h1>
         <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto mb-10">
           Automated PAYE calculation, NSSA contributions, leave management, and loans — built for Zimbabwean businesses.
@@ -57,7 +57,7 @@ const Landing: React.FC = () => {
               { icon: <Shield size={24} />, title: 'Multi-Tenant', desc: 'Manage multiple companies and clients from a single platform.' },
             ].map((f) => (
               <div key={f.title} className="p-6 rounded-2xl border border-border bg-background">
-                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-accent-blue mb-4">{f.icon}</div>
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-accent-green mb-4">{f.icon}</div>
                 <h3 className="font-bold mb-2">{f.title}</h3>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed">{f.desc}</p>
               </div>

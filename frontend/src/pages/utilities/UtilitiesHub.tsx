@@ -124,7 +124,7 @@ const UtilitiesHub: React.FC = () => {
           <button
             key={u.path}
             onClick={() => navigate(u.path)}
-            className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-blue hover:shadow-md transition-all text-left flex items-start gap-4"
+            className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-green hover:shadow-md transition-all text-left flex items-start gap-4"
           >
             <div className={`w-12 h-12 ${u.bg} rounded-xl flex items-center justify-center ${u.color} shrink-0`}>
               {u.icon}

@@ -68,7 +68,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
 
       {/* Info Stats */}
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex gap-4 items-start">
-        <div className="p-2 bg-white rounded-xl text-accent-blue shadow-sm">
+        <div className="p-2 bg-white rounded-xl text-accent-green shadow-sm">
           <Info size={24} />
         </div>
         <div>
@@ -88,7 +88,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                 type="text" 
                 placeholder="Search by Employee or Code..."
                 aria-label="Search transactions"
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/30"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/30"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -143,7 +143,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                     {t.rateToUSD.toFixed(6)}
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm font-bold text-accent-blue">
+                    <p className="text-sm font-bold text-accent-green">
                       ${t.amountInUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
                     {t.isManual && <span className="text-[9px] bg-slate-100 px-1 rounded text-slate-400 uppercase font-bold">Manual</span>}

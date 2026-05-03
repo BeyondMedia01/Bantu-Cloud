@@ -93,7 +93,7 @@ const PeriodEnd: React.FC = () => {
             <p>Runs completed: <strong>{result.runsCompleted}</strong></p>
             <p>Repayments marked DUE: <strong>{result.repaymentsMarked}</strong></p>
           </div>
-          <button onClick={() => { setResult(null); setStatus(null); setSelectedId(''); }} className="mt-4 text-sm font-bold text-accent-blue hover:underline">
+          <button onClick={() => { setResult(null); setStatus(null); setSelectedId(''); }} className="mt-4 text-sm font-bold text-accent-green hover:underline">
             Close Another Period
           </button>
         </div>
@@ -107,7 +107,7 @@ const PeriodEnd: React.FC = () => {
               const cal = (calendars as any[]).find(c => c.id === selectedId);
               const label = cal ? `${cal.isClosed ? '🔒 ' : ''}${cal.periodType} — ${new Date(cal.startDate).toLocaleDateString()} to ${new Date(cal.endDate).toLocaleDateString()}` : 'Choose an open period…';
               return (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                   <span className="truncate">{label}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>

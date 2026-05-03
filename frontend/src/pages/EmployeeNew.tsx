@@ -143,7 +143,7 @@ function DatePicker({ value, onChange, placeholder }: { value?: Date; onChange: 
     <Popover>
       <PopoverTrigger
         className={cn(
-          'flex h-10 w-full items-center justify-start rounded-xl border border-border bg-slate-50 px-4 py-2 text-sm font-medium outline-none transition-all hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-accent-blue/20',
+          'flex h-10 w-full items-center justify-start rounded-xl border border-border bg-slate-50 px-4 py-2 text-sm font-medium outline-none transition-all hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-accent-green/20',
           !value && 'text-slate-400',
         )}
       >
@@ -603,7 +603,7 @@ const EmployeeNew: React.FC = () => {
                             <input
                               list="zw-banks"
                               {...form.register(`bankAccounts.${index}.bankName`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               placeholder="Search or type bank name"
                             />
                             {errors.bankAccounts?.[index]?.bankName && (
@@ -614,7 +614,7 @@ const EmployeeNew: React.FC = () => {
                             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Number</label>
                             <input
                               {...form.register(`bankAccounts.${index}.accountNumber`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               placeholder="000000000"
                             />
                             {errors.bankAccounts?.[index]?.accountNumber && (
@@ -625,7 +625,7 @@ const EmployeeNew: React.FC = () => {
                             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Name</label>
                             <input
                               {...form.register(`bankAccounts.${index}.accountName`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               placeholder="Holder Name"
                             />
                           </div>
@@ -633,7 +633,7 @@ const EmployeeNew: React.FC = () => {
                             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
                             <Controller control={form.control} name={`bankAccounts.${index}.splitType`} render={({ field }) => (
                               <Dropdown className="w-full" trigger={(isOpen) => (
-                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-blue transition-colors">
+                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-green transition-colors">
                                   <span>{({'REMAINDER':'Remainder','FIXED':'Fixed Amount','PERCENTAGE':'Percentage (%)'} as Record<string,string>)[field.value] ?? field.value}</span>
                                   <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                                 </button>
@@ -656,7 +656,7 @@ const EmployeeNew: React.FC = () => {
                                 type="number"
                                 step="0.01"
                                 {...form.register(`bankAccounts.${index}.splitValue`)}
-                                className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-accent-blue focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                                className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-accent-green focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               />
                             </div>
                           )}
@@ -664,7 +664,7 @@ const EmployeeNew: React.FC = () => {
                             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Currency</label>
                             <Controller control={form.control} name={`bankAccounts.${index}.currency`} render={({ field }) => (
                               <Dropdown className="w-full" trigger={(isOpen) => (
-                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                                   <span>{field.value}</span>
                                   <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                                 </button>

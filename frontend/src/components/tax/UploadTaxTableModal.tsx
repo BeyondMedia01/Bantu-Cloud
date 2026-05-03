@@ -61,7 +61,7 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
         ) : (
           <div className="space-y-6">
             <div 
-              className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-colors ${file ? 'border-accent-blue bg-blue-50/30' : 'border-border hover:border-slate-300'}`}
+              className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-colors ${file ? 'border-accent-green bg-blue-50/30' : 'border-border hover:border-slate-300'}`}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 e.preventDefault();
@@ -71,7 +71,7 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
                 }
               }}
             >
-              <div className={`p-4 rounded-2xl mb-4 ${file ? 'bg-accent-blue text-white' : 'bg-slate-100 text-slate-400'}`}>
+              <div className={`p-4 rounded-2xl mb-4 ${file ? 'bg-accent-green text-white' : 'bg-slate-100 text-slate-400'}`}>
                 {file ? <FileText size={32} /> : <Upload size={32} />}
               </div>
               

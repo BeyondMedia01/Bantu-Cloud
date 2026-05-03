@@ -65,7 +65,7 @@ const ProfileSettings: React.FC = () => {
     }
   };
 
-  const inputCls = "w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue";
+  const inputCls = "w-full border border-border rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green";
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">

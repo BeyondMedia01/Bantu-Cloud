@@ -89,7 +89,7 @@ const ManualEntryModal: React.FC<{
             <Dropdown className="w-full" trigger={(isOpen) => {
               const emp = employees.find(em => em.id === form.employeeId);
               return (
-                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span className="truncate">{emp ? `${emp.firstName} ${emp.lastName} (${emp.employeeCode})` : 'Select employee…'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -103,12 +103,12 @@ const ManualEntryModal: React.FC<{
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Date *</label>
               <input type="date" value={form.date} onChange={set('date')}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Status</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span>{form.status.replace('_', ' ')}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -119,23 +119,23 @@ const ManualEntryModal: React.FC<{
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Clock In</label>
               <input type="time" value={form.clockIn} onChange={set('clockIn')}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Clock Out</label>
               <input type="time" value={form.clockOut} onChange={set('clockOut')}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Break (min)</label>
               <input type="number" min="0" max="480" value={form.breakMinutes} onChange={set('breakMinutes')}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5">Notes</label>
             <input type="text" value={form.notes} onChange={set('notes')} placeholder="Optional…"
-              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
           </div>
         </div>
         {error && <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{error}</div>}
@@ -278,13 +278,13 @@ const Attendance: React.FC = () => {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
         <input type="date" value={filters.startDate} onChange={setFilter('startDate')}
-          className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+          className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
         <input type="date" value={filters.endDate} onChange={setFilter('endDate')}
-          className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
+          className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
         <Dropdown trigger={(isOpen) => {
           const emp = employees.find(em => em.id === filters.employeeId);
           return (
-            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{emp ? `${emp.firstName} ${emp.lastName}` : 'All Employees'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>

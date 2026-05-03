@@ -63,7 +63,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all group ${activeTab === item.id ? 'bg-brand text-navy shadow-xl shadow-navy/20' : 'text-slate-500 hover:bg-slate-50 font-medium'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon size={18} className={activeTab === item.id ? 'text-accent-blue' : 'group-hover:text-navy transition-colors'} />
+                        <Icon size={18} className={activeTab === item.id ? 'text-accent-green' : 'group-hover:text-navy transition-colors'} />
                         <span className="text-sm font-bold">{item.label}</span>
                       </div>
                       <ChevronRight size={14} className={activeTab === item.id ? 'opacity-50' : 'opacity-0'} />

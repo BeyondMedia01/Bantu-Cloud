@@ -24,7 +24,7 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
   return (
     <div className="flex flex-col lg:flex-row gap-3">
       {/* Search Input */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm px-4 py-3 flex items-center gap-3 flex-1 transition-all focus-within:ring-2 focus-within:ring-accent-blue/10 focus-within:border-accent-blue">
+      <div className="bg-primary rounded-2xl border border-border shadow-sm px-4 py-3 flex items-center gap-3 flex-1 transition-all focus-within:ring-2 focus-within:ring-accent-green/10 focus-within:border-accent-green">
         <Search size={16} className="text-slate-400 shrink-0" aria-hidden="true" />
         <label htmlFor="employee-search" className="sr-only">Search employees</label>
         <input
@@ -46,7 +46,7 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
         <Dropdown
           className="w-full"
           trigger={(isOpen) => (
-            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{branches.find(b => b.id === filters.branch)?.name || 'All Branches'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -60,7 +60,7 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
         <Dropdown
           className="w-full"
           trigger={(isOpen) => (
-            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{departments.find(d => d.id === filters.department)?.name || 'All Departments'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -74,7 +74,7 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
         <Dropdown
           className="w-full"
           trigger={(isOpen) => (
-            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{filters.employmentType ? filters.employmentType.replace('_', ' ') : 'All Types'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>

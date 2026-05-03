@@ -41,7 +41,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
       case 'EXPORT':        return 'bg-amber-50 text-amber-600 border-amber-100';
       case 'LOGIN':         return 'bg-sky-50 text-sky-600 border-sky-100';
       case 'CREATE':        return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-      case 'UPDATE':        return 'bg-accent-blue/10 text-accent-blue border-accent-blue/20';
+      case 'UPDATE':        return 'bg-accent-green/10 text-accent-green border-accent-green/20';
       default:              return 'bg-slate-100 text-slate-500 border-slate-200';
     }
   };
@@ -74,7 +74,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
               type="text"
               placeholder="Search by entity, entity ID, or user..."
               aria-label="Search payroll logs"
-              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue shadow-sm"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green shadow-sm"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -82,7 +82,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
           <div className="flex gap-2 shrink-0">
             <Dropdown
               trigger={(isOpen) => (
-                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-blue transition-colors">
+                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-green transition-colors">
                   <Filter size={14} className="text-slate-400 shrink-0" />
                   <span className="truncate">{filterAction ? filterAction.replace('_', ' ') : 'All Actions'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -95,7 +95,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
             />
             <Dropdown
               trigger={(isOpen) => (
-                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-blue transition-colors">
+                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-green transition-colors">
                   <span className="truncate">{filterStatus || 'All Statuses'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>

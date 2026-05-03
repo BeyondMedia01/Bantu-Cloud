@@ -134,7 +134,7 @@ const LeavePolicy: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
               <Dropdown className="w-full" disabled={!!editId} trigger={(isOpen) => (
-                <button type="button" disabled={!!editId} className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors disabled:opacity-60">
+                <button type="button" disabled={!!editId} className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors disabled:opacity-60">
                   <span>{fmtType(form.leaveType)}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -143,25 +143,25 @@ const LeavePolicy: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Accrual Rate (days/month)</label>
               <input type="number" step="any" min="0" required value={form.accrualRate} onChange={set('accrualRate')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Max Accumulation (days cap)</label>
               <input type="number" step="1" min="0" required value={form.maxAccumulation} onChange={set('maxAccumulation')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Carry-Over Limit (days, 0 = forfeit all)</label>
               <input type="number" step="1" min="0" required value={form.carryOverLimit} onChange={set('carryOverLimit')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Encashment Cap (days/year, 0 = unlimited)</label>
               <input type="number" step="1" min="0" required value={form.encashCap} onChange={set('encashCap')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div className="flex items-center gap-3 pt-6">
-              <input type="checkbox" id="encashable" checked={form.encashable} onChange={set('encashable')} className="w-4 h-4 accent-accent-blue" />
+              <input type="checkbox" id="encashable" checked={form.encashable} onChange={set('encashable')} className="w-4 h-4 accent-accent-green" />
               <label htmlFor="encashable" className="text-sm font-medium text-slate-700">Allow encashment</label>
             </div>
 

@@ -270,7 +270,7 @@ const EmployeeEdit: React.FC = () => {
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Document Type</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
-                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                     <span>{({ID:'ID',CONTRACT:'Contract',MEDICAL:'Medical',OTHER:'Other'} as Record<string,string>)[docForm.type] ?? docForm.type}</span>
                     <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -287,7 +287,7 @@ const EmployeeEdit: React.FC = () => {
                   type="text"
                   value={docForm.name}
                   onChange={(e) => setDocForm(p => ({ ...p, name: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
+                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
                 />
               </div>
             </div>
@@ -381,7 +381,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Title</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{form.title || '— Select —'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -402,7 +402,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nationality *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{form.nationality || 'Zimbabwean'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -436,7 +436,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gender *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({MALE:'Male',FEMALE:'Female',OTHER:'Other'} as Record<string,string>)[form.gender] ?? (form.gender || '— Select —')}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -450,7 +450,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Marital Status *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({SINGLE:'Single',MARRIED:'Married',DIVORCED:'Divorced',WIDOWED:'Widowed'} as Record<string,string>)[form.maritalStatus] ?? (form.maritalStatus || '— Select —')}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -499,7 +499,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Department</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{departments.find((d: any) => d.id === form.departmentId)?.name || '— None —'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -511,7 +511,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Branch</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{branches.find((b: any) => b.id === form.branchId)?.name || '— None —'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -529,7 +529,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employment Type *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({PERMANENT:'Permanent',CONTRACT:'Contract',TEMPORARY:'Temporary',PART_TIME:'Part Time'} as Record<string,string>)[form.employmentType] ?? form.employmentType}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -559,7 +559,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Method *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({BANK:'Bank',CASH:'Cash'} as Record<string,string>)[form.paymentMethod] ?? form.paymentMethod}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -571,7 +571,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Basis *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({MONTHLY:'Monthly',DAILY:'Daily',HOURLY:'Hourly'} as Record<string,string>)[form.paymentBasis] ?? form.paymentBasis}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -584,7 +584,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rate Source *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({MANUAL:'Manual',NEC_GRADE:'NEC Grade'} as Record<string,string>)[form.rateSource] ?? form.rateSource}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -597,7 +597,7 @@ const EmployeeEdit: React.FC = () => {
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">NEC Grade</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
-                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                     <span className="truncate">{necGrades.find((g: any) => g.id === form.necGradeId) ? `${necGrades.find((g: any) => g.id === form.necGradeId).gradeCode}${necGrades.find((g: any) => g.id === form.necGradeId).description ? ` — ${necGrades.find((g: any) => g.id === form.necGradeId).description}` : ''}` : '— Select grade —'}</span>
                     <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -613,7 +613,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{form.currency}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -676,7 +676,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between border-b pb-2 mb-2">
                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Accounts & Splitting</h4>
-                <button type="button" onClick={addAccount} className="text-[10px] font-bold text-accent-blue hover:underline uppercase">
+                <button type="button" onClick={addAccount} className="text-[10px] font-bold text-accent-green hover:underline uppercase">
                   + Add Split Account
                 </button>
               </div>
@@ -705,7 +705,7 @@ const EmployeeEdit: React.FC = () => {
                         list="zw-banks"
                         value={acc.bankName}
                         onChange={(e) => handleAccountChange(index, 'bankName', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         placeholder="Search or type bank name"
                       />
                     </div>
@@ -715,7 +715,7 @@ const EmployeeEdit: React.FC = () => {
                         required 
                         value={acc.accountNumber} 
                         onChange={(e) => handleAccountChange(index, 'accountNumber', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         placeholder="000000000"
                         pattern="^\d+$"
                         title="Account number must contain only digits"
@@ -726,7 +726,7 @@ const EmployeeEdit: React.FC = () => {
                       <input 
                         value={acc.accountName} 
                         onChange={(e) => handleAccountChange(index, 'accountName', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         placeholder="Holder Name"
                       />
                     </div>
@@ -734,7 +734,7 @@ const EmployeeEdit: React.FC = () => {
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
                       <Dropdown className="w-full" trigger={(isOpen) => (
-                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-blue transition-colors">
+                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-green transition-colors">
                           <span>{({REMAINDER:'Remainder',FIXED:'Fixed Amount',PERCENTAGE:'Percentage (%)'} as Record<string,string>)[acc.splitType] ?? acc.splitType}</span>
                           <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -759,7 +759,7 @@ const EmployeeEdit: React.FC = () => {
                           required
                           value={acc.splitValue} 
                           onChange={(e) => handleAccountChange(index, 'splitValue', e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-accent-blue focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
+                          className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-accent-green focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         />
                       </div>
                     )}
@@ -767,7 +767,7 @@ const EmployeeEdit: React.FC = () => {
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Currency</label>
                       <Dropdown className="w-full" trigger={(isOpen) => (
-                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                           <span>{acc.currency}</span>
                           <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -796,7 +796,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tax Method *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({NON_FDS:'Non-FDS',FDS_AVERAGE:'FDS Average',FDS_FORECASTING:'FDS Forecasting'} as Record<string,string>)[form.taxMethod] ?? form.taxMethod}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -809,7 +809,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tax Table *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{taxTables.find((t: any) => t.name === form.taxTable) ? `${form.taxTable} (${taxTables.find((t: any) => t.name === form.taxTable).currency})` : (form.taxTable || '— Select tax table —')}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -821,7 +821,7 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Accumulative Setting *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{({NO:'No',YES:'Yes'} as Record<string,string>)[form.accumulativeSetting] ?? form.accumulativeSetting}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -864,7 +864,7 @@ const EmployeeEdit: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center mb-4">
               <p className="text-xs text-slate-500 max-w-xs font-medium">Upload ID documents, contracts, medical certificates, etc.</p>
-              <label className="cursor-pointer bg-accent-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-2">
+              <label className="cursor-pointer bg-accent-green text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-2">
                 <Upload size={14} /> {uploading ? 'Uploading...' : 'Upload New'}
                 <input type="file" className="hidden" onChange={handleFileUpload} disabled={uploading} />
               </label>
@@ -877,9 +877,9 @@ const EmployeeEdit: React.FC = () => {
                   <p className="text-sm font-bold">No documents uploaded</p>
                 </div>
               ) : documents.map(doc => (
-                <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-accent-blue/30 transition-all">
+                <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-accent-green/30 transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-white rounded-xl shadow-sm group-hover:bg-accent-blue group-hover:text-white transition-all">
+                    <div className="p-2.5 bg-white rounded-xl shadow-sm group-hover:bg-accent-green group-hover:text-white transition-all">
                       <FileText size={18} />
                     </div>
                     <div>
@@ -897,7 +897,7 @@ const EmployeeEdit: React.FC = () => {
                       href={doc.fileUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-accent-blue transition-all shadow-sm"
+                      className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-accent-green transition-all shadow-sm"
                       title="View/Download"
                     >
                       <Download size={14} />

@@ -185,7 +185,7 @@ const PayrollInputs: React.FC = () => {
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Employee *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{employees.find(e => e.id === form.employeeId) ? `${employees.find(e => e.id === form.employeeId).firstName} ${employees.find(e => e.id === form.employeeId).lastName}` : 'Select employee…'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -198,7 +198,7 @@ const PayrollInputs: React.FC = () => {
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Transaction Code *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{txCodes.find(t => t.id === form.transactionCodeId) ? `${txCodes.find(t => t.id === form.transactionCodeId).code} — ${txCodes.find(t => t.id === form.transactionCodeId).name}` : 'Select code…'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -211,7 +211,7 @@ const PayrollInputs: React.FC = () => {
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Currency *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{form.currency}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -234,7 +234,7 @@ const PayrollInputs: React.FC = () => {
                   value={form.amount}
                   onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                   required
                 />
               </div>
@@ -246,7 +246,7 @@ const PayrollInputs: React.FC = () => {
                 type="month"
                 value={form.period}
                 onChange={(e) => setForm((p) => ({ ...p, period: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 required
               />
             </div>
@@ -254,7 +254,7 @@ const PayrollInputs: React.FC = () => {
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Link to Payroll Run (optional)</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{runs.find(r => r.id === form.payrollRunId) ? `${new Date(runs.find(r => r.id === form.payrollRunId).startDate).toLocaleDateString()} — ${new Date(runs.find(r => r.id === form.payrollRunId).endDate).toLocaleDateString()}` : 'None (unattached)'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -271,7 +271,7 @@ const PayrollInputs: React.FC = () => {
                 step="0.01"
                 value={form.units}
                 onChange={(e) => setForm((p) => ({ ...p, units: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 placeholder="0.00"
               />
             </div>
@@ -282,7 +282,7 @@ const PayrollInputs: React.FC = () => {
                 type="text"
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 placeholder="e.g. Manual overtime entry"
               />
             </div>
@@ -316,7 +316,7 @@ const PayrollInputs: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           <Filter size={14} className="text-slate-400 shrink-0" />
           <Dropdown trigger={(isOpen) => (
-            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{filterEmployee ? (employees.find(e => e.id === filterEmployee)?.firstName + ' ' + employees.find(e => e.id === filterEmployee)?.lastName) : 'All employees'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -325,7 +325,7 @@ const PayrollInputs: React.FC = () => {
             ...employees.map(emp => ({ label: `${emp.firstName} ${emp.lastName}`, onClick: () => setFilterEmployee(emp.id) }))
           ]}]} />
           <Dropdown trigger={(isOpen) => (
-            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{filterRun === '' ? 'All runs' : filterRun === 'null' ? 'Unattached' : (() => { const r = runs.find(r => r.id === filterRun); return r ? `${new Date(r.startDate).toLocaleDateString()} [${r.status}]` : 'All runs'; })()}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -335,7 +335,7 @@ const PayrollInputs: React.FC = () => {
             ...runs.map(r => ({ label: `${new Date(r.startDate).toLocaleDateString()} [${r.status}]`, onClick: () => setFilterRun(r.id) }))
           ]}]} />
           <Dropdown trigger={(isOpen) => (
-            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{filterProcessed === '' ? 'All statuses' : filterProcessed === 'false' ? 'Unprocessed' : 'Processed'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -366,7 +366,7 @@ const PayrollInputs: React.FC = () => {
           <p className="text-slate-400 font-medium text-sm">No payroll inputs found.</p>
           <button
             onClick={() => setShowForm(true)}
-            className="mt-4 text-accent-blue text-sm font-bold hover:underline"
+            className="mt-4 text-accent-green text-sm font-bold hover:underline"
           >
             Add the first input →
           </button>
@@ -453,7 +453,7 @@ const PayrollInputs: React.FC = () => {
                             });
                             setError('');
                           }}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-accent-blue hover:bg-blue-50 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-accent-green hover:bg-blue-50 transition-colors"
                           title="Edit"
                         >
                           <Edit2 size={14} />
@@ -501,7 +501,7 @@ const PayrollInputs: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Transaction Code</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
-                  <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                     <span className="truncate">{editInput.transactionCodeId ? (txCodes.find(t => t.id === editInput.transactionCodeId) ? `${txCodes.find(t => t.id === editInput.transactionCodeId)!.code} — ${txCodes.find(t => t.id === editInput.transactionCodeId)!.name}` : 'Select code…') : 'Select code…'}</span>
                     <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -512,7 +512,7 @@ const PayrollInputs: React.FC = () => {
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Currency</label>
                   <Dropdown className="w-full" trigger={(isOpen) => (
-                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                       <span>{editInput.currency}</span>
                       <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -533,7 +533,7 @@ const PayrollInputs: React.FC = () => {
                       step="0.01"
                       value={editInput.amount}
                       onChange={(e) => setEditInput((p: any) => ({ ...p, amount: e.target.value }))}
-                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
+                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                       required
                     />
                   </div>
@@ -548,7 +548,7 @@ const PayrollInputs: React.FC = () => {
                     step="0.01"
                     value={editInput.units}
                     onChange={(e) => setEditInput((p: any) => ({ ...p, units: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                     placeholder="0.00"
                   />
                 </div>
@@ -558,7 +558,7 @@ const PayrollInputs: React.FC = () => {
                     type="month"
                     value={editInput.period}
                     onChange={(e) => setEditInput((p: any) => ({ ...p, period: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                     required
                   />
                 </div>
@@ -570,7 +570,7 @@ const PayrollInputs: React.FC = () => {
                   type="text"
                   value={editInput.notes}
                   onChange={(e) => setEditInput((p: any) => ({ ...p, notes: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                   placeholder="e.g. OT Multiplier details"
                 />
               </div>
@@ -581,7 +581,7 @@ const PayrollInputs: React.FC = () => {
                   const r = runs.find(r => r.id === editInput.payrollRunId);
                   const label = r ? `${new Date(r.startDate).toLocaleDateString()} — ${new Date(r.endDate).toLocaleDateString()} [${r.status}]` : 'None (unattached)';
                   return (
-                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                       <span className="truncate">{label}</span>
                       <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -603,7 +603,7 @@ const PayrollInputs: React.FC = () => {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 rounded-xl bg-accent-blue text-white text-sm font-bold hover:opacity-90 disabled:opacity-50"
+                  className="px-6 py-2 rounded-xl bg-accent-green text-white text-sm font-bold hover:opacity-90 disabled:opacity-50"
                 >
                   {saving ? 'Saving…' : 'Save Changes'}
                 </button>

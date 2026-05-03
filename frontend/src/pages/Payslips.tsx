@@ -185,7 +185,7 @@ const Payslips: React.FC = () => {
           {confirmSendAll ? (
             <>
               <span className="text-sm font-medium text-slate-500">Send to {payslips.length} employees?</span>
-              <button onClick={handleSendAll} className="flex items-center gap-1.5 px-4 py-2 bg-accent-blue text-white rounded-full text-sm font-bold hover:opacity-90">
+              <button onClick={handleSendAll} className="flex items-center gap-1.5 px-4 py-2 bg-accent-green text-white rounded-full text-sm font-bold hover:opacity-90">
                 <Send size={14} /> Confirm
               </button>
               <button onClick={() => setConfirmSendAll(false)} className="px-3 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50">
@@ -363,7 +363,7 @@ const Payslips: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handlePdf(p.id, p.employee?.lastName || '', p.employee?.firstName || '')}
-                            className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:underline"
+                            className="flex items-center gap-1 text-xs font-bold text-accent-green hover:underline"
                           >
                             <FileText size={14} /> PDF
                           </button>

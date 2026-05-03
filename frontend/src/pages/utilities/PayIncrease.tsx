@@ -85,7 +85,7 @@ const PayIncrease: React.FC = () => {
             </table>
             </div>
           </div>
-          <button onClick={() => setResult(null)} className="mt-4 text-sm font-bold text-accent-blue hover:underline">
+          <button onClick={() => setResult(null)} className="mt-4 text-sm font-bold text-accent-green hover:underline">
             Apply Another Increase
           </button>
         </div>
@@ -118,7 +118,7 @@ const PayIncrease: React.FC = () => {
                 value={form.value}
                 onChange={set('value')}
                 placeholder={form.type === 'percentage' ? '10' : '50.00'}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 font-medium text-sm"
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 font-medium text-sm"
               />
             </div>
             <div>
@@ -128,7 +128,7 @@ const PayIncrease: React.FC = () => {
                 type="date"
                 value={form.effectiveDate}
                 onChange={set('effectiveDate')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 font-medium text-sm"
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 font-medium text-sm"
               />
             </div>
           </div>
@@ -139,7 +139,7 @@ const PayIncrease: React.FC = () => {
               <Dropdown className="w-full" trigger={(isOpen) => {
                 const dept = (departments as any[]).find(d => d.id === form.departmentId);
                 return (
-                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                     <span>{dept ? dept.name : 'All Departments'}</span>
                     <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -154,7 +154,7 @@ const PayIncrease: React.FC = () => {
               <Dropdown className="w-full" trigger={(isOpen) => {
                 const labels: Record<string,string> = { '': 'All Types', PERMANENT: 'Permanent', CONTRACT: 'Contract', TEMPORARY: 'Temporary' };
                 return (
-                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                     <span>{labels[form.employmentType] || 'All Types'}</span>
                     <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>

@@ -105,7 +105,7 @@ const WorkPeriodSettings: React.FC = () => {
                     max="31"
                     value={form.WORKING_DAYS_PER_PERIOD}
                     onChange={(e) => handleChange('WORKING_DAYS_PER_PERIOD', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
                   <p className="text-[10px] text-slate-400 mt-1">Used for pro-rating, short-time, and daily rate calculations</p>
@@ -122,7 +122,7 @@ const WorkPeriodSettings: React.FC = () => {
                     max="31"
                     value={form.WORKING_DAYS_PER_MONTH}
                     onChange={(e) => handleChange('WORKING_DAYS_PER_MONTH', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
                   <p className="text-[10px] text-slate-400 mt-1">Fallback if Working Days per Period is not set</p>
@@ -139,7 +139,7 @@ const WorkPeriodSettings: React.FC = () => {
                     max="31"
                     value={form.DAYS_PER_MONTH}
                     onChange={(e) => handleChange('DAYS_PER_MONTH', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
                   <p className="text-[10px] text-slate-400 mt-1">Used for leave encashment and termination notice pay</p>
@@ -165,7 +165,7 @@ const WorkPeriodSettings: React.FC = () => {
                     max="24"
                     value={form.HOURS_PER_DAY}
                     onChange={(e) => handleChange('HOURS_PER_DAY', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
                   <p className="text-[10px] text-slate-400 mt-1">

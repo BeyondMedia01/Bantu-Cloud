@@ -68,7 +68,7 @@ const LoanNew: React.FC = () => {
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employee *</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -88,7 +88,7 @@ const LoanNew: React.FC = () => {
         {monthlyInstalment && (
           <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estimated Monthly Instalment</p>
-            <p className="text-2xl font-bold text-accent-blue">{Number(monthlyInstalment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-2xl font-bold text-accent-green">{Number(monthlyInstalment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         )}
 

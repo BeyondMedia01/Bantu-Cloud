@@ -107,7 +107,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-primary rounded-2xl p-6 border border-border shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-50 text-accent-blue rounded-xl"><Anchor size={20} /></div>
+            <div className="p-2 bg-blue-50 text-accent-green rounded-xl"><Anchor size={20} /></div>
             <span className="font-bold text-slate-400 text-xs uppercase tracking-wider">Base Currency</span>
           </div>
           <p className="text-2xl font-black text-navy">USD ($)</p>
@@ -224,7 +224,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   onChange={(e) => setForm((p) => ({ ...p, toCurrency: e.target.value.toUpperCase() }))}
                   placeholder="ZiG"
                   maxLength={6}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                   required
                 />
                 <p className="text-xs text-slate-400 font-medium mt-1">From currency is always USD.</p>
@@ -238,7 +238,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   value={form.rate}
                   onChange={(e) => setForm((p) => ({ ...p, rate: e.target.value }))}
                   placeholder="e.g. 13.5"
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium font-mono focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium font-mono focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                   required
                 />
                 <p className="text-xs text-slate-400 font-medium mt-1">How many {form.toCurrency || 'units'} equal 1 USD.</p>
@@ -249,7 +249,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   type="date"
                   value={form.effectiveDate}
                   onChange={(e) => setForm((p) => ({ ...p, effectiveDate: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                   required
                 />
               </div>
@@ -258,7 +258,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                 <Dropdown className="w-full" trigger={(isOpen) => {
                   const labels: Record<string,string> = { RBZ: 'RBZ (Official)', MANUAL: 'Manual', IMPORT: 'Import' };
                   return (
-                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                       <span>{labels[form.source] || form.source}</span>
                       <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -276,7 +276,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   value={form.notes}
                   onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
                   placeholder="Optional note…"
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 />
               </div>
 

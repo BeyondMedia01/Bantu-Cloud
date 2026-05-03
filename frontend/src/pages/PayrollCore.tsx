@@ -53,7 +53,7 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm flex items-center justify-between">
            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 text-accent-blue rounded-2xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-50 text-accent-green rounded-2xl flex items-center justify-center">
                  <Database size={24} />
               </div>
               <div>
@@ -83,7 +83,7 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
               <input 
                 type="text" 
                 placeholder="Search by ID or Name..." 
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -121,7 +121,7 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                   <td className="px-6 py-4">
                     <div className="flex gap-1">
                        {Object.entries(core.preferredCurrencySplit || {}).map(([curr, val]: any) => (
-                         <span key={curr} className="px-2 py-0.5 rounded-lg bg-blue-50 text-accent-blue text-[10px] font-bold border border-blue-100 italic">
+                         <span key={curr} className="px-2 py-0.5 rounded-lg bg-blue-50 text-accent-green text-[10px] font-bold border border-blue-100 italic">
                             {curr}: {val * 100}%
                          </span>
                        ))}

@@ -69,7 +69,7 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
 
       {/* Info Card */}
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex gap-4 items-start">
-        <div className="p-2 bg-white rounded-xl text-accent-blue shadow-sm">
+        <div className="p-2 bg-white rounded-xl text-accent-green shadow-sm">
           <Info size={24} />
         </div>
         <div>
@@ -90,10 +90,10 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
       {/* Bands Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {bands.length > 0 ? bands.map(band => (
-          <div key={band.id} className="bg-primary rounded-2xl border border-border p-6 shadow-sm hover:border-accent-blue transition-all group">
+          <div key={band.id} className="bg-primary rounded-2xl border border-border p-6 shadow-sm hover:border-accent-green transition-all group">
             <div className="flex justify-between items-start mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-bold group-hover:bg-blue-50 group-hover:text-accent-blue transition-colors">
+                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-bold group-hover:bg-blue-50 group-hover:text-accent-green transition-colors">
                   <Hash size={20} />
                 </div>
                 <div>
@@ -126,7 +126,7 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-border/50">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tax Rate</p>
-                <p className="text-sm font-bold text-accent-blue flex items-center gap-1">
+                <p className="text-sm font-bold text-accent-green flex items-center gap-1">
                   <Percent size={14} /> {band.taxRatePercent}%
                 </p>
               </div>

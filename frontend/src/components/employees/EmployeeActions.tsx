@@ -14,7 +14,7 @@ const EmployeeActions: React.FC<EmployeeActionsProps> = ({ total }) => {
       <div>
         <h1 className="text-2xl font-bold text-navy">Employees</h1>
         <p className="text-slate-500 font-medium text-sm">
-          A total of <span className="text-accent-blue font-bold">{total}</span> personnel in the system.
+          A total of <span className="text-accent-green font-bold">{total}</span> personnel in the system.
         </p>
       </div>
       <div className="flex items-center gap-2">

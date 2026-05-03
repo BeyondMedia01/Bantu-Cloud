@@ -85,7 +85,7 @@ const License: React.FC = () => {
                           Revoke
                         </button>
                       ) : (
-                        <button onClick={() => handleReactivate(lic.clientId)} className="text-xs font-bold text-accent-blue hover:underline">
+                        <button onClick={() => handleReactivate(lic.clientId)} className="text-xs font-bold text-accent-green hover:underline">
                           Reactivate (12mo)
                         </button>
                       )}

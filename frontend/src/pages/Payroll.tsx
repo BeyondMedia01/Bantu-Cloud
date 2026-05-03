@@ -175,13 +175,13 @@ const Payroll: React.FC = () => {
                             step="any"
                             value={rateInput}
                             onChange={(e) => setRateInput(e.target.value)}
-                            className="w-24 px-2 py-1 text-xs border border-accent-blue rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
+                            className="w-24 px-2 py-1 text-xs border border-accent-green rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/30"
                             onKeyDown={(e) => { if (e.key === 'Escape') setEditingRate(null); }}
                           />
                           <button
                             onClick={(e) => handleSaveRate(e, run.id)}
                             disabled={rateSaving}
-                            className="px-2 py-1 text-xs font-bold bg-accent-blue text-white rounded-lg disabled:opacity-50"
+                            className="px-2 py-1 text-xs font-bold bg-accent-green text-white rounded-lg disabled:opacity-50"
                           >
                             {rateSaving ? '…' : 'Save'}
                           </button>
@@ -195,7 +195,7 @@ const Payroll: React.FC = () => {
                           {['DRAFT', 'APPROVED', 'ERROR'].includes(run.status) && (
                             <button
                               onClick={() => { setEditingRate(run.id); setRateInput(String(run.exchangeRate || '')); }}
-                              className="text-slate-300 hover:text-accent-blue transition-colors"
+                              className="text-slate-300 hover:text-accent-green transition-colors"
                               title="Edit exchange rate"
                             >
                               <Pencil size={12} />

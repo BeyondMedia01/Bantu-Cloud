@@ -37,7 +37,7 @@ const EMPTY_FORM = {
 
 const inputCls =
   'w-full px-3 py-2 bg-slate-50 border border-border rounded-xl text-sm font-medium ' +
-  'focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all';
+  'focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all';
 
 const cellCls = 'px-4 py-3 text-right font-bold text-sm text-navy tabular-nums';
 
@@ -274,7 +274,7 @@ const PayslipInput: React.FC = () => {
       <input
         type="number" min="0" step="0.01" placeholder="0.00"
         className="w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium text-right
-                   focus:outline-none focus:ring-2 focus:ring-accent-blue/20 bg-slate-50 tabular-nums"
+                   focus:outline-none focus:ring-2 focus:ring-accent-green/20 bg-slate-50 tabular-nums"
         value={value}
         onChange={e => onChange(e.target.value)}
       />
@@ -285,7 +285,7 @@ const PayslipInput: React.FC = () => {
             setCalcTarget({ form: editingId ? 'edit' : 'add', field });
             setCalcOpen(true);
           }}
-          className="absolute left-1 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-accent-blue opacity-0 group-hover/amt:opacity-100 transition-all"
+          className="absolute left-1 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-accent-green opacity-0 group-hover/amt:opacity-100 transition-all"
           title="Open Statutory Benefit Calculator"
         >
           <Calculator size={12} />
@@ -341,14 +341,14 @@ const PayslipInput: React.FC = () => {
       <aside className="w-72 shrink-0 border-r border-border flex flex-col bg-slate-50/60">
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-2 mb-3">
-            <Users size={16} className="text-accent-blue shrink-0" />
+            <Users size={16} className="text-accent-green shrink-0" />
             <h2 className="font-bold text-navy text-sm uppercase tracking-wide">Employee List</h2>
           </div>
           <div className="relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               className="w-full pl-8 pr-3 py-2 text-xs border border-border rounded-xl bg-white
-                         focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium"
+                         focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium"
               placeholder="Search employees…"
               value={empSearch}
               onChange={e => setEmpSearch(e.target.value)}
@@ -358,7 +358,7 @@ const PayslipInput: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-2">
           {loadingEmps ? (
             <div className="flex justify-center py-10">
-              <Loader size={20} className="animate-spin text-accent-blue" />
+              <Loader size={20} className="animate-spin text-accent-green" />
             </div>
           ) : filteredEmps.length === 0 ? (
             <p className="text-xs text-slate-400 italic text-center py-8">No employees found</p>
@@ -369,7 +369,7 @@ const PayslipInput: React.FC = () => {
                 key={emp.id}
                 onClick={() => selectEmployee(emp)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all mb-0.5 ${
-                  active ? 'bg-accent-blue text-white shadow-md' : 'text-slate-600 hover:bg-white hover:shadow-sm'
+                  active ? 'bg-accent-green text-white shadow-md' : 'text-slate-600 hover:bg-white hover:shadow-sm'
                 }`}
               >
                 <div className="flex flex-col min-w-0">
@@ -446,7 +446,7 @@ const PayslipInput: React.FC = () => {
                           onChange={e => setAddForm(p => ({ ...p, units: e.target.value }))}
                         />
                         <Dropdown trigger={(isOpen) => (
-                          <button type="button" className="flex items-center gap-0.5 px-1.5 py-2 border border-border rounded-xl text-xs font-medium bg-slate-50 hover:border-accent-blue transition-colors w-16">
+                          <button type="button" className="flex items-center gap-0.5 px-1.5 py-2 border border-border rounded-xl text-xs font-medium bg-slate-50 hover:border-accent-green transition-colors w-16">
                             <span>{addForm.unitsType || '—'}</span>
                             <ChevronDown size={10} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                           </button>
@@ -517,14 +517,14 @@ const PayslipInput: React.FC = () => {
               {/* ── Table ────────────────────────────────────────────── */}
               {loadingInputs ? (
                 <div className="flex justify-center py-16">
-                  <Loader size={24} className="animate-spin text-accent-blue" />
+                  <Loader size={24} className="animate-spin text-accent-green" />
                 </div>
               ) : inputs.length === 0 && !showAdd ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
                   <Info size={36} className="opacity-20" />
                   <p className="font-semibold text-sm">No inputs staged for this employee</p>
                   <button onClick={() => { setShowAdd(true); setAddForm({ ...EMPTY_FORM }); }}
-                    className="text-accent-blue text-sm font-bold hover:underline">
+                    className="text-accent-green text-sm font-bold hover:underline">
                     Add the first input →
                   </button>
                 </div>
@@ -566,7 +566,7 @@ const PayslipInput: React.FC = () => {
                                       className="w-16 px-2 py-1.5 border border-border rounded-lg text-xs text-right bg-slate-50 focus:outline-none"
                                       value={editForm.units} onChange={e => setEditForm(p => ({ ...p, units: e.target.value }))} />
                                     <Dropdown trigger={(isOpen) => (
-                                      <button type="button" className="flex items-center gap-0.5 px-1 py-1.5 border border-border rounded-lg text-xs bg-slate-50 hover:border-accent-blue transition-colors w-12">
+                                      <button type="button" className="flex items-center gap-0.5 px-1 py-1.5 border border-border rounded-lg text-xs bg-slate-50 hover:border-accent-green transition-colors w-12">
                                         <span>{editForm.unitsType || '—'}</span>
                                         <ChevronDown size={9} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                                       </button>
@@ -582,7 +582,7 @@ const PayslipInput: React.FC = () => {
                                 {/* Duration */}
                                 <td className="px-3 py-2">
                                   <Dropdown className="w-full" trigger={(isOpen) => (
-                                    <button type="button" className="w-full flex items-center justify-between px-2 py-1.5 border border-border rounded-lg text-xs bg-slate-50 hover:border-accent-blue transition-colors">
+                                    <button type="button" className="w-full flex items-center justify-between px-2 py-1.5 border border-border rounded-lg text-xs bg-slate-50 hover:border-accent-green transition-colors">
                                       <span>{editForm.duration}</span>
                                       <ChevronDown size={10} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                                     </button>
@@ -668,7 +668,7 @@ const PayslipInput: React.FC = () => {
                                 ) : (
                                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => startEdit(inp)}
-                                      className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-blue">
+                                      className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-green">
                                       <Pencil size={13} />
                                     </button>
                                     <button onClick={() => handleDelete(inp)}
@@ -741,7 +741,7 @@ const PayslipInput: React.FC = () => {
               {!importResults ? (
                 <div className="flex flex-col gap-6">
                   <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex gap-4">
-                    <div className="p-3 bg-white rounded-xl text-accent-blue shadow-sm shrink-0 h-fit">
+                    <div className="p-3 bg-white rounded-xl text-accent-green shadow-sm shrink-0 h-fit">
                       <Download size={24} />
                     </div>
                     <div>
@@ -749,7 +749,7 @@ const PayslipInput: React.FC = () => {
                       <p className="text-xs text-slate-600 leading-relaxed mb-3">
                         Use our standard format to ensure your data is mapped correctly.
                       </p>
-                      <button onClick={downloadTemplate} className="text-accent-blue text-xs font-bold hover:underline flex items-center gap-1">
+                      <button onClick={downloadTemplate} className="text-accent-green text-xs font-bold hover:underline flex items-center gap-1">
                         Get CSV Template (.csv)
                       </button>
                     </div>
@@ -763,9 +763,9 @@ const PayslipInput: React.FC = () => {
                       disabled={importing}
                       className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     />
-                    <div className="border-2 border-dashed border-slate-200 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 group-hover:border-accent-blue group-hover:bg-blue-50/50 transition-all">
-                      <div className={`p-4 rounded-full ${importing ? 'bg-slate-100' : 'bg-slate-100 group-hover:bg-accent-blue group-hover:text-white'} transition-all`}>
-                        {importing ? <Loader size={32} className="animate-spin text-accent-blue" /> : <Upload size={32} />}
+                    <div className="border-2 border-dashed border-slate-200 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 group-hover:border-accent-green group-hover:bg-blue-50/50 transition-all">
+                      <div className={`p-4 rounded-full ${importing ? 'bg-slate-100' : 'bg-slate-100 group-hover:bg-accent-green group-hover:text-white'} transition-all`}>
+                        {importing ? <Loader size={32} className="animate-spin text-accent-green" /> : <Upload size={32} />}
                       </div>
                       <div className="text-center text-navy font-bold">
                         {importing ? 'Processing file...' : 'Click or drag file to upload'}

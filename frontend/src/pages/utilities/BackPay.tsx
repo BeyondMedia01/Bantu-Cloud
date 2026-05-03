@@ -83,11 +83,11 @@ const StepBar: React.FC<{ step: number }> = ({ step }) => (
           <div className="flex flex-col items-center gap-1">
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
-                ${done ? 'bg-emerald-500 text-white' : active ? 'bg-accent-blue text-white' : 'bg-slate-100 text-slate-400'}`}
+                ${done ? 'bg-emerald-500 text-white' : active ? 'bg-accent-green text-white' : 'bg-slate-100 text-slate-400'}`}
             >
               {done ? <CheckCircle2 size={14} /> : n}
             </div>
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-accent-blue' : 'text-slate-400'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-accent-green' : 'text-slate-400'}`}>
               {label}
             </span>
           </div>
@@ -249,7 +249,7 @@ const BackPay: React.FC = () => {
                 type="date"
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
               />
               <p className="text-xs text-slate-400 mt-1">All COMPLETED payroll runs on or after this date will be included</p>
             </div>
@@ -257,7 +257,7 @@ const BackPay: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors">
                   <span>{currency}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -279,8 +279,8 @@ const BackPay: React.FC = () => {
                   onClick={() => setRateMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
                     rateMode === mode
-                      ? 'bg-accent-blue text-white border-accent-blue'
-                      : 'bg-slate-50 text-slate-500 border-border hover:border-accent-blue'
+                      ? 'bg-accent-green text-white border-accent-green'
+                      : 'bg-slate-50 text-slate-500 border-border hover:border-accent-green'
                   }`}
                 >
                   {mode === 'uniform' ? 'Uniform rate for all' : 'Per-employee rates'}
@@ -301,7 +301,7 @@ const BackPay: React.FC = () => {
                 value={uniformNewRate}
                 onChange={(e) => setUniformNewRate(e.target.value)}
                 placeholder="e.g. 2000"
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
               />
               <p className="text-xs text-slate-400 mt-1">Old rate will be taken from each employee's current base rate</p>
             </div>
@@ -351,7 +351,7 @@ const BackPay: React.FC = () => {
                     });
                   }
                 }}
-                className="text-xs font-bold text-accent-blue hover:underline"
+                className="text-xs font-bold text-accent-green hover:underline"
               >
                 {selected.length === employees.length ? 'Deselect All' : 'Select All'}
               </button>
@@ -370,7 +370,7 @@ const BackPay: React.FC = () => {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleEmployee(emp.id)}
-                        className="w-4 h-4 accent-accent-blue flex-shrink-0"
+                        className="w-4 h-4 accent-accent-green flex-shrink-0"
                       />
                       <span className="font-medium text-sm flex-1">
                         {emp.firstName} {emp.lastName}
@@ -380,7 +380,7 @@ const BackPay: React.FC = () => {
                         <button
                           type="button"
                           onClick={(e) => { e.preventDefault(); setExpandedEmp(isExpanded ? null : emp.id); }}
-                          className="ml-2 text-accent-blue hover:text-navy"
+                          className="ml-2 text-accent-green hover:text-navy"
                         >
                           {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                         </button>
@@ -397,7 +397,7 @@ const BackPay: React.FC = () => {
                             step="0.01"
                             value={rates?.oldRate ?? ''}
                             onChange={(e) => updateEmpRate(emp.id, 'oldRate', e.target.value)}
-                            className="w-28 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20"
+                            className="w-28 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20"
                           />
                         </div>
                         <div>
@@ -409,7 +409,7 @@ const BackPay: React.FC = () => {
                             value={rates?.newRate ?? ''}
                             onChange={(e) => updateEmpRate(emp.id, 'newRate', e.target.value)}
                             placeholder="Required"
-                            className="w-28 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20"
+                            className="w-28 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20"
                           />
                         </div>
                       </div>

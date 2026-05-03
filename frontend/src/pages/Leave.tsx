@@ -169,7 +169,7 @@ const Leave: React.FC = () => {
         <Dropdown
           className="w-full"
           trigger={(isOpen) => (
-            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{filterStatus ? filterStatus.charAt(0) + filterStatus.slice(1).toLowerCase() : 'All Statuses'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -192,7 +192,7 @@ const Leave: React.FC = () => {
             onFocus={() => setEmpDropdownOpen(true)}
             onBlur={() => setTimeout(() => setEmpDropdownOpen(false), 150)}
             placeholder="Search employee…"
-            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
+            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green shadow-sm"
           />
           {filterEmployee && (
             <button
@@ -227,7 +227,7 @@ const Leave: React.FC = () => {
             type="date"
             value={filterStartDate}
             onChange={(e) => setFilterStartDate(e.target.value)}
-            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
+            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green shadow-sm"
             placeholder="Start date"
           />
         </div>
@@ -237,7 +237,7 @@ const Leave: React.FC = () => {
             type="date"
             value={filterEndDate}
             onChange={(e) => setFilterEndDate(e.target.value)}
-            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
+            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green shadow-sm"
             placeholder="End date"
           />
         </div>

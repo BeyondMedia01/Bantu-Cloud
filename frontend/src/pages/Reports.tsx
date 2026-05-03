@@ -138,7 +138,7 @@ const Reports: React.FC = () => {
         <div className="flex items-center gap-2">
           <Dropdown
             trigger={(isOpen) => (
-              <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-blue transition-colors">
+              <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-green transition-colors">
                 <span>{selectedYear}</span>
                 <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -159,7 +159,7 @@ const Reports: React.FC = () => {
               {/* ZIMRA P16 */}
               <div className="bg-primary rounded-2xl border border-border shadow-sm p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 bg-blue-50 text-accent-blue rounded-xl flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 bg-blue-50 text-accent-green rounded-xl flex items-center justify-center shrink-0">
                     <FileText size={22} />
                   </div>
                   <div>
@@ -190,7 +190,7 @@ const Reports: React.FC = () => {
                 <div className="flex items-center gap-2 shrink-0">
                   <Dropdown
                     trigger={(isOpen) => (
-                      <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-blue transition-colors">
+                      <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-green transition-colors">
                         <span>{MONTHS.find(m => m.id === selectedMonth)?.name}</span>
                         <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                       </button>
@@ -262,7 +262,7 @@ const Reports: React.FC = () => {
                       key={p.id}
                       disabled={disabled || isDownloading(`pension-${p.id}`)}
                       onClick={() => downloadPension(p.id)}
-                      className="bg-white border border-border p-4 rounded-2xl flex flex-col gap-2 hover:border-accent-blue transition-all text-left"
+                      className="bg-white border border-border p-4 rounded-2xl flex flex-col gap-2 hover:border-accent-green transition-all text-left"
                     >
                       <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
                         <Download size={16} />
@@ -283,7 +283,7 @@ const Reports: React.FC = () => {
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Target Run:</span>
                 <Dropdown
                   trigger={(isOpen) => (
-                    <button type="button" className="flex items-center gap-1.5 bg-slate-50 border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-blue transition-colors max-w-[170px]">
+                    <button type="button" className="flex items-center gap-1.5 bg-slate-50 border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-green transition-colors max-w-[170px]">
                       <span className="truncate">{runs.find((r: any) => r.id === selectedRunId) ? `${fmtDate(runs.find((r: any) => r.id === selectedRunId).startDate)} – ${fmtDate(runs.find((r: any) => r.id === selectedRunId).endDate)}` : 'Select Run...'}</span>
                       <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>

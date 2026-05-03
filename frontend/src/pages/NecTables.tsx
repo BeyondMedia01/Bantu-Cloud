@@ -183,13 +183,13 @@ const NecTables: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center p-12">
-        <Loader className="animate-spin text-accent-blue" />
+        <Loader className="animate-spin text-accent-green" />
       </div>
     );
   }
 
   const activeTable = tables.find(t => t.id === activeTableId);
-  const inputCls = 'w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue font-mono';
+  const inputCls = 'w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green font-mono';
 
   return (
     <div className="flex flex-col gap-6">
@@ -243,7 +243,7 @@ const NecTables: React.FC = () => {
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span>{newTable.currency}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -311,7 +311,7 @@ const NecTables: React.FC = () => {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${
                   activeTableId === table.id
-                    ? 'bg-accent-blue text-white shadow-md'
+                    ? 'bg-accent-green text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
@@ -469,7 +469,7 @@ const NecTables: React.FC = () => {
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => startEditGrade(grade)}
-                              className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-blue transition-colors"
+                              className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-green transition-colors"
                             >
                               <Pencil size={13} />
                             </button>
@@ -576,7 +576,7 @@ const NecTables: React.FC = () => {
                         No grades defined.{' '}
                         <button
                           onClick={() => setAddingGrade(true)}
-                          className="text-accent-blue font-bold not-italic hover:underline"
+                          className="text-accent-green font-bold not-italic hover:underline"
                         >
                           Add the first grade →
                         </button>

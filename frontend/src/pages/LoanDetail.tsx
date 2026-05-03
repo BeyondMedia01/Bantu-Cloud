@@ -129,7 +129,7 @@ const LoanDetail: React.FC = () => {
                   {r.status !== 'PAID' && (
                     <button
                       onClick={() => handleMarkPaid(r.id)}
-                      className="text-xs font-bold text-accent-blue hover:underline"
+                      className="text-xs font-bold text-accent-green hover:underline"
                     >
                       Mark Paid
                     </button>

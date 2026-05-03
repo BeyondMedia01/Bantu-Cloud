@@ -87,7 +87,7 @@ const StatutoryRates: React.FC = () => {
                       max="100"
                       value={form.sdfRate}
                       onChange={(e) => handleChange('sdfRate', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                       required
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
@@ -107,7 +107,7 @@ const StatutoryRates: React.FC = () => {
                       max="100"
                       value={form.zimdefRate}
                       onChange={(e) => handleChange('zimdefRate', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                       required
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>

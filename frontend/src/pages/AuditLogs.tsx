@@ -188,7 +188,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
       {/* ── Stats Strip ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total Events', value: total.toLocaleString(), icon: Database, accent: 'text-accent-blue' },
+          { label: 'Total Events', value: total.toLocaleString(), icon: Database, accent: 'text-accent-green' },
           { label: 'This Page',    value: logs.length,             icon: Clock,    accent: 'text-emerald-500' },
           { label: 'Page',         value: `${page} / ${totalPages}`, icon: Tag,   accent: 'text-amber-500'   },
           { label: 'Per Page',     value: LIMIT,                   icon: SlidersHorizontal, accent: 'text-violet-500' },
@@ -227,7 +227,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                 placeholder="Search by email…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-blue/20 transition-all border-none"
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-green/20 transition-all border-none"
               />
             </div>
 
@@ -263,7 +263,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter by action"
                   value={filterAction}
                   onChange={e => setFilterAction(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
+                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -276,7 +276,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter by resource"
                   value={filterResource}
                   onChange={e => setFilterResource(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
+                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -288,7 +288,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter from date"
                   value={filterDateFrom}
                   onChange={e => setFilterDateFrom(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
+                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -300,7 +300,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter to date"
                   value={filterDateTo}
                   onChange={e => setFilterDateTo(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-blue/20 border-none"
+                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
             </div>

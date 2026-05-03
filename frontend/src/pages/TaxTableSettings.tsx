@@ -191,11 +191,11 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-12"><Loader className="animate-spin text-accent-blue" /></div>;
+  if (loading) return <div className="flex justify-center p-12"><Loader className="animate-spin text-accent-green" /></div>;
 
   const activeTable = tables.find((t: any) => t.id === activeTableId);
 
-  const inputCls = 'w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue font-mono';
+  const inputCls = 'w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green font-mono';
 
   return (
     <div className="flex flex-col gap-6">
@@ -232,7 +232,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
               <button
                 key={table.id}
                 onClick={() => { setActiveTableId(table.id); setPendingRows([]); setEditingId(null); }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${activeTableId === table.id ? 'bg-accent-blue text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${activeTableId === table.id ? 'bg-accent-green text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-bold truncate">{table.name}</span>
@@ -294,7 +294,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                     onClick={() => setIsUploadModalOpen(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                   >
-                    <FileUp size={13} className="text-accent-blue" /> Bulk Upload
+                    <FileUp size={13} className="text-accent-green" /> Bulk Upload
                   </button>
                   <button
                     onClick={() => handleDeleteTable(activeTable.id, activeTable.name)}
@@ -356,14 +356,14 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                           {bracket.upperBound != null ? bracket.upperBound.toLocaleString() : <span className="text-[10px] font-black text-slate-300 uppercase italic tracking-widest">And Above</span>}
                         </td>
                         <td className="px-5 py-3.5">
-                          <span className="px-2.5 py-1 rounded-full bg-blue-50 text-accent-blue text-xs font-bold flex items-center gap-1 w-fit">
+                          <span className="px-2.5 py-1 rounded-full bg-blue-50 text-accent-green text-xs font-bold flex items-center gap-1 w-fit">
                             <Percent size={11} /> {(bracket.rate * 100).toFixed(2)}%
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-sm font-bold font-mono text-navy">{bracket.fixedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => startEdit(bracket)} className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-blue transition-colors">
+                            <button onClick={() => startEdit(bracket)} className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-green transition-colors">
                               <Pencil size={13} />
                             </button>
                             <button onClick={() => handleDeleteBracket(bracket.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors">
@@ -422,7 +422,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                     <tr>
                       <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic text-sm">
                         No brackets defined.{' '}
-                        <button onClick={addPendingRow} className="text-accent-blue font-bold not-italic hover:underline">Add the first bracket →</button>
+                        <button onClick={addPendingRow} className="text-accent-green font-bold not-italic hover:underline">Add the first bracket →</button>
                       </td>
                     </tr>
                   )}

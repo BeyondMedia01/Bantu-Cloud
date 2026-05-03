@@ -36,12 +36,12 @@ const DeviceForm: React.FC<{
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Device Name *</label>
           <input type="text" value={form.name} onChange={set('name')} required
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Vendor</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+            <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{VENDOR_LABELS[form.vendor] || form.vendor}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -50,23 +50,23 @@ const DeviceForm: React.FC<{
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">IP Address *</label>
           <input type="text" value={form.ipAddress} onChange={set('ipAddress')} required placeholder="192.168.1.100"
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Port</label>
           <input type="number" value={form.port} onChange={set('port')} min={1} max={65535}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Username</label>
           <input type="text" value={form.username} onChange={set('username')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Password</label>
           <div className="relative">
             <input type={showPwd ? 'text' : 'password'} value={form.password} onChange={set('password')}
-              className="w-full px-3 py-2 pr-9 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+              className="w-full px-3 py-2 pr-9 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
             <button type="button" onClick={() => setShowPwd((s) => !s)}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
               {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -76,12 +76,12 @@ const DeviceForm: React.FC<{
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Serial Number</label>
           <input type="text" value={form.serialNumber} onChange={set('serialNumber')} placeholder="For ADMS push matching"
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Location</label>
           <input type="text" value={form.location} onChange={set('location')} placeholder="e.g. Main Entrance"
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
       </div>
 
@@ -222,7 +222,7 @@ const Devices: React.FC = () => {
         <div className="bg-primary border border-dashed border-border rounded-2xl p-12 text-center">
           <Server size={32} className="text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-medium">No devices configured yet.</p>
-          <button onClick={() => setShowForm(true)} className="mt-3 text-accent-blue text-sm font-bold hover:underline">
+          <button onClick={() => setShowForm(true)} className="mt-3 text-accent-green text-sm font-bold hover:underline">
             Add first device →
           </button>
         </div>

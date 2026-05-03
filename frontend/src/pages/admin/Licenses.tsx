@@ -70,7 +70,7 @@ const AdminLicenses: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Client *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                   <span>{form.clientId ? (clients.find((c: any) => c.id === form.clientId)?.name || 'Select client') : 'Select client'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -127,7 +127,7 @@ const AdminLicenses: React.FC = () => {
                       ) : isActive ? (
                         <button onClick={() => handleRevoke(lic.clientId)} className="text-xs font-bold text-red-500 hover:underline">Revoke</button>
                       ) : (
-                        <button onClick={() => handleReactivate(lic.clientId)} className="text-xs font-bold text-accent-blue hover:underline">Reactivate</button>
+                        <button onClick={() => handleReactivate(lic.clientId)} className="text-xs font-bold text-accent-green hover:underline">Reactivate</button>
                       )}
                     </td>
                   </tr>

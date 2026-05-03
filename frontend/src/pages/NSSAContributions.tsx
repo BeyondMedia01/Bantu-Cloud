@@ -122,7 +122,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-navy rounded-2xl p-6 text-white flex gap-4 items-start shadow-xl border-t border-white/10">
           <div className="p-2 bg-white/10 rounded-xl">
-            <ShieldCheck size={24} className="text-accent-blue" />
+            <ShieldCheck size={24} className="text-accent-green" />
           </div>
           <div>
             <h3 className="font-bold text-lg mb-1 tracking-tight">Capped Compliance</h3>
@@ -248,7 +248,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
           <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl border border-white/20 overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-8 pb-0 flex justify-between items-start">
               <div>
-                <div className="p-3 bg-accent-blue/10 rounded-2xl text-accent-blue w-fit mb-4">
+                <div className="p-3 bg-accent-green/10 rounded-2xl text-accent-green w-fit mb-4">
                   <Settings size={24} />
                 </div>
                 <h3 className="text-2xl font-black text-navy tracking-tight">NSSA Configuration</h3>
@@ -265,7 +265,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Rate (%)</label>
                   <input 
                     type="number" step="0.01" required
-                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy outline-none focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue transition-all"
+                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy outline-none focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green transition-all"
                     value={settings.employeeRate}
                     onChange={e => setSettings({...settings, employeeRate: parseFloat(e.target.value)})}
                   />
@@ -274,7 +274,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Employer Rate (%)</label>
                   <input 
                     type="number" step="0.01" required
-                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy outline-none focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue transition-all"
+                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy outline-none focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green transition-all"
                     value={settings.employerRate}
                     onChange={e => setSettings({...settings, employerRate: parseFloat(e.target.value)})}
                   />
@@ -283,7 +283,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Insurable Ceiling (USD)</label>
                   <input 
                     type="number" step="0.01" required
-                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-accent-blue text-lg outline-none focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue transition-all"
+                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-accent-green text-lg outline-none focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green transition-all"
                     value={settings.ceilingUSD}
                     onChange={e => setSettings({...settings, ceilingUSD: parseFloat(e.target.value)})}
                   />
@@ -292,7 +292,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">WCIF Rate (%)</label>
                   <input 
                     type="number" step="0.01" required
-                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy outline-none focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue transition-all"
+                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy outline-none focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green transition-all"
                     value={settings.wcifRate}
                     onChange={e => setSettings({...settings, wcifRate: parseFloat(e.target.value)})}
                   />

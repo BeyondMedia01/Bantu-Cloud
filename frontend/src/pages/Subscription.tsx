@@ -100,7 +100,7 @@ const Subscription: React.FC = () => {
           return (
             <div
               key={plan.id}
-              className={`bg-primary rounded-2xl border p-6 shadow-sm flex flex-col gap-4 ${isCurrent ? 'border-accent-blue ring-2 ring-accent-blue/10' : 'border-border'}`}
+              className={`bg-primary rounded-2xl border p-6 shadow-sm flex flex-col gap-4 ${isCurrent ? 'border-accent-green ring-2 ring-accent-green/10' : 'border-border'}`}
             >
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{plan.name}</p>

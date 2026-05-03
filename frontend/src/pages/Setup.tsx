@@ -29,7 +29,7 @@ const Setup: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 font-inter">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 bg-accent-blue rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
+        <div className="w-12 h-12 bg-accent-green rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
         <h1 className="text-3xl font-bold tracking-tight text-navy">Bantu Payroll</h1>
       </div>
 
@@ -60,7 +60,7 @@ const Setup: React.FC = () => {
               <input
                 type={type}
                 required
-                className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder={placeholder}
                 value={(form as any)[field]}
                 onChange={set(field)}

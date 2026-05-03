@@ -94,7 +94,7 @@ const NSSASettingsPage: React.FC = () => {
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employeeRate}
                       onChange={(e) => handleChange('employeeRate', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
                 </div>
@@ -103,7 +103,7 @@ const NSSASettingsPage: React.FC = () => {
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employerRate}
                       onChange={(e) => handleChange('employerRate', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
                 </div>
@@ -124,7 +124,7 @@ const NSSASettingsPage: React.FC = () => {
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employeeRateZIG}
                       onChange={(e) => handleChange('employeeRateZIG', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
                 </div>
@@ -133,7 +133,7 @@ const NSSASettingsPage: React.FC = () => {
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employerRateZIG}
                       onChange={(e) => handleChange('employerRateZIG', e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
+                      className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                   </div>
                 </div>
@@ -151,7 +151,7 @@ const NSSASettingsPage: React.FC = () => {
                 <div className="relative">
                   <input type="number" step="0.01" min="0" max="100" value={form.wcifRate}
                     onChange={(e) => handleChange('wcifRate', e.target.value)}
-                    className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" required />
+                    className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
                 </div>
               </div>
@@ -177,7 +177,7 @@ const NSSASettingsPage: React.FC = () => {
                       min="0"
                       value={form.ceilingUSD}
                       onChange={(e) => handleChange('ceilingUSD', e.target.value)}
-                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                       required
                     />
                   </div>
@@ -198,7 +198,7 @@ const NSSASettingsPage: React.FC = () => {
                       min="0"
                       value={form.ceilingZIG}
                       onChange={(e) => handleChange('ceilingZIG', e.target.value)}
-                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                      className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                       required
                     />
                   </div>

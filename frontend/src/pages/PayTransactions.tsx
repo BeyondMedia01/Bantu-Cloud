@@ -133,7 +133,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
             <input
               type="text"
               placeholder="Search by code or name..."
-              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -237,7 +237,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Code *</label>
                   <input
-                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-blue disabled:bg-slate-50 disabled:text-slate-400"
+                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green disabled:bg-slate-50 disabled:text-slate-400"
                     value={form.code}
                     onChange={e => setForm((f: any) => ({ ...f, code: e.target.value.toUpperCase() }))}
                     disabled={modal.mode === 'edit'}
@@ -249,7 +249,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Type *</label>
                   <Dropdown className="w-full" trigger={(isOpen) => (
-                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-blue transition-colors bg-primary">
+                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-green transition-colors bg-primary">
                       <span>{form.type}</span>
                       <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -261,7 +261,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Name *</label>
                 <input
-                  className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-blue"
+                  className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
                   value={form.name}
                   onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. Transport Allowance"
@@ -273,7 +273,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Calculation</label>
                   <Dropdown className="w-full" trigger={(isOpen) => (
-                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-blue transition-colors bg-primary capitalize">
+                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-green transition-colors bg-primary capitalize">
                       <span>{form.calculationType}</span>
                       <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -284,7 +284,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Default Value</label>
                   <input
                     type="number"
-                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-blue"
+                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
                     value={form.defaultValue}
                     onChange={e => setForm((f: any) => ({ ...f, defaultValue: e.target.value }))}
                     placeholder="0.00"
@@ -298,7 +298,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 <Dropdown className="w-full" trigger={(isOpen) => {
                   const cats: Record<string,string> = { '': 'None / Standard', BASIC_SALARY: 'Basic Salary', BONUS: 'Bonus', PENSION: 'Pension (Exempt)', MEDICAL_AID: 'Medical Aid (50% Tax Credit)', ALLOWANCE: 'Allowance', OVERTIME: 'Overtime', COMMISSION: 'Commission', BENEFIT: 'Benefit' };
                   return (
-                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-blue transition-colors bg-primary">
+                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-green transition-colors bg-primary">
                       <span>{cats[form.incomeCategory || ''] || 'None / Standard'}</span>
                       <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -328,7 +328,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                   <label key={key} className="flex items-start gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="mt-0.5 accent-accent-blue"
+                      className="mt-0.5 accent-accent-green"
                       checked={form[key]}
                       onChange={e => setForm((f: any) => ({ ...f, [key]: e.target.checked }))}
                     />
@@ -343,7 +343,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
 
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={closeModal} className="px-4 py-2 rounded-xl border border-border text-sm font-bold hover:bg-slate-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-accent-blue text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
+              <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-accent-green text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
                 {saving && <Loader size={14} className="animate-spin" />}
                 {modal.mode === 'create' ? 'Create' : 'Save Changes'}
               </button>

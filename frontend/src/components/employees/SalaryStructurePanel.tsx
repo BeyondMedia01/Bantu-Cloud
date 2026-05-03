@@ -137,7 +137,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             <div className="sm:col-span-2 lg:col-span-1">
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Transaction Code *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{txCodes.find((tc: any) => tc.id === form.transactionCodeId) ? `${txCodes.find((tc: any) => tc.id === form.transactionCodeId).code} — ${txCodes.find((tc: any) => tc.id === form.transactionCodeId).name}` : 'Select code…'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -160,7 +160,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                   value={form.value}
                   onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                  className="w-full pl-8 pr-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                   required
                 />
               </div>
@@ -169,7 +169,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{form.currency}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -185,7 +185,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                 type="date"
                 value={form.effectiveFrom}
                 onChange={(e) => setForm((f) => ({ ...f, effectiveFrom: e.target.value }))}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                 required
               />
             </div>
@@ -197,7 +197,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                 value={form.effectiveTo}
                 onChange={(e) => setForm((f) => ({ ...f, effectiveTo: e.target.value }))}
                 min={form.effectiveFrom}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
               />
             </div>
 
@@ -208,7 +208,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                 value={form.notes}
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                 placeholder="Optional description…"
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
               />
             </div>
           </div>
@@ -254,7 +254,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="mt-3 text-accent-blue text-sm font-bold hover:underline"
+            className="mt-3 text-accent-green text-sm font-bold hover:underline"
           >
             Add first component →
           </button>

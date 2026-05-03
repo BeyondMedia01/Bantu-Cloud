@@ -68,7 +68,7 @@ const EmployeePayslips: React.FC = () => {
                   <td className="px-4 py-3">
                     <button
                       onClick={() => handlePdf(p.payrollRunId, p.id)}
-                      className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:underline"
+                      className="flex items-center gap-1 text-xs font-bold text-accent-green hover:underline"
                     >
                       <FileText size={14} /> PDF
                     </button>

@@ -95,9 +95,9 @@ const EmployeeDashboard: React.FC = () => {
           <button
             key={s.path}
             onClick={() => navigate(s.path)}
-            className="bg-primary border border-border rounded-2xl p-5 shadow-sm hover:border-accent-blue transition-all text-left flex items-center gap-4"
+            className="bg-primary border border-border rounded-2xl p-5 shadow-sm hover:border-accent-green transition-all text-left flex items-center gap-4"
           >
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-accent-blue">{s.icon}</div>
+            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-accent-green">{s.icon}</div>
             <div>
               <p className="text-xl font-bold">{s.value}</p>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
@@ -111,7 +111,7 @@ const EmployeeDashboard: React.FC = () => {
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden mb-6">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <h3 className="font-bold">Recent Payslips</h3>
-            <button onClick={() => navigate('/employee/payslips')} className="text-xs font-bold text-accent-blue hover:underline">View All</button>
+            <button onClick={() => navigate('/employee/payslips')} className="text-xs font-bold text-accent-green hover:underline">View All</button>
           </div>
           <div className="divide-y divide-border">
             {payslips.map((p: any) => (

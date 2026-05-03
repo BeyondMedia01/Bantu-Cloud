@@ -42,7 +42,7 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-border flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent-blue/10 rounded-xl text-accent-blue">
+            <div className="p-2 bg-accent-green/10 rounded-xl text-accent-green">
               <Calculator size={20} />
             </div>
             <div>
@@ -84,7 +84,7 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
                   <button
                     onClick={() => setHousingType('OWNED')}
                     className={`flex-1 py-3 px-4 rounded-2xl border-2 transition-all text-sm font-bold ${
-                      housingType === 'OWNED' ? 'border-accent-blue bg-accent-blue/5 text-accent-blue' : 'border-border text-slate-400'
+                      housingType === 'OWNED' ? 'border-accent-green bg-accent-green/5 text-accent-green' : 'border-border text-slate-400'
                     }`}
                   >
                     Employer Owned (7% Rule)
@@ -92,7 +92,7 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
                   <button
                     onClick={() => setHousingType('RENTED')}
                     className={`flex-1 py-3 px-4 rounded-2xl border-2 transition-all text-sm font-bold ${
-                      housingType === 'RENTED' ? 'border-accent-blue bg-accent-blue/5 text-accent-blue' : 'border-border text-slate-400'
+                      housingType === 'RENTED' ? 'border-accent-green bg-accent-green/5 text-accent-green' : 'border-border text-slate-400'
                     }`}
                   >
                     Rented / Lease
@@ -162,7 +162,7 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
               </div>
               <button
                 onClick={() => onApply(result)}
-                className="bg-accent-blue text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-accent-blue/20 hover:scale-105 transition-all flex items-center gap-2"
+                className="bg-accent-green text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-accent-green/20 hover:scale-105 transition-all flex items-center gap-2"
               >
                 Apply <ArrowRight size={18} />
               </button>

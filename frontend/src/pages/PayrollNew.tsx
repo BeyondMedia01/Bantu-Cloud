@@ -86,7 +86,7 @@ const PayrollNew: React.FC = () => {
       </div>
 
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl mb-6">
-        <AlertCircle size={16} className="text-accent-blue mt-0.5 shrink-0" />
+        <AlertCircle size={16} className="text-accent-green mt-0.5 shrink-0" />
         <p className="text-sm font-medium text-slate-600">
           This will calculate PAYE, AIDS Levy, and NSSA for all active employees.
           <strong> Dual Currency</strong> runs calculate PAYE independently in USD and ZiG using your tax tables for each currency.
@@ -104,7 +104,7 @@ const PayrollNew: React.FC = () => {
               required
               value={form.startDate}
               onChange={set('startDate')}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm"
+              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -114,7 +114,7 @@ const PayrollNew: React.FC = () => {
               required
               value={form.endDate}
               onChange={set('endDate')}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm"
+              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
             />
           </div>
         </div>
@@ -128,7 +128,7 @@ const PayrollNew: React.FC = () => {
                 key={mode}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
                   form.currencyMode === mode
-                    ? 'border-accent-blue bg-blue-50'
+                    ? 'border-accent-green bg-blue-50'
                     : 'border-border bg-slate-50 hover:bg-slate-100'
                 }`}
               >
@@ -138,7 +138,7 @@ const PayrollNew: React.FC = () => {
                   value={mode}
                   checked={form.currencyMode === mode}
                   onChange={() => { setError(''); setForm((f) => ({ ...f, currencyMode: mode })); }}
-                  className="accent-blue-600"
+                  className="accent-green-600"
                 />
                 <span className="font-medium text-sm">{modeLabel[mode]}</span>
                 {mode === 'DUAL' && (
@@ -160,7 +160,7 @@ const PayrollNew: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, exchangeRate: String(latestRate.rate) }))}
-                  className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:underline"
+                  className="flex items-center gap-1 text-xs font-bold text-accent-green hover:underline"
                 >
                   <RefreshCw size={11} /> Use latest {latestRate.source} rate ({latestRate.rate})
                 </button>
@@ -174,7 +174,7 @@ const PayrollNew: React.FC = () => {
               value={form.exchangeRate}
               onChange={set('exchangeRate')}
               placeholder={latestRate ? `e.g. ${latestRate.rate}` : 'e.g. 27.5'}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm"
+              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
             />
             <p className="text-xs text-slate-400">How many ZiG equal 1 USD (e.g. 27.5 means 1 USD = 27.5 ZiG)</p>
           </div>
@@ -187,7 +187,7 @@ const PayrollNew: React.FC = () => {
             onChange={set('notes')}
             rows={3}
             placeholder="e.g. March 2025 dual-currency payroll run"
-            className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue font-medium text-sm resize-none"
+            className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm resize-none"
           />
         </div>
 

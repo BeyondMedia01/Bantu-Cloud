@@ -20,7 +20,7 @@ const ResetPassword: React.FC = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-6 font-inter text-center">
         <div>
           <p className="text-lg font-bold text-slate-500 mb-4">Invalid or missing reset token.</p>
-          <button onClick={() => navigate('/forgot-password')} className="text-accent-blue font-bold hover:underline">
+          <button onClick={() => navigate('/forgot-password')} className="text-accent-green font-bold hover:underline">
             Request a new link
           </button>
         </div>
@@ -51,7 +51,7 @@ const ResetPassword: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 font-inter">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-accent-blue rounded-xl flex items-center justify-center text-white font-bold text-lg shadow">B</div>
+        <div className="w-10 h-10 bg-accent-green rounded-xl flex items-center justify-center text-white font-bold text-lg shadow">B</div>
         <span className="text-xl font-bold text-navy">Bantu Payroll</span>
       </div>
 
@@ -94,7 +94,7 @@ const ResetPassword: React.FC = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium pr-11"
+                    className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium pr-11"
                   />
                   <button
                     type="button"
@@ -114,7 +114,7 @@ const ResetPassword: React.FC = () => {
                   placeholder="••••••••"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 />
               </div>
 

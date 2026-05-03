@@ -90,7 +90,7 @@ const PublicHolidays: React.FC = () => {
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Dropdown trigger={(isOpen) => (
-          <button type="button" className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 text-sm font-semibold bg-primary hover:border-accent-blue transition-colors">
+          <button type="button" className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 text-sm font-semibold bg-primary hover:border-accent-green transition-colors">
             <span>{year}</span>
             <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -127,7 +127,7 @@ const PublicHolidays: React.FC = () => {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="e.g. National Heroes Day"
                 required
-                className="w-full border border-border rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:border-accent-blue"
+                className="w-full border border-border rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:border-accent-green"
               />
             </div>
             <div>
@@ -137,7 +137,7 @@ const PublicHolidays: React.FC = () => {
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
                 required
-                className="border border-border rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:border-accent-blue"
+                className="border border-border rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:border-accent-green"
               />
             </div>
             <button

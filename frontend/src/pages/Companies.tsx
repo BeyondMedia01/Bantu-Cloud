@@ -99,7 +99,7 @@ const Companies: React.FC = () => {
   const ef = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setEditForm((prev: any) => ({ ...prev, [field]: e.target.value }));
 
-  const inputCls = "w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium text-sm";
+  const inputCls = "w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium text-sm";
 
   return (
     <div className="flex flex-col gap-8">
@@ -199,8 +199,8 @@ const Companies: React.FC = () => {
               /* ── Card View ────────────────────────────────────────────── */
               <div className="p-6 flex flex-col h-full group">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-accent-blue shrink-0
-                    group-hover:bg-accent-blue group-hover:text-white transition-colors shadow-sm">
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-accent-green shrink-0
+                    group-hover:bg-accent-green group-hover:text-white transition-colors shadow-sm">
                     <Building2 size={24} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -229,7 +229,7 @@ const Companies: React.FC = () => {
                       <Trash size={14} />
                     </button>
                     <button onClick={() => startEdit(company)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-accent-blue hover:bg-blue-50 rounded-lg transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-accent-green hover:bg-blue-50 rounded-lg transition-colors">
                       <Pencil size={13} /> Edit
                     </button>
                   </div>

@@ -50,7 +50,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
   const getRoleStyle = (role: string) => {
     switch (role) {
       case 'ADMIN': return 'bg-purple-50 text-purple-600 border-purple-100';
-      case 'PAYROLL_OFFICER': return 'bg-accent-blue/10 text-accent-blue border-accent-blue/20';
+      case 'PAYROLL_OFFICER': return 'bg-accent-green/10 text-accent-green border-accent-green/20';
       case 'AUDITOR': return 'bg-amber-50 text-amber-600 border-amber-100';
       default: return 'bg-slate-100 text-slate-500 border-slate-200';
     }
@@ -91,7 +91,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
       {/* RBAC Info Card */}
       <div className="bg-gradient-to-br from-navy to-slate-800 rounded-3xl p-6 text-white flex flex-col md:flex-row gap-6 items-start md:items-center shadow-xl shadow-slate-200">
         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
-          <Key size={32} className="text-accent-blue" />
+          <Key size={32} className="text-accent-green" />
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-bold mb-1">Robust Role-Based Access Control (RBAC)</h3>
@@ -117,7 +117,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                 type="text" 
                 placeholder="Search by name or email..."
                 aria-label="Search users"
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/30 shadow-sm"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/30 shadow-sm"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />

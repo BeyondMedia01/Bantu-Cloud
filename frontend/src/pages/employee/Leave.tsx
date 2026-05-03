@@ -165,7 +165,7 @@ const EmployeeLeave: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{fmtType(applyForm.type)}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -183,23 +183,23 @@ const EmployeeLeave: React.FC = () => {
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Start Date <span className="text-red-400">*</span></label>
                 <input type="date" required value={applyForm.startDate} onChange={setApply('startDate')}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">End Date <span className="text-red-400">*</span></label>
                 <input type="date" required value={applyForm.endDate} onChange={setApply('endDate')}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
               </div>
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Number of Days <span className="text-red-400">*</span></label>
               <input type="number" required min="0.5" step="0.5" value={applyForm.days} onChange={setApply('days')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Reason</label>
               <textarea value={applyForm.reason} onChange={setApply('reason')} rows={3}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={submitting}
@@ -226,7 +226,7 @@ const EmployeeLeave: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{fmtType(encashForm.leaveType)}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -243,12 +243,12 @@ const EmployeeLeave: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Days to Encash <span className="text-red-400">*</span></label>
               <input type="number" required min="0.5" step="0.5" value={encashForm.days} onChange={setEncash('days')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Notes</label>
               <input type="text" value={encashForm.notes} onChange={setEncash('notes')} placeholder="Optional reason"
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={encashSubmitting}

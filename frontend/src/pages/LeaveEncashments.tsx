@@ -159,7 +159,7 @@ const LeaveEncashments: React.FC = () => {
                 onChange={(e) => setRejectReason(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') confirmReject(); if (e.key === 'Escape') { setRejectTarget(null); setRejectReason(''); } }}
                 placeholder="e.g. Insufficient leave balance"
-                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -205,7 +205,7 @@ const LeaveEncashments: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Employee <span className="text-red-400">*</span></label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee…'}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -217,7 +217,7 @@ const LeaveEncashments: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type <span className="text-red-400">*</span></label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{fmtType(form.leaveType)}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -231,7 +231,7 @@ const LeaveEncashments: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Days to Encash <span className="text-red-400">*</span></label>
               <input type="number" required min="0.5" step="0.5" value={form.days} onChange={set('days')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
               {selectedBalance && form.days && (
                 <p className="text-xs text-slate-400 mt-1">
                   Est. amount: <span className="font-bold text-navy">
@@ -244,7 +244,7 @@ const LeaveEncashments: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Notes</label>
               <input type="text" value={form.notes} onChange={set('notes')} placeholder="Optional"
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue" />
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div className="sm:col-span-2 flex gap-3 pt-2">
               <button type="submit" disabled={saving}
@@ -263,7 +263,7 @@ const LeaveEncashments: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-accent-blue" /></div>
+        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-accent-green" /></div>
       ) : encashments.length === 0 ? (
         <div className="text-center py-16 bg-primary rounded-2xl border border-border">
           <Banknote size={36} className="mx-auto mb-3 text-slate-200" />

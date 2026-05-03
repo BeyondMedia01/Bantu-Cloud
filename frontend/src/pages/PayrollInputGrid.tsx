@@ -427,7 +427,7 @@ const PayrollInputGrid: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutGrid size={18} className="text-accent-blue" />
+            <LayoutGrid size={18} className="text-accent-green" />
             <h1 className="text-xl font-bold">Payroll Input Grid</h1>
           </div>
           <p className="text-slate-500 text-xs font-medium mt-0.5">
@@ -439,10 +439,10 @@ const PayrollInputGrid: React.FC = () => {
             type="month"
             value={period}
             onChange={(e) => handlePeriodChange(e.target.value)}
-            className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 bg-primary"
+            className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 bg-primary"
           />
           <Dropdown trigger={(isOpen) => (
-            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{currency}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -541,7 +541,7 @@ const PayrollInputGrid: React.FC = () => {
                 <th className="px-3 py-3 min-w-[60px] relative">
                   <Dropdown
                     trigger={
-                      <button className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:text-navy whitespace-nowrap">
+                      <button className="flex items-center gap-1 text-xs font-bold text-accent-green hover:text-navy whitespace-nowrap">
                         <Plus size={12} /> Add
                       </button>
                     }
@@ -628,7 +628,7 @@ const PayrollInputGrid: React.FC = () => {
                                 ? 'border border-amber-300 bg-amber-50 focus:ring-amber-200 text-amber-800'
                                 : isDirty
                                   ? 'border border-blue-300 bg-blue-50/70 focus:ring-blue-200'
-                                  : 'border border-transparent bg-slate-100 hover:bg-white hover:border-border focus:ring-accent-blue/20 focus:bg-white'
+                                  : 'border border-transparent bg-slate-100 hover:bg-white hover:border-border focus:ring-accent-green/20 focus:bg-white'
                               }`}
                           />
                         </td>

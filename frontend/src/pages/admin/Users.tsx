@@ -97,7 +97,7 @@ const AdminUsers: React.FC = () => {
               <Dropdown className="w-full" trigger={(isOpen) => {
                 const roles: Record<string,string> = { CLIENT_ADMIN: 'Client Admin', PLATFORM_ADMIN: 'Platform Admin', EMPLOYEE: 'Employee' };
                 return (
-                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                     <span>{roles[form.role] || form.role}</span>
                     <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>

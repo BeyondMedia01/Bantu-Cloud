@@ -72,7 +72,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. 2024 USD Standard"
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all"
+              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
             />
           </div>
 
@@ -80,7 +80,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold hover:border-accent-blue transition-all">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold hover:border-accent-green transition-all">
                   <span>{currency}</span>
                   <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -96,7 +96,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
                 required
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
               />
             </div>
           </div>
@@ -107,14 +107,14 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
               <button
                 type="button"
                 onClick={() => setIsAnnual(true)}
-                className={`flex-1 py-3 text-sm font-bold transition-all ${isAnnual ? 'bg-accent-blue text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                className={`flex-1 py-3 text-sm font-bold transition-all ${isAnnual ? 'bg-accent-green text-white' : 'text-slate-500 hover:bg-slate-100'}`}
               >
                 Annual (FDS)
               </button>
               <button
                 type="button"
                 onClick={() => setIsAnnual(false)}
-                className={`flex-1 py-3 text-sm font-bold transition-all ${!isAnnual ? 'bg-accent-blue text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                className={`flex-1 py-3 text-sm font-bold transition-all ${!isAnnual ? 'bg-accent-green text-white' : 'text-slate-500 hover:bg-slate-100'}`}
               >
                 Monthly
               </button>

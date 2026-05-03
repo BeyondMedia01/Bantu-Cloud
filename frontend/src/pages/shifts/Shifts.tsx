@@ -36,59 +36,59 @@ const ShiftForm: React.FC<{
             <input
               type={type} value={(form as any)[key]} onChange={set(key)}
               required={required}
-              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
+              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
             />
           </div>
         ))}
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Start Time *</label>
           <input type="time" value={form.startTime} onChange={set('startTime')} required
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">End Time *</label>
           <input type="time" value={form.endTime} onChange={set('endTime')} required
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Break (minutes)</label>
           <input type="number" min="0" max="480" value={form.breakMinutes} onChange={set('breakMinutes')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Normal Hours / Day</label>
           <input type="number" min="1" max="24" step="0.5" value={form.normalHours} onChange={set('normalHours')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.0 Threshold (hrs)</label>
           <input type="number" min="0" max="24" step="0.5" value={form.ot0Threshold} onChange={set('ot0Threshold')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.0 Multiplier</label>
           <input type="number" min="0" max="10" step="0.1" value={form.ot0Multiplier} onChange={set('ot0Multiplier')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.5 Threshold (hrs)</label>
           <input type="number" min="0" max="24" step="0.5" value={form.ot1Threshold} onChange={set('ot1Threshold')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 1.5 Multiplier</label>
           <input type="number" min="0" max="10" step="0.1" value={form.ot1Multiplier} onChange={set('ot1Multiplier')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">OT 2.0 Multiplier</label>
           <input type="number" min="0" max="10" step="0.1" value={form.ot2Multiplier} onChange={set('ot2Multiplier')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue" />
+            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div className="flex items-center gap-3 pt-5">
           <input type="checkbox" id="overnight" checked={form.isOvernight}
             onChange={(e) => setForm((f) => ({ ...f, isOvernight: e.target.checked }))}
-            className="w-4 h-4 rounded border-border text-accent-blue" />
+            className="w-4 h-4 rounded border-border text-accent-green" />
           <label htmlFor="overnight" className="text-sm font-medium text-slate-600">Overnight shift (crosses midnight)</label>
         </div>
       </div>
@@ -180,7 +180,7 @@ const Shifts: React.FC = () => {
       ) : shifts.length === 0 ? (
         <div className="bg-primary border border-dashed border-border rounded-2xl p-12 text-center">
           <p className="text-slate-400 font-medium">No shifts defined yet.</p>
-          <button onClick={() => setShowForm(true)} className="mt-3 text-accent-blue text-sm font-bold hover:underline">
+          <button onClick={() => setShowForm(true)} className="mt-3 text-accent-green text-sm font-bold hover:underline">
             Create first shift →
           </button>
         </div>

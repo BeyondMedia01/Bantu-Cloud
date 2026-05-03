@@ -56,7 +56,7 @@ const LeaveNew: React.FC = () => {
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employee *</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -69,7 +69,7 @@ const LeaveNew: React.FC = () => {
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Leave Type</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{form.type.charAt(0) + form.type.slice(1).toLowerCase().replace('_', ' ')}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -82,7 +82,7 @@ const LeaveNew: React.FC = () => {
         </div>
 
         {days > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm font-bold text-accent-blue">
+          <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm font-bold text-accent-green">
             {days} working day{days !== 1 ? 's' : ''}
           </div>
         )}
@@ -90,7 +90,7 @@ const LeaveNew: React.FC = () => {
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span>{form.status.charAt(0) + form.status.slice(1).toLowerCase()}</span>
               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>

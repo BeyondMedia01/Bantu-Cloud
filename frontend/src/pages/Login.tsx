@@ -42,7 +42,7 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 font-inter">
       <div className="flex items-center gap-3 mb-10">
-        <div className="w-12 h-12 bg-accent-blue rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
+        <div className="w-12 h-12 bg-accent-green rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
         <h1 className="text-3xl font-bold tracking-tight text-navy">Bantu Payroll</h1>
       </div>
 
@@ -67,7 +67,7 @@ const Login: React.FC = () => {
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -83,7 +83,7 @@ const Login: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
-                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all font-medium"
+                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -111,7 +111,7 @@ const Login: React.FC = () => {
           <div className="flex items-center justify-between text-sm mt-1">
             <p className="font-medium text-slate-500">
               Don't have an account?
-              <Link to="/register" className="ml-2 font-bold text-accent-blue hover:underline">Register</Link>
+              <Link to="/register" className="ml-2 font-bold text-accent-green hover:underline">Register</Link>
             </p>
             <Link to="/forgot-password" className="font-bold text-slate-400 hover:text-navy transition-colors">
               Forgot password?
@@ -119,7 +119,7 @@ const Login: React.FC = () => {
           </div>
           {isInitialized === false && (
             <p className="text-center text-xs text-slate-400 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              First time? <Link to="/setup" className="font-bold text-accent-blue hover:underline">Platform Setup</Link>
+              First time? <Link to="/setup" className="font-bold text-accent-green hover:underline">Platform Setup</Link>
             </p>
           )}
         </form>

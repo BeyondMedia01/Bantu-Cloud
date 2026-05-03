@@ -185,7 +185,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
     return true;
   };
 
-  const fieldClass = 'w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue';
+  const fieldClass = 'w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green';
   const checkRow = (label: string, key: string, hint?: string, locked?: boolean) => (
     <label className={`flex items-start gap-3 p-3 rounded-xl ${locked ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 cursor-pointer'}`}>
       <input
@@ -193,7 +193,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
         checked={(form as any)[key]}
         onChange={locked ? undefined : set(key)}
         disabled={locked}
-        className="w-4 h-4 accent-accent-blue mt-0.5 flex-shrink-0"
+        className="w-4 h-4 accent-accent-green mt-0.5 flex-shrink-0"
       />
       <div>
         <p className="text-sm font-medium text-navy">{label}{locked && <span className="ml-2 text-[10px] font-bold text-amber-600 uppercase tracking-wide">locked by category</span>}</p>
@@ -223,11 +223,11 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
               <React.Fragment key={n}>
                 <div className="flex flex-col items-center gap-1 flex-shrink-0">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                    done ? 'bg-emerald-500 text-white' : active ? 'bg-accent-blue text-white' : 'bg-slate-100 text-slate-400'
+                    done ? 'bg-emerald-500 text-white' : active ? 'bg-accent-green text-white' : 'bg-slate-100 text-slate-400'
                   }`}>
                     {done ? <CheckCircle2 size={13} /> : n}
                   </div>
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${active ? 'text-accent-blue' : 'text-slate-400'}`}>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider ${active ? 'text-accent-green' : 'text-slate-400'}`}>
                     {label}
                   </span>
                 </div>
@@ -287,7 +287,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                 <input value={form.description} onChange={set('description')} placeholder="Optional" className={fieldClass} />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isActive} onChange={set('isActive')} className="w-4 h-4 accent-accent-blue" />
+                <input type="checkbox" checked={form.isActive} onChange={set('isActive')} className="w-4 h-4 accent-accent-green" />
                 <span className="text-sm font-medium">Active (visible in payroll inputs)</span>
               </label>
             </div>
@@ -345,7 +345,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                 <Dropdown className="w-full" trigger={(isOpen) => {
                   const cats: Record<string,string> = { '': 'None / Standard', BASIC_SALARY: 'Basic Salary', BONUS: 'Bonus', PENSION: 'Pension (Exempt)', MEDICAL_AID: 'Medical Aid (50% Tax Credit)', ALLOWANCE: 'Allowance', OVERTIME: 'Overtime', COMMISSION: 'Commission', BENEFIT: 'Benefit' };
                   return (
-                    <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors">
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors">
                       <span>{cats[form.incomeCategory || ''] || 'None / Standard'}</span>
                       <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -376,7 +376,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                   <label
                     key={ct.value}
                     className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
-                      form.calculationType === ct.value ? 'border-accent-blue bg-blue-50' : 'border-border hover:bg-slate-50'
+                      form.calculationType === ct.value ? 'border-accent-green bg-blue-50' : 'border-border hover:bg-slate-50'
                     }`}
                   >
                     <input
@@ -385,7 +385,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                       value={ct.value}
                       checked={form.calculationType === ct.value}
                       onChange={() => setForm((p) => ({ ...p, calculationType: ct.value }))}
-                      className="mt-0.5 accent-blue-600"
+                      className="mt-0.5 accent-green-600"
                     />
                     <div>
                       <p className="text-sm font-bold text-navy">{ct.label}</p>
@@ -456,7 +456,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                     </p>
                     <button
                       onClick={() => setShowRuleForm((v) => !v)}
-                      className="text-xs font-bold text-accent-blue hover:underline flex items-center gap-1"
+                      className="text-xs font-bold text-accent-green hover:underline flex items-center gap-1"
                     >
                       <Plus size={11} /> Add Rule
                     </button>
@@ -470,7 +470,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                           <Dropdown className="w-full" trigger={(isOpen) => {
                             const ct = CONDITION_TYPES.find(c => c.value === ruleForm.conditionType);
                             return (
-                              <button type="button" className="w-full flex items-center justify-between px-3 py-2 bg-white border border-border rounded-lg text-xs font-medium hover:border-accent-blue transition-colors">
+                              <button type="button" className="w-full flex items-center justify-between px-3 py-2 bg-white border border-border rounded-lg text-xs font-medium hover:border-accent-green transition-colors">
                                 <span>{ct?.label || ruleForm.conditionType}</span>
                                 <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                               </button>
@@ -639,7 +639,7 @@ const TarmsAuditPanel: React.FC<TarmsAuditPanelProps> = ({ onClose }) => {
         {/* Panel header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <ShieldCheck size={18} className="text-accent-blue" />
+            <ShieldCheck size={18} className="text-accent-green" />
             <h2 className="font-bold text-lg">TaRMS Field Allocation Audit</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -682,7 +682,7 @@ const TarmsAuditPanel: React.FC<TarmsAuditPanelProps> = ({ onClose }) => {
                 key={f}
                 onClick={() => setFilterSeverity(f)}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${
-                  filterSeverity === f ? 'bg-accent-blue text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  filterSeverity === f ? 'bg-accent-green text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                 }`}
               >
                 {f ? SEVERITY_LABEL[f] : 'All'}
@@ -882,7 +882,7 @@ const Transactions: React.FC = () => {
             key={t}
             onClick={() => setFilterType(t)}
             className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${
-              filterType === t ? 'bg-accent-blue text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              filterType === t ? 'bg-accent-green text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
             }`}
           >
             {t || 'All'} {t && `(${codes.filter((c) => c.type === t).length})`}
