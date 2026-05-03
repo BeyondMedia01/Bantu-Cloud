@@ -89,9 +89,9 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
                 aria-label={holidayName ?? undefined}
                 className={`cursor-pointer w-8 h-8 flex flex-col items-center justify-center rounded-xl text-xs font-bold transition-all
                   ${isSelected
-                    ? 'bg-accent-green text-white shadow-md transform scale-105'
+                    ? 'bg-brand text-navy shadow-md transform scale-105'
                     : isToday_
-                      ? 'bg-accent-green/10 border-2 border-accent-green text-accent-green'
+                      ? 'bg-brand/20 border-2 border-brand text-navy'
                       : holidayName
                         ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
                         : 'text-slate-600 hover:bg-slate-100'}`}
@@ -100,7 +100,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
                 {(holidayName || hasEvent) && !isSelected && (
                   <div className="flex gap-0.5 mt-0.5">
                     {holidayName && <div className="w-1 h-1 rounded-full bg-orange-400" />}
-                    {hasEvent && <div className="w-1 h-1 rounded-full bg-accent-green" />}
+                    {hasEvent && <div className="w-1 h-1 rounded-full bg-brand" />}
                   </div>
                 )}
               </div>
@@ -120,7 +120,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
           )}
           {eventDays.size > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-accent-green" />
+              <div className="w-2 h-2 rounded-full bg-brand" />
               <span className="text-[10px] text-slate-400 font-bold">Birthday/Anniv.</span>
             </div>
           )}
