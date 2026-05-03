@@ -1,0 +1,22 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import type { ReactNode } from 'react';
+
+interface SectionCardProps {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}
+
+export function SectionCard({ title, children, className }: SectionCardProps) {
+  return (
+    <Card className={className}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
