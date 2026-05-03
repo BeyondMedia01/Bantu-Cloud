@@ -15,7 +15,7 @@ const Landing: React.FC = () => {
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => navigate('/login')} className="text-sm font-bold text-slate-500 hover:text-navy transition-colors">Sign In</button>
-          <button onClick={() => navigate('/register')} className="bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
+          <button onClick={() => navigate('/register')} className="bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
             Get Started
           </button>
         </div>
@@ -35,7 +35,7 @@ const Landing: React.FC = () => {
         <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => navigate('/register')}
-            className="bg-btn-primary text-navy px-8 py-4 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2 text-lg"
+            className="bg-brand text-navy px-8 py-4 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2 text-lg"
           >
             Start Free Trial <ArrowRight size={20} />
           </button>
@@ -89,7 +89,7 @@ const Landing: React.FC = () => {
       </section>
 
       {/* CTA */}
-      <section className="bg-btn-primary text-navy py-20 px-6 text-center">
+      <section className="bg-brand text-navy py-20 px-6 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
         <p className="text-slate-300 font-medium mb-8 max-w-md mx-auto">Join businesses across Zimbabwe using Bantu Payroll to stay compliant and save time.</p>
         <button

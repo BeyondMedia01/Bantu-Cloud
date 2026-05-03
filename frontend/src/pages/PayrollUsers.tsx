@@ -82,7 +82,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
         </div>
         <button
           onClick={() => { showToast('Feature coming soon', 'success'); }}
-          className="bg-btn-primary text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+          className="bg-brand text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
         >
           <UserPlus size={20} /> Invite New User
         </button>

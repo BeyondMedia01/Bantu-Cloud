@@ -215,7 +215,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
         </div>
         <button
           onClick={() => setIsNewModalOpen(true)}
-          className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow flex items-center gap-2 hover:opacity-90 transition-opacity"
+          className="bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow flex items-center gap-2 hover:opacity-90 transition-opacity"
         >
           <Plus size={16} /> New Table
         </button>

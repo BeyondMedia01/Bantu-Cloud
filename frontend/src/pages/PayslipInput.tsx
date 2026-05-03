@@ -413,7 +413,7 @@ const PayslipInput: React.FC = () => {
                 </button>
                 <button
                   onClick={() => { setShowAdd(true); setEditingId(null); setAddForm({ ...EMPTY_FORM }); setAddError(''); }}
-                  className="flex items-center gap-2 bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90"
+                  className="flex items-center gap-2 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90"
                 >
                   <Plus size={15} /> Add Input
                 </button>
@@ -501,7 +501,7 @@ const PayslipInput: React.FC = () => {
                   {addError && <p className="text-xs text-red-600 font-medium mb-3">{addError}</p>}
                   <div className="flex gap-2">
                     <button type="submit" disabled={addSaving}
-                      className="flex items-center gap-1.5 bg-btn-primary text-navy px-5 py-2 rounded-full text-sm font-bold shadow hover:opacity-90 disabled:opacity-50">
+                      className="flex items-center gap-1.5 bg-brand text-navy px-5 py-2 rounded-full text-sm font-bold shadow hover:opacity-90 disabled:opacity-50">
                       {addSaving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />} Save Input
                     </button>
                     <button type="button" onClick={() => { setShowAdd(false); setAddError(''); }}

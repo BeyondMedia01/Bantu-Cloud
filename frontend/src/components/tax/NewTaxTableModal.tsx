@@ -132,7 +132,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-btn-primary text-navy py-4 rounded-2xl font-bold shadow-lg shadow-navy/10 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-4"
+            className="w-full bg-brand text-navy py-4 rounded-2xl font-bold shadow-lg shadow-navy/10 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-4"
           >
             {loading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
             {loading ? 'Creating...' : 'Create Table'}

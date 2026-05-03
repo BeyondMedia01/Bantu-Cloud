@@ -161,7 +161,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-navy flex items-center justify-center shadow-lg shadow-navy/20 flex-shrink-0">
-            <Shield size={22} className="text-btn-primary" />
+            <Shield size={22} className="text-brand" />
           </div>
           <div>
             <h1 className="text-2xl font-black text-navy tracking-tight leading-none">Audit Log</h1>
@@ -178,7 +178,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-btn-primary text-navy text-sm font-bold rounded-xl hover:opacity-90 transition-opacity shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-brand text-navy text-sm font-bold rounded-xl hover:opacity-90 transition-opacity shadow-sm">
             <Download size={15} />
             Export
           </button>
@@ -243,7 +243,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
               <SlidersHorizontal size={15} />
               Filters
               {activeFilters.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-btn-primary text-navy text-[9px] font-black flex items-center justify-center">
+                <span className="w-4 h-4 rounded-full bg-brand text-navy text-[9px] font-black flex items-center justify-center">
                   {activeFilters.length}
                 </span>
               )}

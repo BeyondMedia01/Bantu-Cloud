@@ -314,7 +314,7 @@ const BackPay: React.FC = () => {
           <div className="pt-2">
             <button
               onClick={goStep1to2}
-              className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90"
+              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90"
             >
               Next: Select Employees <ArrowRight size={16} />
             </button>
@@ -425,7 +425,7 @@ const BackPay: React.FC = () => {
             <button
               onClick={goStep2to3}
               disabled={previewLoading}
-              className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
+              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
             >
               {previewLoading ? (
                 <><RefreshCw size={15} className="animate-spin" /> Calculating…</>
@@ -542,7 +542,7 @@ const BackPay: React.FC = () => {
               <button
                 onClick={handleCommit}
                 disabled={commitLoading}
-                className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
+                className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
               >
                 {commitLoading ? (
                   <><RefreshCw size={15} className="animate-spin" /> Generating…</>
@@ -616,7 +616,7 @@ const BackPay: React.FC = () => {
             </button>
             <button
               onClick={() => navigate('/utilities')}
-              className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 text-sm"
+              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 text-sm"
             >
               Back to Utilities
             </button>

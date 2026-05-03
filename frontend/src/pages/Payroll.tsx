@@ -136,7 +136,7 @@ const Payroll: React.FC = () => {
         </div>
         <button
           onClick={() => navigate('/payroll/new')}
-          className="bg-btn-primary text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-2"
+          className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-2"
         >
           <Plus size={18} /> New Payroll Run
         </button>
@@ -153,7 +153,7 @@ const Payroll: React.FC = () => {
           <FileText size={40} className="mx-auto mb-3 text-slate-200" />
           <p className="font-bold text-slate-500 mb-2">No payroll runs yet</p>
           <p className="text-sm text-slate-400 mb-6">Create your first payroll run to get started</p>
-          <button onClick={() => navigate('/payroll/new')} className="bg-btn-primary text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-2">
+          <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-2">
             <Plus size={16} /> Create Payroll Run
           </button>
         </div>

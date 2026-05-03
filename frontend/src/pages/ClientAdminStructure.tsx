@@ -168,7 +168,7 @@ const ClientAdminStructure: React.FC = () => {
               <button
                 onClick={handleProfileSave}
                 disabled={profileSaving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-btn-primary text-navy text-sm font-bold hover:opacity-90 disabled:opacity-60"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand text-navy text-sm font-bold hover:opacity-90 disabled:opacity-60"
               >
                 <Save size={14} /> {profileSaving ? 'Saving…' : 'Save'}
               </button>
@@ -232,7 +232,7 @@ const ClientAdminStructure: React.FC = () => {
           <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Organisation</h2>
           <button
             onClick={() => { setShowForm(true); setFormData({}); }}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
           >
             <Plus size={16} /> Add New
           </button>
@@ -278,7 +278,7 @@ const ClientAdminStructure: React.FC = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              <button type="submit" disabled={saving} className="bg-btn-primary text-navy px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
+              <button type="submit" disabled={saving} className="bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
                 {saving ? 'Creating…' : 'Create'}
               </button>
               <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2.5 rounded-full border border-border font-bold text-sm text-slate-500 hover:bg-slate-50">

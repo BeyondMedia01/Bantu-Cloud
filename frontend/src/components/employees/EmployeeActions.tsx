@@ -26,7 +26,7 @@ const EmployeeActions: React.FC<EmployeeActionsProps> = ({ total }) => {
         </button>
         <button
           onClick={() => navigate('/employees/new')}
-          className="bg-btn-primary text-navy px-6 py-3 rounded-full font-bold shadow-lg hover:opacity-90 transition-all flex items-center gap-2 group"
+          className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow-lg hover:opacity-90 transition-all flex items-center gap-2 group"
         >
           <span className="p-1 bg-navy/5 rounded-full group-hover:bg-navy/10 transition-colors">
             <Plus size={18} />

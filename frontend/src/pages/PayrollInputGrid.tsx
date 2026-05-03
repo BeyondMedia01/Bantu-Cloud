@@ -463,7 +463,7 @@ const PayrollInputGrid: React.FC = () => {
             onClick={handleSaveAll}
             disabled={saving || !hasDirty}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold shadow disabled:opacity-50 ${
-              hasDirty ? 'bg-btn-primary text-navy' : 'bg-slate-100 text-slate-400 border border-border'
+              hasDirty ? 'bg-brand text-navy' : 'bg-slate-100 text-slate-400 border border-border'
             }`}
           >
             <Save size={13} />

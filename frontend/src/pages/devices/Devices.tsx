@@ -86,7 +86,7 @@ const DeviceForm: React.FC<{
 
       <div className="flex gap-3">
         <button type="submit" disabled={saving}
-          className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
+          className="flex items-center gap-2 bg-brand text-navy px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
           <Check size={14} /> {saving ? 'Saving…' : 'Save Device'}
         </button>
         <button type="button" onClick={onCancel}
@@ -193,7 +193,7 @@ const Devices: React.FC = () => {
         </div>
         {!showForm && !editing && (
           <button onClick={() => { setShowForm(true); setError(''); }}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full font-bold shadow hover:opacity-90 text-sm">
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full font-bold shadow hover:opacity-90 text-sm">
             <Plus size={15} /> Add Device
           </button>
         )}

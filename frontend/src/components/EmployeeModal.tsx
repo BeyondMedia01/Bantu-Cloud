@@ -188,7 +188,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
             </button>
             <button 
               type="submit" 
-              className="px-8 py-2.5 rounded-xl bg-btn-primary text-navy text-sm font-bold shadow-lg hover:opacity-90 transition-all font-inter"
+              className="px-8 py-2.5 rounded-xl bg-brand text-navy text-sm font-bold shadow-lg hover:opacity-90 transition-all font-inter"
             >
               Save Employee
             </button>

@@ -141,7 +141,7 @@ const AssignModal: React.FC<{
 
         <div className="flex gap-3 mt-5">
           <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
             {saving ? 'Saving…' : 'Assign Shift'}
           </button>
           <button onClick={onClose}
@@ -232,7 +232,7 @@ const Roster: React.FC = () => {
           <p className="text-slate-500 font-medium text-sm">Weekly shift assignments for all employees</p>
         </div>
         <button onClick={() => openModal()}
-          className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full font-bold shadow hover:opacity-90 text-sm">
+          className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full font-bold shadow hover:opacity-90 text-sm">
           <Plus size={15} /> Assign Shift
         </button>
       </div>

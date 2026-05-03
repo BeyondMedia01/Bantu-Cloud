@@ -56,7 +56,7 @@ const AdminLicenses: React.FC = () => {
           <h1 className="text-2xl font-bold">License Management</h1>
           <p className="text-slate-500 text-sm font-medium">Issue and manage client licenses</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90">
+        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90">
           <Plus size={16} /> Issue License
         </button>
       </div>
@@ -81,7 +81,7 @@ const AdminLicenses: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-3">
-            <button type="submit" disabled={saving} className="bg-btn-primary text-navy px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
+            <button type="submit" disabled={saving} className="bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
               {saving ? 'Issuing…' : 'Issue License'}
             </button>
             <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2.5 rounded-full border border-border font-bold text-sm text-slate-500 hover:bg-slate-50">

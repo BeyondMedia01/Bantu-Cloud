@@ -89,7 +89,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
         </div>
         <button
           onClick={() => { setIsModalOpen(true); setFormError(''); }}
-          className="bg-btn-primary text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 transition-opacity flex items-center gap-2"
+          className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow hover:opacity-90 transition-opacity flex items-center gap-2"
         >
           <Plus size={20} /> New Rate
         </button>
@@ -283,7 +283,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2 flex-1 justify-center bg-btn-primary text-navy py-2.5 rounded-full font-bold hover:opacity-90 disabled:opacity-60 text-sm"
+                  className="flex items-center gap-2 flex-1 justify-center bg-brand text-navy py-2.5 rounded-full font-bold hover:opacity-90 disabled:opacity-60 text-sm"
                 >
                   <Check size={15} /> {saving ? 'Saving…' : 'Save Rate'}
                 </button>

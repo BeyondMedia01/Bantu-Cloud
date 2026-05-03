@@ -125,7 +125,7 @@ const Subscription: React.FC = () => {
                 className={`w-full py-3 rounded-full text-sm font-bold transition-all ${
                   isCurrent
                     ? 'bg-slate-100 text-slate-400 cursor-default'
-                    : 'bg-btn-primary text-navy hover:opacity-90 shadow'
+                    : 'bg-brand text-navy hover:opacity-90 shadow'
                 } disabled:opacity-60`}
               >
                 {isCurrent ? 'Current Plan' : upgrading ? 'Processing…' : 'Select Plan'}

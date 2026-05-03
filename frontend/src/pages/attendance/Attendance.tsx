@@ -135,7 +135,7 @@ const ManualEntryModal: React.FC<{
         {error && <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{error}</div>}
         <div className="flex gap-3 mt-5">
           <button onClick={handleSave} disabled={saving}
-            className="bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
+            className="bg-brand text-navy px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
             {saving ? 'Saving…' : 'Save'}
           </button>
           <button onClick={onClose} className="px-4 py-2 border border-border rounded-full font-bold text-sm text-slate-500 hover:bg-slate-50">
@@ -249,7 +249,7 @@ const Attendance: React.FC = () => {
             <Plus size={14} /> Manual Entry
           </button>
           <button onClick={handleProcess} disabled={processing}
-            className="flex items-center gap-1.5 bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
+            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
             <RefreshCw size={14} className={processing ? 'animate-spin' : ''} />
             {processing ? 'Processing…' : 'Process Logs'}
           </button>

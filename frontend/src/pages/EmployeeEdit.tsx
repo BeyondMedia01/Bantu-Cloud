@@ -310,7 +310,7 @@ const EmployeeEdit: React.FC = () => {
                     setUploading(false);
                   }
                 }}
-                className="flex-1 bg-btn-primary text-navy py-2.5 rounded-full font-bold hover:opacity-90 text-sm"
+                className="flex-1 bg-brand text-navy py-2.5 rounded-full font-bold hover:opacity-90 text-sm"
               >
                 Upload
               </button>
@@ -840,7 +840,7 @@ const EmployeeEdit: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60"
+              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60"
             >
               <Save size={16} /> {loading ? 'Saving…' : 'Save Changes'}
             </button>

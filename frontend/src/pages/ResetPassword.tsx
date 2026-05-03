@@ -67,7 +67,7 @@ const ResetPassword: React.FC = () => {
             </p>
             <button
               onClick={() => navigate('/login')}
-              className="w-full bg-btn-primary text-navy py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center justify-center gap-2"
+              className="w-full bg-brand text-navy py-3 rounded-full font-bold shadow hover:opacity-90 flex items-center justify-center gap-2"
             >
               Sign In <ArrowRight size={16} />
             </button>
@@ -121,7 +121,7 @@ const ResetPassword: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-1 w-full bg-btn-primary text-navy py-3.5 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                className="mt-1 w-full bg-brand text-navy py-3.5 rounded-full font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {loading ? 'Saving…' : 'Set Password'} <ArrowRight size={16} />
               </button>

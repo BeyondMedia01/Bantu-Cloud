@@ -61,7 +61,7 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
         </div>
         <button 
           onClick={() => { setEditingBand(null); setIsModalOpen(true); }}
-          className="bg-btn-primary text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+          className="bg-brand text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
         >
           <Plus size={20} /> Add New Band
         </button>

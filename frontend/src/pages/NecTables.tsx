@@ -210,7 +210,7 @@ const NecTables: React.FC = () => {
         </div>
         <button
           onClick={() => { setAddingTable(true); setTableError(''); setNewTable({ ...EMPTY_TABLE }); }}
-          className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow flex items-center gap-2 hover:opacity-90 transition-opacity"
+          className="bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow flex items-center gap-2 hover:opacity-90 transition-opacity"
         >
           <Plus size={16} /> New NEC Table
         </button>
@@ -274,7 +274,7 @@ const NecTables: React.FC = () => {
             <button
               onClick={handleCreateTable}
               disabled={tableSaving}
-              className="flex items-center gap-1.5 px-4 py-2 bg-btn-primary text-navy rounded-full text-xs font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2 bg-brand text-navy rounded-full text-xs font-bold shadow hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {tableSaving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
               Create Table

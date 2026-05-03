@@ -109,7 +109,7 @@ const PublicHolidays: React.FC = () => {
 
         <button
           onClick={() => setAddOpen(true)}
-          className="flex items-center gap-2 bg-btn-primary text-navy font-bold text-sm px-4 py-2 rounded-xl hover:opacity-90 transition-opacity ml-auto"
+          className="flex items-center gap-2 bg-brand text-navy font-bold text-sm px-4 py-2 rounded-xl hover:opacity-90 transition-opacity ml-auto"
         >
           <Plus size={16} />
           Add Custom Holiday
@@ -145,7 +145,7 @@ const PublicHolidays: React.FC = () => {
             <button
               type="submit"
               disabled={saving}
-              className="bg-btn-primary text-navy font-bold text-sm px-4 py-2 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="bg-brand text-navy font-bold text-sm px-4 py-2 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Add'}
             </button>

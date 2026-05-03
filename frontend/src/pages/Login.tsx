@@ -102,7 +102,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 w-full bg-btn-primary text-navy py-4 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
+            className="mt-2 w-full bg-brand text-navy py-4 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {loading ? 'Signing in…' : 'Sign In To Dashboard'}
             <ArrowRight size={18} />

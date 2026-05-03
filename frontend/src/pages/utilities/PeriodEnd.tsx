@@ -171,7 +171,7 @@ const PeriodEnd: React.FC = () => {
             <button
               onClick={handleAction}
               disabled={!selectedId || loading || (!selectedCal?.isClosed && !status?.readyToClose)}
-              className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-40"
+              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-40"
             >
               <Calendar size={16} /> {loading ? (selectedCal?.isClosed ? 'Re-opening…' : 'Closing…') : (selectedCal?.isClosed ? 'Re-open Period' : 'Close Period')}
             </button>

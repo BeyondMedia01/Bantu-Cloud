@@ -90,7 +90,7 @@ const EmployeeImport: React.FC = () => {
       {/* Step 1: Download template */}
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm mb-4">
         <div className="flex items-center gap-3 mb-1">
-          <span className="w-6 h-6 rounded-full bg-btn-primary text-navy text-xs font-bold flex items-center justify-center shrink-0">1</span>
+          <span className="w-6 h-6 rounded-full bg-brand text-navy text-xs font-bold flex items-center justify-center shrink-0">1</span>
           <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Download Template</h3>
         </div>
         <p className="text-sm text-slate-500 mb-4 pl-9">
@@ -99,7 +99,7 @@ const EmployeeImport: React.FC = () => {
         <div className="flex gap-3 pl-9">
           <button
             onClick={() => downloadTemplate('xlsx')}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold hover:opacity-90 shadow"
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold hover:opacity-90 shadow"
           >
             <FileSpreadsheet size={16} /> Download Excel Template
           </button>
@@ -115,7 +115,7 @@ const EmployeeImport: React.FC = () => {
       {/* Step 2: Upload file */}
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm mb-4">
         <div className="flex items-center gap-3 mb-1">
-          <span className="w-6 h-6 rounded-full bg-btn-primary text-navy text-xs font-bold flex items-center justify-center shrink-0">2</span>
+          <span className="w-6 h-6 rounded-full bg-brand text-navy text-xs font-bold flex items-center justify-center shrink-0">2</span>
           <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Upload Filled File</h3>
         </div>
         <p className="text-sm text-slate-500 mb-4 pl-9">
@@ -129,7 +129,7 @@ const EmployeeImport: React.FC = () => {
         {/* Drop zone */}
         <div
           className={`ml-9 border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer ${
-            dragging ? 'border-btn-primary bg-btn-primary/5' : 'border-slate-200 hover:border-slate-300'
+            dragging ? 'border-brand bg-brand/5' : 'border-slate-200 hover:border-slate-300'
           }`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
@@ -162,7 +162,7 @@ const EmployeeImport: React.FC = () => {
             <button
               onClick={handleUpload}
               disabled={uploading}
-              className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
+              className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
             >
               <Upload size={16} /> {uploading ? 'Importing…' : 'Import Employees'}
             </button>
@@ -230,7 +230,7 @@ const EmployeeImport: React.FC = () => {
           {result.created > 0 && (
             <button
               onClick={() => navigate('/employees')}
-              className="mt-4 flex items-center gap-2 bg-btn-primary text-navy px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90"
+              className="mt-4 flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90"
             >
               View Employees
             </button>

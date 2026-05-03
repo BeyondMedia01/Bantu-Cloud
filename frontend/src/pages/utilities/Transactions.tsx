@@ -488,7 +488,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                       <input value={ruleForm.description} onChange={(e) => setRuleForm((p) => ({ ...p, description: e.target.value }))}
                         placeholder="Description (optional)" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-xs font-medium focus:outline-none" />
                       <div className="flex gap-2">
-                        <button type="submit" disabled={savingRule} className="px-4 py-1.5 bg-btn-primary text-navy rounded-full text-xs font-bold hover:opacity-90 disabled:opacity-60">
+                        <button type="submit" disabled={savingRule} className="px-4 py-1.5 bg-brand text-navy rounded-full text-xs font-bold hover:opacity-90 disabled:opacity-60">
                           {savingRule ? 'Saving…' : 'Add Rule'}
                         </button>
                         <button type="button" onClick={() => setShowRuleForm(false)} className="px-4 py-1.5 border border-border rounded-full text-xs font-bold text-slate-500 hover:bg-slate-50">
@@ -545,7 +545,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={!canNext()}
-                className="flex items-center gap-2 bg-btn-primary text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-50"
+                className="flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-50"
               >
                 Next →
               </button>
@@ -553,7 +553,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 bg-btn-primary text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-60"
+                className="flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90 disabled:opacity-60"
               >
                 <CheckCircle2 size={15} /> {saving ? 'Saving…' : editData ? 'Update Code' : 'Create Code'}
               </button>
@@ -852,7 +852,7 @@ const Transactions: React.FC = () => {
           </button>
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
           >
             <Plus size={16} /> Create Code
           </button>
@@ -1038,7 +1038,7 @@ const Transactions: React.FC = () => {
             <div className="text-center py-16 bg-primary rounded-2xl border border-border">
               <p className="font-bold text-slate-500 mb-1">No transaction codes yet</p>
               <p className="text-sm text-slate-400 mb-5">Create codes to define earnings, deductions, and benefits</p>
-              <button onClick={openCreate} className="inline-flex items-center gap-2 bg-btn-primary text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90">
+              <button onClick={openCreate} className="inline-flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold text-sm shadow hover:opacity-90">
                 <Plus size={15} /> Create First Code
               </button>
             </div>

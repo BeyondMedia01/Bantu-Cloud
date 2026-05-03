@@ -119,7 +119,7 @@ const EmployeeLeave: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setTab(tab === 'apply' ? 'history' : 'apply')}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-4 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+            className="flex items-center gap-2 bg-brand text-navy px-4 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
           >
             <Plus size={15} /> Apply
           </button>
@@ -200,7 +200,7 @@ const EmployeeLeave: React.FC = () => {
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={submitting}
-                className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
+                className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
                 {submitting ? 'Submitting…' : 'Submit Request'}
               </button>
               <button type="button" onClick={() => setTab('history')} className="px-6 py-3 rounded-full border border-border font-bold hover:bg-slate-50">Cancel</button>

@@ -167,7 +167,7 @@ const Reports: React.FC = () => {
                 <button
                   disabled={disabled || isDownloading('p16')}
                   onClick={downloadP16}
-                  className="bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40 shrink-0"
+                  className="bg-brand text-navy px-5 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40 shrink-0"
                 >
                   <Download size={15} /> {isDownloading('p16') ? 'Generating…' : 'Export P16'}
                 </button>
@@ -195,7 +195,7 @@ const Reports: React.FC = () => {
                   <button
                     disabled={disabled || isDownloading('tarms-excel')}
                     onClick={downloadTarmsExcel}
-                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
+                    className="bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
                   >
                     <Download size={15} /> {isDownloading('tarms-excel') ? 'Generating…' : 'Export'}
                   </button>
@@ -217,7 +217,7 @@ const Reports: React.FC = () => {
                   <button
                     disabled={disabled || isDownloading('nssa-excel')}
                     onClick={downloadNssaExcel}
-                    className="bg-btn-primary text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
+                    className="bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
                   >
                     <Download size={15} /> {isDownloading('nssa-excel') ? 'Generating…' : 'Export'}
                   </button>
@@ -238,7 +238,7 @@ const Reports: React.FC = () => {
                 <button
                   disabled={disabled || isDownloading('itf16')}
                   onClick={downloadItf16}
-                  className="bg-btn-primary text-navy px-5 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40 shrink-0"
+                  className="bg-brand text-navy px-5 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 flex items-center gap-2 disabled:opacity-40 shrink-0"
                 >
                   <Download size={15} /> {isDownloading('itf16') ? 'Generating…' : 'Export ITF16'}
                 </button>

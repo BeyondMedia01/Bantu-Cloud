@@ -136,7 +136,7 @@ const AppShell: React.FC = () => {
         title={collapsed ? link.label : undefined}
         className={`flex items-center gap-3 rounded-xl text-sm font-bold transition-all
           ${collapsed ? 'justify-center px-0 py-2.5 mx-1' : 'px-3 py-2.5'}
-          ${active ? 'bg-btn-primary text-navy shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-navy'}`}
+          ${active ? 'bg-brand text-navy shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-navy'}`}
       >
         <span className="shrink-0">{link.icon}</span>
         {!collapsed && <span>{link.label}</span>}
@@ -167,7 +167,7 @@ const AppShell: React.FC = () => {
             aria-label={`Active company: ${activeCompany?.name || 'No company'}. Click to switch.`}
             className="w-full flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-border rounded-xl hover:bg-slate-100 transition-colors text-sm font-semibold"
           >
-            <Building2 size={14} className="text-btn-primary shrink-0" aria-hidden="true" />
+            <Building2 size={14} className="text-brand shrink-0" aria-hidden="true" />
             <span className="truncate flex-1 text-left">{activeCompany?.name || 'No company'}</span>
             <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${companyDropdown ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
@@ -184,7 +184,7 @@ const AppShell: React.FC = () => {
                     <button
                       key={c.id}
                       onClick={() => handleSelectCompany(c)}
-                      className={`w-full text-left px-3 py-2 text-sm font-semibold transition-colors flex items-center gap-2 ${c.id === activeCompany?.id ? 'text-navy bg-btn-primary/20' : 'hover:bg-slate-50'}`}
+                      className={`w-full text-left px-3 py-2 text-sm font-semibold transition-colors flex items-center gap-2 ${c.id === activeCompany?.id ? 'text-navy bg-brand/20' : 'hover:bg-slate-50'}`}
                     >
                       {c.id === activeCompany?.id && <ChevronRight size={12} className="shrink-0" />}
                       <span className={c.id === activeCompany?.id ? '' : 'pl-4'}>{c.name}</span>
@@ -197,7 +197,7 @@ const AppShell: React.FC = () => {
           <Link
             to="/companies/new"
             onClick={() => setCompanyDropdown(false)}
-            className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-slate-300 text-xs font-bold text-slate-400 hover:border-btn-primary hover:text-navy transition-colors"
+            className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-slate-300 text-xs font-bold text-slate-400 hover:border-brand hover:text-navy transition-colors"
           >
             + Add New Company
           </Link>
@@ -212,7 +212,7 @@ const AppShell: React.FC = () => {
             title={activeCompany?.name || 'No company'}
             className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
           >
-            <Building2 size={18} className="text-btn-primary" />
+            <Building2 size={18} className="text-brand" />
           </button>
         </div>
       )}

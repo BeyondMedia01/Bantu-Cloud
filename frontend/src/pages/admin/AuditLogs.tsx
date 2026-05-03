@@ -131,7 +131,7 @@ const AuditLogs: React.FC = () => {
         <div className="flex gap-3 mt-3">
           <button
             onClick={() => fetchLogs(1)}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2 rounded-full text-sm font-bold hover:opacity-90"
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2 rounded-full text-sm font-bold hover:opacity-90"
           >
             <Search size={14} /> Search
           </button>

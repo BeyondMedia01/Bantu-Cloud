@@ -43,7 +43,7 @@ const Loans: React.FC = () => {
         </div>
         <button
           onClick={() => navigate('/loans/new')}
-          className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
+          className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold shadow hover:opacity-90"
         >
           <Plus size={16} /> New Loan
         </button>
@@ -55,7 +55,7 @@ const Loans: React.FC = () => {
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${filter === s ? 'bg-btn-primary text-navy border-navy' : 'border-border text-slate-500 hover:bg-slate-50'}`}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${filter === s ? 'bg-brand text-navy border-navy' : 'border-border text-slate-500 hover:bg-slate-50'}`}
           >
             {s || 'All'}
           </button>

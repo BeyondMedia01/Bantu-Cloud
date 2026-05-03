@@ -114,7 +114,7 @@ const Grades: React.FC = () => {
         {!showCreate && (
           <button
             onClick={() => { setShowCreate(true); setEditId(null); setForm(emptyForm()); }}
-            className="flex items-center gap-2 bg-btn-primary text-navy px-5 py-2.5 rounded-full font-bold shadow hover:opacity-90 text-sm"
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2.5 rounded-full font-bold shadow hover:opacity-90 text-sm"
           >
             <Plus size={15} /> New Grade
           </button>
@@ -193,7 +193,7 @@ const Grades: React.FC = () => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 bg-btn-primary text-navy px-6 py-2.5 rounded-full font-bold hover:opacity-90 disabled:opacity-60 text-sm"
+              className="flex items-center gap-2 bg-brand text-navy px-6 py-2.5 rounded-full font-bold hover:opacity-90 disabled:opacity-60 text-sm"
             >
               <Check size={15} /> {saving ? 'Saving…' : editId ? 'Save Changes' : 'Create Grade'}
             </button>

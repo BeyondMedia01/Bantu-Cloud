@@ -130,7 +130,7 @@ const StatutoryRates: React.FC = () => {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex items-center gap-2 bg-btn-primary text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
+                className="flex items-center gap-2 bg-brand text-navy px-8 py-3 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60"
               >
                 <Save size={16} /> {saving ? 'Saving…' : 'Save Settings'}
               </button>

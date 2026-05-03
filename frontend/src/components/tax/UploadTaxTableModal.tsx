@@ -105,7 +105,7 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
             <button
               onClick={handleUpload}
               disabled={!file || uploading}
-              className="w-full bg-btn-primary text-navy py-4 rounded-2xl font-bold shadow-lg shadow-navy/10 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              className="w-full bg-brand text-navy py-4 rounded-2xl font-bold shadow-lg shadow-navy/10 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
             >
               {uploading ? <Loader size={18} className="animate-spin" /> : <Upload size={18} />}
               {uploading ? 'Processing File...' : 'Import Brackets'}

@@ -55,7 +55,7 @@ const ConfirmModal: React.FC<Props> = ({
             className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
               danger
                 ? 'bg-red-500 text-white hover:bg-red-600'
-                : 'bg-btn-primary text-navy hover:opacity-90'
+                : 'bg-brand text-navy hover:opacity-90'
             }`}
           >
             {confirmLabel}
