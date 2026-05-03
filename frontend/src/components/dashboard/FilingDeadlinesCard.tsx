@@ -101,7 +101,7 @@ function daysUntil(date: Date): number {
 }
 
 const TAG_COLORS: Record<string, string> = {
-  ZIMRA: 'bg-blue-100 text-blue-600',
+  ZIMRA: 'bg-accent-green/10 text-accent-green',
   NSSA: 'bg-teal-100 text-teal-600',
   NEC: 'bg-purple-100 text-purple-600',
   FINANCE: 'bg-slate-100 text-slate-500',
@@ -115,13 +115,13 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
   const deadlines = getUpcomingDeadlines(holidays);
 
   return (
-    <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
+    <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm h-full flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <CalendarClock size={18} className="text-slate-400" />
         <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Filing Deadlines</h3>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 auto-rows-fr">
         {deadlines.map((d, i) => {
           const days = daysUntil(d.dueDate);
           const urgent = days <= 7;
@@ -135,7 +135,7 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
           const daysColor = urgent && !isFinance ? 'text-red-600' : soon && !isFinance ? 'text-amber-600' : 'text-slate-400';
 
           return (
-            <div key={i} className={`rounded-xl border p-3 flex flex-col gap-2 ${borderColor}`}>
+            <div key={i} className={`rounded-xl border p-3 flex flex-col gap-2 h-full ${borderColor}`}>
               <div className="flex items-center justify-between gap-1">
                 <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${TAG_COLORS[d.tag]}`}>
                   {d.tag}

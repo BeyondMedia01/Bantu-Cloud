@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
   const pieData = summary
     ? [
         { name: 'Employees', value: Math.max(summary.employeeCount, 1), fill: '#0F172A' },
-        { name: 'Pending Leave', value: Math.max(summary.pendingLeave, 0), fill: '#3B82F6' },
+        { name: 'Pending Leave', value: Math.max(summary.pendingLeave, 0), fill: '#b2db64' },
         { name: 'Active Loans', value: Math.max(summary.activeLoans, 0), fill: '#E2E8F0' },
       ]
     : [{ name: 'N/A', value: 1, fill: '#E2E8F0' }];
@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
 
         {/* Column 1: Overview & Payroll */}
         <div className="flex flex-col gap-4">
@@ -151,7 +151,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <div className="flex flex-col gap-2">
                   <SummaryItem label="Employees" value={summary?.employeeCount ?? 0} color="bg-slate-900" />
-                  <SummaryItem label="Pending Leave" value={summary?.pendingLeave ?? 0} color="bg-blue-500" />
+                  <SummaryItem label="Pending Leave" value={summary?.pendingLeave ?? 0} color="bg-brand" />
                   <SummaryItem label="Active Loans" value={summary?.activeLoans ?? 0} color="bg-slate-200" />
                 </div>
               )}
@@ -175,7 +175,7 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
           ) : currentRun ? (
-            <Card className="cursor-pointer hover:border-blue-400/40 transition-colors" onClick={() => navigate('/payroll')}>
+            <Card className="cursor-pointer hover:border-accent-green/40 transition-colors" onClick={() => navigate('/payroll')}>
               <CardContent className="pt-4">
                 <div className="flex justify-between items-start mb-2">
                   <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Current Run</p>
@@ -205,15 +205,15 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-blue-300 bg-blue-50/30">
+            <Card className="border-accent-green/30 bg-accent-green/5">
               <CardContent className="pt-4">
                 <div className="flex justify-between items-start mb-2">
                   <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Next Action</p>
-                  <Badge className="bg-blue-100 text-blue-600 text-[10px] font-bold gap-1 rounded-full border-0">
+                  <Badge className="bg-accent-green/10 text-accent-green text-[10px] font-bold gap-1 rounded-full border-0">
                     <Clock size={10} /> Pending
                   </Badge>
                 </div>
-                <button onClick={() => navigate('/payroll/new')} className="text-sm font-bold text-blue-500 hover:underline">
+                <button onClick={() => navigate('/payroll/new')} className="text-sm font-bold text-accent-green hover:underline">
                   Start new payroll run →
                 </button>
               </CardContent>
@@ -246,7 +246,7 @@ const Dashboard: React.FC = () => {
                   </p>
                 </>
               ) : (
-                <button onClick={() => navigate('/currency-rates')} className="text-sm font-bold text-blue-500 hover:underline">
+                <button onClick={() => navigate('/currency-rates')} className="text-sm font-bold text-accent-green hover:underline">
                   Set USD/ZiG rate →
                 </button>
               )}
@@ -255,13 +255,13 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Column 2-3: Filing Deadlines */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className="lg:col-span-2 flex flex-col gap-6 h-full">
           <FilingDeadlinesCard holidays={holidays} />
         </div>
 
         {/* Column 4: Calendar & Reminders */}
-        <div className="flex flex-col gap-4">
-          <Card className="overflow-hidden p-0">
+        <div className="flex flex-col gap-4 h-full">
+          <Card className="overflow-hidden p-0 shrink-0">
             <MiniCalendar
               reminders={reminders}
               holidays={holidays}
@@ -269,7 +269,7 @@ const Dashboard: React.FC = () => {
               onDateSelect={setSelectedDay}
             />
           </Card>
-          <Card className="overflow-hidden p-0">
+          <Card className="overflow-hidden p-0 flex-1">
             <RemindersCard reminders={reminders} loading={loading} selectedDay={selectedDay} />
           </Card>
         </div>
@@ -319,8 +319,8 @@ const Dashboard: React.FC = () => {
                 <AreaChart data={trend} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#b2db64" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#b2db64" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorGross" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0F172A" stopOpacity={0.08} />
@@ -337,13 +337,13 @@ const Dashboard: React.FC = () => {
                     ]}
                   />
                   <Area type="monotone" dataKey="grossPay" stroke="#CBD5E1" strokeWidth={2} fillOpacity={1} fill="url(#colorGross)" />
-                  <Area type="monotone" dataKey="netPay" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" />
+                  <Area type="monotone" dataKey="netPay" stroke="#b2db64" strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
                 <p className="text-slate-400 font-medium text-sm">No payroll history yet.</p>
-                <button onClick={() => navigate('/payroll/new')} className="text-blue-500 text-sm font-bold hover:underline">
+                <button onClick={() => navigate('/payroll/new')} className="text-accent-green text-sm font-bold hover:underline">
                   Run your first payroll →
                 </button>
               </div>
