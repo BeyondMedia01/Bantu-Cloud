@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, FileText, ChevronRight, Play, Check, SendHorizonal, Download, Banknote, ChevronDown, Pencil, X } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
+import { Dropdown } from '../components/ui/dropdown';
 import { useNavigate } from 'react-router-dom';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
@@ -14,8 +15,6 @@ const Payroll: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
-  const [bankDropdown, setBankDropdown] = useState<string | null>(null);
-  const bankDropdownRef = useRef<HTMLDivElement>(null);
   const [editingRate, setEditingRate] = useState<string | null>(null); // runId being edited
   const [rateInput, setRateInput] = useState('');
   const [rateSaving, setRateSaving] = useState(false);
@@ -30,24 +29,6 @@ const Payroll: React.FC = () => {
       .catch(() => showToast('Failed to load payroll runs', 'error'))
       .finally(() => setLoading(false));
   };
-
-  // Close bank dropdown on Escape key or click outside
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setBankDropdown(null); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
-
-  useEffect(() => {
-    if (!bankDropdown) return;
-    const onOutside = (e: MouseEvent) => {
-      if (bankDropdownRef.current && !bankDropdownRef.current.contains(e.target as Node)) {
-        setBankDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', onOutside);
-    return () => document.removeEventListener('mousedown', onOutside);
-  }, [bankDropdown]);
 
   useEffect(() => { loadRuns(); }, [getActiveCompanyId()]);
 
@@ -82,9 +63,7 @@ const Payroll: React.FC = () => {
     }
   };
 
-  const handleBankExport = async (e: React.MouseEvent, format: 'cbz' | 'stanbic' | 'fidelity', runId: string) => {
-    e.stopPropagation();
-    setBankDropdown(null);
+  const handleBankExport = async (format: 'cbz' | 'stanbic' | 'fidelity', runId: string) => {
     try {
       const res = await BankFileAPI.download(format, runId);
       const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
@@ -302,29 +281,24 @@ const Payroll: React.FC = () => {
                         >
                           <Download size={11} /> NSSA
                         </button>
-                        {/* Bank file dropdown */}
-                        <div ref={bankDropdownRef} className="relative" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => setBankDropdown(bankDropdown === run.id ? null : run.id)}
-                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100"
-                            title="Download Bank Payment File"
-                          >
-                            <Banknote size={12} /> Bank <ChevronDown size={10} />
-                          </button>
-                          {bankDropdown === run.id && (
-                            <div className="absolute right-0 top-full mt-1 bg-white border border-border rounded-xl shadow-lg z-20 min-w-[110px] py-1">
-                              {(['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => (
-                                <button
-                                  key={fmt}
-                                  onClick={(e) => handleBankExport(e, fmt, run.id)}
-                                  className="w-full text-left px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 uppercase"
-                                >
-                                  {fmt}
-                                </button>
-                              ))}
-                            </div>
+                        <Dropdown
+                          stopPropagation
+                          align="right"
+                          trigger={(isOpen) => (
+                            <button
+                              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100"
+                              title="Download Bank Payment File"
+                            >
+                              <Banknote size={12} /> Bank <ChevronDown size={10} className={isOpen ? 'rotate-180' : ''} />
+                            </button>
                           )}
-                        </div>
+                          sections={[{
+                            items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
+                              label: fmt,
+                              onClick: () => handleBankExport(fmt, run.id),
+                            })),
+                          }]}
+                        />
                       </>)}
                       <ChevronRight size={16} className="text-slate-400 ml-1" />
                     </div>
