@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash, History, TrendingUp, Anchor, Calendar, Info, Globe, X, Check, XCircle } from 'lucide-react';
+import { Plus, Trash, History, TrendingUp, Anchor, Calendar, Info, Globe, X, Check, XCircle, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { CurrencyRateAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
@@ -254,15 +255,19 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-1.5">Source</label>
-                <select
-                  value={form.source}
-                  onChange={(e) => setForm((p) => ({ ...p, source: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                >
-                  <option value="RBZ">RBZ (Official)</option>
-                  <option value="MANUAL">Manual</option>
-                  <option value="IMPORT">Import</option>
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => {
+                  const labels: Record<string,string> = { RBZ: 'RBZ (Official)', MANUAL: 'Manual', IMPORT: 'Import' };
+                  return (
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                      <span>{labels[form.source] || form.source}</span>
+                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  );
+                }} sections={[{ items: [
+                  { label: 'RBZ (Official)', onClick: () => setForm((p) => ({ ...p, source: 'RBZ' })) },
+                  { label: 'Manual', onClick: () => setForm((p) => ({ ...p, source: 'MANUAL' })) },
+                  { label: 'Import', onClick: () => setForm((p) => ({ ...p, source: 'IMPORT' })) },
+                ]}]} />
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-1.5">Notes</label>

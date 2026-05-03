@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, X, Check, CalendarOff, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { EmployeeSalaryStructureAPI, TransactionCodeAPI } from '../../api/client';
 
 interface Props {
@@ -135,19 +136,15 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="sm:col-span-2 lg:col-span-1">
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Transaction Code *</label>
-              <select
-                value={form.transactionCodeId}
-                onChange={(e) => setForm((f) => ({ ...f, transactionCodeId: e.target.value }))}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                required
-              >
-                <option value="">Select code…</option>
-                {txCodes.map((tc) => (
-                  <option key={tc.id} value={tc.id}>
-                    {tc.code} — {tc.name} ({tc.type})
-                  </option>
-                ))}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{txCodes.find((tc: any) => tc.id === form.transactionCodeId) ? `${txCodes.find((tc: any) => tc.id === form.transactionCodeId).code} — ${txCodes.find((tc: any) => tc.id === form.transactionCodeId).name}` : 'Select code…'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Select code…', onClick: () => setForm(f => ({ ...f, transactionCodeId: '' })) },
+                ...txCodes.map((tc: any) => ({ label: `${tc.code} — ${tc.name} (${tc.type})`, onClick: () => setForm(f => ({ ...f, transactionCodeId: tc.id })) })),
+              ], emptyMessage: 'No codes available' }]} />
             </div>
 
             <div>
@@ -171,14 +168,15 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
 
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Currency</label>
-              <select
-                value={form.currency}
-                onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              >
-                <option value="USD">USD</option>
-                <option value="ZiG">ZiG</option>
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{form.currency}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'USD', onClick: () => setForm(f => ({ ...f, currency: 'USD' })) },
+                { label: 'ZiG', onClick: () => setForm(f => ({ ...f, currency: 'ZiG' })) },
+              ]}]} />
             </div>
 
             <div>

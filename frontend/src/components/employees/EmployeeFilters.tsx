@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Users as UsersIcon } from 'lucide-react';
+import { Search, Users as UsersIcon, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import type { EmployeeFilters as IFilters } from '../../types/employee';
 import type { Branch, Department } from '../../types/common';
 
@@ -42,43 +43,47 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
 
       {/* Select Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <label htmlFor="filter-branch" className="sr-only">Filter by branch</label>
-        <select
-          id="filter-branch"
-          aria-label="Filter by branch"
-          value={filters.branch}
-          onChange={(e) => onFilterChange('branch', e.target.value)}
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm transition-all"
-        >
-          <option value="">All Branches</option>
-          {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-        </select>
+        <Dropdown
+          className="w-full"
+          trigger={(isOpen) => (
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{branches.find(b => b.id === filters.branch)?.name || 'All Branches'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+          sections={[{ items: [
+            { label: 'All Branches', onClick: () => onFilterChange('branch', '') },
+            ...branches.map(b => ({ label: b.name, onClick: () => onFilterChange('branch', b.id) })),
+          ]}]}
+        />
 
-        <label htmlFor="filter-department" className="sr-only">Filter by department</label>
-        <select
-          id="filter-department"
-          aria-label="Filter by department"
-          value={filters.department}
-          onChange={(e) => onFilterChange('department', e.target.value)}
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm transition-all"
-        >
-          <option value="">All Departments</option>
-          {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </select>
+        <Dropdown
+          className="w-full"
+          trigger={(isOpen) => (
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{departments.find(d => d.id === filters.department)?.name || 'All Departments'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+          sections={[{ items: [
+            { label: 'All Departments', onClick: () => onFilterChange('department', '') },
+            ...departments.map(d => ({ label: d.name, onClick: () => onFilterChange('department', d.id) })),
+          ]}]}
+        />
 
-        <label htmlFor="filter-employment-type" className="sr-only">Filter by employment type</label>
-        <select
-          id="filter-employment-type"
-          aria-label="Filter by employment type"
-          value={filters.employmentType}
-          onChange={(e) => onFilterChange('employmentType', e.target.value)}
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm transition-all"
-        >
-          <option value="">All Types</option>
-          {EMPLOYMENT_TYPES.map((t) => (
-            <option key={t} value={t}>{t.replace('_', ' ')}</option>
-          ))}
-        </select>
+        <Dropdown
+          className="w-full"
+          trigger={(isOpen) => (
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{filters.employmentType ? filters.employmentType.replace('_', ' ') : 'All Types'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+          sections={[{ items: [
+            { label: 'All Types', onClick: () => onFilterChange('employmentType', '') },
+            ...EMPLOYMENT_TYPES.map(t => ({ label: t.replace('_', ' '), onClick: () => onFilterChange('employmentType', t) })),
+          ]}]}
+        />
       </div>
     </div>
   );

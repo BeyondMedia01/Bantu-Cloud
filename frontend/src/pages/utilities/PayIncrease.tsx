@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, TrendingUp, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { UtilitiesAPI, DepartmentAPI } from '../../api/client';
 import { getActiveCompanyId } from '../../lib/companyContext';
 
@@ -135,19 +136,35 @@ const PayIncrease: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Filter by Department</label>
-              <select value={form.departmentId} onChange={set('departmentId')} className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm">
-                <option value="">All Departments</option>
-                {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => {
+                const dept = (departments as any[]).find(d => d.id === form.departmentId);
+                return (
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                    <span>{dept ? dept.name : 'All Departments'}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                );
+              }} sections={[{ items: [
+                { label: 'All Departments', onClick: () => set('departmentId')({ target: { value: '' } } as any) },
+                ...(departments as any[]).map(d => ({ label: d.name, onClick: () => set('departmentId')({ target: { value: d.id } } as any) }))
+              ]}]} />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Filter by Type</label>
-              <select value={form.employmentType} onChange={set('employmentType')} className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm">
-                <option value="">All Types</option>
-                <option value="PERMANENT">Permanent</option>
-                <option value="CONTRACT">Contract</option>
-                <option value="TEMPORARY">Temporary</option>
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => {
+                const labels: Record<string,string> = { '': 'All Types', PERMANENT: 'Permanent', CONTRACT: 'Contract', TEMPORARY: 'Temporary' };
+                return (
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                    <span>{labels[form.employmentType] || 'All Types'}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                );
+              }} sections={[{ items: [
+                { label: 'All Types', onClick: () => set('employmentType')({ target: { value: '' } } as any) },
+                { label: 'Permanent', onClick: () => set('employmentType')({ target: { value: 'PERMANENT' } } as any) },
+                { label: 'Contract', onClick: () => set('employmentType')({ target: { value: 'CONTRACT' } } as any) },
+                { label: 'Temporary', onClick: () => set('employmentType')({ target: { value: 'TEMPORARY' } } as any) },
+              ]}]} />
             </div>
           </div>
 

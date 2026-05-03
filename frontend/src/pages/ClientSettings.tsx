@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, ShieldCheck, ChevronRight, CreditCard, Monitor, Calendar, Globe } from 'lucide-react';
+import { User, ShieldCheck, ChevronRight, CreditCard, Monitor, Calendar, Globe, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { useSettings } from '../context/SettingsContext';
 import type { Theme, DateFormat } from '../context/SettingsContext';
 
@@ -85,15 +86,16 @@ const ClientSettings: React.FC = () => {
               </div>
               <h3 className="font-bold text-sm">Date Formatting</h3>
             </div>
-            <select
-              value={preferences.dateFormat}
-              onChange={(e) => updatePreferences({ dateFormat: e.target.value as DateFormat })}
-              className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-blue-500/20 outline-none"
-            >
-              <option value="DD/MM/YYYY">DD/MM/YYYY (UK/ZW)</option>
-              <option value="MM/DD/YYYY">MM/DD/YYYY (US)</option>
-              <option value="YYYY-MM-DD">YYYY-MM-DD (ISO)</option>
-            </select>
+            <Dropdown className="w-full" trigger={(isOpen) => (
+              <button type="button" className="w-full flex items-center justify-between px-3 py-2 bg-slate-100 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors">
+                <span>{{  'DD/MM/YYYY': 'DD/MM/YYYY (UK/ZW)', 'MM/DD/YYYY': 'MM/DD/YYYY (US)', 'YYYY-MM-DD': 'YYYY-MM-DD (ISO)' }[preferences.dateFormat] || preferences.dateFormat}</span>
+                <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </button>
+            )} sections={[{ items: [
+              { label: 'DD/MM/YYYY (UK/ZW)', onClick: () => updatePreferences({ dateFormat: 'DD/MM/YYYY' as DateFormat }) },
+              { label: 'MM/DD/YYYY (US)', onClick: () => updatePreferences({ dateFormat: 'MM/DD/YYYY' as DateFormat }) },
+              { label: 'YYYY-MM-DD (ISO)', onClick: () => updatePreferences({ dateFormat: 'YYYY-MM-DD' as DateFormat }) },
+            ]}]} />
           </div>
 
           {/* Language */}
@@ -104,15 +106,19 @@ const ClientSettings: React.FC = () => {
               </div>
               <h3 className="font-bold text-sm">Language</h3>
             </div>
-            <select
-              value={preferences.language}
-              onChange={(e) => updatePreferences({ language: e.target.value })}
-              className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-blue-500/20 outline-none"
-            >
-              <option value="en">English (Bantu)</option>
-              <option value="sn">Shona (Zimbabwe) — Soon</option>
-              <option value="nd">Ndebele (Zimbabwe) — Soon</option>
-            </select>
+            <Dropdown className="w-full" trigger={(isOpen) => {
+              const langs: Record<string,string> = { en: 'English (Bantu)', sn: 'Shona (Zimbabwe) — Soon', nd: 'Ndebele (Zimbabwe) — Soon' };
+              return (
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 bg-slate-100 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors">
+                  <span>{langs[preferences.language] || preferences.language}</span>
+                  <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              );
+            }} sections={[{ items: [
+              { label: 'English (Bantu)', onClick: () => updatePreferences({ language: 'en' }) },
+              { label: 'Shona (Zimbabwe) — Soon', onClick: () => updatePreferences({ language: 'sn' }) },
+              { label: 'Ndebele (Zimbabwe) — Soon', onClick: () => updatePreferences({ language: 'nd' }) },
+            ]}]} />
           </div>
 
         </div>

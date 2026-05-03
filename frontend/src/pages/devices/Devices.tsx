@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, RefreshCw, Wifi, WifiOff, Copy, Eye, EyeOff, Check, X, AlertTriangle, Server } from 'lucide-react';
+import { Plus, Edit2, Trash2, RefreshCw, Wifi, WifiOff, Copy, Eye, EyeOff, Check, X, AlertTriangle, Server, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { DeviceAPI } from '../../api/client';
 
 const BLANK = {
@@ -39,10 +40,12 @@ const DeviceForm: React.FC<{
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">Vendor</label>
-          <select value={form.vendor} onChange={set('vendor')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue">
-            {Object.entries(VENDOR_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
+          <Dropdown className="w-full" trigger={(isOpen) => (
+            <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+              <span>{VENDOR_LABELS[form.vendor] || form.vendor}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: Object.entries(VENDOR_LABELS).map(([v, l]) => ({ label: l, onClick: () => set('vendor')({ target: { value: v } } as any) })) }]} />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-600 mb-1.5">IP Address *</label>

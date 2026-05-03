@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { LoanAPI, EmployeeAPI } from '../api/client';
 import { Field } from '../components/common/Field';
 
@@ -64,14 +65,18 @@ const LoanNew: React.FC = () => {
       {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>}
 
       <form onSubmit={handleSubmit} className="bg-primary rounded-2xl border border-border p-8 shadow-sm flex flex-col gap-5">
-        <Field label="Employee *">
-          <select required value={form.employeeId} onChange={set('employeeId')}>
-            <option value="">Select employee</option>
-            {employees.map((e: any) => (
-              <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.employeeCode || e.id.slice(0, 6)})</option>
-            ))}
-          </select>
-        </Field>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employee *</label>
+          <Dropdown className="w-full" trigger={(isOpen) => (
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: [
+            { label: 'Select employee', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
+            ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode || e.id.slice(0, 6)})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
+          ], emptyMessage: 'No employees found' }]} />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Loan Amount *"><input required type="number" step="0.01" value={form.amount} onChange={set('amount')} placeholder="1000.00" /></Field>

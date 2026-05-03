@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Download, ExternalLink, ShieldCheck, Banknote, FileType, CheckCircle2, XCircle, Clock, Info } from 'lucide-react';
+import { Search, Download, ExternalLink, ShieldCheck, Banknote, FileType, CheckCircle2, XCircle, Clock, Info, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { PayslipExportAPI } from '../api/client';
 
 const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
@@ -95,18 +96,22 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
               onChange={e => setSearch(e.target.value)}
             />
          </div>
-         <select 
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy focus:outline-none focus:border-accent-blue shadow-sm min-w-[200px]"
-          aria-label="Filter by export type"
-          value={filterType}
-          onChange={e => setFilterType(e.target.value)}
-         >
-           <option value="ALL">All Export Types</option>
-           <option value="BANK_TRANSFER">Bank Transfers</option>
-           <option value="NSSA_REPORT">NSSA Reports</option>
-           <option value="ZIMRA_REPORT">ZIMRA Reports</option>
-           <option value="PAYSLIP_PDF">Payslip PDFs</option>
-         </select>
+         <Dropdown
+           className="min-w-[200px]"
+           trigger={(isOpen) => (
+             <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+               <span className="truncate">{{ALL:'All Export Types',BANK_TRANSFER:'Bank Transfers',NSSA_REPORT:'NSSA Reports',ZIMRA_REPORT:'ZIMRA Reports',PAYSLIP_PDF:'Payslip PDFs'}[filterType] ?? filterType}</span>
+               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+             </button>
+           )}
+           sections={[{ items: [
+             { label: 'All Export Types', onClick: () => setFilterType('ALL') },
+             { label: 'Bank Transfers',   onClick: () => setFilterType('BANK_TRANSFER') },
+             { label: 'NSSA Reports',     onClick: () => setFilterType('NSSA_REPORT') },
+             { label: 'ZIMRA Reports',    onClick: () => setFilterType('ZIMRA_REPORT') },
+             { label: 'Payslip PDFs',     onClick: () => setFilterType('PAYSLIP_PDF') },
+           ]}]}
+         />
       </div>
 
       {/* Export Ledger Table */}

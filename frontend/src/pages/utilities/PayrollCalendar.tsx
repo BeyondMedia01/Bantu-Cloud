@@ -4,6 +4,7 @@ import {
   ArrowLeft, Plus, Lock, Trash2, ChevronDown, ChevronUp, X, Check,
 } from 'lucide-react';
 import { PayrollCalendarAPI } from '../../api/client';
+import { Dropdown } from '@/components/ui/dropdown';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -148,13 +149,12 @@ const PayrollCalendar: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Period Type</label>
-              <select
-                value={form.periodType}
-                onChange={(e) => setForm((p) => ({ ...p, periodType: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              >
-                {PERIOD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <span>{form.periodType}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: PERIOD_TYPES.map(t => ({ label: t, onClick: () => setForm((p) => ({ ...p, periodType: t })) })) }]} />
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Year</label>
@@ -170,13 +170,12 @@ const PayrollCalendar: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Month</label>
-              <select
-                value={form.month}
-                onChange={(e) => setForm((p) => ({ ...p, month: Number(e.target.value) }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              >
-                {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <span>{MONTHS[form.month - 1] || 'Select month'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: MONTHS.map((m, i) => ({ label: m, onClick: () => setForm((p) => ({ ...p, month: i + 1 })) })) }]} />
             </div>
           </div>
 

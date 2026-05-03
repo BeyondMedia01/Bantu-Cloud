@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Clock, RefreshCw, Edit2, CheckSquare, Download, Plus, AlertTriangle } from 'lucide-react';
+import { Clock, RefreshCw, Edit2, CheckSquare, Download, Plus, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { AttendanceAPI, EmployeeAPI } from '../../api/client';
 
 type Tab = 'records' | 'logs';
@@ -85,13 +86,18 @@ const ManualEntryModal: React.FC<{
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5">Employee *</label>
-            <select value={form.employeeId} onChange={set('employeeId')}
-              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30">
-              <option value="">Select employee…</option>
-              {employees.map((e) => (
-                <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.employeeCode})</option>
-              ))}
-            </select>
+            <Dropdown className="w-full" trigger={(isOpen) => {
+              const emp = employees.find(em => em.id === form.employeeId);
+              return (
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <span className="truncate">{emp ? `${emp.firstName} ${emp.lastName} (${emp.employeeCode})` : 'Select employee…'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              );
+            }} sections={[{ items: [
+              { label: 'Select employee…', onClick: () => set('employeeId')({ target: { value: '' } } as any) },
+              ...employees.map(em => ({ label: `${em.firstName} ${em.lastName} (${em.employeeCode})`, onClick: () => set('employeeId')({ target: { value: em.id } } as any) }))
+            ]}]} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -101,12 +107,12 @@ const ManualEntryModal: React.FC<{
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5">Status</label>
-              <select value={form.status} onChange={set('status')}
-                className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30">
-                {['PRESENT', 'ABSENT', 'HALF_DAY', 'HOLIDAY', 'LEAVE'].map((s) => (
-                  <option key={s} value={s}>{s.replace('_', ' ')}</option>
-                ))}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <span>{form.status.replace('_', ' ')}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: ['PRESENT', 'ABSENT', 'HALF_DAY', 'HOLIDAY', 'LEAVE'].map(s => ({ label: s.replace('_', ' '), onClick: () => set('status')({ target: { value: s } } as any) })) }]} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -275,13 +281,18 @@ const Attendance: React.FC = () => {
           className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
         <input type="date" value={filters.endDate} onChange={setFilter('endDate')}
           className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30" />
-        <select value={filters.employeeId} onChange={setFilter('employeeId')}
-          className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30">
-          <option value="">All Employees</option>
-          {employees.map((e) => (
-            <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
-          ))}
-        </select>
+        <Dropdown trigger={(isOpen) => {
+          const emp = employees.find(em => em.id === filters.employeeId);
+          return (
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+              <span>{emp ? `${emp.firstName} ${emp.lastName}` : 'All Employees'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          );
+        }} sections={[{ items: [
+          { label: 'All Employees', onClick: () => setFilter('employeeId')({ target: { value: '' } } as any) },
+          ...employees.map(em => ({ label: `${em.firstName} ${em.lastName}`, onClick: () => setFilter('employeeId')({ target: { value: em.id } } as any) }))
+        ]}]} />
       </div>
 
       {/* Tabs */}

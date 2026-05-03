@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Plus, X, Calendar, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Calendar, Users, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { RosterAPI, ShiftAPI, EmployeeAPI } from '../../api/client';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -83,23 +84,33 @@ const AssignModal: React.FC<{
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5">Employee *</label>
-            <select value={form.employeeId} onChange={(e) => setForm((f) => ({ ...f, employeeId: e.target.value }))}
-              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30">
-              <option value="">Select employee…</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.employeeCode})</option>
-              ))}
-            </select>
+            <Dropdown className="w-full" trigger={(isOpen) => {
+              const emp = employees.find(e => e.id === form.employeeId);
+              return (
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <span className="truncate">{emp ? `${emp.firstName} ${emp.lastName} (${emp.employeeCode})` : 'Select employee…'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              );
+            }} sections={[{ items: [
+              { label: 'Select employee…', onClick: () => setForm((f) => ({ ...f, employeeId: '' })) },
+              ...employees.map(emp => ({ label: `${emp.firstName} ${emp.lastName} (${emp.employeeCode})`, onClick: () => setForm((f) => ({ ...f, employeeId: emp.id })) }))
+            ]}]} />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5">Shift *</label>
-            <select value={form.shiftId} onChange={(e) => setForm((f) => ({ ...f, shiftId: e.target.value }))}
-              className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30">
-              <option value="">Select shift…</option>
-              {shifts.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}{s.code ? ` (${s.code})` : ''}</option>
-              ))}
-            </select>
+            <Dropdown className="w-full" trigger={(isOpen) => {
+              const sh = shifts.find(s => s.id === form.shiftId);
+              return (
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <span className="truncate">{sh ? `${sh.name}${sh.code ? ` (${sh.code})` : ''}` : 'Select shift…'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              );
+            }} sections={[{ items: [
+              { label: 'Select shift…', onClick: () => setForm((f) => ({ ...f, shiftId: '' })) },
+              ...shifts.map(s => ({ label: `${s.name}${s.code ? ` (${s.code})` : ''}`, onClick: () => setForm((f) => ({ ...f, shiftId: s.id })) }))
+            ]}]} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

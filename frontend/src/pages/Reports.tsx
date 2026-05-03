@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Clock, ShieldCheck, FileSpreadsheet, Scale, BarChart2, Users, BookOpen, CreditCard, TrendingUp, Info } from 'lucide-react';
+import { FileText, Download, Clock, ShieldCheck, FileSpreadsheet, Scale, BarChart2, Users, BookOpen, CreditCard, TrendingUp, Info, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import api, { ReportsAPI, IntelligenceAPI, PayrollAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
@@ -135,13 +136,15 @@ const Reports: React.FC = () => {
           <p className="text-slate-500 font-medium text-sm">Generate and export ZIMRA & NSSA-compliant documentation.</p>
         </div>
         <div className="flex items-center gap-2">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
-          >
-            {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-          </select>
+          <Dropdown
+            trigger={(isOpen) => (
+              <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-blue transition-colors">
+                <span>{selectedYear}</span>
+                <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </button>
+            )}
+            sections={[{ items: YEARS.map(y => ({ label: String(y), onClick: () => setSelectedYear(y) })) }]}
+          />
         </div>
       </header>
 
@@ -185,13 +188,15 @@ const Reports: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                    className="bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
-                  >
-                    {MONTHS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                  </select>
+                  <Dropdown
+                    trigger={(isOpen) => (
+                      <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-blue transition-colors">
+                        <span>{MONTHS.find(m => m.id === selectedMonth)?.name}</span>
+                        <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                    )}
+                    sections={[{ items: MONTHS.map(m => ({ label: m.name, onClick: () => setSelectedMonth(m.id) })) }]}
+                  />
                   <button
                     disabled={disabled || isDownloading('tarms-excel')}
                     onClick={downloadTarmsExcel}
@@ -276,18 +281,18 @@ const Reports: React.FC = () => {
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Operational Reports</h3>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Target Run:</span>
-                <select
-                  value={selectedRunId}
-                  onChange={(e) => setSelectedRunId(e.target.value)}
-                  className="bg-slate-50 border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy focus:outline-none max-w-[150px]"
-                >
-                  <option value="">Select Run...</option>
-                  {runs.map((r: any) => (
-                    <option key={r.id} value={r.id}>
-                      {fmtDate(r.startDate)} – {fmtDate(r.endDate)}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown
+                  trigger={(isOpen) => (
+                    <button type="button" className="flex items-center gap-1.5 bg-slate-50 border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-blue transition-colors max-w-[170px]">
+                      <span className="truncate">{runs.find((r: any) => r.id === selectedRunId) ? `${fmtDate(runs.find((r: any) => r.id === selectedRunId).startDate)} – ${fmtDate(runs.find((r: any) => r.id === selectedRunId).endDate)}` : 'Select Run...'}</span>
+                      <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  )}
+                  sections={[{ items: [
+                    { label: 'Select Run...', onClick: () => setSelectedRunId('') },
+                    ...runs.map((r: any) => ({ label: `${fmtDate(r.startDate)} – ${fmtDate(r.endDate)}`, onClick: () => setSelectedRunId(r.id) })),
+                  ], emptyMessage: 'No runs available' }]}
+                />
               </div>
             </div>
             

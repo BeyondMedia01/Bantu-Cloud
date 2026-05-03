@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Save, RefreshCw, List, X, CheckCircle2,
-  AlertTriangle, LayoutGrid,
+  AlertTriangle, LayoutGrid, ChevronDown,
 } from 'lucide-react';
 import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI, TaxTableAPI, NSSASettingsAPI, PayrollCalendarAPI } from '../api/client';
 import { Dropdown } from '../components/ui/dropdown';
@@ -441,14 +441,15 @@ const PayrollInputGrid: React.FC = () => {
             onChange={(e) => handlePeriodChange(e.target.value)}
             className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 bg-primary"
           />
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 bg-primary"
-          >
-            <option value="USD">USD</option>
-            <option value="ZiG">ZiG</option>
-          </select>
+          <Dropdown trigger={(isOpen) => (
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+              <span>{currency}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: [
+            { label: 'USD', onClick: () => setCurrency('USD') },
+            { label: 'ZiG', onClick: () => setCurrency('ZiG') },
+          ]}]} />
           <button
             onClick={handleServerPreview}
             disabled={previewing}

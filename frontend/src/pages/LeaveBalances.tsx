@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Loader, ChevronsRight, CalendarCheck, AlertCircle } from 'lucide-react';
+import { Loader, ChevronsRight, CalendarCheck, AlertCircle, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveBalanceAPI, EmployeeAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 
@@ -112,26 +113,32 @@ const LeaveBalances: React.FC = () => {
 
       {/* Filters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <select
-          value={yearFilter}
-          onChange={(e) => setYearFilter(e.target.value)}
-          aria-label="Filter by year"
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
-        >
-          {[0, 1, 2].map((offset) => {
-            const y = new Date().getFullYear() - offset;
-            return <option key={y} value={String(y)}>{y}</option>;
-          })}
-        </select>
-        <select
-          value={employeeFilter}
-          onChange={(e) => setEmployeeFilter(e.target.value)}
-          aria-label="Filter by employee"
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
-        >
-          <option value="">All Employees</option>
-          {employees.map((e: any) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
-        </select>
+        <Dropdown
+          className="w-full"
+          trigger={(isOpen) => (
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span>{yearFilter}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+          sections={[{ items: [0, 1, 2].map(offset => {
+            const y = String(new Date().getFullYear() - offset);
+            return { label: y, onClick: () => setYearFilter(y) };
+          })}]}
+        />
+        <Dropdown
+          className="w-full"
+          trigger={(isOpen) => (
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{employees.find((e: any) => e.id === employeeFilter) ? `${employees.find((e: any) => e.id === employeeFilter).firstName} ${employees.find((e: any) => e.id === employeeFilter).lastName}` : 'All Employees'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+          sections={[{ items: [
+            { label: 'All Employees', onClick: () => setEmployeeFilter('') },
+            ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName}`, onClick: () => setEmployeeFilter(e.id) })),
+          ]}]}
+        />
       </div>
 
       {loading ? (

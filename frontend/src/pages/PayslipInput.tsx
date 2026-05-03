@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Users, Plus, Trash2, Pencil, Check, X, Loader,
-  Search, ChevronRight, Info, Calculator, Upload, Download, AlertCircle
+  Search, ChevronRight, Info, Calculator, Upload, Download, AlertCircle, ChevronDown
 } from 'lucide-react';
 import { EmployeeAPI, TransactionCodeAPI, PayrollInputAPI } from '../api/client';
+import { Dropdown } from '@/components/ui/dropdown';
 import { getActiveCompanyId } from '../lib/companyContext';
 import BenefitCalculator from '../components/tax/BenefitCalculator';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -293,22 +294,21 @@ const PayslipInput: React.FC = () => {
     </div>
   );
 
-  const txCodeSelect = (value: string, onChange: (v: string) => void, required = false) => (
-    <select required={required} className={inputCls} value={value} onChange={e => onChange(e.target.value)}>
-      <option value="">— Select code —</option>
-      {['EARNING', 'DEDUCTION', 'BENEFIT'].map(group => {
+  const txCodeSelect = (value: string, onChange: (v: string) => void) => {
+    const selected = txCodes.find(t => t.id === value);
+    return (
+      <Dropdown className="w-full" trigger={(isOpen) => (
+        <button type="button" className={`${inputCls} flex items-center justify-between`}>
+          <span className="truncate">{selected ? `${selected.code} — ${selected.name}` : '— Select code —'}</span>
+          <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ml-1 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+      )} sections={['EARNING', 'DEDUCTION', 'BENEFIT'].flatMap(group => {
         const grouped = txCodes.filter(t => t.type === group);
-        if (!grouped.length) return null;
-        return (
-          <optgroup key={group} label={group}>
-            {grouped.map(t => (
-              <option key={t.id} value={t.id}>{t.code} — {t.name}</option>
-            ))}
-          </optgroup>
-        );
-      })}
-    </select>
-  );
+        if (!grouped.length) return [];
+        return [{ label: group, items: grouped.map(t => ({ label: `${t.code} — ${t.name}`, onClick: () => onChange(t.id) })) }];
+      })} />
+    );
+  };
 
   const COLS = [
     { label: 'Code',         right: false },
@@ -434,7 +434,7 @@ const PayslipInput: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                     <div className="flex flex-col gap-1.5 md:col-span-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Transaction Code *</label>
-                      {txCodeSelect(addForm.transactionCodeId, v => setAddForm(p => ({ ...p, transactionCodeId: v })), true)}
+                      {txCodeSelect(addForm.transactionCodeId, v => setAddForm(p => ({ ...p, transactionCodeId: v })))}
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Units</label>
@@ -445,20 +445,22 @@ const PayslipInput: React.FC = () => {
                           value={addForm.units}
                           onChange={e => setAddForm(p => ({ ...p, units: e.target.value }))}
                         />
-                        <select
-                          className="px-2 py-2 border border-border rounded-xl text-xs font-medium bg-slate-50 focus:outline-none w-16"
-                          value={addForm.unitsType}
-                          onChange={e => setAddForm(p => ({ ...p, unitsType: e.target.value }))}
-                        >
-                          {UNITS_TYPES.map(u => <option key={u} value={u}>{u || '—'}</option>)}
-                        </select>
+                        <Dropdown trigger={(isOpen) => (
+                          <button type="button" className="flex items-center gap-0.5 px-1.5 py-2 border border-border rounded-xl text-xs font-medium bg-slate-50 hover:border-accent-blue transition-colors w-16">
+                            <span>{addForm.unitsType || '—'}</span>
+                            <ChevronDown size={10} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                          </button>
+                        )} sections={[{ items: UNITS_TYPES.map(u => ({ label: u || '—', onClick: () => setAddForm(p => ({ ...p, unitsType: u })) })) }]} />
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Duration</label>
-                      <select className={inputCls} value={addForm.duration} onChange={e => setAddForm(p => ({ ...p, duration: e.target.value }))}>
-                        {DURATION_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                      </select>
+                      <Dropdown className="w-full" trigger={(isOpen) => (
+                        <button type="button" className={`${inputCls} flex items-center justify-between`}>
+                          <span>{addForm.duration}</span>
+                          <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                      )} sections={[{ items: DURATION_OPTIONS.map(d => ({ label: d, onClick: () => setAddForm(p => ({ ...p, duration: d })) })) }]} />
                     </div>
                   </div>
 
@@ -563,10 +565,12 @@ const PayslipInput: React.FC = () => {
                                     <input type="number" min="0" step="0.01" placeholder="0"
                                       className="w-16 px-2 py-1.5 border border-border rounded-lg text-xs text-right bg-slate-50 focus:outline-none"
                                       value={editForm.units} onChange={e => setEditForm(p => ({ ...p, units: e.target.value }))} />
-                                    <select className="px-1 py-1.5 border border-border rounded-lg text-xs bg-slate-50 focus:outline-none w-12"
-                                      value={editForm.unitsType} onChange={e => setEditForm(p => ({ ...p, unitsType: e.target.value }))}>
-                                      {UNITS_TYPES.map(u => <option key={u} value={u}>{u || '—'}</option>)}
-                                    </select>
+                                    <Dropdown trigger={(isOpen) => (
+                                      <button type="button" className="flex items-center gap-0.5 px-1 py-1.5 border border-border rounded-lg text-xs bg-slate-50 hover:border-accent-blue transition-colors w-12">
+                                        <span>{editForm.unitsType || '—'}</span>
+                                        <ChevronDown size={9} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                      </button>
+                                    )} sections={[{ items: UNITS_TYPES.map(u => ({ label: u || '—', onClick: () => setEditForm(p => ({ ...p, unitsType: u })) })) }]} />
                                   </div>
                                 </td>
                                 {/* 4 amount cells */}
@@ -577,10 +581,12 @@ const PayslipInput: React.FC = () => {
                                 ))}
                                 {/* Duration */}
                                 <td className="px-3 py-2">
-                                  <select className="w-full px-2 py-1.5 border border-border rounded-lg text-xs bg-slate-50 focus:outline-none"
-                                    value={editForm.duration} onChange={e => setEditForm(p => ({ ...p, duration: e.target.value }))}>
-                                    {DURATION_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                                  </select>
+                                  <Dropdown className="w-full" trigger={(isOpen) => (
+                                    <button type="button" className="w-full flex items-center justify-between px-2 py-1.5 border border-border rounded-lg text-xs bg-slate-50 hover:border-accent-blue transition-colors">
+                                      <span>{editForm.duration}</span>
+                                      <ChevronDown size={10} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                  )} sections={[{ items: DURATION_OPTIONS.map(d => ({ label: d, onClick: () => setEditForm(p => ({ ...p, duration: d })) })) }]} />
                                 </td>
                                 {/* Balance */}
                                 <td className="px-3 py-2">

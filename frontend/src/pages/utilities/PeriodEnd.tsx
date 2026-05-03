@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, CheckCircle2, AlertTriangle, Loader, Lock } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle2, AlertTriangle, Loader, Lock, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { UtilitiesAPI, PayrollCalendarAPI } from '../../api/client';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -102,18 +103,19 @@ const PeriodEnd: React.FC = () => {
 
           <div>
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Select Payroll Period *</label>
-            <select
-              value={selectedId}
-              onChange={(e) => checkStatus(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm"
-            >
-              <option value="">Choose an open period…</option>
-              {calendars.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.isClosed ? '🔒 ' : ''}{c.periodType} — {new Date(c.startDate).toLocaleDateString()} to {new Date(c.endDate).toLocaleDateString()}
-                </option>
-              ))}
-            </select>
+            <Dropdown className="w-full" trigger={(isOpen) => {
+              const cal = (calendars as any[]).find(c => c.id === selectedId);
+              const label = cal ? `${cal.isClosed ? '🔒 ' : ''}${cal.periodType} — ${new Date(cal.startDate).toLocaleDateString()} to ${new Date(cal.endDate).toLocaleDateString()}` : 'Choose an open period…';
+              return (
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                  <span className="truncate">{label}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              );
+            }} sections={[{ items: [
+              { label: 'Choose an open period…', onClick: () => checkStatus('') },
+              ...(calendars as any[]).map(c => ({ label: `${c.isClosed ? '🔒 ' : ''}${c.periodType} — ${new Date(c.startDate).toLocaleDateString()} to ${new Date(c.endDate).toLocaleDateString()}`, onClick: () => checkStatus(c.id) }))
+            ]}]} />
           </div>
 
           {statusLoading && (

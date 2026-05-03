@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader, Banknote, CheckCircle2, XCircle, Zap, Clock, AlertCircle } from 'lucide-react';
+import { Loader, Banknote, CheckCircle2, XCircle, Zap, Clock, AlertCircle, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveEncashmentAPI, EmployeeAPI, LeaveBalanceAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
@@ -203,20 +204,24 @@ const LeaveEncashments: React.FC = () => {
           <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Employee <span className="text-red-400">*</span></label>
-              <select required value={form.employeeId} onChange={set('employeeId')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue">
-                <option value="">Select employee…</option>
-                {employees.map((e: any) => (
-                  <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.employeeCode})</option>
-                ))}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee…'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Select employee…', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
+                ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
+              ], emptyMessage: 'No employees found' }]} />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type <span className="text-red-400">*</span></label>
-              <select required value={form.leaveType} onChange={set('leaveType')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue">
-                {LEAVE_TYPES.map((t) => <option key={t} value={t}>{fmtType(t)}</option>)}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{fmtType(form.leaveType)}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setForm(p => ({ ...p, leaveType: t })) })) }]} />
               {selectedBalance && (
                 <p className="text-xs text-slate-400 mt-1">
                   Available balance: <span className="font-bold text-emerald-700">{selectedBalance.balance.toFixed(1)} days</span>

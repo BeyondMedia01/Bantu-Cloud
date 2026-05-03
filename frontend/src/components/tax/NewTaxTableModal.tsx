@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Save, Loader, AlertCircle } from 'lucide-react';
+import { X, Save, Loader, AlertCircle, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { TaxTableAPI } from '../../api/client';
 
 interface TaxTable {
@@ -78,14 +79,15 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Currency</label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all appearance-none"
-              >
-                <option value="USD">USD</option>
-                <option value="ZiG">ZiG</option>
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold hover:border-accent-blue transition-all">
+                  <span>{currency}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'USD', onClick: () => setCurrency('USD') },
+                { label: 'ZiG', onClick: () => setCurrency('ZiG') },
+              ]}]} />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Effective Date</label>

@@ -5,6 +5,7 @@ import {
   CheckCircle2, X, AlertCircle, Zap, Eye, ShieldCheck, RefreshCw,
 } from 'lucide-react';
 import { TransactionCodeAPI } from '../../api/client';
+import { Dropdown } from '@/components/ui/dropdown';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -341,21 +342,25 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
 
               <div className="mt-4">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Formal Tax Rule (ZIMRA)</label>
-                <select
-                  value={form.incomeCategory || ''}
-                  onChange={e => setForm(p => ({ ...p, incomeCategory: e.target.value || null }))}
-                  className={fieldClass}
-                >
-                  <option value="">None / Standard</option>
-                  <option value="BASIC_SALARY">Basic Salary</option>
-                  <option value="BONUS">Bonus</option>
-                  <option value="PENSION">Pension (Exempt)</option>
-                  <option value="MEDICAL_AID">Medical Aid (50% Tax Credit)</option>
-                  <option value="ALLOWANCE">Allowance</option>
-                  <option value="OVERTIME">Overtime</option>
-                  <option value="COMMISSION">Commission</option>
-                  <option value="BENEFIT">Benefit</option>
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => {
+                  const cats: Record<string,string> = { '': 'None / Standard', BASIC_SALARY: 'Basic Salary', BONUS: 'Bonus', PENSION: 'Pension (Exempt)', MEDICAL_AID: 'Medical Aid (50% Tax Credit)', ALLOWANCE: 'Allowance', OVERTIME: 'Overtime', COMMISSION: 'Commission', BENEFIT: 'Benefit' };
+                  return (
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors">
+                      <span>{cats[form.incomeCategory || ''] || 'None / Standard'}</span>
+                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  );
+                }} sections={[{ items: [
+                  { label: 'None / Standard', onClick: () => setForm(p => ({ ...p, incomeCategory: null })) },
+                  { label: 'Basic Salary', onClick: () => setForm(p => ({ ...p, incomeCategory: 'BASIC_SALARY' })) },
+                  { label: 'Bonus', onClick: () => setForm(p => ({ ...p, incomeCategory: 'BONUS' })) },
+                  { label: 'Pension (Exempt)', onClick: () => setForm(p => ({ ...p, incomeCategory: 'PENSION' })) },
+                  { label: 'Medical Aid (50% Tax Credit)', onClick: () => setForm(p => ({ ...p, incomeCategory: 'MEDICAL_AID' })) },
+                  { label: 'Allowance', onClick: () => setForm(p => ({ ...p, incomeCategory: 'ALLOWANCE' })) },
+                  { label: 'Overtime', onClick: () => setForm(p => ({ ...p, incomeCategory: 'OVERTIME' })) },
+                  { label: 'Commission', onClick: () => setForm(p => ({ ...p, incomeCategory: 'COMMISSION' })) },
+                  { label: 'Benefit', onClick: () => setForm(p => ({ ...p, incomeCategory: 'BENEFIT' })) },
+                ]}]} />
                 <p className="text-[10px] text-slate-400 mt-1">
                   Select "Medical Aid" for any provider (Cimas, Bonvie, First Mutual, etc.) — flags are auto-configured.
                 </p>
@@ -462,10 +467,15 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Condition</label>
-                          <select value={ruleForm.conditionType} onChange={(e) => setRuleForm((p) => ({ ...p, conditionType: e.target.value }))}
-                            className="w-full px-3 py-2 bg-white border border-border rounded-lg text-xs font-medium focus:outline-none">
-                            {CONDITION_TYPES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                          </select>
+                          <Dropdown className="w-full" trigger={(isOpen) => {
+                            const ct = CONDITION_TYPES.find(c => c.value === ruleForm.conditionType);
+                            return (
+                              <button type="button" className="w-full flex items-center justify-between px-3 py-2 bg-white border border-border rounded-lg text-xs font-medium hover:border-accent-blue transition-colors">
+                                <span>{ct?.label || ruleForm.conditionType}</span>
+                                <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                              </button>
+                            );
+                          }} sections={[{ items: CONDITION_TYPES.map(c => ({ label: c.label, onClick: () => setRuleForm((p) => ({ ...p, conditionType: c.value })) })) }]} />
                         </div>
                         {ruleForm.conditionType !== 'always' && (
                           <div>

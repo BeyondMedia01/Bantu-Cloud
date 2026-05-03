@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote, CalendarDays } from 'lucide-react';
+import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote, CalendarDays, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -165,17 +166,22 @@ const Leave: React.FC = () => {
           )}
         </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue shadow-sm"
-        >
-          <option value="">All Statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="APPROVED">Approved</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
+        <Dropdown
+          className="w-full"
+          trigger={(isOpen) => (
+            <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{filterStatus ? filterStatus.charAt(0) + filterStatus.slice(1).toLowerCase() : 'All Statuses'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+          sections={[{ items: [
+            { label: 'All Statuses', onClick: () => setFilterStatus('') },
+            { label: 'Pending',      onClick: () => setFilterStatus('PENDING') },
+            { label: 'Approved',     onClick: () => setFilterStatus('APPROVED') },
+            { label: 'Rejected',     onClick: () => setFilterStatus('REJECTED') },
+            { label: 'Cancelled',    onClick: () => setFilterStatus('CANCELLED') },
+          ]}]}
+        />
 
         {/* Employee autocomplete */}
         <div className="relative">

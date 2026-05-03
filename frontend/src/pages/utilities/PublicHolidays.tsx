@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, Trash2, CalendarCheck } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, CalendarCheck, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { PublicHolidaysAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 
@@ -88,15 +89,12 @@ const PublicHolidays: React.FC = () => {
 
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="border border-border rounded-xl px-3 py-2 text-sm font-semibold bg-primary focus:outline-none focus:border-accent-blue"
-        >
-          {[CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1].map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
+        <Dropdown trigger={(isOpen) => (
+          <button type="button" className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 text-sm font-semibold bg-primary hover:border-accent-blue transition-colors">
+            <span>{year}</span>
+            <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+        )} sections={[{ items: [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1].map(y => ({ label: String(y), onClick: () => setYear(y) })) }]} />
 
         <button
           onClick={handleSeed}

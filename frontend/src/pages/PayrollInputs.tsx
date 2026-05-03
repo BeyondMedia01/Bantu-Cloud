@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, X, Check, Filter, LayoutGrid, Edit2 } from 'lucide-react';
+import { Plus, Trash2, X, Check, Filter, LayoutGrid, Edit2, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { useNavigate } from 'react-router-dom';
 import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
@@ -183,46 +184,41 @@ const PayrollInputs: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Employee *</label>
-              <select
-                value={form.employeeId}
-                onChange={(e) => setForm((p) => ({ ...p, employeeId: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                required
-              >
-                <option value="">Select employee…</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.firstName} {emp.lastName} {emp.employeeCode ? `(${emp.employeeCode})` : ''}
-                  </option>
-                ))}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{employees.find(e => e.id === form.employeeId) ? `${employees.find(e => e.id === form.employeeId).firstName} ${employees.find(e => e.id === form.employeeId).lastName}` : 'Select employee…'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Select employee…', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
+                ...employees.map(emp => ({ label: `${emp.firstName} ${emp.lastName}${emp.employeeCode ? ` (${emp.employeeCode})` : ''}`, onClick: () => setForm(p => ({ ...p, employeeId: emp.id })) })),
+              ], emptyMessage: 'No employees' }]} />
             </div>
 
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Transaction Code *</label>
-              <select
-                value={form.transactionCodeId}
-                onChange={(e) => setForm((p) => ({ ...p, transactionCodeId: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-                required
-              >
-                <option value="">Select code…</option>
-                {txCodes.map((t) => (
-                  <option key={t.id} value={t.id}>{t.code} — {t.name} ({t.type})</option>
-                ))}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{txCodes.find(t => t.id === form.transactionCodeId) ? `${txCodes.find(t => t.id === form.transactionCodeId).code} — ${txCodes.find(t => t.id === form.transactionCodeId).name}` : 'Select code…'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Select code…', onClick: () => setForm(p => ({ ...p, transactionCodeId: '' })) },
+                ...txCodes.map(t => ({ label: `${t.code} — ${t.name} (${t.type})`, onClick: () => setForm(p => ({ ...p, transactionCodeId: t.id })) })),
+              ], emptyMessage: 'No codes' }]} />
             </div>
 
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Currency *</label>
-              <select
-                value={form.currency}
-                onChange={(e) => setForm((p) => ({ ...p, currency: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              >
-                <option value="USD">USD</option>
-                <option value="ZiG">ZiG</option>
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{form.currency}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'USD', onClick: () => setForm(p => ({ ...p, currency: 'USD' })) },
+                { label: 'ZiG', onClick: () => setForm(p => ({ ...p, currency: 'ZiG' })) },
+              ]}]} />
             </div>
 
             <div>
@@ -257,18 +253,15 @@ const PayrollInputs: React.FC = () => {
 
             <div>
               <label className="block text-sm font-bold text-slate-600 mb-1.5">Link to Payroll Run (optional)</label>
-              <select
-                value={form.payrollRunId}
-                onChange={(e) => setForm((p) => ({ ...p, payrollRunId: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue"
-              >
-                <option value="">None (unattached)</option>
-                {runs.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {new Date(r.startDate).toLocaleDateString()} — {new Date(r.endDate).toLocaleDateString()} [{r.status}]
-                  </option>
-                ))}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{runs.find(r => r.id === form.payrollRunId) ? `${new Date(runs.find(r => r.id === form.payrollRunId).startDate).toLocaleDateString()} — ${new Date(runs.find(r => r.id === form.payrollRunId).endDate).toLocaleDateString()}` : 'None (unattached)'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'None (unattached)', onClick: () => setForm(p => ({ ...p, payrollRunId: '' })) },
+                ...runs.map(r => ({ label: `${new Date(r.startDate).toLocaleDateString()} — ${new Date(r.endDate).toLocaleDateString()} [${r.status}]`, onClick: () => setForm(p => ({ ...p, payrollRunId: r.id })) })),
+              ]}]} />
             </div>
 
             <div>
@@ -322,38 +315,35 @@ const PayrollInputs: React.FC = () => {
       <div className="bg-primary border border-border rounded-2xl p-4 mb-5 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
           <Filter size={14} className="text-slate-400 shrink-0" />
-          <select
-            value={filterEmployee}
-            onChange={(e) => setFilterEmployee(e.target.value)}
-            className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
-          >
-            <option value="">All employees</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>
-            ))}
-          </select>
-          <select
-            value={filterRun}
-            onChange={(e) => setFilterRun(e.target.value)}
-            className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
-          >
-            <option value="">All runs</option>
-            <option value="null">Unattached</option>
-            {runs.map((r) => (
-              <option key={r.id} value={r.id}>
-                {new Date(r.startDate).toLocaleDateString()} [{r.status}]
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterProcessed}
-            onChange={(e) => setFilterProcessed(e.target.value)}
-            className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/30"
-          >
-            <option value="">All statuses</option>
-            <option value="false">Unprocessed</option>
-            <option value="true">Processed</option>
-          </select>
+          <Dropdown trigger={(isOpen) => (
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+              <span>{filterEmployee ? (employees.find(e => e.id === filterEmployee)?.firstName + ' ' + employees.find(e => e.id === filterEmployee)?.lastName) : 'All employees'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: [
+            { label: 'All employees', onClick: () => setFilterEmployee('') },
+            ...employees.map(emp => ({ label: `${emp.firstName} ${emp.lastName}`, onClick: () => setFilterEmployee(emp.id) }))
+          ]}]} />
+          <Dropdown trigger={(isOpen) => (
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+              <span>{filterRun === '' ? 'All runs' : filterRun === 'null' ? 'Unattached' : (() => { const r = runs.find(r => r.id === filterRun); return r ? `${new Date(r.startDate).toLocaleDateString()} [${r.status}]` : 'All runs'; })()}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: [
+            { label: 'All runs', onClick: () => setFilterRun('') },
+            { label: 'Unattached', onClick: () => setFilterRun('null') },
+            ...runs.map(r => ({ label: `${new Date(r.startDate).toLocaleDateString()} [${r.status}]`, onClick: () => setFilterRun(r.id) }))
+          ]}]} />
+          <Dropdown trigger={(isOpen) => (
+            <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+              <span>{filterProcessed === '' ? 'All statuses' : filterProcessed === 'false' ? 'Unprocessed' : 'Processed'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: [
+            { label: 'All statuses', onClick: () => setFilterProcessed('') },
+            { label: 'Unprocessed', onClick: () => setFilterProcessed('false') },
+            { label: 'Processed', onClick: () => setFilterProcessed('true') },
+          ]}]} />
           <button
             onClick={loadInputs}
             className="px-4 py-2 bg-brand text-navy rounded-full text-sm font-bold hover:opacity-90"
@@ -510,30 +500,26 @@ const PayrollInputs: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Transaction Code</label>
-                <select
-                  value={editInput.transactionCodeId}
-                  onChange={(e) => setEditInput((p: any) => ({ ...p, transactionCodeId: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
-                  required
-                >
-                  <option value="">Select code…</option>
-                  {txCodes.map((t) => (
-                    <option key={t.id} value={t.id}>{t.code} — {t.name} ({t.type})</option>
-                  ))}
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => (
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                    <span className="truncate">{editInput.transactionCodeId ? (txCodes.find(t => t.id === editInput.transactionCodeId) ? `${txCodes.find(t => t.id === editInput.transactionCodeId)!.code} — ${txCodes.find(t => t.id === editInput.transactionCodeId)!.name}` : 'Select code…') : 'Select code…'}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )} sections={[{ items: txCodes.map(t => ({ label: `${t.code} — ${t.name} (${t.type})`, onClick: () => setEditInput((p: any) => ({ ...p, transactionCodeId: t.id })) })) }]} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Currency</label>
-                  <select
-                    value={editInput.currency}
-                    onChange={(e) => setEditInput((p: any) => ({ ...p, currency: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
-                  >
-                    <option value="USD">USD</option>
-                    <option value="ZiG">ZiG</option>
-                  </select>
+                  <Dropdown className="w-full" trigger={(isOpen) => (
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                      <span>{editInput.currency}</span>
+                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  )} sections={[{ items: [
+                    { label: 'USD', onClick: () => setEditInput((p: any) => ({ ...p, currency: 'USD' })) },
+                    { label: 'ZiG', onClick: () => setEditInput((p: any) => ({ ...p, currency: 'ZiG' })) },
+                  ]}]} />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Amount</label>
@@ -591,18 +577,19 @@ const PayrollInputs: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Link to Payroll Run (optional)</label>
-                <select
-                  value={editInput.payrollRunId}
-                  onChange={(e) => setEditInput((p: any) => ({ ...p, payrollRunId: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-blue"
-                >
-                  <option value="">None (unattached)</option>
-                  {runs.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {new Date(r.startDate).toLocaleDateString()} — {new Date(r.endDate).toLocaleDateString()} [{r.status}]
-                    </option>
-                  ))}
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => {
+                  const r = runs.find(r => r.id === editInput.payrollRunId);
+                  const label = r ? `${new Date(r.startDate).toLocaleDateString()} — ${new Date(r.endDate).toLocaleDateString()} [${r.status}]` : 'None (unattached)';
+                  return (
+                    <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                      <span className="truncate">{label}</span>
+                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  );
+                }} sections={[{ items: [
+                  { label: 'None (unattached)', onClick: () => setEditInput((p: any) => ({ ...p, payrollRunId: '' })) },
+                  ...runs.map(r => ({ label: `${new Date(r.startDate).toLocaleDateString()} — ${new Date(r.endDate).toLocaleDateString()} [${r.status}]`, onClick: () => setEditInput((p: any) => ({ ...p, payrollRunId: r.id })) }))
+                ]}]} />
               </div>
 
               <div className="flex justify-end gap-3 pt-1">

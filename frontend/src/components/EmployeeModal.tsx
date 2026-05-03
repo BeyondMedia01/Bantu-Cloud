@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 
 interface EmployeeModalProps {
   onClose: () => void;
@@ -117,15 +119,15 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
               </div>
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="em-currency" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency</label>
-                <select
-                  id="em-currency"
-                  className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 font-bold text-navy"
-                  value={formData.currency}
-                  onChange={e => setFormData({ ...formData, currency: e.target.value })}
-                >
-                  <option value="USD">USD</option>
-                  <option value="ZiG">ZiG</option>
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => (
+                  <button type="button" className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 font-bold text-navy flex items-center justify-between hover:border-accent-blue transition-colors">
+                    <span>{formData.currency}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )} sections={[{ items: [
+                  { label: 'USD', onClick: () => setFormData({ ...formData, currency: 'USD' }) },
+                  { label: 'ZiG', onClick: () => setFormData({ ...formData, currency: 'ZiG' }) },
+                ]}]} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="em-taxable-benefits" className="text-xs font-bold text-slate-400 uppercase tracking-wider text-accent-green">Tax. Benefits</label>

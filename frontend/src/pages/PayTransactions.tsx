@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, Search, X, Loader } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Loader, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { TransactionCodeAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 
@@ -247,13 +248,12 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 {/* Type */}
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Type *</label>
-                  <select
-                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-blue"
-                    value={form.type}
-                    onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))}
-                  >
-                    {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <Dropdown className="w-full" trigger={(isOpen) => (
+                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-blue transition-colors bg-primary">
+                      <span>{form.type}</span>
+                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  )} sections={[{ items: TYPES.map(t => ({ label: t, onClick: () => setForm((f: any) => ({ ...f, type: t })) })) }]} />
                 </div>
               </div>
 
@@ -272,13 +272,12 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 {/* Calculation Type */}
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Calculation</label>
-                  <select
-                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-blue"
-                    value={form.calculationType}
-                    onChange={e => setForm((f: any) => ({ ...f, calculationType: e.target.value }))}
-                  >
-                    {CALC_TYPES.map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
-                  </select>
+                  <Dropdown className="w-full" trigger={(isOpen) => (
+                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-blue transition-colors bg-primary capitalize">
+                      <span>{form.calculationType}</span>
+                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  )} sections={[{ items: CALC_TYPES.map(t => ({ label: t, onClick: () => setForm((f: any) => ({ ...f, calculationType: t })) })) }]} />
                 </div>
                 {/* Default Value */}
                 <div className="flex flex-col gap-1">
@@ -296,21 +295,25 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
               {/* Income Category (Tax Rule) */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tax Rule / Category</label>
-                <select
-                  className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-blue"
-                  value={form.incomeCategory || ''}
-                  onChange={e => setForm((f: any) => ({ ...f, incomeCategory: e.target.value || null }))}
-                >
-                  <option value="">None / Standard</option>
-                  <option value="BASIC_SALARY">Basic Salary</option>
-                  <option value="BONUS">Bonus</option>
-                  <option value="PENSION">Pension (Exempt)</option>
-                  <option value="MEDICAL_AID">Medical Aid (50% Tax Credit)</option>
-                  <option value="ALLOWANCE">Allowance</option>
-                  <option value="OVERTIME">Overtime</option>
-                  <option value="COMMISSION">Commission</option>
-                  <option value="BENEFIT">Benefit</option>
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => {
+                  const cats: Record<string,string> = { '': 'None / Standard', BASIC_SALARY: 'Basic Salary', BONUS: 'Bonus', PENSION: 'Pension (Exempt)', MEDICAL_AID: 'Medical Aid (50% Tax Credit)', ALLOWANCE: 'Allowance', OVERTIME: 'Overtime', COMMISSION: 'Commission', BENEFIT: 'Benefit' };
+                  return (
+                    <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-blue transition-colors bg-primary">
+                      <span>{cats[form.incomeCategory || ''] || 'None / Standard'}</span>
+                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  );
+                }} sections={[{ items: [
+                  { label: 'None / Standard', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: null })) },
+                  { label: 'Basic Salary', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'BASIC_SALARY' })) },
+                  { label: 'Bonus', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'BONUS' })) },
+                  { label: 'Pension (Exempt)', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'PENSION' })) },
+                  { label: 'Medical Aid (50% Tax Credit)', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'MEDICAL_AID' })) },
+                  { label: 'Allowance', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'ALLOWANCE' })) },
+                  { label: 'Overtime', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'OVERTIME' })) },
+                  { label: 'Commission', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'COMMISSION' })) },
+                  { label: 'Benefit', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'BENEFIT' })) },
+                ]}]} />
               </div>
 
               {/* Checkboxes */}

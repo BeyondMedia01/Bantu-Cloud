@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash, Shield, Loader } from 'lucide-react';
+import { Plus, Edit, Trash, Shield, Loader, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { LeavePolicyAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 
@@ -132,14 +133,12 @@ const LeavePolicy: React.FC = () => {
           <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
-              <select
-                value={form.leaveType}
-                onChange={set('leaveType')}
-                disabled={!!editId}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue disabled:opacity-60"
-              >
-                {LEAVE_TYPES.map((t) => <option key={t} value={t}>{fmtType(t)}</option>)}
-              </select>
+              <Dropdown className="w-full" disabled={!!editId} trigger={(isOpen) => (
+                <button type="button" disabled={!!editId} className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors disabled:opacity-60">
+                  <span>{fmtType(form.leaveType)}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setForm((p: any) => ({ ...p, leaveType: t })) })) }]} />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Accrual Rate (days/month)</label>

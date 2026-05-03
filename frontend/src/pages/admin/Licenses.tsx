@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Loader, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Loader, CheckCircle2, XCircle, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { LicenseAPI, ClientAPI } from '../../api/client';
 
 const AdminLicenses: React.FC = () => {
@@ -68,11 +69,12 @@ const AdminLicenses: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Client *</label>
-              <select required value={form.clientId} onChange={(e) => setForm((f) => ({ ...f, clientId: e.target.value }))}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm">
-                <option value="">Select client</option>
-                {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                  <span>{form.clientId ? (clients.find((c: any) => c.id === form.clientId)?.name || 'Select client') : 'Select client'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: clients.map((c: any) => ({ label: c.name, onClick: () => setForm((f) => ({ ...f, clientId: c.id })) })) }]} />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Validity (months)</label>

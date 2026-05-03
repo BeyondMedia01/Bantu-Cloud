@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarDays, Loader, Clock, CheckCircle2, XCircle, Plus, Banknote, AlertCircle } from 'lucide-react';
+import { CalendarDays, Loader, Clock, CheckCircle2, XCircle, Plus, Banknote, AlertCircle, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { EmployeeSelfAPI, LeaveAPI, LeaveBalanceAPI, LeaveEncashmentAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 
@@ -163,10 +164,12 @@ const EmployeeLeave: React.FC = () => {
           <form onSubmit={handleApplySubmit} className="flex flex-col gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
-              <select required value={applyForm.type} onChange={setApply('type')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue">
-                {LEAVE_TYPES.map((t) => <option key={t} value={t}>{fmtType(t)}</option>)}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{fmtType(applyForm.type)}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setApplyForm((p: any) => ({ ...p, type: t })) })) }]} />
               {(() => {
                 const bal = balances.find((b: any) => b.leaveType === applyForm.type);
                 return bal ? (
@@ -222,10 +225,12 @@ const EmployeeLeave: React.FC = () => {
           <form onSubmit={handleEncashSubmit} className="flex flex-col gap-4">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
-              <select required value={encashForm.leaveType} onChange={setEncash('leaveType')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue">
-                {LEAVE_TYPES.map((t) => <option key={t} value={t}>{fmtType(t)}</option>)}
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{fmtType(encashForm.leaveType)}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setEncashForm((p: any) => ({ ...p, leaveType: t })) })) }]} />
               {selectedBalance && (
                 <p className="text-xs text-slate-400 mt-1">
                   Available: <span className={`font-bold ${selectedBalance.balance < 1 ? 'text-red-500' : 'text-emerald-600'}`}>{selectedBalance.balance.toFixed(1)} days</span>

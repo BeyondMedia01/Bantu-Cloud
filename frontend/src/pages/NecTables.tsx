@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
   Plus, Trash, ChevronRight, Calendar, Loader,
-  Check, X, Pencil, Percent, Hash,
+  Check, X, Pencil, Percent, Hash, ChevronDown,
 } from 'lucide-react';
 import { NecTableAPI } from '../api/client';
+import { Dropdown } from '@/components/ui/dropdown';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
 
@@ -241,14 +242,15 @@ const NecTables: React.FC = () => {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Currency</label>
-              <select
-                className={inputCls + ' text-sm'}
-                value={newTable.currency}
-                onChange={e => setNewTable(p => ({ ...p, currency: e.target.value }))}
-              >
-                <option value="USD">USD</option>
-                <option value="ZiG">ZiG</option>
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors bg-primary">
+                  <span>{newTable.currency}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'USD', onClick: () => setNewTable(p => ({ ...p, currency: 'USD' })) },
+                { label: 'ZiG', onClick: () => setNewTable(p => ({ ...p, currency: 'ZiG' })) },
+              ]}]} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Effective Date *</label>

@@ -5,6 +5,7 @@ import {
   ChevronDown, ChevronUp, Users, CalendarDays, Banknote, AlertCircle,
 } from 'lucide-react';
 import { UtilitiesAPI, EmployeeAPI } from '../../api/client';
+import { Dropdown } from '@/components/ui/dropdown';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -255,14 +256,15 @@ const BackPay: React.FC = () => {
 
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Currency</label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
-              >
-                <option value="USD">USD</option>
-                <option value="ZiG">ZiG</option>
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium hover:border-accent-blue transition-colors">
+                  <span>{currency}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'USD', onClick: () => setCurrency('USD') },
+                { label: 'ZiG', onClick: () => setCurrency('ZiG') },
+              ]}]} />
             </div>
           </div>
 

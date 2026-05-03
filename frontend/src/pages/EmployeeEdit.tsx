@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { EmployeeAPI, BranchAPI, DepartmentAPI, NecTableAPI, TaxTableAPI, SystemSettingsAPI, DocumentsAPI } from '../api/client';
 import { Field } from '../components/common/Field';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -268,16 +269,17 @@ const EmployeeEdit: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Document Type</label>
-                <select
-                  value={docForm.type}
-                  onChange={(e) => setDocForm(p => ({ ...p, type: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue"
-                >
-                  <option value="ID">ID</option>
-                  <option value="CONTRACT">Contract</option>
-                  <option value="MEDICAL">Medical</option>
-                  <option value="OTHER">Other</option>
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => (
+                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                    <span>{({ID:'ID',CONTRACT:'Contract',MEDICAL:'Medical',OTHER:'Other'} as Record<string,string>)[docForm.type] ?? docForm.type}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )} sections={[{ items: [
+                  { label: 'ID',       onClick: () => setDocForm(p => ({ ...p, type: 'ID' })) },
+                  { label: 'Contract', onClick: () => setDocForm(p => ({ ...p, type: 'CONTRACT' })) },
+                  { label: 'Medical',  onClick: () => setDocForm(p => ({ ...p, type: 'MEDICAL' })) },
+                  { label: 'Other',    onClick: () => setDocForm(p => ({ ...p, type: 'OTHER' })) },
+                ]}]} />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Document Name</label>
@@ -376,12 +378,18 @@ const EmployeeEdit: React.FC = () => {
             <Field label="Employee Code" required>
               <input required value={form.employeeCode} onChange={set('employeeCode')} />
             </Field>
-            <Field label="Title">
-              <select value={form.title} onChange={set('title')}>
-                <option value="">— Select —</option>
-                {TITLES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Title</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{form.title || '— Select —'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: '— Select —', onClick: () => setForm(p => ({ ...p, title: '' })) },
+                ...TITLES.map(t => ({ label: t, onClick: () => setForm(p => ({ ...p, title: t })) })),
+              ]}]} />
+            </div>
             <Field label="First Name" required>
               <input required value={form.firstName} onChange={set('firstName')} />
             </Field>
@@ -391,12 +399,18 @@ const EmployeeEdit: React.FC = () => {
             <Field label="Maiden Name">
               <input value={form.maidenName} onChange={set('maidenName')} />
             </Field>
-            <Field label="Nationality" required>
-              <select required value={form.nationality || 'Zimbabwean'} onChange={set('nationality')}>
-                <option value="">— Select —</option>
-                {AFRICAN_NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nationality *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{form.nationality || 'Zimbabwean'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: '— Select —', onClick: () => setForm(p => ({ ...p, nationality: '' })) },
+                ...AFRICAN_NATIONALITIES.map(n => ({ label: n, onClick: () => setForm(p => ({ ...p, nationality: n })) })),
+              ]}]} />
+            </div>
             <Field label="National ID" required={form.nationality === 'Zimbabwean'}>
               <input 
                 required={form.nationality === 'Zimbabwean'} 
@@ -419,23 +433,35 @@ const EmployeeEdit: React.FC = () => {
             <Field label="Date of Birth" required>
               <input required type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} />
             </Field>
-            <Field label="Gender" required>
-              <select required value={form.gender} onChange={set('gender')}>
-                <option value="">— Select —</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </Field>
-            <Field label="Marital Status" required>
-              <select required value={form.maritalStatus} onChange={set('maritalStatus')}>
-                <option value="">— Select —</option>
-                <option value="SINGLE">Single</option>
-                <option value="MARRIED">Married</option>
-                <option value="DIVORCED">Divorced</option>
-                <option value="WIDOWED">Widowed</option>
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gender *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({MALE:'Male',FEMALE:'Female',OTHER:'Other'} as Record<string,string>)[form.gender] ?? (form.gender || '— Select —')}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: '— Select —', onClick: () => setForm(p => ({ ...p, gender: '' })) },
+                { label: 'Male',   onClick: () => setForm(p => ({ ...p, gender: 'MALE' })) },
+                { label: 'Female', onClick: () => setForm(p => ({ ...p, gender: 'FEMALE' })) },
+                { label: 'Other',  onClick: () => setForm(p => ({ ...p, gender: 'OTHER' })) },
+              ]}]} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Marital Status *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({SINGLE:'Single',MARRIED:'Married',DIVORCED:'Divorced',WIDOWED:'Widowed'} as Record<string,string>)[form.maritalStatus] ?? (form.maritalStatus || '— Select —')}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: '— Select —', onClick: () => setForm(p => ({ ...p, maritalStatus: '' })) },
+                { label: 'Single',   onClick: () => setForm(p => ({ ...p, maritalStatus: 'SINGLE' })) },
+                { label: 'Married',  onClick: () => setForm(p => ({ ...p, maritalStatus: 'MARRIED' })) },
+                { label: 'Divorced', onClick: () => setForm(p => ({ ...p, maritalStatus: 'DIVORCED' })) },
+                { label: 'Widowed',  onClick: () => setForm(p => ({ ...p, maritalStatus: 'WIDOWED' })) },
+              ]}]} />
+            </div>
             <Field label="Home Address" className="col-span-2">
               <input value={form.homeAddress} onChange={set('homeAddress')} />
             </Field>
@@ -470,32 +496,50 @@ const EmployeeEdit: React.FC = () => {
             <Field label="Position / Job Title" required>
               <input required value={form.position} onChange={set('position')} />
             </Field>
-            <Field label="Department">
-              <select value={form.departmentId} onChange={set('departmentId')}>
-                <option value="">— None —</option>
-                {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-            </Field>
-            <Field label="Branch">
-              <select value={form.branchId} onChange={set('branchId')}>
-                <option value="">— None —</option>
-                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Department</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{departments.find((d: any) => d.id === form.departmentId)?.name || '— None —'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: '— None —', onClick: () => setForm(p => ({ ...p, departmentId: '' })) },
+                ...departments.map((d: any) => ({ label: d.name, onClick: () => setForm(p => ({ ...p, departmentId: d.id })) })),
+              ], emptyMessage: 'No departments' }]} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Branch</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{branches.find((b: any) => b.id === form.branchId)?.name || '— None —'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: '— None —', onClick: () => setForm(p => ({ ...p, branchId: '' })) },
+                ...branches.map((b: any) => ({ label: b.name, onClick: () => setForm(p => ({ ...p, branchId: b.id })) })),
+              ], emptyMessage: 'No branches' }]} />
+            </div>
             <Field label="Cost Center">
               <input value={form.costCenter} onChange={set('costCenter')} />
             </Field>
             <Field label="Grade">
               <input value={form.grade} onChange={set('grade')} />
             </Field>
-            <Field label="Employment Type" required>
-              <select required value={form.employmentType} onChange={set('employmentType')}>
-                <option value="PERMANENT">Permanent</option>
-                <option value="CONTRACT">Contract</option>
-                <option value="TEMPORARY">Temporary</option>
-                <option value="PART_TIME">Part Time</option>
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employment Type *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({PERMANENT:'Permanent',CONTRACT:'Contract',TEMPORARY:'Temporary',PART_TIME:'Part Time'} as Record<string,string>)[form.employmentType] ?? form.employmentType}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Permanent',  onClick: () => setForm(p => ({ ...p, employmentType: 'PERMANENT' })) },
+                { label: 'Contract',   onClick: () => setForm(p => ({ ...p, employmentType: 'CONTRACT' })) },
+                { label: 'Temporary',  onClick: () => setForm(p => ({ ...p, employmentType: 'TEMPORARY' })) },
+                { label: 'Part Time',  onClick: () => setForm(p => ({ ...p, employmentType: 'PART_TIME' })) },
+              ]}]} />
+            </div>
             <Field label="Leave Entitlement (days)">
               <input type="number" step="0.5" value={form.leaveEntitlement} onChange={set('leaveEntitlement')} />
             </Field>
@@ -512,46 +556,72 @@ const EmployeeEdit: React.FC = () => {
         {activeTab === 'PAY' && (
         <Section title="Pay Details & Bank Splitting">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <Field label="Payment Method" required>
-              <select required value={form.paymentMethod} onChange={set('paymentMethod')}>
-                <option value="BANK">Bank</option>
-                <option value="CASH">Cash</option>
-              </select>
-            </Field>
-            <Field label="Payment Basis" required>
-              <select required value={form.paymentBasis} onChange={set('paymentBasis')}>
-                <option value="MONTHLY">Monthly</option>
-                <option value="DAILY">Daily</option>
-                <option value="HOURLY">Hourly</option>
-              </select>
-            </Field>
-            <Field label="Rate Source" required>
-              <select required value={form.rateSource} onChange={set('rateSource')}>
-                <option value="MANUAL">Manual</option>
-                <option value="NEC_GRADE">NEC Grade</option>
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Method *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({BANK:'Bank',CASH:'Cash'} as Record<string,string>)[form.paymentMethod] ?? form.paymentMethod}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Bank', onClick: () => setForm(p => ({ ...p, paymentMethod: 'BANK' })) },
+                { label: 'Cash', onClick: () => setForm(p => ({ ...p, paymentMethod: 'CASH' })) },
+              ]}]} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Basis *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({MONTHLY:'Monthly',DAILY:'Daily',HOURLY:'Hourly'} as Record<string,string>)[form.paymentBasis] ?? form.paymentBasis}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Monthly', onClick: () => setForm(p => ({ ...p, paymentBasis: 'MONTHLY' })) },
+                { label: 'Daily',   onClick: () => setForm(p => ({ ...p, paymentBasis: 'DAILY' })) },
+                { label: 'Hourly',  onClick: () => setForm(p => ({ ...p, paymentBasis: 'HOURLY' })) },
+              ]}]} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rate Source *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({MANUAL:'Manual',NEC_GRADE:'NEC Grade'} as Record<string,string>)[form.rateSource] ?? form.rateSource}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Manual',    onClick: () => setForm(p => ({ ...p, rateSource: 'MANUAL' })) },
+                { label: 'NEC Grade', onClick: () => setForm(p => ({ ...p, rateSource: 'NEC_GRADE' })) },
+              ]}]} />
+            </div>
             {form.rateSource === 'NEC_GRADE' && (
-              <Field label="NEC Grade">
-                <select value={form.necGradeId} onChange={set('necGradeId')}>
-                  <option value="">— Select grade —</option>
-                  {necGrades.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.gradeCode}{g.description ? ` — ${g.description}` : ''} ({g.tableName})
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">NEC Grade</label>
+                <Dropdown className="w-full" trigger={(isOpen) => (
+                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                    <span className="truncate">{necGrades.find((g: any) => g.id === form.necGradeId) ? `${necGrades.find((g: any) => g.id === form.necGradeId).gradeCode}${necGrades.find((g: any) => g.id === form.necGradeId).description ? ` — ${necGrades.find((g: any) => g.id === form.necGradeId).description}` : ''}` : '— Select grade —'}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )} sections={[{ items: [
+                  { label: '— Select grade —', onClick: () => setForm(p => ({ ...p, necGradeId: '' })) },
+                  ...necGrades.map((g: any) => ({ label: `${g.gradeCode}${g.description ? ` — ${g.description}` : ''} (${g.tableName})`, onClick: () => setForm(p => ({ ...p, necGradeId: g.id })) })),
+                ], emptyMessage: 'No grades available' }]} />
+              </div>
             )}
             <Field label="Base Rate" required>
               <input required type="number" step="0.01" min="0" value={form.baseRate} onChange={set('baseRate')} />
             </Field>
-            <Field label="Currency" required>
-              <select required value={form.currency} onChange={set('currency')}>
-                <option value="USD">USD</option>
-                <option value="ZiG">ZiG</option>
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{form.currency}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'USD', onClick: () => setForm(p => ({ ...p, currency: 'USD' })) },
+                { label: 'ZiG', onClick: () => setForm(p => ({ ...p, currency: 'ZiG' })) },
+              ]}]} />
+            </div>
             <Field label="Hours per Period">
               <input type="number" step="0.5" value={form.hoursPerPeriod} onChange={set('hoursPerPeriod')} />
             </Field>
@@ -569,15 +639,16 @@ const EmployeeEdit: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">ZiG Portion Mode</label>
-                <select 
-                  value={form.splitZigMode} 
-                  onChange={set('splitZigMode')}
-                  className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                >
-                  <option value="NONE">None (100% USD)</option>
-                  <option value="PERCENTAGE">Percentage of USD Basic</option>
-                  <option value="FIXED">Fixed ZiG Amount</option>
-                </select>
+                <Dropdown className="w-full" trigger={(isOpen) => (
+                  <button type="button" className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-xl text-sm font-medium flex items-center justify-between hover:border-emerald-400 transition-colors">
+                    <span>{({NONE:'None (100% USD)',PERCENTAGE:'Percentage of USD Basic',FIXED:'Fixed ZiG Amount'} as Record<string,string>)[form.splitZigMode] ?? form.splitZigMode}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )} sections={[{ items: [
+                  { label: 'None (100% USD)',          onClick: () => setForm(p => ({ ...p, splitZigMode: 'NONE' })) },
+                  { label: 'Percentage of USD Basic',  onClick: () => setForm(p => ({ ...p, splitZigMode: 'PERCENTAGE' })) },
+                  { label: 'Fixed ZiG Amount',         onClick: () => setForm(p => ({ ...p, splitZigMode: 'FIXED' })) },
+                ]}]} />
               </div>
               {form.splitZigMode !== 'NONE' && (
                 <div className="flex flex-col gap-1.5">
@@ -662,15 +733,16 @@ const EmployeeEdit: React.FC = () => {
 
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
-                      <select
-                        value={acc.splitType}
-                        onChange={(e) => handleAccountChange(index, 'splitType', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
-                      >
-                        <option value="REMAINDER">Remainder</option>
-                        <option value="FIXED">Fixed Amount</option>
-                        <option value="PERCENTAGE">Percentage (%)</option>
-                      </select>
+                      <Dropdown className="w-full" trigger={(isOpen) => (
+                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-blue transition-colors">
+                          <span>{({REMAINDER:'Remainder',FIXED:'Fixed Amount',PERCENTAGE:'Percentage (%)'} as Record<string,string>)[acc.splitType] ?? acc.splitType}</span>
+                          <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                      )} sections={[{ items: [
+                        { label: 'Remainder',      onClick: () => handleAccountChange(index, 'splitType', 'REMAINDER') },
+                        { label: 'Fixed Amount',   onClick: () => handleAccountChange(index, 'splitType', 'FIXED') },
+                        { label: 'Percentage (%)', onClick: () => handleAccountChange(index, 'splitType', 'PERCENTAGE') },
+                      ]}]} />
                       <p className="text-[10px] text-slate-400 leading-snug">
                         {acc.splitType === 'REMAINDER' && 'Receives everything left after other splits.'}
                         {acc.splitType === 'FIXED' && 'A fixed currency amount is paid to this account.'}
@@ -694,14 +766,15 @@ const EmployeeEdit: React.FC = () => {
 
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Currency</label>
-                      <select 
-                        value={acc.currency} 
-                        onChange={(e) => handleAccountChange(index, 'currency', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
-                      >
-                        <option value="USD">USD</option>
-                        <option value="ZiG">ZiG</option>
-                      </select>
+                      <Dropdown className="w-full" trigger={(isOpen) => (
+                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                          <span>{acc.currency}</span>
+                          <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                      )} sections={[{ items: [
+                        { label: 'USD', onClick: () => handleAccountChange(index, 'currency', 'USD') },
+                        { label: 'ZiG', onClick: () => handleAccountChange(index, 'currency', 'ZiG') },
+                      ]}]} />
                     </div>
                   </div>
                 </div>
@@ -720,29 +793,43 @@ const EmployeeEdit: React.FC = () => {
             <Field label="Tax Directive Amount">
               <input type="number" step="0.01" min="0" value={form.taxDirectiveAmt} onChange={set('taxDirectiveAmt')} />
             </Field>
-            <Field label="Tax Method" required>
-              <select required value={form.taxMethod} onChange={set('taxMethod')}>
-                <option value="NON_FDS">Non-FDS</option>
-                <option value="FDS_AVERAGE">FDS Average</option>
-                <option value="FDS_FORECASTING">FDS Forecasting</option>
-              </select>
-            </Field>
-            <Field label="Tax Table" required>
-              <select required value={form.taxTable} onChange={set('taxTable')}>
-                <option value="">— Select tax table —</option>
-                {taxTables.map((t: any) => (
-                  <option key={t.id} value={t.name}>
-                    {t.name} ({t.currency}){t.isActive ? ' ★' : ''}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Accumulative Setting" required>
-              <select required value={form.accumulativeSetting} onChange={set('accumulativeSetting')}>
-                <option value="NO">No</option>
-                <option value="YES">Yes</option>
-              </select>
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tax Method *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({NON_FDS:'Non-FDS',FDS_AVERAGE:'FDS Average',FDS_FORECASTING:'FDS Forecasting'} as Record<string,string>)[form.taxMethod] ?? form.taxMethod}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'Non-FDS',         onClick: () => setForm(p => ({ ...p, taxMethod: 'NON_FDS' })) },
+                { label: 'FDS Average',     onClick: () => setForm(p => ({ ...p, taxMethod: 'FDS_AVERAGE' })) },
+                { label: 'FDS Forecasting', onClick: () => setForm(p => ({ ...p, taxMethod: 'FDS_FORECASTING' })) },
+              ]}]} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tax Table *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span className="truncate">{taxTables.find((t: any) => t.name === form.taxTable) ? `${form.taxTable} (${taxTables.find((t: any) => t.name === form.taxTable).currency})` : (form.taxTable || '— Select tax table —')}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: '— Select tax table —', onClick: () => setForm(p => ({ ...p, taxTable: '' })) },
+                ...taxTables.map((t: any) => ({ label: `${t.name} (${t.currency})${t.isActive ? ' ★' : ''}`, onClick: () => setForm(p => ({ ...p, taxTable: t.name })) })),
+              ], emptyMessage: 'No tax tables available' }]} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Accumulative Setting *</label>
+              <Dropdown className="w-full" trigger={(isOpen) => (
+                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                  <span>{({NO:'No',YES:'Yes'} as Record<string,string>)[form.accumulativeSetting] ?? form.accumulativeSetting}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )} sections={[{ items: [
+                { label: 'No',  onClick: () => setForm(p => ({ ...p, accumulativeSetting: 'NO' })) },
+                { label: 'Yes', onClick: () => setForm(p => ({ ...p, accumulativeSetting: 'YES' })) },
+              ]}]} />
+            </div>
             <Field label="Tax Credits">
               <input type="number" step="0.01" min="0" value={form.taxCredits} onChange={set('taxCredits')} />
             </Field>

@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Save, X, Plus } from 'lucide-react';
+import { ArrowLeft, Save, X, Plus, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
@@ -630,14 +631,18 @@ const EmployeeNew: React.FC = () => {
                           </div>
                           <div className="flex flex-col gap-1.5">
                             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
-                            <select
-                              {...form.register(`bankAccounts.${index}.splitType`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
-                            >
-                              <option value="REMAINDER">Remainder</option>
-                              <option value="FIXED">Fixed Amount</option>
-                              <option value="PERCENTAGE">Percentage (%)</option>
-                            </select>
+                            <Controller control={form.control} name={`bankAccounts.${index}.splitType`} render={({ field }) => (
+                              <Dropdown className="w-full" trigger={(isOpen) => (
+                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-blue transition-colors">
+                                  <span>{({'REMAINDER':'Remainder','FIXED':'Fixed Amount','PERCENTAGE':'Percentage (%)'} as Record<string,string>)[field.value] ?? field.value}</span>
+                                  <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                              )} sections={[{ items: [
+                                { label: 'Remainder',      onClick: () => field.onChange('REMAINDER') },
+                                { label: 'Fixed Amount',   onClick: () => field.onChange('FIXED') },
+                                { label: 'Percentage (%)', onClick: () => field.onChange('PERCENTAGE') },
+                              ]}]} />
+                            )} />
                             <p className="text-[10px] text-slate-400 leading-snug">
                               {splitType === 'REMAINDER' && 'Receives everything left after other splits.'}
                               {splitType === 'FIXED' && 'A fixed currency amount is paid to this account.'}
@@ -657,13 +662,17 @@ const EmployeeNew: React.FC = () => {
                           )}
                           <div className="flex flex-col gap-1.5">
                             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Currency</label>
-                            <select
-                              {...form.register(`bankAccounts.${index}.currency`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-blue/10 focus:border-accent-blue outline-none transition-all"
-                            >
-                              <option value="USD">USD</option>
-                              <option value="ZiG">ZiG</option>
-                            </select>
+                            <Controller control={form.control} name={`bankAccounts.${index}.currency`} render={({ field }) => (
+                              <Dropdown className="w-full" trigger={(isOpen) => (
+                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+                                  <span>{field.value}</span>
+                                  <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                              )} sections={[{ items: [
+                                { label: 'USD', onClick: () => field.onChange('USD') },
+                                { label: 'ZiG', onClick: () => field.onChange('ZiG') },
+                              ]}]} />
+                            )} />
                           </div>
                         </div>
                       </div>

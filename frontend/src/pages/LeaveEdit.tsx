@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Loader } from 'lucide-react';
+import { ArrowLeft, Save, Loader, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
 import { Field } from '../components/common/Field';
 
@@ -79,22 +80,28 @@ const LeaveEdit: React.FC = () => {
       {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{error}</div>}
 
       <form onSubmit={handleSubmit} className="bg-primary rounded-2xl border border-border p-8 shadow-sm flex flex-col gap-5">
-        <Field label="Employee *">
-          <select required value={form.employeeId} onChange={set('employeeId')}>
-            <option value="">Select employee</option>
-            {employees.map((e: any) => (
-              <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.employeeCode || e.id.slice(0, 6)})</option>
-            ))}
-          </select>
-        </Field>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employee *</label>
+          <Dropdown className="w-full" trigger={(isOpen) => (
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: [
+            { label: 'Select employee', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
+            ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode || e.id.slice(0, 6)})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
+          ], emptyMessage: 'No employees found' }]} />
+        </div>
 
-        <Field label="Leave Type">
-          <select value={form.type} onChange={set('type')}>
-            {LEAVE_TYPES.map((t) => (
-              <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ')}</option>
-            ))}
-          </select>
-        </Field>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Leave Type</label>
+          <Dropdown className="w-full" trigger={(isOpen) => (
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span className="truncate">{form.type.charAt(0) + form.type.slice(1).toLowerCase().replace(/_/g, ' ')}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' '), onClick: () => setForm(p => ({ ...p, type: t })) })) }]} />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Start Date *">
@@ -111,14 +118,20 @@ const LeaveEdit: React.FC = () => {
           </div>
         )}
 
-        <Field label="Status">
-          <select value={form.status} onChange={set('status')}>
-            <option value="PENDING">Pending</option>
-            <option value="APPROVED">Approved</option>
-            <option value="REJECTED">Rejected</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
-        </Field>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status</label>
+          <Dropdown className="w-full" trigger={(isOpen) => (
+            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-blue transition-colors">
+              <span>{form.status.charAt(0) + form.status.slice(1).toLowerCase()}</span>
+              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )} sections={[{ items: [
+            { label: 'Pending',   onClick: () => setForm(p => ({ ...p, status: 'PENDING' })) },
+            { label: 'Approved',  onClick: () => setForm(p => ({ ...p, status: 'APPROVED' })) },
+            { label: 'Rejected',  onClick: () => setForm(p => ({ ...p, status: 'REJECTED' })) },
+            { label: 'Cancelled', onClick: () => setForm(p => ({ ...p, status: 'CANCELLED' })) },
+          ]}]} />
+        </div>
 
         <Field label="Reason / Notes">
           <textarea value={form.reason} onChange={set('reason')} rows={3} placeholder="Optional reason" className="resize-none" />

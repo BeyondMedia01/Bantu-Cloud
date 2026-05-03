@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ChevronDown } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import SkeletonTable from '../../components/common/SkeletonTable';
 import { AdminAPI } from '../../api/client';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -93,11 +94,19 @@ const AdminUsers: React.FC = () => {
             ))}
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Role</label>
-              <select value={form.role} onChange={set('role')} className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm">
-                <option value="CLIENT_ADMIN">Client Admin</option>
-                <option value="PLATFORM_ADMIN">Platform Admin</option>
-                <option value="EMPLOYEE">Employee</option>
-              </select>
+              <Dropdown className="w-full" trigger={(isOpen) => {
+                const roles: Record<string,string> = { CLIENT_ADMIN: 'Client Admin', PLATFORM_ADMIN: 'Platform Admin', EMPLOYEE: 'Employee' };
+                return (
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-blue transition-colors">
+                    <span>{roles[form.role] || form.role}</span>
+                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                );
+              }} sections={[{ items: [
+                { label: 'Client Admin', onClick: () => set('role')({ target: { value: 'CLIENT_ADMIN' } } as any) },
+                { label: 'Platform Admin', onClick: () => set('role')({ target: { value: 'PLATFORM_ADMIN' } } as any) },
+                { label: 'Employee', onClick: () => set('role')({ target: { value: 'EMPLOYEE' } } as any) },
+              ]}]} />
             </div>
           </div>
           <div className="flex gap-3">
@@ -130,15 +139,19 @@ const AdminUsers: React.FC = () => {
                   <td className="px-4 py-3 font-bold text-sm">{u.name}</td>
                   <td className="px-4 py-3 text-sm text-slate-500">{u.email}</td>
                   <td className="px-4 py-3">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                      className={`px-2 py-1 rounded-full text-xs font-bold border-0 cursor-pointer ${roleColor[u.role] || 'bg-slate-100'}`}
-                    >
-                      <option value="PLATFORM_ADMIN">Platform Admin</option>
-                      <option value="CLIENT_ADMIN">Client Admin</option>
-                      <option value="EMPLOYEE">Employee</option>
-                    </select>
+                    <Dropdown trigger={(isOpen) => {
+                      const roles: Record<string,string> = { PLATFORM_ADMIN: 'Platform Admin', CLIENT_ADMIN: 'Client Admin', EMPLOYEE: 'Employee' };
+                      return (
+                        <button type="button" className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-bold cursor-pointer ${roleColor[u.role] || 'bg-slate-100'}`}>
+                          <span>{roles[u.role] || u.role}</span>
+                          <ChevronDown size={10} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                      );
+                    }} sections={[{ items: [
+                      { label: 'Platform Admin', onClick: () => handleRoleChange(u.id, 'PLATFORM_ADMIN') },
+                      { label: 'Client Admin', onClick: () => handleRoleChange(u.id, 'CLIENT_ADMIN') },
+                      { label: 'Employee', onClick: () => handleRoleChange(u.id, 'EMPLOYEE') },
+                    ]}]} />
                   </td>
                   <td className="px-4 py-3 text-sm text-slate-400">
                     {new Date(u.createdAt).toLocaleDateString()}

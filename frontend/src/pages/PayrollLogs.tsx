@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, FileText, AlertCircle, CheckCircle, Filter, ChevronDown, ChevronRight, Clock, User, Database } from 'lucide-react';
+import { Dropdown } from '@/components/ui/dropdown';
 import { PayrollLogAPI } from '../api/client';
 
 const ACTION_TYPES = ['CREATE', 'UPDATE', 'DELETE', 'PROCESS_PAYROLL', 'EXPORT', 'LOGIN', 'SYSTEM_EVENT'];
@@ -79,30 +80,32 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
             />
           </div>
           <div className="flex gap-2 shrink-0">
-            <div className="relative">
-              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <select
-                value={filterAction}
-                onChange={e => setFilterAction(e.target.value)}
-                aria-label="Filter by action"
-                className="appearance-none pl-8 pr-8 py-2 bg-white border border-border rounded-xl text-sm font-semibold focus:outline-none focus:border-accent-blue shadow-sm text-slate-600"
-              >
-                <option value="">All Actions</option>
-                {ACTION_TYPES.map(a => <option key={a} value={a}>{a.replace('_', ' ')}</option>)}
-              </select>
-            </div>
-            <div className="relative">
-              <select
-                value={filterStatus}
-                onChange={e => setFilterStatus(e.target.value)}
-                aria-label="Filter by status"
-                className="appearance-none px-4 py-2 bg-white border border-border rounded-xl text-sm font-semibold focus:outline-none focus:border-accent-blue shadow-sm text-slate-600"
-              >
-                <option value="">All Statuses</option>
-                <option value="SUCCESS">Success</option>
-                <option value="FAILED">Failed</option>
-              </select>
-            </div>
+            <Dropdown
+              trigger={(isOpen) => (
+                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-blue transition-colors">
+                  <Filter size={14} className="text-slate-400 shrink-0" />
+                  <span className="truncate">{filterAction ? filterAction.replace('_', ' ') : 'All Actions'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+              sections={[{ items: [
+                { label: 'All Actions', onClick: () => setFilterAction('') },
+                ...ACTION_TYPES.map(a => ({ label: a.replace('_', ' '), onClick: () => setFilterAction(a) })),
+              ]}]}
+            />
+            <Dropdown
+              trigger={(isOpen) => (
+                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-blue transition-colors">
+                  <span className="truncate">{filterStatus || 'All Statuses'}</span>
+                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+              sections={[{ items: [
+                { label: 'All Statuses', onClick: () => setFilterStatus('') },
+                { label: 'Success',      onClick: () => setFilterStatus('SUCCESS') },
+                { label: 'Failed',       onClick: () => setFilterStatus('FAILED') },
+              ]}]}
+            />
           </div>
           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">{filteredLogs.length} entries</span>
         </div>
