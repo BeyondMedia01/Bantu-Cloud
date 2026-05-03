@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote, CalendarDays } from 'lucide-react';
-import { EmptyState } from '../components/common/EmptyState';
+import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
@@ -243,11 +243,11 @@ const Leave: React.FC = () => {
         <SkeletonTable headers={['Employee', 'Leave Type', 'Dates', 'Days', 'Status', 'Actions']} />
       ) : records.length === 0 ? (
         <EmptyState
+          variant="no-data"
           icon={CalendarDays}
           title="No leave records yet"
           description="Start tracking employee leave by recording the first entry."
-          actionLabel="Record Leave"
-          onAction={() => navigate('/leave/new')}
+          action={{ label: 'Record Leave', onClick: () => navigate('/leave/new') }}
         />
       ) : (
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">

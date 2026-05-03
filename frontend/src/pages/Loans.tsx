@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, ChevronRight, Banknote } from 'lucide-react';
-import { EmptyState } from '../components/common/EmptyState';
+import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { LoanAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -66,16 +66,18 @@ const Loans: React.FC = () => {
         <SkeletonTable headers={['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', '']} />
       ) : filtered.length === 0 && !filter ? (
         <EmptyState
+          variant="no-data"
           icon={Banknote}
           title="No loans yet"
           description="Set up employee loans and track repayment schedules."
-          actionLabel="Create First Loan"
-          onAction={() => navigate('/loans/new')}
+          action={{ label: 'Create First Loan', onClick: () => navigate('/loans/new') }}
         />
       ) : filtered.length === 0 ? (
         <EmptyState
+          variant="no-results"
           icon={Banknote}
           title="No loans match this filter"
+          description=""
         />
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
