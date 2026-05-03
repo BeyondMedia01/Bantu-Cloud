@@ -5,6 +5,7 @@ import {
   AlertTriangle, LayoutGrid,
 } from 'lucide-react';
 import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI, TaxTableAPI, NSSASettingsAPI, PayrollCalendarAPI } from '../api/client';
+import { Dropdown } from '../components/ui/dropdown';
 import { calculatePAYE } from '../lib/tax';
 
 // ─── types ───────────────────────────────────────────────────────────────────
@@ -106,7 +107,6 @@ const PayrollInputGrid: React.FC = () => {
   const [error, setError] = useState('');
   const [dirtySet, setDirtySet] = useState<Set<string>>(new Set());
   const [warnings, setWarnings] = useState<Record<string, string>>({});
-  const [showColPicker, setShowColPicker] = useState(false);
   const [focusedCell, setFocusedCell] = useState<{ empIdx: number; colIdx: number } | null>(null);
 
   // ── load ──────────────────────────────────────────────────────────────────
@@ -245,7 +245,6 @@ const PayrollInputGrid: React.FC = () => {
   const addColumn = (tc: TxCode) => {
     const newCols = [...activeCols, tc];
     setActiveCols(newCols);
-    setShowColPicker(false);
     setSummaries((prev) => {
       const next = { ...prev };
       for (const emp of employees) {
@@ -539,41 +538,33 @@ const PayrollInputGrid: React.FC = () => {
 
                 {/* Add column button */}
                 <th className="px-3 py-3 min-w-[60px] relative">
-                  <button
-                    onClick={() => setShowColPicker((v) => !v)}
-                    className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:text-navy whitespace-nowrap"
-                  >
-                    <Plus size={12} /> Add
-                  </button>
-                  {showColPicker && (
-                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-border rounded-xl shadow-xl z-30 max-h-52 overflow-y-auto">
-                      <div className="px-3 py-2 border-b border-border">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Add Column</p>
-                      </div>
-                      {available.length === 0 ? (
-                        <p className="px-4 py-3 text-xs text-slate-400">All codes are already columns</p>
-                      ) : (
-                        available.map((tc) => (
-                          <button
-                            key={tc.id}
-                            onClick={() => addColumn(tc)}
-                            className="w-full text-left px-4 py-2.5 hover:bg-slate-50 text-sm flex items-center gap-2"
-                          >
-                            <span
-                              className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                                tc.type === 'EARNING' ? 'bg-emerald-100 text-emerald-700' :
-                                tc.type === 'DEDUCTION' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                              }`}
-                            >
+                  <Dropdown
+                    trigger={
+                      <button className="flex items-center gap-1 text-xs font-bold text-accent-blue hover:text-navy whitespace-nowrap">
+                        <Plus size={12} /> Add
+                      </button>
+                    }
+                    sections={[{
+                      heading: 'Add Column',
+                      emptyMessage: 'All codes are already columns',
+                      items: available.map((tc) => ({
+                        onClick: () => addColumn(tc),
+                        renderItem: () => (
+                          <>
+                            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                              tc.type === 'EARNING' ? 'bg-emerald-100 text-emerald-700' :
+                              tc.type === 'DEDUCTION' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
                               {tc.type.slice(0, 3)}
                             </span>
-                            <span className="font-medium">{tc.code}</span>
-                            <span className="text-slate-400 text-xs">{tc.name}</span>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  )}
+                            <span className="font-medium text-xs normal-case">{tc.code}</span>
+                            <span className="text-slate-400 text-xs normal-case">{tc.name}</span>
+                          </>
+                        ),
+                      })),
+                    }]}
+                    className="w-64"
+                  />
                 </th>
 
                 {/* Summary columns */}
