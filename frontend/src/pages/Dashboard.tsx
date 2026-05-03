@@ -157,6 +157,7 @@ const Dashboard: React.FC = () => {
               )}
 
               <Button
+                size="sm"
                 onClick={() => navigate('/employees/new')}
                 className="w-full rounded-full font-bold bg-brand text-navy hover:opacity-90"
               >
@@ -300,6 +301,7 @@ const Dashboard: React.FC = () => {
               )}
             </div>
             <Button
+              size="sm"
               onClick={() => navigate('/payroll/new')}
               className="rounded-full font-bold bg-brand text-navy hover:opacity-90"
             >
