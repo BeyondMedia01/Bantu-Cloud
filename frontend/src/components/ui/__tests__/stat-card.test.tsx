@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { StatCard } from '../stat-card';
-import { Users } from 'lucide-react';
+
 
 describe('StatCard', () => {
   it('renders label and value', () => {
