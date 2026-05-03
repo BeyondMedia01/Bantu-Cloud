@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Dropdown } from './dropdown';
 
-const basicSections = [{
+const makeBasicSections = () => [{
   items: [
     { label: 'CBZ', onClick: vi.fn() },
     { label: 'Stanbic', onClick: vi.fn() },
@@ -11,13 +11,13 @@ const basicSections = [{
 
 describe('Dropdown', () => {
   it('does not show panel on initial render', () => {
-    render(<Dropdown trigger={<button>Open</button>} sections={basicSections} />);
+    render(<Dropdown trigger={<button>Open</button>} sections={makeBasicSections()} />);
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
   it('shows panel when trigger is clicked', async () => {
     const user = userEvent.setup();
-    render(<Dropdown trigger={<button>Open</button>} sections={basicSections} />);
+    render(<Dropdown trigger={<button>Open</button>} sections={makeBasicSections()} />);
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(screen.getByRole('menu')).toBeInTheDocument();
     expect(screen.getByText('CBZ')).toBeInTheDocument();
@@ -41,7 +41,7 @@ describe('Dropdown', () => {
 
   it('closes on Escape key', async () => {
     const user = userEvent.setup();
-    render(<Dropdown trigger={<button>Open</button>} sections={basicSections} />);
+    render(<Dropdown trigger={<button>Open</button>} sections={makeBasicSections()} />);
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(screen.getByRole('menu')).toBeInTheDocument();
     await user.keyboard('{Escape}');
@@ -52,7 +52,7 @@ describe('Dropdown', () => {
     const user = userEvent.setup();
     render(
       <div>
-        <Dropdown trigger={<button>Open</button>} sections={basicSections} />
+        <Dropdown trigger={<button>Open</button>} sections={makeBasicSections()} />
         <button>Outside</button>
       </div>
     );
@@ -100,7 +100,7 @@ describe('Dropdown', () => {
 
   it('does not open when disabled', async () => {
     const user = userEvent.setup();
-    render(<Dropdown trigger={<button>Open</button>} sections={basicSections} disabled />);
+    render(<Dropdown trigger={<button>Open</button>} sections={makeBasicSections()} disabled />);
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
@@ -110,7 +110,7 @@ describe('Dropdown', () => {
     render(
       <Dropdown
         trigger={(isOpen) => <button>{isOpen ? 'Close' : 'Open'}</button>}
-        sections={basicSections}
+        sections={makeBasicSections()}
       />
     );
     expect(screen.getByRole('button', { name: 'Open' })).toBeInTheDocument();
@@ -137,7 +137,7 @@ describe('Dropdown', () => {
 
   it('aligns panel to the right when align="right"', async () => {
     const user = userEvent.setup();
-    render(<Dropdown trigger={<button>Open</button>} sections={basicSections} align="right" />);
+    render(<Dropdown trigger={<button>Open</button>} sections={makeBasicSections()} align="right" />);
     await user.click(screen.getByRole('button', { name: 'Open' }));
     const panel = screen.getByRole('menu');
     expect(panel.className).toMatch(/right-0/);
@@ -145,7 +145,7 @@ describe('Dropdown', () => {
 
   it('aligns panel to the left by default', async () => {
     const user = userEvent.setup();
-    render(<Dropdown trigger={<button>Open</button>} sections={basicSections} />);
+    render(<Dropdown trigger={<button>Open</button>} sections={makeBasicSections()} />);
     await user.click(screen.getByRole('button', { name: 'Open' }));
     const panel = screen.getByRole('menu');
     expect(panel.className).toMatch(/left-0/);
@@ -156,7 +156,7 @@ describe('Dropdown', () => {
     const rowClick = vi.fn();
     render(
       <div onClick={rowClick}>
-        <Dropdown stopPropagation trigger={<button>Open</button>} sections={basicSections} />
+        <Dropdown stopPropagation trigger={<button>Open</button>} sections={makeBasicSections()} />
       </div>
     );
     await user.click(screen.getByRole('button', { name: 'Open' }));

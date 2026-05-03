@@ -65,6 +65,7 @@ export function Dropdown({
   };
 
   const handleItemClick = (item: DropdownItem) => {
+    if (item.disabled) return;
     item.onClick();
     setIsOpen(false);
   };
