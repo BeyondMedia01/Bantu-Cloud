@@ -199,90 +199,95 @@ const PayrollSummary: React.FC = () => {
           </div>
         </div>
 
-        {/* Export buttons */}
+        {/* Action + export buttons */}
         {run?.status === 'COMPLETED' && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {!run.payrollCalendar?.isClosed && (
-              <button
-                onClick={async () => {
-                  setExporting('rerun');
-                  setRerunSuccess(false);
-                  try {
-                    await PayrollAPI.process(runId!);
-                    // Refetch data instead of reloading the page
-                    const [r, p] = await Promise.all([
-                      PayrollAPI.getById(runId!),
-                      PayrollAPI.getPayslips(runId!),
-                    ]);
-                    setRun(r.data);
-                    setPayslips(p.data);
-                    setRerunSuccess(true);
-                    showToast('Payroll rerun completed successfully!', 'success');
-                  } catch (err: any) {
-                    showToast(err.response?.data?.message || 'Rerun failed', 'error');
-                  } finally {
-                    setExporting('');
-                  }
-                }}
-                disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-bold hover:bg-indigo-500 disabled:opacity-50"
-              >
-                <TrendingUp size={14} /> {exporting === 'rerun' ? 'Processing…' : 'Rerun Payroll'}
-              </button>
-            )}
-            <button
-              onClick={handlePayslipSummaryPreview}
-              disabled={!!exporting}
-              className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm font-bold hover:bg-red-100 disabled:opacity-50"
-            >
-              <Eye size={14} /> {exporting === 'summary-preview' ? 'Loading…' : 'Preview Summary'}
-            </button>
-            <button
-              onClick={handlePayslipSummaryDownload}
-              disabled={!!exporting}
-              className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-full text-sm font-bold hover:bg-red-500 disabled:opacity-50"
-            >
-              <FileText size={14} /> {exporting === 'summary-detailed' ? 'Generating…' : 'Payslip Summary'}
-            </button>
-            <button
-              onClick={() => handleExport('csv')}
-              disabled={!!exporting}
-              className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
-            >
-              <Download size={14} /> {exporting === 'csv' ? 'Exporting…' : 'Export CSV'}
-            </button>
-            <button
-              onClick={() => handleExport('zimra')}
-              disabled={!!exporting}
-              className="flex items-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-sm font-bold hover:bg-purple-100 disabled:opacity-50"
-            >
-              <FileText size={14} /> ZIMRA PAYE
-            </button>
-            <button
-              onClick={() => handleExport('nssa')}
-              disabled={!!exporting}
-              className="flex items-center gap-1.5 px-4 py-2 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-sm font-bold hover:bg-orange-100 disabled:opacity-50"
-            >
-              <FileText size={14} /> NSSA
-            </button>
-            <Dropdown
-              align="right"
-              disabled={!!exporting}
-              trigger={(isOpen) => (
+          <div className="flex flex-col gap-2 items-end">
+            {/* Row 1 — primary actions */}
+            <div className="flex items-center gap-2">
+              {!run.payrollCalendar?.isClosed && (
                 <button
+                  onClick={async () => {
+                    setExporting('rerun');
+                    setRerunSuccess(false);
+                    try {
+                      await PayrollAPI.process(runId!);
+                      const [r, p] = await Promise.all([
+                        PayrollAPI.getById(runId!),
+                        PayrollAPI.getPayslips(runId!),
+                      ]);
+                      setRun(r.data);
+                      setPayslips(p.data);
+                      setRerunSuccess(true);
+                      showToast('Payroll rerun completed successfully!', 'success');
+                    } catch (err: any) {
+                      showToast(err.response?.data?.message || 'Rerun failed', 'error');
+                    } finally {
+                      setExporting('');
+                    }
+                  }}
                   disabled={!!exporting}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-bold hover:bg-indigo-500 disabled:opacity-50 transition-colors"
                 >
-                  <Banknote size={14} /> Bank <ChevronDown size={12} className={isOpen ? 'rotate-180' : ''} />
+                  <TrendingUp size={14} /> {exporting === 'rerun' ? 'Processing…' : 'Rerun Payroll'}
                 </button>
               )}
-              sections={[{
-                items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
-                  label: fmt,
-                  onClick: () => handleBankExport(fmt),
-                })),
-              }]}
-            />
+              <button
+                onClick={handlePayslipSummaryPreview}
+                disabled={!!exporting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm font-bold hover:bg-red-100 disabled:opacity-50 transition-colors"
+              >
+                <Eye size={14} /> {exporting === 'summary-preview' ? 'Loading…' : 'Preview Summary'}
+              </button>
+              <button
+                onClick={handlePayslipSummaryDownload}
+                disabled={!!exporting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-full text-sm font-bold hover:bg-red-500 disabled:opacity-50 transition-colors"
+              >
+                <FileText size={14} /> {exporting === 'summary-detailed' ? 'Generating…' : 'Payslip Summary'}
+              </button>
+            </div>
+            {/* Row 2 — exports */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleExport('csv')}
+                disabled={!!exporting}
+                className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              >
+                <Download size={14} /> {exporting === 'csv' ? 'Exporting…' : 'Export CSV'}
+              </button>
+              <button
+                onClick={() => handleExport('zimra')}
+                disabled={!!exporting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-sm font-bold hover:bg-purple-100 disabled:opacity-50 transition-colors"
+              >
+                <FileText size={14} /> ZIMRA PAYE
+              </button>
+              <button
+                onClick={() => handleExport('nssa')}
+                disabled={!!exporting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-sm font-bold hover:bg-orange-100 disabled:opacity-50 transition-colors"
+              >
+                <FileText size={14} /> NSSA
+              </button>
+              <Dropdown
+                align="right"
+                disabled={!!exporting}
+                trigger={(isOpen) => (
+                  <button
+                    disabled={!!exporting}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50 transition-colors"
+                  >
+                    <Banknote size={14} /> Bank <ChevronDown size={12} className={isOpen ? 'rotate-180' : ''} />
+                  </button>
+                )}
+                sections={[{
+                  items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
+                    label: fmt,
+                    onClick: () => handleBankExport(fmt),
+                  })),
+                }]}
+              />
+            </div>
           </div>
         )}
       </div>
