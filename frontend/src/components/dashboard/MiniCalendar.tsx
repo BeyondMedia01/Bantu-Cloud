@@ -49,7 +49,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
     day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
   return (
-    <div className="bg-primary rounded-2xl border border-border p-5 shadow-sm">
+    <div className="p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={prevMonth} aria-label="Previous month" className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
