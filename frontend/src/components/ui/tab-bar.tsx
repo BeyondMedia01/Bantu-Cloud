@@ -35,6 +35,7 @@ export function TabBar({ tabs, active, onChange, className }: TabBarProps) {
           )}
         >
           {tab.label}
+          {tab.hasError && <span className="sr-only">(has errors)</span>}
         </button>
       ))}
     </div>
