@@ -106,6 +106,7 @@
   --color-accent-blue: #3B82F6;
   --color-accent-green: #10B981;
   --color-navy: var(--color-navy);
+  --color-brand: var(--color-brand);
   --font-inter: "Inter", sans-serif;
   --radius-xl: 16px;
   --radius-2xl: 16px;
