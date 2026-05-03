@@ -10,6 +10,7 @@
   --color-primary: #FFFFFF;
   --color-border: #E2E8F0;
   --color-navy: #0F172A;
+  --color-brand: #b2db64; /* primary CTA green */
   --color-text-main: #0F172A;
   --color-card-bg: #FFFFFF;
 
@@ -83,11 +84,11 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: oklch(0.75 0.18 145);
+  --chart-2: oklch(0.65 0.15 220);
+  --chart-3: oklch(0.60 0.12 30);
+  --chart-4: oklch(0.55 0.14 300);
+  --chart-5: oklch(0.50 0.13 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -105,7 +106,7 @@
   --color-accent-blue: #3B82F6;
   --color-accent-green: #10B981;
   --color-navy: var(--color-navy);
-  --color-btn-primary: #b2db64;
+  --color-btn-primary: var(--color-brand);
   --font-inter: "Inter", sans-serif;
   --radius-xl: 16px;
   --radius-2xl: 16px;
