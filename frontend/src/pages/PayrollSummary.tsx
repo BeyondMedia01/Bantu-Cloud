@@ -174,123 +174,115 @@ const PayrollSummary: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold">Payroll Summary</h1>
-            {run && (
-              <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-slate-500 text-sm font-medium">
-                  {new Date(run.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
-                  {' – '}
-                  {new Date(run.endDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor[run.status] || 'bg-slate-100 text-slate-600'}`}>
-                  {run.status}
-                </span>
-                <span className="text-slate-400 text-xs font-bold">
-                  {isDual ? 'USD + ZiG' : ccy}
-                </span>
-              </div>
-            )}
-          </div>
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold">Payroll Summary</h1>
+          {run && (
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-slate-500 text-sm font-medium">
+                {new Date(run.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                {' – '}
+                {new Date(run.endDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor[run.status] || 'bg-slate-100 text-slate-600'}`}>
+                {run.status}
+              </span>
+              <span className="text-slate-400 text-xs font-bold">
+                {isDual ? 'USD + ZiG' : ccy}
+              </span>
+            </div>
+          )}
         </div>
-
-        {/* Action + export buttons */}
-        {run?.status === 'COMPLETED' && (
-          <div className="flex flex-col gap-2 items-end">
-            {/* Row 1 — primary actions */}
-            <div className="flex items-center gap-2">
-              {!run.payrollCalendar?.isClosed && (
-                <button
-                  onClick={async () => {
-                    setExporting('rerun');
-                    setRerunSuccess(false);
-                    try {
-                      await PayrollAPI.process(runId!);
-                      const [r, p] = await Promise.all([
-                        PayrollAPI.getById(runId!),
-                        PayrollAPI.getPayslips(runId!),
-                      ]);
-                      setRun(r.data);
-                      setPayslips(p.data);
-                      setRerunSuccess(true);
-                      showToast('Payroll rerun completed successfully!', 'success');
-                    } catch (err: any) {
-                      showToast(err.response?.data?.message || 'Rerun failed', 'error');
-                    } finally {
-                      setExporting('');
-                    }
-                  }}
-                  disabled={!!exporting}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-bold hover:bg-indigo-500 disabled:opacity-50 transition-colors"
-                >
-                  <TrendingUp size={14} /> {exporting === 'rerun' ? 'Processing…' : 'Rerun Payroll'}
-                </button>
-              )}
-              <button
-                onClick={handlePayslipSummaryPreview}
-                disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm font-bold hover:bg-red-100 disabled:opacity-50 transition-colors"
-              >
-                <Eye size={14} /> {exporting === 'summary-preview' ? 'Loading…' : 'Preview Summary'}
-              </button>
-              <button
-                onClick={handlePayslipSummaryDownload}
-                disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-full text-sm font-bold hover:bg-red-500 disabled:opacity-50 transition-colors"
-              >
-                <FileText size={14} /> {exporting === 'summary-detailed' ? 'Generating…' : 'Payslip Summary'}
-              </button>
-            </div>
-            {/* Row 2 — exports */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleExport('csv')}
-                disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50 disabled:opacity-50 transition-colors"
-              >
-                <Download size={14} /> {exporting === 'csv' ? 'Exporting…' : 'Export CSV'}
-              </button>
-              <button
-                onClick={() => handleExport('zimra')}
-                disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-sm font-bold hover:bg-purple-100 disabled:opacity-50 transition-colors"
-              >
-                <FileText size={14} /> ZIMRA PAYE
-              </button>
-              <button
-                onClick={() => handleExport('nssa')}
-                disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-sm font-bold hover:bg-orange-100 disabled:opacity-50 transition-colors"
-              >
-                <FileText size={14} /> NSSA
-              </button>
-              <Dropdown
-                align="right"
-                disabled={!!exporting}
-                trigger={(isOpen) => (
-                  <button
-                    disabled={!!exporting}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50 transition-colors"
-                  >
-                    <Banknote size={14} /> Bank <ChevronDown size={12} className={isOpen ? 'rotate-180' : ''} />
-                  </button>
-                )}
-                sections={[{
-                  items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
-                    label: fmt,
-                    onClick: () => handleBankExport(fmt),
-                  })),
-                }]}
-              />
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Action buttons — single row between header and stat cards */}
+      {run?.status === 'COMPLETED' && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {!run.payrollCalendar?.isClosed && (
+            <button
+              onClick={async () => {
+                setExporting('rerun');
+                setRerunSuccess(false);
+                try {
+                  await PayrollAPI.process(runId!);
+                  const [r, p] = await Promise.all([
+                    PayrollAPI.getById(runId!),
+                    PayrollAPI.getPayslips(runId!),
+                  ]);
+                  setRun(r.data);
+                  setPayslips(p.data);
+                  setRerunSuccess(true);
+                  showToast('Payroll rerun completed successfully!', 'success');
+                } catch (err: any) {
+                  showToast(err.response?.data?.message || 'Rerun failed', 'error');
+                } finally {
+                  setExporting('');
+                }
+              }}
+              disabled={!!exporting}
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-bold hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+            >
+              <TrendingUp size={14} /> {exporting === 'rerun' ? 'Processing…' : 'Rerun Payroll'}
+            </button>
+          )}
+          <button
+            onClick={handlePayslipSummaryPreview}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm font-bold hover:bg-red-100 disabled:opacity-50 transition-colors"
+          >
+            <Eye size={14} /> {exporting === 'summary-preview' ? 'Loading…' : 'Preview Summary'}
+          </button>
+          <button
+            onClick={handlePayslipSummaryDownload}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-full text-sm font-bold hover:bg-red-500 disabled:opacity-50 transition-colors"
+          >
+            <FileText size={14} /> {exporting === 'summary-detailed' ? 'Generating…' : 'Payslip Summary'}
+          </button>
+          <button
+            onClick={() => handleExport('csv')}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          >
+            <Download size={14} /> {exporting === 'csv' ? 'Exporting…' : 'Export CSV'}
+          </button>
+          <button
+            onClick={() => handleExport('zimra')}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-sm font-bold hover:bg-purple-100 disabled:opacity-50 transition-colors"
+          >
+            <FileText size={14} /> ZIMRA PAYE
+          </button>
+          <button
+            onClick={() => handleExport('nssa')}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-4 py-2 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-sm font-bold hover:bg-orange-100 disabled:opacity-50 transition-colors"
+          >
+            <FileText size={14} /> NSSA
+          </button>
+          <Dropdown
+            align="left"
+            disabled={!!exporting}
+            trigger={(isOpen) => (
+              <button
+                disabled={!!exporting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50 transition-colors"
+              >
+                <Banknote size={14} /> Bank <ChevronDown size={12} className={isOpen ? 'rotate-180' : ''} />
+              </button>
+            )}
+            sections={[{
+              items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
+                label: fmt,
+                onClick: () => handleBankExport(fmt),
+              })),
+            }]}
+          />
+        </div>
+      )}
 
       {/* Rerun success banner */}
       {rerunSuccess && (
