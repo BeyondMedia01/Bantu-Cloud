@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/employees/new')}
                 className="w-full rounded-full font-bold bg-brand text-navy hover:opacity-90"
               >
-                <Plus size={15} /> Add Employee
+                <Plus size={14} /> Add Employee
               </Button>
             </CardContent>
           </Card>
@@ -303,7 +303,7 @@ const Dashboard: React.FC = () => {
               onClick={() => navigate('/payroll/new')}
               className="rounded-full font-bold bg-brand text-navy hover:opacity-90"
             >
-              <Plus size={16} /> Run Payroll
+              <Plus size={14} /> Run Payroll
             </Button>
           </div>
 

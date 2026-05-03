@@ -20,17 +20,15 @@ const EmployeeActions: React.FC<EmployeeActionsProps> = ({ total }) => {
       <div className="flex items-center gap-2">
         <button
           onClick={() => navigate('/employees/import')}
-          className="flex items-center gap-2 border border-border text-slate-600 px-5 py-3 rounded-full font-bold hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-1.5 border border-border text-slate-600 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-50 transition-colors"
         >
-          <Upload size={16} /> Bulk Import
+          <Upload size={14} /> Bulk Import
         </button>
         <button
           onClick={() => navigate('/employees/new')}
-          className="bg-brand text-navy px-6 py-3 rounded-full font-bold shadow-lg hover:opacity-90 transition-all flex items-center gap-2 group"
+          className="bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90 transition-all flex items-center gap-1.5"
         >
-          <span className="p-1 bg-navy/5 rounded-full group-hover:bg-navy/10 transition-colors">
-            <Plus size={18} />
-          </span>
+          <Plus size={14} />
           Add Employee
         </button>
       </div>
