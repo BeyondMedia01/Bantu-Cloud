@@ -23,16 +23,16 @@ interface AuditLog {
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 const ACTION_META: Record<string, { color: string; bg: string; dot: string }> = {
-  CREATE: { color: 'text-emerald-700', bg: 'bg-emerald-50', dot: 'bg-emerald-400' },
-  UPDATE: { color: 'text-blue-700',    bg: 'bg-blue-50',    dot: 'bg-blue-400'    },
-  DELETE: { color: 'text-rose-700',    bg: 'bg-rose-50',    dot: 'bg-rose-400'    },
-  LOGIN:  { color: 'text-violet-700',  bg: 'bg-violet-50',  dot: 'bg-violet-400'  },
-  EXPORT: { color: 'text-amber-700',   bg: 'bg-amber-50',   dot: 'bg-amber-400'   },
+  CREATE: { color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-50 dark:bg-emerald-950/60', dot: 'bg-emerald-400' },
+  UPDATE: { color: 'text-blue-700 dark:text-blue-300',       bg: 'bg-blue-50 dark:bg-blue-950/60',       dot: 'bg-blue-400'    },
+  DELETE: { color: 'text-rose-700 dark:text-rose-300',       bg: 'bg-rose-50 dark:bg-rose-950/60',       dot: 'bg-rose-400'    },
+  LOGIN:  { color: 'text-violet-700 dark:text-violet-300',   bg: 'bg-violet-50 dark:bg-violet-950/60',   dot: 'bg-violet-400'  },
+  EXPORT: { color: 'text-amber-700 dark:text-amber-300',     bg: 'bg-amber-50 dark:bg-amber-950/60',     dot: 'bg-amber-400'   },
 };
 
 function getActionMeta(action: string) {
   const verb = action.split('_')[0];
-  return ACTION_META[verb] ?? { color: 'text-slate-600', bg: 'bg-slate-100', dot: 'bg-slate-400' };
+  return ACTION_META[verb] ?? { color: 'text-muted-foreground', bg: 'bg-muted', dot: 'bg-muted-foreground/40' };
 }
 
 function formatResource(r: string) {
@@ -86,12 +86,12 @@ const EmptyState: React.FC = () => (
   <tr>
     <td colSpan={6} className="px-8 py-24 text-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center">
-          <Shield size={28} className="text-slate-500" />
+        <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+          <Shield size={28} className="text-muted-foreground" />
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-400">No events found</p>
-          <p className="text-xs text-slate-500 mt-1">Adjust your filters or expand the date range</p>
+          <p className="text-sm font-bold text-muted-foreground">No events found</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Adjust your filters or expand the date range</p>
         </div>
       </div>
     </td>
@@ -165,7 +165,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
           </div>
           <div>
             <h1 className="text-2xl font-black text-navy tracking-tight leading-none">Audit Log</h1>
-            <p className="text-sm text-slate-400 font-medium mt-0.5">
+            <p className="text-sm text-muted-foreground font-medium mt-0.5">
               Immutable record of every system action
             </p>
           </div>
@@ -173,7 +173,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
         <div className="flex items-center gap-2">
           <button
             onClick={() => fetchLogs(page)}
-            className="p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:text-navy hover:border-slate-300 hover:bg-slate-50 transition-all"
+            className="p-2.5 rounded-xl border border-border text-muted-foreground hover:text-navy hover:border-border hover:bg-muted transition-all"
             title="Refresh"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -193,12 +193,12 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
           { label: 'Page',         value: `${page} / ${totalPages}`, icon: Tag,   accent: 'text-amber-500'   },
           { label: 'Per Page',     value: LIMIT,                   icon: SlidersHorizontal, accent: 'text-violet-500' },
         ].map(({ label, value, icon: Icon, accent }) => (
-          <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0`}>
+          <div key={label} className="bg-card rounded-2xl border border-border shadow-sm p-4 flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0`}>
               <Icon size={15} className={accent} />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">{label}</p>
               <p className="text-lg font-black text-navy leading-none">{value}</p>
             </div>
           </div>
@@ -207,27 +207,27 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
 
       {/* ── Error ───────────────────────────────────────────────────────────── */}
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700">
+        <div className="flex items-center gap-3 p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800 rounded-2xl text-rose-700 dark:text-rose-300">
           <AlertCircle size={18} className="flex-shrink-0" />
           <p className="text-sm font-semibold">{error}</p>
         </div>
       )}
 
       {/* ── Table Card ──────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/80 overflow-hidden">
+      <div className="bg-card rounded-3xl border border-border shadow-xl shadow-black/5 overflow-hidden">
 
         {/* Toolbar */}
-        <div className="p-5 border-b border-slate-50 flex flex-col gap-3">
+        <div className="p-5 border-b border-border flex flex-col gap-3">
           <div className="flex items-center gap-3">
             {/* Search */}
             <div className="relative flex-1 max-w-sm">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search by email…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-green/20 transition-all border-none"
+                className="w-full pl-9 pr-4 py-2.5 bg-muted rounded-xl text-sm font-medium text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent-green/20 transition-all border-none"
               />
             </div>
 
@@ -237,7 +237,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
                 showFilters || activeFilters.length > 0
                   ? 'bg-navy text-white border-navy'
-                  : 'bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200'
+                  : 'bg-muted text-muted-foreground border-border hover:border-border/80'
               }`}
             >
               <SlidersHorizontal size={15} />
@@ -254,7 +254,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
           {showFilters && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                   <Tag size={11} /> Action
                 </label>
                 <input
@@ -263,11 +263,11 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter by action"
                   value={filterAction}
                   onChange={e => setFilterAction(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
+                  className="px-3 py-2 bg-muted rounded-xl text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                   <Database size={11} /> Resource
                 </label>
                 <input
@@ -276,11 +276,11 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter by resource"
                   value={filterResource}
                   onChange={e => setFilterResource(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
+                  className="px-3 py-2 bg-muted rounded-xl text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                   <Calendar size={11} /> From
                 </label>
                 <input
@@ -288,11 +288,11 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter from date"
                   value={filterDateFrom}
                   onChange={e => setFilterDateFrom(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
+                  className="px-3 py-2 bg-muted rounded-xl text-xs font-medium text-foreground outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                   <Calendar size={11} /> To
                 </label>
                 <input
@@ -300,7 +300,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   aria-label="Filter to date"
                   value={filterDateTo}
                   onChange={e => setFilterDateTo(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 rounded-xl text-xs font-medium text-navy outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
+                  className="px-3 py-2 bg-muted rounded-xl text-xs font-medium text-foreground outline-none focus:ring-2 focus:ring-accent-green/20 border-none"
                 />
               </div>
             </div>
@@ -309,13 +309,13 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
           {/* Active filter pills */}
           {activeFilters.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active:</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active:</span>
               {activeFilters.map(f => (
                 <FilterPill key={f.label} label={f.label} onRemove={f.clear} />
               ))}
               <button
                 onClick={() => { setFilterAction(''); setFilterResource(''); setFilterDateFrom(''); setFilterDateTo(''); }}
-                className="text-[10px] font-bold text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors"
+                className="text-[10px] font-bold text-muted-foreground hover:text-rose-500 uppercase tracking-widest transition-colors"
               >
                 Clear all
               </button>
@@ -327,21 +327,21 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[800px]">
             <thead>
-              <tr className="border-b border-slate-50">
+              <tr className="border-b border-border">
                 {['Timestamp', 'Actor', 'Action', 'Resource', 'Resource ID', 'IP'].map(h => (
-                  <th key={h} className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] whitespace-nowrap bg-slate-50/60">
+                  <th key={h} className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap bg-muted/50">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50/80">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 6 }).map((_, j) => (
                       <td key={j} className="px-6 py-5">
-                        <div className={`h-3 bg-slate-100 rounded-full animate-pulse ${j === 0 ? 'w-32' : j === 1 ? 'w-40' : 'w-24'}`} />
+                        <div className={`h-3 bg-muted rounded-full animate-pulse ${j === 0 ? 'w-32' : j === 1 ? 'w-40' : 'w-24'}`} />
                       </td>
                     ))}
                   </tr>
@@ -355,29 +355,29 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                   <React.Fragment key={log.id}>
                     <tr
                       onClick={() => setExpandedId(isExpanded ? null : log.id)}
-                      className="hover:bg-slate-50/70 cursor-pointer transition-colors group"
+                      className="hover:bg-muted/50 cursor-pointer transition-colors group"
                     >
                       {/* Timestamp */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-0.5">
                           <p className="text-xs font-bold text-navy leading-none">{date}</p>
-                          <p className="text-[11px] font-mono text-slate-400 leading-none mt-1">{time}</p>
-                          <p className="text-[10px] text-slate-500 leading-none mt-0.5">{formatRelative(log.createdAt)}</p>
+                          <p className="text-[11px] font-mono text-muted-foreground leading-none mt-1">{time}</p>
+                          <p className="text-[10px] text-muted-foreground/70 leading-none mt-0.5">{formatRelative(log.createdAt)}</p>
                         </div>
                       </td>
 
                       {/* Actor */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                            <User size={13} className="text-slate-400" />
+                          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                            <User size={13} className="text-muted-foreground" />
                           </div>
                           <div>
                             <p className="text-xs font-bold text-navy leading-none truncate max-w-[160px]">
-                              {log.userEmail ?? <span className="text-slate-500 italic">System</span>}
+                              {log.userEmail ?? <span className="text-muted-foreground italic">System</span>}
                             </p>
                             {log.userId && (
-                              <p className="text-[10px] font-mono text-slate-500 leading-none mt-1 truncate max-w-[160px]">{log.userId.slice(0, 8)}…</p>
+                              <p className="text-[10px] font-mono text-muted-foreground leading-none mt-1 truncate max-w-[160px]">{log.userId.slice(0, 8)}…</p>
                             )}
                           </div>
                         </div>
@@ -390,8 +390,8 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
 
                       {/* Resource */}
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-                          <Database size={11} className="text-slate-400" />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 bg-muted px-2.5 py-1 rounded-lg">
+                          <Database size={11} className="text-muted-foreground" />
                           {formatResource(log.resource)}
                         </span>
                       </td>
@@ -399,38 +399,38 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                       {/* Resource ID */}
                       <td className="px-6 py-4">
                         {log.resourceId ? (
-                          <p className="text-[11px] font-mono text-slate-400 truncate max-w-[100px]" title={log.resourceId}>
+                          <p className="text-[11px] font-mono text-muted-foreground truncate max-w-[100px]" title={log.resourceId}>
                             {log.resourceId.slice(0, 8)}…
                           </p>
                         ) : (
-                          <span className="text-slate-400 text-xs">—</span>
+                          <span className="text-muted-foreground text-xs">—</span>
                         )}
                       </td>
 
                       {/* IP */}
                       <td className="px-6 py-4">
-                        <p className="text-[11px] font-mono text-slate-400">
-                          {log.ipAddress ?? <span className="text-slate-400">—</span>}
+                        <p className="text-[11px] font-mono text-muted-foreground">
+                          {log.ipAddress ?? <span className="text-muted-foreground">—</span>}
                         </p>
                       </td>
                     </tr>
 
                     {/* Expanded details row */}
                     {isExpanded && (
-                      <tr className="bg-slate-50/80">
+                      <tr className="bg-muted/40">
                         <td colSpan={6} className="px-6 py-4">
                           <div className="flex items-start gap-3">
                             <div className="w-5 h-5 rounded-md bg-navy/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <Database size={11} className="text-navy/40" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Event Details</p>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Event Details</p>
                               {log.details ? (
-                                <pre className="text-[11px] font-mono text-slate-600 bg-white border border-slate-100 rounded-xl p-3 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                                <pre className="text-[11px] font-mono text-foreground/80 bg-background border border-border rounded-xl p-3 overflow-x-auto whitespace-pre-wrap leading-relaxed">
                                   {JSON.stringify(log.details, null, 2)}
                                 </pre>
                               ) : (
-                                <p className="text-xs text-slate-500 italic">No additional details recorded</p>
+                                <p className="text-xs text-muted-foreground italic">No additional details recorded</p>
                               )}
                             </div>
                           </div>
@@ -446,15 +446,15 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-slate-50 flex items-center justify-between gap-4">
-            <p className="text-xs text-slate-400 font-medium">
+          <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground font-medium">
               Showing <span className="font-bold text-navy">{(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, total)}</span> of <span className="font-bold text-navy">{total.toLocaleString()}</span> events
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => fetchLogs(page - 1)}
                 disabled={page <= 1 || loading}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-slate-100"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-border"
               >
                 <ChevronLeft size={14} /> Previous
               </button>
@@ -478,7 +478,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                       className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
                         p === page
                           ? 'bg-navy text-white shadow-sm'
-                          : 'text-slate-400 hover:bg-slate-50 hover:text-navy'
+                          : 'text-muted-foreground hover:bg-muted hover:text-navy'
                       }`}
                     >
                       {p}
@@ -490,7 +490,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
               <button
                 onClick={() => fetchLogs(page + 1)}
                 disabled={page >= totalPages || loading}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-slate-100"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-border"
               >
                 Next <ChevronRight size={14} />
               </button>

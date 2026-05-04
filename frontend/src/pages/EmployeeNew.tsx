@@ -143,8 +143,8 @@ function DatePicker({ value, onChange, placeholder }: { value?: Date; onChange: 
     <Popover>
       <PopoverTrigger
         className={cn(
-          'flex h-10 w-full items-center justify-start rounded-xl border border-border bg-slate-50 px-4 py-2 text-sm font-medium outline-none transition-all hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-accent-green/20',
-          !value && 'text-slate-400',
+          'flex h-10 w-full items-center justify-start rounded-xl border border-border bg-muted px-4 py-2 text-sm font-medium outline-none transition-all hover:bg-muted/80 focus-visible:ring-2 focus-visible:ring-accent-green/20',
+          !value && 'text-muted-foreground',
         )}
       >
         <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -260,28 +260,28 @@ const EmployeeNew: React.FC = () => {
   return (
     <div className="max-w-3xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/employees')} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/employees')} className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">New Employee</h1>
-          <p className="text-slate-500 font-medium text-sm">Add a new employee to your company</p>
+          <p className="text-muted-foreground font-medium text-sm">Add a new employee to your company</p>
         </div>
       </div>
 
       {submitError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{submitError}</div>
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-300 font-medium">{submitError}</div>
       )}
 
       {/* Tab bar */}
-      <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl mb-8 w-fit">
+      <div className="flex gap-2 p-1 tab-pill-track rounded-2xl mb-8 w-fit">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setActiveTab(t.id)}
             className={`relative px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              activeTab === t.id ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+              activeTab === t.id ? 'tab-pill-active' : 'tab-pill-inactive'
             }`}
           >
             {t.label}
@@ -341,7 +341,7 @@ const EmployeeNew: React.FC = () => {
                 </FF>
                 <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
                   <FormItem className="flex flex-col gap-1.5">
-                    <FormLabel className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Date of Birth<span className="text-red-400 ml-1">*</span>
                     </FormLabel>
                     <FormControl>
@@ -400,7 +400,7 @@ const EmployeeNew: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="startDate" render={({ field }) => (
                   <FormItem className="flex flex-col gap-1.5">
-                    <FormLabel className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Start Date<span className="text-red-400 ml-1">*</span>
                     </FormLabel>
                     <FormControl>
@@ -459,7 +459,7 @@ const EmployeeNew: React.FC = () => {
                 </FF>
                 <FormField control={form.control} name="dischargeDate" render={({ field }) => (
                   <FormItem className="flex flex-col gap-1.5">
-                    <FormLabel className="text-xs font-bold text-slate-400 uppercase tracking-wider">Discharge Date</FormLabel>
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Discharge Date</FormLabel>
                     <FormControl>
                       <DatePicker value={field.value} onChange={field.onChange} placeholder="Pick discharge date" />
                     </FormControl>
@@ -534,7 +534,7 @@ const EmployeeNew: React.FC = () => {
               </div>
 
               {/* ZiG Basic Salary Splitting */}
-              <div className="bg-emerald-50/30 border border-emerald-100/50 p-6 rounded-2xl mb-6">
+              <div className="bg-emerald-50/30 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-800/40 p-6 rounded-2xl mb-6">
                 <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                   ZiG Basic Salary Splitting (ZIMRA Apportionment)
@@ -543,7 +543,7 @@ const EmployeeNew: React.FC = () => {
                   <FF name="splitZigMode" label="ZiG Portion Mode" form={form}>
                     {(field) => (
                       <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="bg-white border-emerald-100"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="bg-background border-emerald-200 dark:border-emerald-800"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="NONE">None (100% USD)</SelectItem>
                           <SelectItem value="PERCENTAGE">Percentage of USD Basic</SelectItem>
@@ -554,7 +554,7 @@ const EmployeeNew: React.FC = () => {
                   </FF>
                   {form.watch('splitZigMode') !== 'NONE' && (
                     <FF name="splitZigValue" label={form.watch('splitZigMode') === 'PERCENTAGE' ? 'ZiG Portion (%)' : 'ZiG Amount'} form={form} required>
-                      {(field) => <Input {...field} type="number" step="0.01" className="bg-white border-emerald-100 font-bold text-emerald-700" />}
+                      {(field) => <Input {...field} type="number" step="0.01" className="bg-background border-emerald-200 dark:border-emerald-800 font-bold text-emerald-700 dark:text-emerald-300" />}
                     </FF>
                   )}
                 </div>
@@ -568,7 +568,7 @@ const EmployeeNew: React.FC = () => {
               {paymentMethod === 'BANK' && (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between border-b pb-2 mb-2">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Accounts & Splitting</h4>
+                    <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Bank Accounts & Splitting</h4>
                     <Button
                       type="button"
                       variant="ghost"
@@ -587,23 +587,23 @@ const EmployeeNew: React.FC = () => {
                   {bankAccountFields.map((field, index) => {
                     const splitType = form.watch(`bankAccounts.${index}.splitType`);
                     return (
-                      <div key={field.id} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 relative group transition-all hover:bg-slate-50">
+                      <div key={field.id} className="bg-muted/50 p-4 rounded-2xl border border-border relative group transition-all hover:bg-muted">
                         {bankAccountFields.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeAccount(index)}
-                            className="absolute -right-2 -top-2 bg-white border border-red-100 shadow-sm rounded-full p-1 text-red-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                            className="absolute -right-2 -top-2 bg-card border border-red-200 dark:border-red-800 shadow-sm rounded-full p-1 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all opacity-0 group-hover:opacity-100"
                           >
                             <X size={14} />
                           </button>
                         )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bank Name</label>
+                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Bank Name</label>
                             <input
                               list="zw-banks"
                               {...form.register(`bankAccounts.${index}.bankName`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               placeholder="Search or type bank name"
                             />
                             {errors.bankAccounts?.[index]?.bankName && (
@@ -611,10 +611,10 @@ const EmployeeNew: React.FC = () => {
                             )}
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Number</label>
+                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Number</label>
                             <input
                               {...form.register(`bankAccounts.${index}.accountNumber`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               placeholder="000000000"
                             />
                             {errors.bankAccounts?.[index]?.accountNumber && (
@@ -622,20 +622,20 @@ const EmployeeNew: React.FC = () => {
                             )}
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Name</label>
+                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Name</label>
                             <input
                               {...form.register(`bankAccounts.${index}.accountName`)}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               placeholder="Holder Name"
                             />
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
+                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Split Mode</label>
                             <Controller control={form.control} name={`bankAccounts.${index}.splitType`} render={({ field }) => (
                               <Dropdown className="w-full" trigger={(isOpen) => (
-                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-green transition-colors">
+                                <button type="button" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-bold text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
                                   <span>{({'REMAINDER':'Remainder','FIXED':'Fixed Amount','PERCENTAGE':'Percentage (%)'} as Record<string,string>)[field.value] ?? field.value}</span>
-                                  <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                  <ChevronDown size={13} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                                 </button>
                               )} sections={[{ items: [
                                 { label: 'Remainder',      onClick: () => field.onChange('REMAINDER') },
@@ -643,7 +643,7 @@ const EmployeeNew: React.FC = () => {
                                 { label: 'Percentage (%)', onClick: () => field.onChange('PERCENTAGE') },
                               ]}]} />
                             )} />
-                            <p className="text-[10px] text-slate-400 leading-snug">
+                            <p className="text-[10px] text-muted-foreground leading-snug">
                               {splitType === 'REMAINDER' && 'Receives everything left after other splits.'}
                               {splitType === 'FIXED' && 'A fixed currency amount is paid to this account.'}
                               {splitType === 'PERCENTAGE' && 'A percentage of net pay is paid to this account.'}
@@ -651,22 +651,22 @@ const EmployeeNew: React.FC = () => {
                           </div>
                           {splitType !== 'REMAINDER' && (
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Value</label>
+                              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Split Value</label>
                               <input
                                 type="number"
                                 step="0.01"
                                 {...form.register(`bankAccounts.${index}.splitValue`)}
-                                className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-accent-green focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-bold text-accent-green focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                               />
                             </div>
                           )}
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Currency</label>
+                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Currency</label>
                             <Controller control={form.control} name={`bankAccounts.${index}.currency`} render={({ field }) => (
                               <Dropdown className="w-full" trigger={(isOpen) => (
-                                <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                                <button type="button" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
                                   <span>{field.value}</span>
-                                  <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                  <ChevronDown size={13} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                                 </button>
                               )} sections={[{ items: [
                                 { label: 'USD', onClick: () => field.onChange('USD') },
@@ -695,7 +695,7 @@ const EmployeeNew: React.FC = () => {
                 </FF>
                 <FormField control={form.control} name="taxMethod" render={({ field }) => (
                   <FormItem className="flex flex-col gap-1.5">
-                    <FormLabel className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Tax Method<span className="text-red-400 ml-1">*</span>
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -708,7 +708,7 @@ const EmployeeNew: React.FC = () => {
                         <SelectItem value="FDS_FORECASTING">FDS Forecasting</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-[10px] text-slate-400 leading-snug">
+                    <p className="text-[10px] text-muted-foreground leading-snug">
                       {taxMethod === 'NON_FDS' && 'Standard PAYE — tax calculated monthly.'}
                       {taxMethod === 'FDS_AVERAGE' && 'Fixed-date scheme (YTD average).'}
                       {taxMethod === 'FDS_FORECASTING' && 'Fixed-date scheme (Annual projection).'}
@@ -794,7 +794,7 @@ const EmployeeNew: React.FC = () => {
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <Card className="rounded-2xl border-border shadow-sm">
     <CardHeader className="pb-2">
-      <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">{title}</CardTitle>
+      <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{title}</CardTitle>
     </CardHeader>
     <CardContent>{children}</CardContent>
   </Card>
@@ -817,7 +817,7 @@ function FF({
       name={name}
       render={({ field }) => (
         <FormItem className={cn('flex flex-col gap-1.5', className)}>
-          <FormLabel className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             {label}{required && <span className="text-red-400 ml-1">*</span>}
           </FormLabel>
           <FormControl>{children(field) as React.ReactElement}</FormControl>

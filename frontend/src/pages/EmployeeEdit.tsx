@@ -255,7 +255,7 @@ const EmployeeEdit: React.FC = () => {
   };
 
   if (fetching) return (
-    <div className="flex items-center justify-center h-64 text-slate-400">
+    <div className="flex items-center justify-center h-64 text-muted-foreground">
       <Loader size={24} className="animate-spin" />
     </div>
   );
@@ -264,15 +264,15 @@ const EmployeeEdit: React.FC = () => {
     <div className="max-w-3xl">
       {docUploadFile && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+          <div className="bg-card rounded-2xl shadow-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-navy mb-5">Upload Document</h3>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Document Type</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Document Type</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
-                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                  <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                     <span>{({ID:'ID',CONTRACT:'Contract',MEDICAL:'Medical',OTHER:'Other'} as Record<string,string>)[docForm.type] ?? docForm.type}</span>
-                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 )} sections={[{ items: [
                   { label: 'ID',       onClick: () => setDocForm(p => ({ ...p, type: 'ID' })) },
@@ -282,12 +282,12 @@ const EmployeeEdit: React.FC = () => {
                 ]}]} />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Document Name</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Document Name</label>
                 <input
                   type="text"
                   value={docForm.name}
                   onChange={(e) => setDocForm(p => ({ ...p, name: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
                 />
               </div>
             </div>
@@ -318,7 +318,7 @@ const EmployeeEdit: React.FC = () => {
               </button>
               <button
                 onClick={() => setDocUploadFile(null)}
-                className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+                className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm"
               >
                 Cancel
               </button>
@@ -336,18 +336,18 @@ const EmployeeEdit: React.FC = () => {
         />
       )}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/employees')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/employees')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">Edit Employee</h1>
-          <p className="text-slate-500 font-medium text-sm">{form.firstName} {form.lastName}</p>
+          <p className="text-muted-foreground font-medium text-sm">{form.firstName} {form.lastName}</p>
         </div>
       </div>
 
-      {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">{error}</div>}
+      {error && <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-300 font-medium">{error}</div>}
 
-      <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl mb-8 w-fit">
+      <div className="flex gap-2 p-1 tab-pill-track rounded-2xl mb-8 w-fit">
         {[
           { id: 'PERSONAL', label: 'Personal' },
           { id: 'WORK', label: 'Work' },
@@ -362,7 +362,7 @@ const EmployeeEdit: React.FC = () => {
             type="button"
             onClick={() => setActiveTab(t.id as any)}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-              activeTab === t.id ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+              activeTab === t.id ? 'tab-pill-active' : 'tab-pill-inactive'
             }`}
           >
             {t.label}
@@ -379,11 +379,11 @@ const EmployeeEdit: React.FC = () => {
               <input required value={form.employeeCode} onChange={set('employeeCode')} />
             </Field>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Title</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Title</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{form.title || '— Select —'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— Select —', onClick: () => setForm(p => ({ ...p, title: '' })) },
@@ -400,11 +400,11 @@ const EmployeeEdit: React.FC = () => {
               <input value={form.maidenName} onChange={set('maidenName')} />
             </Field>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nationality *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Nationality *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span className="truncate">{form.nationality || 'Zimbabwean'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— Select —', onClick: () => setForm(p => ({ ...p, nationality: '' })) },
@@ -434,11 +434,11 @@ const EmployeeEdit: React.FC = () => {
               <input required type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} />
             </Field>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gender *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Gender *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({MALE:'Male',FEMALE:'Female',OTHER:'Other'} as Record<string,string>)[form.gender] ?? (form.gender || '— Select —')}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— Select —', onClick: () => setForm(p => ({ ...p, gender: '' })) },
@@ -448,11 +448,11 @@ const EmployeeEdit: React.FC = () => {
               ]}]} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Marital Status *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Marital Status *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({SINGLE:'Single',MARRIED:'Married',DIVORCED:'Divorced',WIDOWED:'Widowed'} as Record<string,string>)[form.maritalStatus] ?? (form.maritalStatus || '— Select —')}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— Select —', onClick: () => setForm(p => ({ ...p, maritalStatus: '' })) },
@@ -497,11 +497,11 @@ const EmployeeEdit: React.FC = () => {
               <input required value={form.position} onChange={set('position')} />
             </Field>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Department</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Department</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span className="truncate">{departments.find((d: any) => d.id === form.departmentId)?.name || '— None —'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— None —', onClick: () => setForm(p => ({ ...p, departmentId: '' })) },
@@ -509,11 +509,11 @@ const EmployeeEdit: React.FC = () => {
               ], emptyMessage: 'No departments' }]} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Branch</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Branch</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span className="truncate">{branches.find((b: any) => b.id === form.branchId)?.name || '— None —'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— None —', onClick: () => setForm(p => ({ ...p, branchId: '' })) },
@@ -527,11 +527,11 @@ const EmployeeEdit: React.FC = () => {
               <input value={form.grade} onChange={set('grade')} />
             </Field>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employment Type *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Employment Type *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({PERMANENT:'Permanent',CONTRACT:'Contract',TEMPORARY:'Temporary',PART_TIME:'Part Time'} as Record<string,string>)[form.employmentType] ?? form.employmentType}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'Permanent',  onClick: () => setForm(p => ({ ...p, employmentType: 'PERMANENT' })) },
@@ -557,11 +557,11 @@ const EmployeeEdit: React.FC = () => {
         <Section title="Pay Details & Bank Splitting">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Method *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Payment Method *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({BANK:'Bank',CASH:'Cash'} as Record<string,string>)[form.paymentMethod] ?? form.paymentMethod}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'Bank', onClick: () => setForm(p => ({ ...p, paymentMethod: 'BANK' })) },
@@ -569,11 +569,11 @@ const EmployeeEdit: React.FC = () => {
               ]}]} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Basis *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Payment Basis *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({MONTHLY:'Monthly',DAILY:'Daily',HOURLY:'Hourly'} as Record<string,string>)[form.paymentBasis] ?? form.paymentBasis}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'Monthly', onClick: () => setForm(p => ({ ...p, paymentBasis: 'MONTHLY' })) },
@@ -582,11 +582,11 @@ const EmployeeEdit: React.FC = () => {
               ]}]} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rate Source *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate Source *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({MANUAL:'Manual',NEC_GRADE:'NEC Grade'} as Record<string,string>)[form.rateSource] ?? form.rateSource}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'Manual',    onClick: () => setForm(p => ({ ...p, rateSource: 'MANUAL' })) },
@@ -595,11 +595,11 @@ const EmployeeEdit: React.FC = () => {
             </div>
             {form.rateSource === 'NEC_GRADE' && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">NEC Grade</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">NEC Grade</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
-                  <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                  <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                     <span className="truncate">{necGrades.find((g: any) => g.id === form.necGradeId) ? `${necGrades.find((g: any) => g.id === form.necGradeId).gradeCode}${necGrades.find((g: any) => g.id === form.necGradeId).description ? ` — ${necGrades.find((g: any) => g.id === form.necGradeId).description}` : ''}` : '— Select grade —'}</span>
-                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 )} sections={[{ items: [
                   { label: '— Select grade —', onClick: () => setForm(p => ({ ...p, necGradeId: '' })) },
@@ -611,11 +611,11 @@ const EmployeeEdit: React.FC = () => {
               <input required type="number" step="0.01" min="0" value={form.baseRate} onChange={set('baseRate')} />
             </Field>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Currency *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{form.currency}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'USD', onClick: () => setForm(p => ({ ...p, currency: 'USD' })) },
@@ -631,18 +631,18 @@ const EmployeeEdit: React.FC = () => {
           </div>
 
           {/* ZiG Basic Salary Splitting */}
-          <div className="bg-emerald-50/30 border border-emerald-100/50 p-6 rounded-2xl mb-8">
+          <div className="bg-emerald-50/30 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-800/40 p-6 rounded-2xl mb-8">
             <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
               ZiG Basic Salary Splitting (ZIMRA Apportionment)
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">ZiG Portion Mode</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">ZiG Portion Mode</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
-                  <button type="button" className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-xl text-sm font-medium flex items-center justify-between hover:border-emerald-400 transition-colors">
+                  <button type="button" className="w-full px-4 py-3 bg-background border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm font-medium flex items-center justify-between hover:border-emerald-400 transition-colors text-foreground">
                     <span>{({NONE:'None (100% USD)',PERCENTAGE:'Percentage of USD Basic',FIXED:'Fixed ZiG Amount'} as Record<string,string>)[form.splitZigMode] ?? form.splitZigMode}</span>
-                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 )} sections={[{ items: [
                   { label: 'None (100% USD)',          onClick: () => setForm(p => ({ ...p, splitZigMode: 'NONE' })) },
@@ -652,15 +652,15 @@ const EmployeeEdit: React.FC = () => {
               </div>
               {form.splitZigMode !== 'NONE' && (
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
                     {form.splitZigMode === 'PERCENTAGE' ? 'ZiG Portion (%)' : 'ZiG Amount'}
                   </label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    value={form.splitZigValue} 
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={form.splitZigValue}
                     onChange={set('splitZigValue')}
-                    className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-xl text-sm font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    className="w-full px-4 py-3 bg-background border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm font-bold text-emerald-700 dark:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                   />
                 </div>
               )}
@@ -675,7 +675,7 @@ const EmployeeEdit: React.FC = () => {
           {form.paymentMethod === 'BANK' && (
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between border-b pb-2 mb-2">
-                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Accounts & Splitting</h4>
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Bank Accounts & Splitting</h4>
                 <button type="button" onClick={addAccount} className="text-[10px] font-bold text-accent-green hover:underline uppercase">
                   + Add Split Account
                 </button>
@@ -686,12 +686,12 @@ const EmployeeEdit: React.FC = () => {
               </datalist>
 
               {form.bankAccounts.map((acc: any, index: number) => (
-                <div key={index} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 relative group transition-all hover:bg-slate-50">
+                <div key={index} className="bg-muted/50 p-4 rounded-2xl border border-border relative group transition-all hover:bg-muted">
                   {form.bankAccounts.length > 1 && (
                     <button 
                       type="button" 
                       onClick={() => removeAccount(index)}
-                      className="absolute -right-2 -top-2 bg-white border border-red-100 shadow-sm rounded-full p-1 text-red-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                      className="absolute -right-2 -top-2 bg-card border border-red-200 dark:border-red-800 shadow-sm rounded-full p-1 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all opacity-0 group-hover:opacity-100"
                     >
                       <ArrowLeft size={14} className="rotate-45" />
                     </button>
@@ -699,51 +699,51 @@ const EmployeeEdit: React.FC = () => {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bank Name</label>
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Bank Name</label>
                       <input
                         required
                         list="zw-banks"
                         value={acc.bankName}
                         onChange={(e) => handleAccountChange(index, 'bankName', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         placeholder="Search or type bank name"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Number</label>
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Number</label>
                       <input 
                         required 
                         value={acc.accountNumber} 
                         onChange={(e) => handleAccountChange(index, 'accountNumber', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         placeholder="000000000"
                         pattern="^\d+$"
                         title="Account number must contain only digits"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Name</label>
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Name</label>
                       <input 
                         value={acc.accountName} 
                         onChange={(e) => handleAccountChange(index, 'accountName', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         placeholder="Holder Name"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Mode</label>
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Split Mode</label>
                       <Dropdown className="w-full" trigger={(isOpen) => (
-                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-navy flex items-center justify-between hover:border-accent-green transition-colors">
+                        <button type="button" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-bold text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
                           <span>{({REMAINDER:'Remainder',FIXED:'Fixed Amount',PERCENTAGE:'Percentage (%)'} as Record<string,string>)[acc.splitType] ?? acc.splitType}</span>
-                          <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                          <ChevronDown size={13} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
                       )} sections={[{ items: [
                         { label: 'Remainder',      onClick: () => handleAccountChange(index, 'splitType', 'REMAINDER') },
                         { label: 'Fixed Amount',   onClick: () => handleAccountChange(index, 'splitType', 'FIXED') },
                         { label: 'Percentage (%)', onClick: () => handleAccountChange(index, 'splitType', 'PERCENTAGE') },
                       ]}]} />
-                      <p className="text-[10px] text-slate-400 leading-snug">
+                      <p className="text-[10px] text-muted-foreground leading-snug">
                         {acc.splitType === 'REMAINDER' && 'Receives everything left after other splits.'}
                         {acc.splitType === 'FIXED' && 'A fixed currency amount is paid to this account.'}
                         {acc.splitType === 'PERCENTAGE' && 'A percentage of net pay is paid to this account.'}
@@ -752,24 +752,24 @@ const EmployeeEdit: React.FC = () => {
 
                     {acc.splitType !== 'REMAINDER' && (
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Split Value</label>
+                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Split Value</label>
                         <input 
                           type="number" 
                           step="0.01" 
                           required
                           value={acc.splitValue} 
                           onChange={(e) => handleAccountChange(index, 'splitValue', e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-accent-green focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-bold text-accent-green focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
                         />
                       </div>
                     )}
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Account Currency</label>
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Currency</label>
                       <Dropdown className="w-full" trigger={(isOpen) => (
-                        <button type="button" className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                        <button type="button" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
                           <span>{acc.currency}</span>
-                          <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                          <ChevronDown size={13} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
                       )} sections={[{ items: [
                         { label: 'USD', onClick: () => handleAccountChange(index, 'currency', 'USD') },
@@ -794,11 +794,11 @@ const EmployeeEdit: React.FC = () => {
               <input type="number" step="0.01" min="0" value={form.taxDirectiveAmt} onChange={set('taxDirectiveAmt')} />
             </Field>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tax Method *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tax Method *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({NON_FDS:'Non-FDS',FDS_AVERAGE:'FDS Average',FDS_FORECASTING:'FDS Forecasting'} as Record<string,string>)[form.taxMethod] ?? form.taxMethod}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'Non-FDS',         onClick: () => setForm(p => ({ ...p, taxMethod: 'NON_FDS' })) },
@@ -807,11 +807,11 @@ const EmployeeEdit: React.FC = () => {
               ]}]} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tax Table *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tax Table *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span className="truncate">{taxTables.find((t: any) => t.name === form.taxTable) ? `${form.taxTable} (${taxTables.find((t: any) => t.name === form.taxTable).currency})` : (form.taxTable || '— Select tax table —')}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— Select tax table —', onClick: () => setForm(p => ({ ...p, taxTable: '' })) },
@@ -819,11 +819,11 @@ const EmployeeEdit: React.FC = () => {
               ], emptyMessage: 'No tax tables available' }]} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Accumulative Setting *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Accumulative Setting *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
                   <span>{({NO:'No',YES:'Yes'} as Record<string,string>)[form.accumulativeSetting] ?? form.accumulativeSetting}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'No',  onClick: () => setForm(p => ({ ...p, accumulativeSetting: 'NO' })) },
@@ -863,7 +863,7 @@ const EmployeeEdit: React.FC = () => {
         <Section title="Employee Documents">
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center mb-4">
-              <p className="text-xs text-slate-500 max-w-xs font-medium">Upload ID documents, contracts, medical certificates, etc.</p>
+              <p className="text-xs text-muted-foreground max-w-xs font-medium">Upload ID documents, contracts, medical certificates, etc.</p>
               <label className="cursor-pointer bg-accent-green text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-2">
                 <Upload size={14} /> {uploading ? 'Uploading...' : 'Upload New'}
                 <input type="file" className="hidden" onChange={handleFileUpload} disabled={uploading} />
@@ -872,22 +872,22 @@ const EmployeeEdit: React.FC = () => {
 
             <div className="grid grid-cols-1 gap-2">
               {documents.length === 0 ? (
-                <div className="py-12 border-2 border-dashed border-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-300">
+                <div className="py-12 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center text-muted-foreground/40">
                   <FileText size={40} className="mb-2 opacity-20" />
                   <p className="text-sm font-bold">No documents uploaded</p>
                 </div>
               ) : documents.map(doc => (
-                <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-accent-green/30 transition-all">
+                <div key={doc.id} className="flex items-center justify-between p-4 bg-muted/50 border border-border rounded-2xl group hover:border-accent-green/30 transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-white rounded-xl shadow-sm group-hover:bg-accent-green group-hover:text-white transition-all">
+                    <div className="p-2.5 bg-card rounded-xl shadow-sm group-hover:bg-accent-green group-hover:text-white transition-all">
                       <FileText size={18} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-bold text-navy">{doc.name}</p>
-                        <span className="px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded text-[9px] font-black uppercase tracking-wider">{doc.type}</span>
+                        <span className="px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[9px] font-black uppercase tracking-wider">{doc.type}</span>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                         {new Date(doc.createdAt).toLocaleDateString()} · {(doc.size / 1024).toFixed(0)} KB
                       </p>
                     </div>
@@ -897,15 +897,15 @@ const EmployeeEdit: React.FC = () => {
                       href={doc.fileUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-accent-green transition-all shadow-sm"
+                      className="p-2 hover:bg-card rounded-lg text-muted-foreground hover:text-accent-green transition-all shadow-sm"
                       title="View/Download"
                     >
                       <Download size={14} />
                     </a>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => deleteDocument(doc.id)}
-                      className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-red-500 transition-all shadow-sm"
+                      className="p-2 hover:bg-card rounded-lg text-muted-foreground hover:text-red-500 transition-all shadow-sm"
                       title="Delete"
                     >
                       <Trash2 size={14} />
@@ -931,7 +931,7 @@ const EmployeeEdit: React.FC = () => {
             >
               <Save size={16} /> {loading ? 'Saving…' : 'Save Changes'}
             </button>
-            <button type="button" onClick={() => navigate('/employees')} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+            <button type="button" onClick={() => navigate('/employees')} className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted">
               Cancel
             </button>
           </div>
@@ -945,8 +945,8 @@ const EmployeeEdit: React.FC = () => {
 };
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
-    <h3 className="font-bold mb-4 text-sm uppercase tracking-wider text-slate-400">{title}</h3>
+  <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+    <h3 className="font-bold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{title}</h3>
     {children}
   </div>
 );
