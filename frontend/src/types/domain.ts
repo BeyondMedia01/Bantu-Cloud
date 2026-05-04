@@ -183,6 +183,7 @@ export interface PayrollInput {
   employerZiG?: number | null;
   unitsType?: string | null;
   duration?: string | null;
+  balance?: number | null;
   processed?: boolean;
   notes?: string | null;
   employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;

@@ -10,7 +10,7 @@ interface TaxTable {
   currency: string;
   effectiveDate?: string | null;
   expiryDate?: string | null;
-  isAnnual: boolean;
+  isAnnual?: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
