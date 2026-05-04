@@ -137,7 +137,7 @@ const AppShell: React.FC = () => {
         title={collapsed ? link.label : undefined}
         className={`flex items-center gap-3 rounded-xl text-sm font-bold transition-all
           ${collapsed ? 'justify-center px-0 py-2.5 mx-1' : 'px-3 py-2.5'}
-          ${active ? 'bg-brand text-navy shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-navy'}`}
+          ${active ? 'bg-brand text-navy shadow-sm' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-navy dark:hover:text-slate-100'}`}
       >
         <span className="shrink-0">{link.icon}</span>
         {!collapsed && <span>{link.label}</span>}
@@ -166,14 +166,14 @@ const AppShell: React.FC = () => {
             aria-haspopup="listbox"
             aria-expanded={companyDropdown}
             aria-label={`Active company: ${activeCompany?.name || 'No company'}. Click to switch.`}
-            className="w-full flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-border rounded-xl hover:bg-slate-100 transition-colors text-sm font-semibold"
+            className="w-full flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-700/40 border border-border rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-sm font-semibold"
           >
             <Building2 size={14} className="text-brand shrink-0" aria-hidden="true" />
             <span className="truncate flex-1 text-left">{activeCompany?.name || 'No company'}</span>
             <ChevronDown size={13} className={`text-slate-400 shrink-0 transition-transform ${companyDropdown ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
           {companyDropdown && (
-            <div className="mt-1 bg-white border border-border rounded-xl shadow-lg z-10 overflow-hidden">
+            <div className="mt-1 bg-white dark:bg-slate-800 border border-border rounded-xl shadow-lg z-10 overflow-hidden">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 pt-2 pb-1">Switch Company</p>
               {companies.length === 0 ? (
                 <div className="px-3 py-3 text-center">
@@ -185,7 +185,7 @@ const AppShell: React.FC = () => {
                     <button
                       key={c.id}
                       onClick={() => handleSelectCompany(c)}
-                      className={`w-full text-left px-3 py-2 text-sm font-semibold transition-colors flex items-center gap-2 ${c.id === activeCompany?.id ? 'text-navy bg-brand/20' : 'hover:bg-slate-50'}`}
+                      className={`w-full text-left px-3 py-2 text-sm font-semibold transition-colors flex items-center gap-2 ${c.id === activeCompany?.id ? 'text-navy bg-brand/20' : 'hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                     >
                       {c.id === activeCompany?.id && <ChevronRight size={12} className="shrink-0" />}
                       <span className={c.id === activeCompany?.id ? '' : 'pl-4'}>{c.name}</span>
@@ -211,7 +211,7 @@ const AppShell: React.FC = () => {
           <button
             onClick={() => { setCollapsed(false); localStorage.setItem('sidebarCollapsed', 'false'); }}
             title={activeCompany?.name || 'No company'}
-            className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
           >
             <Building2 size={18} className="text-brand" />
           </button>
@@ -239,7 +239,7 @@ const AppShell: React.FC = () => {
           <button
             onClick={toggleCollapsed}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-navy transition-colors text-xs font-bold w-full"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-navy dark:hover:text-slate-100 transition-colors text-xs font-bold w-full"
           >
             {collapsed
               ? <PanelLeftOpen size={16} />
@@ -256,13 +256,13 @@ const AppShell: React.FC = () => {
             <Link to="/profile" title={user?.name || 'Profile'} className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase transition-opacity hover:opacity-80" style={getAvatarGradient(liveUserName || user?.name)}>
               {(liveUserName || user?.name || '?')[0]}
             </Link>
-            <button onClick={handleLogout} aria-label="Sign out" className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 min-w-[36px] min-h-[36px] flex items-center justify-center">
+            <button onClick={handleLogout} aria-label="Sign out" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 min-w-[36px] min-h-[36px] flex items-center justify-center">
               <LogOut size={16} />
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-3 mb-1">
-            <Link to="/profile" className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors">
+            <Link to="/profile" className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase shrink-0" style={getAvatarGradient(liveUserName || user?.name)}>
                 {(liveUserName || user?.name || '?')[0]}
               </div>
@@ -271,7 +271,7 @@ const AppShell: React.FC = () => {
                 <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">{user?.role?.replace(/_/g, ' ')}</p>
               </div>
             </Link>
-            <button onClick={handleLogout} aria-label="Sign out" className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 shrink-0" title="Sign out">
+            <button onClick={handleLogout} aria-label="Sign out" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 shrink-0" title="Sign out">
               <LogOut size={16} />
             </button>
           </div>
@@ -305,7 +305,7 @@ const AppShell: React.FC = () => {
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-primary border-b border-border z-30 flex items-center justify-between px-4">
-        <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-2 hover:bg-slate-100 rounded-xl">
+        <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">
           <Menu size={20} />
         </button>
         <Link to={homeLink} className="flex items-center gap-2">

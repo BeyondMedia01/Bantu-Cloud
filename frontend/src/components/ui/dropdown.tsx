@@ -77,7 +77,7 @@ export function Dropdown({
         <div
           role="menu"
           className={cn(
-            'absolute top-full mt-1 bg-white border border-border rounded-xl shadow-lg z-30',
+            'absolute top-full mt-1 bg-card border border-border rounded-xl shadow-lg z-30',
             'min-w-[110px] max-h-60 overflow-y-auto py-1',
             align === 'right' ? 'right-0' : 'left-0',
             className,
@@ -87,12 +87,12 @@ export function Dropdown({
           {sections.map((section, si) => (
             <div key={si}>
               {section.heading && (
-                <p className="px-3 pt-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <p className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   {section.heading}
                 </p>
               )}
               {section.items.length === 0 && section.emptyMessage ? (
-                <p className="px-3 py-2 text-xs text-slate-400">{section.emptyMessage}</p>
+                <p className="px-3 py-2 text-xs text-muted-foreground">{section.emptyMessage}</p>
               ) : (
                 section.items.map((item, ii) => (
                   <button
@@ -101,7 +101,7 @@ export function Dropdown({
                     role="menuitem"
                     disabled={item.disabled}
                     onClick={() => handleItemClick(item)}
-                    className="w-full text-left px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left px-3 py-1.5 text-xs font-bold text-foreground hover:bg-muted transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {item.renderItem ? item.renderItem() : (
                       <span className="uppercase flex items-center gap-2">

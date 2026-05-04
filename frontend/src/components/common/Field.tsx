@@ -9,7 +9,7 @@ interface FieldProps {
 }
 
 const inputClass =
-  'w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium text-sm';
+  'w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium text-sm';
 
 export const Field: React.FC<FieldProps> = ({ label, required, className, children }) => {
   const id = React.useId();
@@ -19,7 +19,7 @@ export const Field: React.FC<FieldProps> = ({ label, required, className, childr
   });
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <label htmlFor={id} className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+      <label htmlFor={id} className="text-xs font-bold text-foreground/60 uppercase tracking-wider">
         {label}
         {required && <span className="text-red-400 ml-1">*</span>}
       </label>

@@ -45,7 +45,7 @@ const ConfirmModal: React.FC<Props> = ({
         <DialogFooter className="border-0 bg-transparent -mx-0 -mb-0 px-0 pb-0">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-full border border-border text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 rounded-full border border-border text-sm font-bold text-muted-foreground hover:bg-muted transition-colors"
           >
             Cancel
           </button>

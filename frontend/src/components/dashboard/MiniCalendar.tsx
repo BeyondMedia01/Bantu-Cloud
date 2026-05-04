@@ -52,13 +52,13 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
     <div className="p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} aria-label="Previous month" className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
+        <button onClick={prevMonth} aria-label="Previous month" className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
           <ChevronLeft size={16} />
         </button>
         <p className="text-sm font-bold text-navy">
           {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </p>
-        <button onClick={nextMonth} aria-label="Next month" className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
+        <button onClick={nextMonth} aria-label="Next month" className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
           <ChevronRight size={16} />
         </button>
       </div>
@@ -66,7 +66,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
       {/* Day headers */}
       <div className="grid grid-cols-7 mb-1">
         {DAYS.map((d) => (
-          <p key={d} className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider py-1">{d}</p>
+          <p key={d} className="text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider py-1">{d}</p>
         ))}
       </div>
 
@@ -93,8 +93,8 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
                     : isToday_
                       ? 'bg-brand/20 border-2 border-brand text-navy'
                       : holidayName
-                        ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
-                        : 'text-slate-600 hover:bg-slate-100'}`}
+                        ? 'bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950 dark:text-orange-300 dark:hover:bg-orange-900'
+                        : 'text-foreground hover:bg-muted'}`}
               >
                 {day}
                 {(holidayName || hasEvent) && !isSelected && (
@@ -115,13 +115,13 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
           {holidayMap.size > 0 && (
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-orange-400" />
-              <span className="text-[10px] text-slate-400 font-bold">Holiday</span>
+              <span className="text-[10px] text-muted-foreground font-bold">Holiday</span>
             </div>
           )}
           {eventDays.size > 0 && (
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-brand" />
-              <span className="text-[10px] text-slate-400 font-bold">Birthday/Anniv.</span>
+              <span className="text-[10px] text-muted-foreground font-bold">Birthday/Anniv.</span>
             </div>
           )}
         </div>
