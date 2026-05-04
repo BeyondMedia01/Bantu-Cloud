@@ -34,6 +34,11 @@ const AdminUsers: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!form.email || !emailRegex.test(form.email)) {
+      showToast('Please enter a valid email address', 'error');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -88,7 +93,7 @@ const AdminUsers: React.FC = () => {
             {['name', 'email', 'password'].map((f) => (
               <div key={f}>
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">{f.charAt(0).toUpperCase() + f.slice(1)} *</label>
-                <input required type={f === 'password' ? 'password' : f === 'email' ? 'email' : 'text'} value={(form as any)[f]} onChange={set(f)}
+                <input required type={f === 'password' ? 'password' : f === 'email' ? 'email' : 'text'} value={(form as any)[f]} onChange={set(f)} {...(f === 'password' ? { minLength: 8 } : {})}
                   className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm" />
               </div>
             ))}

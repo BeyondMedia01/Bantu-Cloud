@@ -37,6 +37,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.rate || !form.effectiveDate) { setFormError('Rate and effective date are required.'); return; }
+    if (parseFloat(form.rate) <= 0) { showToast('Exchange rate must be greater than zero', 'error'); return; }
     setSaving(true);
     setFormError('');
     try {
@@ -235,8 +236,8 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                 <label className="block text-sm font-bold text-foreground/80 mb-1.5">Rate *</label>
                 <input
                   type="number"
-                  step="any"
-                  min="0"
+                  step="0.000001"
+                  min="0.000001"
                   value={form.rate}
                   onChange={(e) => setForm((p) => ({ ...p, rate: e.target.value }))}
                   placeholder="e.g. 13.5"

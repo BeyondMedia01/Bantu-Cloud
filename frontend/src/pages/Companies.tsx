@@ -193,12 +193,30 @@ const Companies: React.FC = () => {
                   </button>
                 </div>
                 <div className="grid grid-cols-1 gap-3">
-                  <input className={inputCls} placeholder="Legal Name" value={editForm.name} onChange={ef('name')} />
-                  <input className={inputCls} placeholder="Registration Number" value={editForm.registrationNumber} onChange={ef('registrationNumber')} />
-                  <input className={inputCls} placeholder="ZIMRA Tax ID / BP Number" value={editForm.taxId} onChange={ef('taxId')} />
-                  <input className={inputCls} placeholder="Address" value={editForm.address} onChange={ef('address')} />
-                  <input className={inputCls} placeholder="Contact Email" type="email" value={editForm.contactEmail} onChange={ef('contactEmail')} />
-                  <input className={inputCls} placeholder="Contact Phone" value={editForm.contactPhone} onChange={ef('contactPhone')} />
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="edit-name" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Legal Name</label>
+                    <input id="edit-name" className={inputCls} placeholder="Legal Name" value={editForm.name} onChange={ef('name')} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="edit-reg" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Registration Number</label>
+                    <input id="edit-reg" className={inputCls} placeholder="Registration Number" value={editForm.registrationNumber} onChange={ef('registrationNumber')} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="edit-taxid" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tax ID (BP Number)</label>
+                    <input id="edit-taxid" className={inputCls} placeholder="ZIMRA Tax ID / BP Number" value={editForm.taxId} onChange={ef('taxId')} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="edit-address" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Address</label>
+                    <input id="edit-address" className={inputCls} placeholder="Address" value={editForm.address} onChange={ef('address')} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="edit-email" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Contact Email</label>
+                    <input id="edit-email" className={inputCls} placeholder="Contact Email" type="email" value={editForm.contactEmail} onChange={ef('contactEmail')} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="edit-phone" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Contact Phone</label>
+                    <input id="edit-phone" className={inputCls} placeholder="Contact Phone" type="tel" value={editForm.contactPhone} onChange={ef('contactPhone')} />
+                  </div>
 
                   <div className="flex gap-2 mt-1">
                     <button onClick={() => handleUpdate(company.id)}
