@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, RefreshCw, Wifi, WifiOff, Copy, Eye, EyeOff, Check, X, AlertTriangle, Server, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { DeviceAPI } from '../../api/client';
+import type { Device } from '../../types/domain';
 
 const BLANK = {
   name: '', vendor: 'ZKTECO', ipAddress: '', port: 4370,
@@ -16,7 +17,7 @@ const VENDOR_LABELS: Record<string, string> = {
 
 const DeviceForm: React.FC<{
   initial: typeof BLANK;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: typeof BLANK) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
   error: string;
@@ -102,10 +103,10 @@ const DeviceForm: React.FC<{
 };
 
 const Devices: React.FC = () => {
-  const [devices, setDevices] = useState<any[]>([]);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<any | null>(null);
+  const [editing, setEditing] = useState<Device | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [syncing, setSyncing] = useState<string | null>(null);
@@ -128,24 +129,24 @@ const Devices: React.FC = () => {
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
-  const handleSave = async (form: any) => {
+  const handleSave = async (form: typeof BLANK) => {
     setSaving(true); setError('');
     try {
       if (editing) await DeviceAPI.update(editing.id, form);
       else         await DeviceAPI.create(form);
       setShowForm(false); setEditing(null); load();
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'Failed to save device.');
+    } catch {
+      setError('Failed to save device.');
     } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this device? Punch logs will be preserved.')) return;
     try { await DeviceAPI.delete(id); load(); }
-    catch (e: any) { setError(e.response?.data?.message || 'Failed.'); }
+    catch { setError('Failed.'); }
   };
 
-  const handleSync = async (device: any) => {
+  const handleSync = async (device: Device) => {
     setSyncing(device.id); setError('');
     try {
       const res = await DeviceAPI.sync(device.id, {
@@ -154,18 +155,18 @@ const Devices: React.FC = () => {
       });
       flash(`Synced ${res.data.imported} records from ${device.name}.`);
       load();
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'Sync failed. Check device connectivity.');
+    } catch {
+      setError('Sync failed. Check device connectivity.');
     } finally { setSyncing(null); }
   };
 
-  const handleTest = async (device: any) => {
+  const handleTest = async (device: Device) => {
     setTesting(device.id);
     try {
       const res = await DeviceAPI.test(device.id);
       setTestResults((r) => ({ ...r, [device.id]: `OK — ${res.data.model || res.data.message || 'Connected'}` }));
-    } catch (e: any) {
-      setTestResults((r) => ({ ...r, [device.id]: `FAIL — ${e.response?.data?.message || e.message}` }));
+    } catch {
+      setTestResults((r) => ({ ...r, [device.id]: 'FAIL — Connection error' }));
     } finally { setTesting(null); }
   };
 

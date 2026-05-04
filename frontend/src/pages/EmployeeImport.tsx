@@ -67,7 +67,7 @@ const EmployeeImport: React.FC = () => {
       setResult(res.data);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Import failed. Please check your file and try again.');
     } finally {
       setUploading(false);

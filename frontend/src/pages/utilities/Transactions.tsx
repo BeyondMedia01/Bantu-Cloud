@@ -5,6 +5,7 @@ import {
   CheckCircle2, X, AlertCircle, Zap, Eye, ShieldCheck, RefreshCw,
 } from 'lucide-react';
 import { TransactionCodeAPI } from '../../api/client';
+import type { TransactionCode, TransactionRule } from '../../types/domain';
 import { Dropdown } from '@/components/ui/dropdown';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -65,7 +66,8 @@ function livePreview(form: typeof EMPTY_FORM, sampleSalary = 1000): string {
 // ─── 4-step wizard modal ─────────────────────────────────────────────────────
 
 interface WizardProps {
-  editData?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  editData?: TransactionCode & Record<string, any>;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -97,7 +99,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [rules, setRules] = useState<any[]>(editData?.rules || []);
+  const [rules, setRules] = useState<TransactionRule[]>(editData?.rules || []);
   const [ruleForm, setRuleForm] = useState({ conditionType: 'always', conditionValue: '', valueOverride: '', capAmount: '', description: '' });
 
   // Auto-configure flags when incomeCategory changes to a special category
@@ -143,8 +145,8 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
         await TransactionCodeAPI.create(payload);
       }
       onSaved();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save');
+    } catch {
+      setError('Failed to save');
       setSaving(false);
     }
   };
@@ -162,8 +164,8 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
       setRules((prev) => [...prev, r.data]);
       setRuleForm({ conditionType: 'always', conditionValue: '', valueOverride: '', capAmount: '', description: '' });
       setShowRuleForm(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add rule');
+    } catch {
+      setError('Failed to add rule');
     } finally {
       setSavingRule(false);
     }
@@ -174,8 +176,8 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
     try {
       await TransactionCodeAPI.deleteRule(editData.id, ruleId);
       setRules((prev) => prev.filter((r) => r.id !== ruleId));
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete rule');
+    } catch {
+      setError('Failed to delete rule');
     }
   };
 
@@ -510,7 +512,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
 
                   {rules.length > 0 ? (
                     <div className="flex flex-col gap-1.5">
-                      {rules.map((rule: any) => (
+                      {rules.map((rule) => (
                         <div key={rule.id} className="flex items-start justify-between gap-2 px-3 py-2.5 bg-muted/50 border border-border rounded-xl">
                           <div>
                             <p className="text-xs font-bold text-navy">
@@ -620,7 +622,7 @@ const TarmsAuditPanel: React.FC<TarmsAuditPanelProps> = ({ onClose }) => {
     setLoading(true);
     setError('');
     TransactionCodeAPI.tarmsCheck()
-      .then((r: any) => setData(r.data))
+      .then((r) => setData(r.data))
       .catch(() => setError('Failed to run TaRMS audit'))
       .finally(() => setLoading(false));
   };
@@ -779,10 +781,10 @@ const TarmsAuditPanel: React.FC<TarmsAuditPanelProps> = ({ onClose }) => {
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
-  const [codes, setCodes] = useState<any[]>([]);
+  const [codes, setCodes] = useState<TransactionCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
-  const [editTarget, setEditTarget] = useState<any | null>(null);
+  const [editTarget, setEditTarget] = useState<TransactionCode | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [filterType, setFilterType] = useState('');
@@ -806,14 +808,14 @@ const Transactions: React.FC = () => {
     try {
       await TransactionCodeAPI.delete(deleteTarget);
       load();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Cannot delete — it may be in use');
+    } catch {
+      setError('Cannot delete — it may be in use');
     } finally {
       setDeleteTarget(null);
     }
   };
 
-  const openEdit = (tc: any) => {
+  const openEdit = (tc: TransactionCode) => {
     setEditTarget(tc);
     setShowWizard(true);
   };
@@ -825,7 +827,7 @@ const Transactions: React.FC = () => {
 
   const filtered = filterType ? codes.filter((c) => c.type === filterType) : codes;
 
-  const grouped = TX_TYPES.reduce<Record<string, any[]>>((acc, t) => {
+  const grouped = TX_TYPES.reduce<Record<string, TransactionCode[]>>((acc, t) => {
     acc[t] = filtered.filter((c) => c.type === t);
     return acc;
   }, { EARNING: [], DEDUCTION: [], BENEFIT: [] });
@@ -915,7 +917,7 @@ const Transactions: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {grouped[type].map((c: any) => (
+                    {grouped[type].map((c) => (
                       <React.Fragment key={c.id}>
                         <tr
                           className="hover:bg-muted/30 cursor-pointer"
@@ -1023,7 +1025,7 @@ const Transactions: React.FC = () => {
                                   <div className="col-span-2">
                                     <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">Conditional Rules</p>
                                     <div className="flex flex-col gap-1">
-                                      {c.rules.map((r: any) => (
+                                      {c.rules!.map((r) => (
                                         <div key={r.id} className="px-3 py-2 bg-background border border-border rounded-lg">
                                           <span className="font-bold">{CONDITION_TYPES.find((ct) => ct.value === r.conditionType)?.label}</span>
                                           {r.conditionValue && <span> = {r.conditionValue}</span>}

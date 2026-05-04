@@ -52,7 +52,7 @@ const LeaveEdit: React.FC = () => {
     try {
       await LeaveAPI.update(id!, { ...form, totalDays: days });
       navigate('/leave');
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to update leave record');
     } finally {
       setLoading(false);
@@ -84,12 +84,12 @@ const LeaveEdit: React.FC = () => {
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee *</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
             <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
-              <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
+              <span className="truncate">{employees.find((e) => e.id === form.employeeId) ? `${employees.find((e) => e.id === form.employeeId).firstName} ${employees.find((e) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
               <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: [
             { label: 'Select employee', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
-            ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode || e.id.slice(0, 6)})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
+            ...employees.map((e) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode || e.id.slice(0, 6)})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
           ], emptyMessage: 'No employees found' }]} />
         </div>
 

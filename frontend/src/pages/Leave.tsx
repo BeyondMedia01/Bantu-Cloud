@@ -6,6 +6,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
+import type { LeaveRecord } from '../api/client';
+import type { Employee } from '../types/employee';
 import { useToast } from '../context/ToastContext';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -33,8 +35,8 @@ const Leave: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
-  const [records, setRecords] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [records, setRecords] = useState<LeaveRecord[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterEmployee, setFilterEmployee] = useState('');
@@ -62,7 +64,7 @@ const Leave: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  const handleDelete = (item: any) => {
+  const handleDelete = (item: LeaveRecord) => {
     const label = `${item.employee?.firstName ?? ''} ${item.employee?.lastName ?? ''} — ${item.type}`.trim();
     setDeleteTarget({ id: item.id, label });
   };
@@ -73,8 +75,8 @@ const Leave: React.FC = () => {
       await LeaveAPI.delete(deleteTarget.id);
       showToast('Leave record deleted', 'success');
       load();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to delete leave record', 'error');
+    } catch {
+      showToast('Failed to delete leave record', 'error');
     } finally {
       setDeleteTarget(null);
     }
@@ -86,7 +88,7 @@ const Leave: React.FC = () => {
     setFilterStartDate(''); setFilterEndDate('');
   };
 
-  const filteredEmployees = employees.filter((e: any) => {
+  const filteredEmployees = employees.filter((e: Employee) => {
     const q = filterEmployeeQuery.toLowerCase();
     return !q || `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) || (e.employeeCode || '').toLowerCase().includes(q);
   });
@@ -196,7 +198,7 @@ const Leave: React.FC = () => {
           )}
           {empDropdownOpen && filteredEmployees.length > 0 && (
             <div className="absolute z-20 mt-1 w-full bg-primary border border-border rounded-2xl shadow-lg max-h-52 overflow-y-auto">
-              {filteredEmployees.slice(0, 30).map((e: any) => (
+              {filteredEmployees.slice(0, 30).map((e: Employee) => (
                 <button
                   key={e.id}
                   type="button"
@@ -256,7 +258,7 @@ const Leave: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtered.length > 0 ? filtered.map((item: any) => (
+                {filtered.length > 0 ? filtered.map((item: LeaveRecord) => (
                   <tr key={item.id} className="hover:bg-muted/70 transition-colors">
                     <td className="px-5 py-4">
                       <p className="text-sm font-bold">{item.employee?.firstName} {item.employee?.lastName}</p>

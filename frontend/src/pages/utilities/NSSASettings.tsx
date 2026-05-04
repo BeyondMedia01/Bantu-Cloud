@@ -41,7 +41,7 @@ const NSSASettingsPage: React.FC = () => {
     try {
       await NSSASettingsAPI.update(form);
       setSuccess(true);
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to save NSSA settings');
     } finally {
       setSaving(false);

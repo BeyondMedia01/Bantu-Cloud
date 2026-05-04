@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Loader, ChevronsRight, CalendarCheck, AlertCircle, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveBalanceAPI, EmployeeAPI } from '../api/client';
+import type { LeaveBalance } from '../api/client';
+import type { Employee } from '../types/employee';
 import ConfirmModal from '../components/common/ConfirmModal';
 
 const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ');
 
 const LeaveBalances: React.FC = () => {
-  const [balances, setBalances] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [balances, setBalances] = useState<LeaveBalance[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [employeeFilter, setEmployeeFilter] = useState('');
@@ -49,8 +51,8 @@ const LeaveBalances: React.FC = () => {
       const r = await LeaveBalanceAPI.runYearEnd(yr);
       setActionMsg(`Year-end complete — ${r.data.carried} balances carried forward, ${r.data.forfeited} partially forfeited`);
       load();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Year-end processing failed');
+    } catch {
+      setError('Year-end processing failed');
     } finally {
       setActionLoading('');
     }
@@ -65,15 +67,15 @@ const LeaveBalances: React.FC = () => {
       setAdjValue('');
       setAdjNote('');
       load();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Adjustment failed');
+    } catch {
+      setError('Adjustment failed');
     } finally {
       setActionLoading('');
     }
   };
 
   // Group by employee
-  const grouped = balances.reduce((acc: Record<string, any[]>, b) => {
+  const grouped = balances.reduce((acc: Record<string, LeaveBalance[]>, b) => {
     const key = b.employeeId;
     if (!acc[key]) acc[key] = [];
     acc[key].push(b);
@@ -130,13 +132,13 @@ const LeaveBalances: React.FC = () => {
           className="w-full"
           trigger={(isOpen) => (
             <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
-              <span className="truncate">{employees.find((e: any) => e.id === employeeFilter) ? `${employees.find((e: any) => e.id === employeeFilter).firstName} ${employees.find((e: any) => e.id === employeeFilter).lastName}` : 'All Employees'}</span>
+              <span className="truncate">{employees.find((e: Employee) => e.id === employeeFilter) ? `${employees.find((e: Employee) => e.id === employeeFilter).firstName} ${employees.find((e: Employee) => e.id === employeeFilter).lastName}` : 'All Employees'}</span>
               <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )}
           sections={[{ items: [
             { label: 'All Employees', onClick: () => setEmployeeFilter('') },
-            ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName}`, onClick: () => setEmployeeFilter(e.id) })),
+            ...employees.map((e: Employee) => ({ label: `${e.firstName} ${e.lastName}`, onClick: () => setEmployeeFilter(e.id) })),
           ]}]}
         />
       </div>
@@ -174,7 +176,7 @@ const LeaveBalances: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {rows.map((b: any) => (
+                      {rows.map((b: LeaveBalance) => (
                         <tr key={b.id} className="hover:bg-muted/30">
                           <td className="px-4 py-3 text-sm font-medium">{fmtType(b.leaveType)}</td>
                           <td className="px-4 py-3 text-sm">{b.openingBalance.toFixed(1)}</td>

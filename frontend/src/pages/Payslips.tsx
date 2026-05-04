@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, FileText, Send, Loader2, CheckCircle2, Eye, X } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
-import { PayrollAPI } from '../api/client';
+import { PayrollAPI, PayrollRun, Payslip } from '../api/client';
 import { useToast } from '../context/ToastContext';
 
 const fmt = (n: number | null | undefined, decimals = 2) =>
@@ -12,8 +12,8 @@ const Payslips: React.FC = () => {
   const { runId } = useParams<{ runId: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [run, setRun] = useState<any>(null);
-  const [payslips, setPayslips] = useState<any[]>([]);
+  const [run, setRun] = useState<PayrollRun | null>(null);
+  const [payslips, setPayslips] = useState<Payslip[]>([]);
   const [loading, setLoading] = useState(true);
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
   const [sentIds, setSentIds] = useState<Set<string>>(new Set());
@@ -119,8 +119,8 @@ const Payslips: React.FC = () => {
       const res = await PayrollAPI.sendPayslip(runId, payslipId);
       setSentIds((prev) => new Set(prev).add(payslipId));
       showToast(`Payslip sent to ${res.data.to}`, 'success');
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to send payslip';
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to send payslip';
       showToast(msg, 'error');
     } finally {
       setSendingIds((prev) => { const s = new Set(prev); s.delete(payslipId); return s; });
@@ -134,8 +134,8 @@ const Payslips: React.FC = () => {
     try {
       const res = await PayrollAPI.sendAllPayslips(runId);
       showToast(res.data.message, 'success');
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to queue payslip emails';
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to queue payslip emails';
       showToast(msg, 'error');
     } finally {
       setSendingAll(false);
@@ -219,14 +219,14 @@ const Payslips: React.FC = () => {
           {run && (() => {
             const cards = isDual ? [
               { label: 'Total Employees', value: String(payslips.length) },
-              { label: 'Total Gross (USD)', value: `USD ${payslips.reduce((s: number, p: any) => s + (p.grossUSD ?? p.gross), 0).toFixed(2)}` },
-              { label: 'Total Gross (ZiG)', value: `ZiG ${payslips.reduce((s: number, p: any) => s + (p.grossZIG ?? 0), 0).toFixed(2)}` },
-              { label: 'Net Pay (USD)', value: `USD ${payslips.reduce((s: number, p: any) => s + (p.netPayUSD ?? p.netPay), 0).toFixed(2)}` },
+              { label: 'Total Gross (USD)', value: `USD ${payslips.reduce((s: number, p: Payslip) => s + (p.grossUSD ?? p.gross), 0).toFixed(2)}` },
+              { label: 'Total Gross (ZiG)', value: `ZiG ${payslips.reduce((s: number, p: Payslip) => s + (p.grossZIG ?? 0), 0).toFixed(2)}` },
+              { label: 'Net Pay (USD)', value: `USD ${payslips.reduce((s: number, p: Payslip) => s + (p.netPayUSD ?? p.netPay), 0).toFixed(2)}` },
             ] : [
               { label: 'Total Employees', value: String(payslips.length) },
-              { label: 'Total Gross', value: `${ccy} ${payslips.reduce((s: number, p: any) => s + p.gross, 0).toFixed(2)}` },
-              { label: 'Total PAYE', value: `${ccy} ${payslips.reduce((s: number, p: any) => s + p.paye, 0).toFixed(2)}` },
-              { label: 'Total Net', value: `${ccy} ${payslips.reduce((s: number, p: any) => s + p.netPay, 0).toFixed(2)}` },
+              { label: 'Total Gross', value: `${ccy} ${payslips.reduce((s: number, p: Payslip) => s + p.gross, 0).toFixed(2)}` },
+              { label: 'Total PAYE', value: `${ccy} ${payslips.reduce((s: number, p: Payslip) => s + p.paye, 0).toFixed(2)}` },
+              { label: 'Total Net', value: `${ccy} ${payslips.reduce((s: number, p: Payslip) => s + p.netPay, 0).toFixed(2)}` },
             ];
             return (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -287,7 +287,7 @@ const Payslips: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {payslips.map((p: any) => {
+                {payslips.map((p: Payslip) => {
                   // Build lookup maps for quick access
                   const earningMap: Record<string, string[]> = {};
                   for (const e of (p.earningLines || [])) {

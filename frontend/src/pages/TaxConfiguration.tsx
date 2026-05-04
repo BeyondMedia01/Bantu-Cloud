@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash, Info, Calendar, Percent, Hash, XCircle, X } from 'lucide-react';
 import { TaxBandAPI } from '../api/client';
+import type { TaxBand } from '../types/domain';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
 
@@ -16,9 +17,9 @@ const EMPTY_FORM = {
 
 const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
   const { showToast } = useToast();
-  const [bands, setBands] = useState<any[]>([]);
+  const [bands, setBands] = useState<TaxBand[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBand, setEditingBand] = useState<any>(null);
+  const [editingBand, setEditingBand] = useState<TaxBand | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -33,7 +34,7 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
     setIsModalOpen(true);
   };
 
-  const openEdit = (band: any) => {
+  const openEdit = (band: TaxBand) => {
     setEditingBand(band);
     setForm({
       bandNumber: String(band.bandNumber ?? ''),

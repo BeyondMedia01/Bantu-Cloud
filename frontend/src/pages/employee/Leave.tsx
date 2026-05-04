@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarDays, Loader, Clock, CheckCircle2, XCircle, Plus, Banknote, AlertCircle, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { EmployeeSelfAPI, LeaveAPI, LeaveBalanceAPI, LeaveEncashmentAPI } from '../../api/client';
+import type { LeaveBalance, LeaveEncashment, LeaveRecord } from '../../types/domain';
 import { useToast } from '../../context/ToastContext';
 
 const statusColor: Record<string, string> = {
@@ -23,10 +24,10 @@ type Tab = 'history' | 'apply' | 'encash';
 
 const EmployeeLeave: React.FC = () => {
   const { showToast } = useToast();
-  const [records, setRecords] = useState<any[]>([]);
-  const [requests, setRequests] = useState<any[]>([]);
-  const [balances, setBalances] = useState<any[]>([]);
-  const [encashments, setEncashments] = useState<any[]>([]);
+  const [records, setRecords] = useState<LeaveRecord[]>([]);
+  const [requests, setRequests] = useState<LeaveRecord[]>([]);
+  const [balances, setBalances] = useState<LeaveBalance[]>([]);
+  const [encashments, setEncashments] = useState<LeaveEncashment[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>('history');
 
@@ -76,8 +77,8 @@ const EmployeeLeave: React.FC = () => {
       setApplyForm({ startDate: '', endDate: '', days: '', type: 'ANNUAL', reason: '' });
       setTab('history');
       load();
-    } catch (err: any) {
-      setSubmitError(err.response?.data?.message || 'Failed to submit leave request');
+    } catch (e) {
+      setSubmitError((e as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to submit leave request');
     } finally {
       setSubmitting(false);
     }
@@ -97,14 +98,14 @@ const EmployeeLeave: React.FC = () => {
       setEncashForm({ leaveType: 'ANNUAL', days: '', notes: '' });
       setTab('history');
       load();
-    } catch (err: any) {
-      setEncashError(err.response?.data?.message || 'Failed to submit encashment request');
+    } catch (e) {
+      setEncashError((e as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to submit encashment request');
     } finally {
       setEncashSubmitting(false);
     }
   };
 
-  const selectedBalance = balances.find((b: any) => b.leaveType === encashForm.leaveType);
+  const selectedBalance = balances.find((b) => b.leaveType === encashForm.leaveType);
   const allItems = [...records, ...requests].sort(
     (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
   );
@@ -140,7 +141,7 @@ const EmployeeLeave: React.FC = () => {
       {/* Leave Balance Cards */}
       {balances.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {balances.map((b: any) => (
+          {balances.map((b) => (
             <div key={b.id} className="bg-primary rounded-2xl border border-border p-4 shadow-sm">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{fmtType(b.leaveType)}</p>
               <p className={`text-2xl font-black ${b.balance <= 0 ? 'text-red-500' : b.balance < 5 ? 'text-amber-500' : 'text-emerald-600'}`}>
@@ -169,9 +170,9 @@ const EmployeeLeave: React.FC = () => {
                   <span>{fmtType(applyForm.type)}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
-              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setApplyForm((p: any) => ({ ...p, type: t })) })) }]} />
+              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setApplyForm((p) => ({ ...p, type: t })) })) }]} />
               {(() => {
-                const bal = balances.find((b: any) => b.leaveType === applyForm.type);
+                const bal = balances.find((b) => b.leaveType === applyForm.type);
                 return bal ? (
                   <p className="text-xs text-muted-foreground mt-1">
                     Balance: <span className={`font-bold ${bal.balance < 1 ? 'text-red-500' : 'text-emerald-600'}`}>{bal.balance.toFixed(1)} days</span>
@@ -230,7 +231,7 @@ const EmployeeLeave: React.FC = () => {
                   <span>{fmtType(encashForm.leaveType)}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
-              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setEncashForm((p: any) => ({ ...p, leaveType: t })) })) }]} />
+              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setEncashForm((p) => ({ ...p, leaveType: t })) })) }]} />
               {selectedBalance && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Available: <span className={`font-bold ${selectedBalance.balance < 1 ? 'text-red-500' : 'text-emerald-600'}`}>{selectedBalance.balance.toFixed(1)} days</span>
@@ -264,7 +265,7 @@ const EmployeeLeave: React.FC = () => {
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Previous Encashments</p>
               <div className="flex flex-col gap-2">
-                {encashments.map((enc: any) => (
+                {encashments.map((enc) => (
                   <div key={enc.id} className="flex items-center justify-between text-sm p-3 bg-muted rounded-xl">
                     <span className="font-medium">{fmtType(enc.leaveType)} — {enc.days} days</span>
                     <span className="font-bold">{enc.currency} {enc.totalAmount.toFixed(2)}</span>
@@ -302,7 +303,7 @@ const EmployeeLeave: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {allItems.map((r: any) => (
+              {allItems.map((r) => (
                 <tr key={r.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 text-sm font-medium capitalize">{fmtType(r.type || 'ANNUAL')}</td>
                   <td className="px-4 py-3 text-sm">{new Date(r.startDate).toLocaleDateString()}</td>

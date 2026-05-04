@@ -3,14 +3,14 @@ import { Plus, FileText, ChevronRight, Play, Check, SendHorizonal, Download, Ban
 import SkeletonTable from '../components/common/SkeletonTable';
 import { Dropdown } from '../components/ui/dropdown';
 import { useNavigate } from 'react-router-dom';
-import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
+import { PayrollAPI, StatutoryExportAPI, BankFileAPI, PayrollRun } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
 
 const Payroll: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [runs, setRuns] = useState<any[]>([]);
+  const [runs, setRuns] = useState<PayrollRun[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -21,7 +21,7 @@ const Payroll: React.FC = () => {
 
   const loadRuns = () => {
     PayrollAPI.getAll()
-      .then((r: any) => {
+      .then((r) => {
         const data = r.data;
         setRuns(data.data || data);
         setTotal(data.total || (data.data || data).length);
@@ -41,8 +41,8 @@ const Payroll: React.FC = () => {
       else await PayrollAPI.process(runId);
       setActionError('');
       loadRuns();
-    } catch (err: any) {
-      setActionError(err.response?.data?.message || `Failed to ${action} payroll run`);
+    } catch (err) {
+      setActionError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || `Failed to ${action} payroll run`);
     } finally { setActionLoading(null); }
   };
 
@@ -72,8 +72,8 @@ const Payroll: React.FC = () => {
       a.download = `${format.toUpperCase()}-Payments-${runId}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (err: any) {
-      setActionError(err.response?.data?.message || `Failed to download ${format.toUpperCase()} bank file`);
+    } catch (err) {
+      setActionError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || `Failed to download ${format.toUpperCase()} bank file`);
     }
   };
 
@@ -90,8 +90,8 @@ const Payroll: React.FC = () => {
       setEditingRate(null);
       loadRuns();
       showToast('Exchange rate updated', 'success');
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to update exchange rate', 'error');
+    } catch (err) {
+      showToast((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to update exchange rate', 'error');
     } finally {
       setRateSaving(false);
     }
@@ -148,7 +148,7 @@ const Payroll: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {runs.map((run: any) => (
+              {runs.map((run: PayrollRun) => (
                 <tr
                   key={run.id}
                   className="hover:bg-muted/70 cursor-pointer transition-colors"

@@ -21,7 +21,7 @@ const PayrollNew: React.FC = () => {
 
   useEffect(() => {
     CurrencyRateAPI.getLatest()
-      .then((r: any) => setLatestRate({ rate: r.data.rate, source: r.data.source || 'RBZ' }))
+      .then((r) => setLatestRate({ rate: r.data.rate, source: r.data.source || 'RBZ' }))
       .catch(() => {});
   }, []);
 
@@ -60,7 +60,7 @@ const PayrollNew: React.FC = () => {
       }
       await PayrollAPI.create(payload);
       navigate('/payroll');
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to create payroll run');
     } finally {
       setLoading(false);

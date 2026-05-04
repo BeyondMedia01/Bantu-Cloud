@@ -34,7 +34,7 @@ const Register: React.FC = () => {
     try {
       await AuthAPI.register(form);
       navigate('/login');
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);

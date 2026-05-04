@@ -3,17 +3,30 @@ import { Plus, Trash2, X, Check, Filter, LayoutGrid, Edit2, ChevronDown } from '
 import { Dropdown } from '@/components/ui/dropdown';
 import { useNavigate } from 'react-router-dom';
 import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI } from '../api/client';
+import type { TransactionCode, PayrollInput, PayrollRun } from '../types/domain';
+import type { Employee } from '../types/employee';
 import { getActiveCompanyId } from '../lib/companyContext';
+
+interface EditInputForm {
+  id: string;
+  transactionCodeId: string;
+  amount: string;
+  currency: string;
+  period: string;
+  notes: string;
+  units: string;
+  payrollRunId: string;
+}
 
 const PayrollInputs: React.FC = () => {
   const navigate = useNavigate();
-  const [inputs, setInputs]         = useState<any[]>([]);
-  const [employees, setEmployees]   = useState<any[]>([]);
-  const [txCodes, setTxCodes]       = useState<any[]>([]);
-  const [runs, setRuns]             = useState<any[]>([]);
+  const [inputs, setInputs]         = useState<PayrollInput[]>([]);
+  const [employees, setEmployees]   = useState<Employee[]>([]);
+  const [txCodes, setTxCodes]       = useState<TransactionCode[]>([]);
+  const [runs, setRuns]             = useState<PayrollRun[]>([]);
   const [loading, setLoading]       = useState(true);
   const [showForm, setShowForm]     = useState(false);
-  const [editInput, setEditInput]   = useState<any>(null);
+  const [editInput, setEditInput]   = useState<EditInputForm | null>(null);
   const [saving, setSaving]         = useState(false);
   const [error, setError]           = useState('');
   const [deleteId, setDeleteId]     = useState<string | null>(null);
@@ -61,8 +74,8 @@ const PayrollInputs: React.FC = () => {
       ]);
       setEmployees((empRes.data as any).data || empRes.data);
       setTxCodes(txRes.data);
-      const runData = (runRes.data as any).data || runRes.data;
-      setRuns(runData.filter((r: any) => r.status !== 'COMPLETED'));
+      const runData: PayrollRun[] = (runRes.data as any).data || runRes.data;
+      setRuns(runData.filter((r) => r.status !== 'COMPLETED'));
     } catch {
       // silent
     }
@@ -104,8 +117,8 @@ const PayrollInputs: React.FC = () => {
         notes: '',
       });
       loadInputs();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create input.');
+    } catch (e) {
+      setError((e as any)?.response?.data?.message || 'Failed to create input.');
     } finally {
       setSaving(false);
     }
@@ -128,8 +141,8 @@ const PayrollInputs: React.FC = () => {
       });
       setEditInput(null);
       loadInputs();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update input.');
+    } catch (e) {
+      setError((e as any)?.response?.data?.message || 'Failed to update input.');
     } finally {
       setSaving(false);
     }
@@ -140,9 +153,9 @@ const PayrollInputs: React.FC = () => {
       await PayrollInputAPI.delete(id);
       setDeleteId(null);
       loadInputs();
-    } catch (err: any) {
+    } catch (e) {
       setDeleteId(null);
-      setError(err.response?.data?.message || 'Cannot delete a processed input.');
+      setError((e as any)?.response?.data?.message || 'Cannot delete a processed input.');
     }
   };
 
@@ -505,7 +518,7 @@ const PayrollInputs: React.FC = () => {
                     <span className="truncate">{editInput.transactionCodeId ? (txCodes.find(t => t.id === editInput.transactionCodeId) ? `${txCodes.find(t => t.id === editInput.transactionCodeId)!.code} — ${txCodes.find(t => t.id === editInput.transactionCodeId)!.name}` : 'Select code…') : 'Select code…'}</span>
                     <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
-                )} sections={[{ items: txCodes.map(t => ({ label: `${t.code} — ${t.name} (${t.type})`, onClick: () => setEditInput((p: any) => ({ ...p, transactionCodeId: t.id })) })) }]} />
+                )} sections={[{ items: txCodes.map(t => ({ label: `${t.code} — ${t.name} (${t.type})`, onClick: () => setEditInput((p) => p ? { ...p, transactionCodeId: t.id } : null) })) }]} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -517,8 +530,8 @@ const PayrollInputs: React.FC = () => {
                       <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                   )} sections={[{ items: [
-                    { label: 'USD', onClick: () => setEditInput((p: any) => ({ ...p, currency: 'USD' })) },
-                    { label: 'ZiG', onClick: () => setEditInput((p: any) => ({ ...p, currency: 'ZiG' })) },
+                    { label: 'USD', onClick: () => setEditInput((p) => p ? { ...p, currency: 'USD' } : null) },
+                    { label: 'ZiG', onClick: () => setEditInput((p) => p ? { ...p, currency: 'ZiG' } : null) },
                   ]}]} />
                 </div>
                 <div>
@@ -532,7 +545,7 @@ const PayrollInputs: React.FC = () => {
                       min="0"
                       step="0.01"
                       value={editInput.amount}
-                      onChange={(e) => setEditInput((p: any) => ({ ...p, amount: e.target.value }))}
+                      onChange={(e) => setEditInput((p) => p ? { ...p, amount: e.target.value } : null)}
                       className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                       required
                     />
@@ -547,7 +560,7 @@ const PayrollInputs: React.FC = () => {
                     type="number"
                     step="0.01"
                     value={editInput.units}
-                    onChange={(e) => setEditInput((p: any) => ({ ...p, units: e.target.value }))}
+                    onChange={(e) => setEditInput((p) => p ? { ...p, units: e.target.value } : null)}
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                     placeholder="0.00"
                   />
@@ -557,7 +570,7 @@ const PayrollInputs: React.FC = () => {
                   <input
                     type="month"
                     value={editInput.period}
-                    onChange={(e) => setEditInput((p: any) => ({ ...p, period: e.target.value }))}
+                    onChange={(e) => setEditInput((p) => p ? { ...p, period: e.target.value } : null)}
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                     required
                   />
@@ -569,7 +582,7 @@ const PayrollInputs: React.FC = () => {
                 <input
                   type="text"
                   value={editInput.notes}
-                  onChange={(e) => setEditInput((p: any) => ({ ...p, notes: e.target.value }))}
+                  onChange={(e) => setEditInput((p) => p ? { ...p, notes: e.target.value } : null)}
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-accent-green"
                   placeholder="e.g. OT Multiplier details"
                 />
@@ -587,8 +600,8 @@ const PayrollInputs: React.FC = () => {
                     </button>
                   );
                 }} sections={[{ items: [
-                  { label: 'None (unattached)', onClick: () => setEditInput((p: any) => ({ ...p, payrollRunId: '' })) },
-                  ...runs.map(r => ({ label: `${new Date(r.startDate).toLocaleDateString()} — ${new Date(r.endDate).toLocaleDateString()} [${r.status}]`, onClick: () => setEditInput((p: any) => ({ ...p, payrollRunId: r.id })) }))
+                  { label: 'None (unattached)', onClick: () => setEditInput((p) => p ? { ...p, payrollRunId: '' } : null) },
+                  ...runs.map(r => ({ label: `${new Date(r.startDate).toLocaleDateString()} — ${new Date(r.endDate).toLocaleDateString()} [${r.status}]`, onClick: () => setEditInput((p) => p ? { ...p, payrollRunId: r.id } : null) }))
                 ]}]} />
               </div>
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Clock, Users } from 'lucide-react';
 import { ShiftAPI } from '../../api/client';
+import type { Shift } from '../../types/domain';
 
 const BLANK = {
   name: '', code: '', startTime: '08:00', endTime: '17:00',
@@ -10,7 +11,7 @@ const BLANK = {
 
 const ShiftForm: React.FC<{
   initial: typeof BLANK;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: typeof BLANK) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
   error: string;
@@ -110,10 +111,10 @@ const ShiftForm: React.FC<{
 };
 
 const Shifts: React.FC = () => {
-  const [shifts, setShifts] = useState<any[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing]   = useState<any | null>(null);
+  const [editing, setEditing]   = useState<Shift | null>(null);
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
 
@@ -126,21 +127,21 @@ const Shifts: React.FC = () => {
 
   useEffect(() => { load(); }, []);
 
-  const handleSave = async (form: any) => {
+  const handleSave = async (form: typeof BLANK) => {
     setSaving(true); setError('');
     try {
       if (editing) await ShiftAPI.update(editing.id, form);
       else         await ShiftAPI.create(form);
       setShowForm(false); setEditing(null); load();
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'Failed to save shift.');
+    } catch {
+      setError('Failed to save shift.');
     } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this shift? If it has assignments it will be deactivated instead.')) return;
     try { await ShiftAPI.delete(id); load(); }
-    catch (e: any) { setError(e.response?.data?.message || 'Failed.'); }
+    catch { setError('Failed.'); }
   };
 
   const fmt = (t: string) => {

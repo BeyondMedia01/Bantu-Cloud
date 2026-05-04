@@ -56,7 +56,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
     }
   };
 
-  const PermissionTag = ({ active, label, icon: Icon }: { active: boolean, label: string, icon: any }) => (
+  const PermissionTag = ({ active, label, icon: Icon }: { active: boolean, label: string, icon: React.ElementType }) => (
     <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-tight ${active ? 'bg-emerald-50 text-accent-green border-emerald-100' : 'bg-muted text-muted-foreground border-border opacity-50'}`}>
         <Icon size={12} />
         {label}

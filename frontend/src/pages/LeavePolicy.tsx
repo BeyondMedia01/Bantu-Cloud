@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash, Shield, Loader, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { LeavePolicyAPI } from '../api/client';
+import type { LeavePolicy as LeavePolicyType } from '../types/domain';
 import ConfirmModal from '../components/common/ConfirmModal';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'MEDICAL_AID', 'OTHER'];
@@ -18,7 +19,7 @@ const EMPTY_FORM = {
 };
 
 const LeavePolicy: React.FC = () => {
-  const [policies, setPolicies] = useState<any[]>([]);
+  const [policies, setPolicies] = useState<LeavePolicyType[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [editId, setEditId] = useState<string | null>(null);
@@ -44,7 +45,7 @@ const LeavePolicy: React.FC = () => {
     setShowForm(true);
   };
 
-  const openEdit = (p: any) => {
+  const openEdit = (p: LeavePolicyType) => {
     setForm({
       leaveType: p.leaveType,
       accrualRate: String(p.accrualRate),
@@ -77,8 +78,8 @@ const LeavePolicy: React.FC = () => {
       }
       setShowForm(false);
       load();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save policy');
+    } catch {
+      setError('Failed to save policy');
     } finally {
       setSaving(false);
     }
@@ -91,8 +92,8 @@ const LeavePolicy: React.FC = () => {
     try {
       await LeavePolicyAPI.delete(deleteTarget);
       load();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete policy');
+    } catch {
+      setError('Failed to delete policy');
     } finally {
       setDeleteTarget(null);
     }
@@ -138,7 +139,7 @@ const LeavePolicy: React.FC = () => {
                   <span>{fmtType(form.leaveType)}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
-              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setForm((p: any) => ({ ...p, leaveType: t })) })) }]} />
+              )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setForm((p) => ({ ...p, leaveType: t })) })) }]} />
             </div>
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Accrual Rate (days/month)</label>
@@ -200,7 +201,7 @@ const LeavePolicy: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {policies.map((p: any) => (
+              {policies.map((p) => (
                 <tr key={p.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-5 py-4">
                     <span className="font-bold text-sm">{fmtType(p.leaveType)}</span>

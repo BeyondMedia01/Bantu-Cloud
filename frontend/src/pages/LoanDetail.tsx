@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader, CheckCircle2, Clock } from 'lucide-react';
 import { LoanAPI } from '../api/client';
+import type { Loan, LoanRepayment } from '../types/domain';
 
 const LoanDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [loan, setLoan] = useState<any>(null);
-  const [repayments, setRepayments] = useState<any[]>([]);
+  const [loan, setLoan] = useState<Loan | null>(null);
+  const [repayments, setRepayments] = useState<LoanRepayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState('');
 
@@ -26,8 +27,8 @@ const LoanDetail: React.FC = () => {
     try {
       await LoanAPI.markRepaymentPaid(repaymentId);
       load();
-    } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Failed to mark repayment as paid');
+    } catch {
+      setActionError('Failed to mark repayment as paid');
     }
   };
 
@@ -39,7 +40,7 @@ const LoanDetail: React.FC = () => {
 
   if (!loan) return <div className="text-muted-foreground text-center py-16">Loan not found</div>;
 
-  const paid = repayments.filter((r) => r.status === 'PAID').reduce((s: number, r: any) => s + r.amount, 0);
+  const paid = repayments.filter((r) => r.status === 'PAID').reduce((s: number, r) => s + r.amount, 0);
   const outstanding = loan.amount - paid;
 
   return (
@@ -107,7 +108,7 @@ const LoanDetail: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {repayments.map((r: any, i: number) => (
+            {repayments.map((r, i) => (
               <tr key={r.id} className={r.status === 'PAID' ? 'opacity-60' : ''}>
                 <td className="px-4 py-3 text-sm font-bold text-muted-foreground">{i + 1}</td>
                 <td className="px-4 py-3 text-sm">{new Date(r.dueDate).toLocaleDateString()}</td>

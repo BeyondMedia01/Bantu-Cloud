@@ -1,5 +1,13 @@
 import axios from 'axios';
 import type { PaginatedResponse, Branch, Department } from '../types/common';
+import type {
+  TaxBand, SubCompany, Grade, NecTable, NecGrade, TaxTable, TaxBracket,
+  TransactionCode, TransactionRule, PayrollRun, Payslip, PayrollInput,
+  LeaveRecord, LeaveRequest, LeavePolicy, LeaveBalance, LeaveEncashment,
+  Loan, LoanRepayment, Shift, RosterEntry, AttendanceLog, AttendanceSummary,
+  Device, SystemSetting, PayrollLog, PayrollUser, NSSAContribution,
+  SalaryStructure, Document,
+} from '../types/domain';
 
 if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
   throw new Error(
@@ -199,9 +207,9 @@ export const DepartmentAPI = {
 };
 
 export const SubCompanyAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/sub-companies', { params }),
-  create: (data: any) => api.post('/sub-companies', data),
-  update: (id: string, data: any) => api.put(`/sub-companies/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<SubCompany[]>('/sub-companies', { params }),
+  create: (data: Partial<SubCompany>) => api.post<SubCompany>('/sub-companies', data),
+  update: (id: string, data: Partial<SubCompany>) => api.put<SubCompany>(`/sub-companies/${id}`, data),
   delete: (id: string) => api.delete(`/sub-companies/${id}`),
 };
 
@@ -227,12 +235,12 @@ export const EmployeeAPI = {
 
 export const EmployeeSalaryStructureAPI = {
   getAll: (empId: string, active?: boolean) =>
-    api.get<any[]>(`/employees/${empId}/salary-structure`, {
+    api.get<SalaryStructure[]>(`/employees/${empId}/salary-structure`, {
       params: active !== undefined ? { active: String(active) } : {},
     }),
-  create: (empId: string, data: any) => api.post(`/employees/${empId}/salary-structure`, data),
-  update: (empId: string, id: string, data: any) =>
-    api.put(`/employees/${empId}/salary-structure/${id}`, data),
+  create: (empId: string, data: Partial<SalaryStructure>) => api.post<SalaryStructure>(`/employees/${empId}/salary-structure`, data),
+  update: (empId: string, id: string, data: Partial<SalaryStructure>) =>
+    api.put<SalaryStructure>(`/employees/${empId}/salary-structure/${id}`, data),
   endDate: (empId: string, id: string) =>
     api.delete(`/employees/${empId}/salary-structure/${id}?endDate=true`),
   delete: (empId: string, id: string) =>
@@ -249,15 +257,15 @@ export const EmployeeSelfAPI = {
 // ─── Payroll ──────────────────────────────────────────────────────────────────
 
 export const PayrollAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/payroll', { params }), // Backend returns plain array
-  getById: (id: string) => api.get<any>(`/payroll/${id}`),
-  create: (data: any) => api.post('/payroll', data),
-  update: (id: string, data: any) => api.put(`/payroll/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<PayrollRun[]>('/payroll', { params }),
+  getById: (id: string) => api.get<PayrollRun>(`/payroll/${id}`),
+  create: (data: Partial<PayrollRun>) => api.post<PayrollRun>('/payroll', data),
+  update: (id: string, data: Partial<PayrollRun>) => api.put<PayrollRun>(`/payroll/${id}`, data),
   delete: (id: string) => api.delete(`/payroll/${id}`),
   submit: (runId: string) => api.post(`/payroll/${runId}/submit`),
   approve: (runId: string) => api.post(`/payroll/${runId}/approve`),
   process: (runId: string) => api.post(`/payroll/${runId}/process`),
-  getPayslips: (runId: string) => api.get<any[]>(`/payroll/${runId}/payslips`),
+  getPayslips: (runId: string) => api.get<Payslip[]>(`/payroll/${runId}/payslips`),
   exportCsv: (runId: string) =>
     api.get(`/payroll/${runId}/export`, { responseType: 'blob' }),
   downloadSummaryPdf: (runId: string) =>
@@ -289,8 +297,8 @@ export const BankFileAPI = {
 };
 
 export const PayslipAPI = {
-  getAll: (params?: Record<string, string>) => api.get<PaginatedResponse<any>>('/payslips', { params }), // Paginated
-  getById: (id: string) => api.get<any>(`/payslips/${id}`),
+  getAll: (params?: Record<string, string>) => api.get<PaginatedResponse<Payslip>>('/payslips', { params }),
+  getById: (id: string) => api.get<Payslip>(`/payslips/${id}`),
 };
 
 export const PayrollCalendarAPI = {
@@ -303,9 +311,9 @@ export const PayrollCalendarAPI = {
 };
 
 export const PayrollInputAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/payroll-inputs', { params }),
-  create: (data: any) => api.post('/payroll-inputs', data),
-  update: (id: string, data: any) => api.put(`/payroll-inputs/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<PayrollInput[]>('/payroll-inputs', { params }),
+  create: (data: Partial<PayrollInput>) => api.post<PayrollInput>('/payroll-inputs', data),
+  update: (id: string, data: Partial<PayrollInput>) => api.put<PayrollInput>(`/payroll-inputs/${id}`, data),
   delete: (id: string) => api.delete(`/payroll-inputs/${id}`),
   clearProcessed: () => api.delete('/payroll-inputs/processed'),
   importBulk: (file: File, period?: string) => {
@@ -319,34 +327,33 @@ export const PayrollInputAPI = {
 };
 
 export const TransactionCodeAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/transaction-codes', { params }),
-  getById: (id: string) => api.get(`/transaction-codes/${id}`),
-  create: (data: any) => api.post('/transaction-codes', data),
-  update: (id: string, data: any) => api.put(`/transaction-codes/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<TransactionCode[]>('/transaction-codes', { params }),
+  getById: (id: string) => api.get<TransactionCode>(`/transaction-codes/${id}`),
+  create: (data: Partial<TransactionCode>) => api.post<TransactionCode>('/transaction-codes', data),
+  update: (id: string, data: Partial<TransactionCode>) => api.put<TransactionCode>(`/transaction-codes/${id}`, data),
   delete: (id: string) => api.delete(`/transaction-codes/${id}`),
-  import: (rows: any[]) => api.post('/transactions/import', { rows }),
-  // Rules sub-resource
-  getRules: (id: string) => api.get<any[]>(`/transaction-codes/${id}/rules`),
-  createRule: (id: string, data: any) => api.post(`/transaction-codes/${id}/rules`, data),
-  updateRule: (tcId: string, ruleId: string, data: any) => api.put(`/transaction-codes/${tcId}/rules/${ruleId}`, data),
+  import: (rows: Partial<TransactionCode>[]) => api.post('/transactions/import', { rows }),
+  getRules: (id: string) => api.get<TransactionRule[]>(`/transaction-codes/${id}/rules`),
+  createRule: (id: string, data: Partial<TransactionRule>) => api.post<TransactionRule>(`/transaction-codes/${id}/rules`, data),
+  updateRule: (tcId: string, ruleId: string, data: Partial<TransactionRule>) => api.put<TransactionRule>(`/transaction-codes/${tcId}/rules/${ruleId}`, data),
   deleteRule: (tcId: string, ruleId: string) => api.delete(`/transaction-codes/${tcId}/rules/${ruleId}`),
   tarmsCheck: () => api.get('/transaction-codes/tarms-check'),
 };
 
 export const TaxTableAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/tax-tables', { params }),
-  getById: (id: string) => api.get(`/tax-tables/${id}`),
-  create: (data: any) => api.post('/tax-tables', data),
-  update: (id: string, data: any) => api.put(`/tax-tables/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<TaxTable[]>('/tax-tables', { params }),
+  getById: (id: string) => api.get<TaxTable>(`/tax-tables/${id}`),
+  create: (data: Partial<TaxTable>) => api.post<TaxTable>('/tax-tables', data),
+  update: (id: string, data: Partial<TaxTable>) => api.put<TaxTable>(`/tax-tables/${id}`, data),
   delete: (id: string) => api.delete(`/tax-tables/${id}`),
-  getBrackets: (id: string) => api.get(`/tax-tables/${id}/brackets`),
-  createBracket: (id: string, data: any) => api.post(`/tax-tables/${id}/brackets`, data),
-  updateBracket: (tableId: string, bracketId: string, data: any) =>
-    api.put(`/tax-tables/${tableId}/brackets/${bracketId}`, data),
+  getBrackets: (id: string) => api.get<TaxBracket[]>(`/tax-tables/${id}/brackets`),
+  createBracket: (id: string, data: Partial<TaxBracket>) => api.post<TaxBracket>(`/tax-tables/${id}/brackets`, data),
+  updateBracket: (tableId: string, bracketId: string, data: Partial<TaxBracket>) =>
+    api.put<TaxBracket>(`/tax-tables/${tableId}/brackets/${bracketId}`, data),
   deleteBracket: (tableId: string, bracketId: string) =>
     api.delete(`/tax-tables/${tableId}/brackets/${bracketId}`),
   activate: (id: string) => api.patch(`/tax-tables/${id}/activate`),
-  replaceBrackets: (id: string, brackets: any[]) =>
+  replaceBrackets: (id: string, brackets: Partial<TaxBracket>[]) =>
     api.post(`/tax-tables/${id}/brackets/replace`, { brackets }),
   upload: (id: string, file: File) => {
     const form = new FormData();
@@ -356,28 +363,28 @@ export const TaxTableAPI = {
 };
 
 export const SystemSettingsAPI = {
-  seed: () => api.get<{ message: string; settings: any[] }>('/seed-settings'),
-  getAll: () => api.get<any[]>('/system-settings'),
-  create: (data: any) => api.post('/system-settings', data),
-  update: (id: string, data: any) => api.patch(`/system-settings/${id}`, data),
+  seed: () => api.get<{ message: string; settings: SystemSetting[] }>('/seed-settings'),
+  getAll: () => api.get<SystemSetting[]>('/system-settings'),
+  create: (data: Partial<SystemSetting>) => api.post<SystemSetting>('/system-settings', data),
+  update: (id: string, data: Partial<SystemSetting>) => api.patch<SystemSetting>(`/system-settings/${id}`, data),
   delete: (id: string) => api.delete(`/system-settings/${id}`),
 };
 
 export const GradeAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/grades', { params }),
-  getById: (id: string) => api.get(`/grades/${id}`),
-  create: (data: any) => api.post('/grades', data),
-  update: (id: string, data: any) => api.put(`/grades/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<Grade[]>('/grades', { params }),
+  getById: (id: string) => api.get<Grade>(`/grades/${id}`),
+  create: (data: Partial<Grade>) => api.post<Grade>('/grades', data),
+  update: (id: string, data: Partial<Grade>) => api.put<Grade>(`/grades/${id}`, data),
   delete: (id: string) => api.delete(`/grades/${id}`),
 };
 
 // ─── Leave ────────────────────────────────────────────────────────────────────
 
 export const LeaveAPI = {
-  getAll: (params?: Record<string, string>) => api.get<{ records: any[]; requests: any[] }>('/leave', { params }), // Special Case
-  getById: (id: string) => api.get(`/leave/${id}`),
-  create: (data: any) => api.post('/leave', data),
-  update: (id: string, data: any) => api.put(`/leave/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<{ records: LeaveRecord[]; requests: LeaveRequest[] }>('/leave', { params }),
+  getById: (id: string) => api.get<LeaveRecord>(`/leave/${id}`),
+  create: (data: Partial<LeaveRecord>) => api.post<LeaveRecord>('/leave', data),
+  update: (id: string, data: Partial<LeaveRecord>) => api.put<LeaveRecord>(`/leave/${id}`, data),
   delete: (id: string) => api.delete(`/leave/${id}`),
   approve: (id: string, note?: string) => api.put(`/leave/request/${id}/approve`, { note }),
   reject: (id: string, note?: string) => api.put(`/leave/request/${id}/reject`, { note }),
@@ -386,18 +393,18 @@ export const LeaveAPI = {
 // ─── Leave Policies ───────────────────────────────────────────────────────────
 
 export const LeavePolicyAPI = {
-  getAll: () => api.get<any[]>('/leave-policies'),
-  create: (data: any) => api.post('/leave-policies', data),
-  update: (id: string, data: any) => api.put(`/leave-policies/${id}`, data),
+  getAll: () => api.get<LeavePolicy[]>('/leave-policies'),
+  create: (data: Partial<LeavePolicy>) => api.post<LeavePolicy>('/leave-policies', data),
+  update: (id: string, data: Partial<LeavePolicy>) => api.put<LeavePolicy>(`/leave-policies/${id}`, data),
   delete: (id: string) => api.delete(`/leave-policies/${id}`),
 };
 
 // ─── Leave Balances ───────────────────────────────────────────────────────────
 
 export const LeaveBalanceAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/leave-balances', { params }),
+  getAll: (params?: Record<string, string>) => api.get<LeaveBalance[]>('/leave-balances', { params }),
   getForEmployee: (employeeId: string, year?: number) =>
-    api.get<any[]>(`/leave-balances/${employeeId}`, { params: year ? { year: String(year) } : undefined }),
+    api.get<LeaveBalance[]>(`/leave-balances/${employeeId}`, { params: year ? { year: String(year) } : undefined }),
   runAccrual: () => api.post('/leave-balances/accrue'),
   runYearEnd: (year?: number) => api.post('/leave-balances/year-end', { year }),
   adjust: (id: string, adjustment: number, note?: string) =>
@@ -407,8 +414,8 @@ export const LeaveBalanceAPI = {
 // ─── Leave Encashments ────────────────────────────────────────────────────────
 
 export const LeaveEncashmentAPI = {
-  getAll: () => api.get<any[]>('/leave-encashments'),
-  create: (data: any) => api.post('/leave-encashments', data),
+  getAll: () => api.get<LeaveEncashment[]>('/leave-encashments'),
+  create: (data: Partial<LeaveEncashment>) => api.post<LeaveEncashment>('/leave-encashments', data),
   approve: (id: string) => api.put(`/leave-encashments/${id}/approve`),
   reject: (id: string, reason?: string) => api.put(`/leave-encashments/${id}/reject`, { reason }),
   process: (id: string) => api.post(`/leave-encashments/${id}/process`),
@@ -417,12 +424,12 @@ export const LeaveEncashmentAPI = {
 // ─── Loans ────────────────────────────────────────────────────────────────────
 
 export const LoanAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/loans', { params }),
-  getById: (id: string) => api.get(`/loans/${id}`),
-  create: (data: any) => api.post('/loans', data),
-  update: (id: string, data: any) => api.put(`/loans/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<Loan[]>('/loans', { params }),
+  getById: (id: string) => api.get<Loan>(`/loans/${id}`),
+  create: (data: Partial<Loan>) => api.post<Loan>('/loans', data),
+  update: (id: string, data: Partial<Loan>) => api.put<Loan>(`/loans/${id}`, data),
   delete: (id: string) => api.delete(`/loans/${id}`),
-  getRepayments: (id: string) => api.get(`/loans/${id}/repayments`),
+  getRepayments: (id: string) => api.get<LoanRepayment[]>(`/loans/${id}/repayments`),
   markRepaymentPaid: (repaymentId: string) =>
     api.patch(`/loans/repayments/${repaymentId}`),
 };
@@ -550,15 +557,15 @@ export const CurrencyRateAPI = {
 // ─── NEC Tables ───────────────────────────────────────────────────────────────
 
 export const NecTableAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/nec-tables', { params }),
-  create: (data: any) => api.post('/nec-tables', data),
-  getById: (id: string) => api.get<any>(`/nec-tables/${id}`),
-  update: (id: string, data: any) => api.put(`/nec-tables/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<NecTable[]>('/nec-tables', { params }),
+  create: (data: Partial<NecTable>) => api.post<NecTable>('/nec-tables', data),
+  getById: (id: string) => api.get<NecTable>(`/nec-tables/${id}`),
+  update: (id: string, data: Partial<NecTable>) => api.put<NecTable>(`/nec-tables/${id}`, data),
   delete: (id: string) => api.delete(`/nec-tables/${id}`),
-  getGrades: (tableId: string) => api.get<any[]>(`/nec-tables/${tableId}/grades`),
-  createGrade: (tableId: string, data: any) => api.post(`/nec-tables/${tableId}/grades`, data),
-  updateGrade: (tableId: string, gradeId: string, data: any) =>
-    api.put(`/nec-tables/${tableId}/grades/${gradeId}`, data),
+  getGrades: (tableId: string) => api.get<NecGrade[]>(`/nec-tables/${tableId}/grades`),
+  createGrade: (tableId: string, data: Partial<NecGrade>) => api.post<NecGrade>(`/nec-tables/${tableId}/grades`, data),
+  updateGrade: (tableId: string, gradeId: string, data: Partial<NecGrade>) =>
+    api.put<NecGrade>(`/nec-tables/${tableId}/grades/${gradeId}`, data),
   deleteGrade: (tableId: string, gradeId: string) =>
     api.delete(`/nec-tables/${tableId}/grades/${gradeId}`),
 };
@@ -598,36 +605,36 @@ export const IntelligenceAPI = {
 // ─── Shifts ───────────────────────────────────────────────────────────────────
 
 export const ShiftAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/shifts', { params }),
-  getById: (id: string) => api.get<any>(`/shifts/${id}`),
-  create: (data: any) => api.post('/shifts', data),
-  update: (id: string, data: any) => api.put(`/shifts/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<Shift[]>('/shifts', { params }),
+  getById: (id: string) => api.get<Shift>(`/shifts/${id}`),
+  create: (data: Partial<Shift>) => api.post<Shift>('/shifts', data),
+  update: (id: string, data: Partial<Shift>) => api.put<Shift>(`/shifts/${id}`, data),
   delete: (id: string) => api.delete(`/shifts/${id}`),
 };
 
 // ─── Roster ───────────────────────────────────────────────────────────────────
 
 export const RosterAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/roster', { params }),
+  getAll: (params?: Record<string, string>) => api.get<RosterEntry[]>('/roster', { params }),
   getCalendar: (startDate: string, endDate: string) =>
-    api.get<any>('/roster/calendar', { params: { startDate, endDate } }),
+    api.get<Record<string, RosterEntry[]>>('/roster/calendar', { params: { startDate, endDate } }),
   assign: (data: { employeeIds: string[]; shiftId: string; startDate: string; endDate?: string; daysOfWeek?: number[]; notes?: string }) =>
     api.post('/roster', data),
-  update: (id: string, data: any) => api.put(`/roster/${id}`, data),
+  update: (id: string, data: Partial<RosterEntry>) => api.put<RosterEntry>(`/roster/${id}`, data),
   delete: (id: string) => api.delete(`/roster/${id}`),
 };
 
 // ─── Attendance ───────────────────────────────────────────────────────────────
 
 export const AttendanceAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any>('/attendance', { params }),
-  getLogs: (params?: Record<string, string>) => api.get<any>('/attendance/logs', { params }),
+  getAll: (params?: Record<string, string>) => api.get<{ logs: AttendanceLog[]; total: number }>('/attendance', { params }),
+  getLogs: (params?: Record<string, string>) => api.get<{ logs: AttendanceLog[]; total: number }>('/attendance/logs', { params }),
   getSummary: (startDate: string, endDate: string) =>
-    api.get<any[]>('/attendance/summary', { params: { startDate, endDate } }),
+    api.get<AttendanceSummary[]>('/attendance/summary', { params: { startDate, endDate } }),
   process: (data: { startDate: string; endDate: string; employeeIds?: string[] }) =>
     api.post('/attendance/process', data),
-  manual: (data: any) => api.post('/attendance/manual', data),
-  update: (id: string, data: any) => api.put(`/attendance/${id}`, data),
+  manual: (data: Partial<AttendanceLog>) => api.post<AttendanceLog>('/attendance/manual', data),
+  update: (id: string, data: Partial<AttendanceLog>) => api.put<AttendanceLog>(`/attendance/${id}`, data),
     generateInputs: (data: {
     startDate: string; endDate: string; period: string;
     normalTcId?: string; ot0TcId?: string; ot1TcId?: string; ot2TcId?: string;
@@ -638,12 +645,12 @@ export const AttendanceAPI = {
 // ─── Biometric Devices ────────────────────────────────────────────────────────
 
 export const DeviceAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/devices', { params }),
-  getById: (id: string) => api.get<any>(`/devices/${id}`),
-  create: (data: any) => api.post('/devices', data),
-  update: (id: string, data: any) => api.put(`/devices/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<Device[]>('/devices', { params }),
+  getById: (id: string) => api.get<Device>(`/devices/${id}`),
+  create: (data: Partial<Device>) => api.post<Device>('/devices', data),
+  update: (id: string, data: Partial<Device>) => api.put<Device>(`/devices/${id}`, data),
   delete: (id: string) => api.delete(`/devices/${id}`),
-  sync: (id: string, data?: any) => api.post(`/devices/${id}/sync`, data),
+  sync: (id: string, data?: Record<string, unknown>) => api.post(`/devices/${id}/sync`, data),
   test: (id: string) => api.post(`/devices/${id}/test`),
 };
 
@@ -666,23 +673,23 @@ export const AuditLogAPI = {
 };
 
 export const NSSAContributionAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/nssa-contributions', { params }),
-  getById: (id: string) => api.get<any>(`/nssa-contributions/${id}`),
-  create: (data: any) => api.post('/nssa-contributions', data),
-  update: (id: string, data: any) => api.put(`/nssa-contributions/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<NSSAContribution[]>('/nssa-contributions', { params }),
+  getById: (id: string) => api.get<NSSAContribution>(`/nssa-contributions/${id}`),
+  create: (data: Partial<NSSAContribution>) => api.post<NSSAContribution>('/nssa-contributions', data),
+  update: (id: string, data: Partial<NSSAContribution>) => api.put<NSSAContribution>(`/nssa-contributions/${id}`, data),
   delete: (id: string) => api.delete(`/nssa-contributions/${id}`),
 };
 
 export const PayrollLogAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/payroll-logs', { params }),
-  getById: (id: string) => api.get<any>(`/payroll-logs/${id}`),
+  getAll: (params?: Record<string, string>) => api.get<PayrollLog[]>('/payroll-logs', { params }),
+  getById: (id: string) => api.get<PayrollLog>(`/payroll-logs/${id}`),
 };
 
 export const PayrollUserAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/payroll-users', { params }),
-  getById: (id: string) => api.get<any>(`/payroll-users/${id}`),
-  create: (data: any) => api.post('/payroll-users', data),
-  update: (id: string, data: any) => api.put(`/payroll-users/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<PayrollUser[]>('/payroll-users', { params }),
+  getById: (id: string) => api.get<PayrollUser>(`/payroll-users/${id}`),
+  create: (data: Partial<PayrollUser>) => api.post<PayrollUser>('/payroll-users', data),
+  update: (id: string, data: Partial<PayrollUser>) => api.put<PayrollUser>(`/payroll-users/${id}`, data),
   delete: (id: string) => api.delete(`/payroll-users/${id}`),
 };
 
@@ -710,10 +717,10 @@ export const PayslipTransactionAPI = {
 };
 
 export const TaxBandAPI = {
-  getAll: (params?: Record<string, string>) => api.get<any[]>('/tax-bands', { params }),
-  getById: (id: string) => api.get<any>(`/tax-bands/${id}`),
-  create: (data: any) => api.post('/tax-bands', data),
-  update: (id: string, data: any) => api.put(`/tax-bands/${id}`, data),
+  getAll: (params?: Record<string, string>) => api.get<TaxBand[]>('/tax-bands', { params }),
+  getById: (id: string) => api.get<TaxBand>(`/tax-bands/${id}`),
+  create: (data: Partial<TaxBand>) => api.post<TaxBand>('/tax-bands', data),
+  update: (id: string, data: Partial<TaxBand>) => api.put<TaxBand>(`/tax-bands/${id}`, data),
   delete: (id: string) => api.delete(`/tax-bands/${id}`),
 };
 

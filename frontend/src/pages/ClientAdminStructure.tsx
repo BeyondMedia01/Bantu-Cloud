@@ -60,7 +60,7 @@ const ClientAdminStructure: React.FC = () => {
       setEditing(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 5000);
-    } catch (err: any) {
+    } catch {
       setSaveError(err.response?.data?.message || 'Failed to save changes.');
     } finally {
       setProfileSaving(false);
@@ -117,7 +117,7 @@ const ClientAdminStructure: React.FC = () => {
       setShowForm(false);
       setFormData({});
       loadAll();
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to create');
     } finally {
       setSaving(false);
@@ -209,7 +209,7 @@ const ClientAdminStructure: React.FC = () => {
                   <input
                     type={type || 'text'}
                     value={form[key] || ''}
-                    onChange={(e) => setForm((p: any) => ({ ...p, [key]: e.target.value }))}
+                    onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
                     required={required}
                     className={inputCls}
                   />
@@ -306,7 +306,7 @@ const ClientAdminStructure: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {items.map((item: any) => (
+                {items.map((item: Record<string, unknown>) => (
                   <tr key={item.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-bold text-sm">{item.name}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{item.description || '—'}</td>

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Loader, Banknote, CheckCircle2, XCircle, Zap, Clock, AlertCircle, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveEncashmentAPI, EmployeeAPI, LeaveBalanceAPI } from '../api/client';
+import type { LeaveEncashment, LeaveBalance } from '../api/client';
+import type { Employee } from '../types/employee';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
 import { useEscapeKey } from '../hooks/useEscapeKey';
@@ -18,9 +20,9 @@ const STATUS_STYLE: Record<string, string> = {
 
 const LeaveEncashments: React.FC = () => {
   const { showToast } = useToast();
-  const [encashments, setEncashments] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [balances, setBalances] = useState<any[]>([]);
+  const [encashments, setEncashments] = useState<LeaveEncashment[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
@@ -72,7 +74,7 @@ const LeaveEncashments: React.FC = () => {
     }
   }, [form.employeeId]);
 
-  const selectedBalance = balances.find((b: any) => b.leaveType === form.leaveType);
+  const selectedBalance = balances.find((b: LeaveBalance) => b.leaveType === form.leaveType);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,8 +91,8 @@ const LeaveEncashments: React.FC = () => {
       setForm({ employeeId: '', leaveType: 'ANNUAL', days: '', notes: '' });
       showToast('Encashment request submitted', 'success');
       load();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to submit encashment');
+    } catch {
+      setError('Failed to submit encashment');
     } finally {
       setSaving(false);
     }
@@ -102,8 +104,8 @@ const LeaveEncashments: React.FC = () => {
       await LeaveEncashmentAPI.approve(id);
       showToast('Encashment approved', 'success');
       load();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to approve', 'error');
+    } catch {
+      showToast('Failed to approve', 'error');
     } finally {
       setActionLoading('');
     }
@@ -118,8 +120,8 @@ const LeaveEncashments: React.FC = () => {
       await LeaveEncashmentAPI.reject(id, rejectReason);
       showToast('Encashment rejected and balance restored', 'success');
       load();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to reject', 'error');
+    } catch {
+      showToast('Failed to reject', 'error');
     } finally {
       setActionLoading('');
       setRejectReason('');
@@ -135,8 +137,8 @@ const LeaveEncashments: React.FC = () => {
       await LeaveEncashmentAPI.process(id);
       showToast('Encashment processed — a payroll input has been created for the next run', 'success');
       load();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to process', 'error');
+    } catch {
+      showToast('Failed to process', 'error');
     } finally {
       setActionLoading('');
     }
@@ -210,12 +212,12 @@ const LeaveEncashments: React.FC = () => {
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Employee <span className="text-red-400">*</span></label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
-                  <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee…'}</span>
+                  <span className="truncate">{employees.find((e: Employee) => e.id === form.employeeId) ? `${employees.find((e: Employee) => e.id === form.employeeId).firstName} ${employees.find((e: Employee) => e.id === form.employeeId).lastName}` : 'Select employee…'}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'Select employee…', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
-                ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
+                ...employees.map((e: Employee) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
               ], emptyMessage: 'No employees found' }]} />
             </div>
             <div>
@@ -286,7 +288,7 @@ const LeaveEncashments: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {encashments.map((enc: any) => (
+                {encashments.map((enc: LeaveEncashment) => (
                   <tr key={enc.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-5 py-4">
                       <p className="text-sm font-bold">{enc.employee?.firstName} {enc.employee?.lastName}</p>

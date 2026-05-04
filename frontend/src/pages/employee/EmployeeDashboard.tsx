@@ -116,7 +116,7 @@ const EmployeeDashboard: React.FC = () => {
             <button onClick={() => navigate('/employee/payslips')} className="text-xs font-bold text-accent-green hover:underline">View All</button>
           </div>
           <div className="divide-y divide-border">
-            {payslips.map((p: any) => (
+            {payslips.map((p) => (
               <div key={p.id} className="px-4 py-3 flex items-center justify-between">
                 <div>
                   <p className="font-bold text-sm">

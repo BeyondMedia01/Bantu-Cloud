@@ -4,6 +4,7 @@ import { Plus, ChevronRight, Banknote } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { LoanAPI } from '../api/client';
+import type { Loan } from '../api/client';
 import { useToast } from '../context/ToastContext';
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -19,7 +20,7 @@ const statusColor: Record<string, string> = {
 const Loans: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [loans, setLoans] = useState<any[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
 
@@ -91,7 +92,7 @@ const Loans: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((loan: any) => (
+              {filtered.map((loan: Loan) => (
                 <tr key={loan.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
                   <td className="px-4 py-3">
                     <p className="font-bold text-sm">{loan.employee?.firstName} {loan.employee?.lastName}</p>

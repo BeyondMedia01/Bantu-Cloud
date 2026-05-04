@@ -52,7 +52,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       setIsModalOpen(false);
       setForm({ toCurrency: 'ZiG', rate: '', effectiveDate: new Date().toISOString().slice(0, 10), source: 'RBZ', notes: '' });
       fetchRates();
-    } catch (err: any) {
+    } catch {
       setFormError(err.response?.data?.message || 'Failed to save rate.');
     } finally {
       setSaving(false);

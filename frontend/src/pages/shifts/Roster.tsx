@@ -2,6 +2,16 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X, Calendar, Users, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { RosterAPI, ShiftAPI, EmployeeAPI } from '../../api/client';
+import type { Shift, RosterEntry } from '../../types/domain';
+import type { Employee } from '../../types/employee';
+
+interface RosterCell {
+  assignmentId: string;
+  shiftName?: string;
+  code?: string;
+}
+
+type RosterGrid = Record<string, Record<string, RosterCell>>;
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -32,12 +42,12 @@ function shiftColor(code: string) {
 }
 
 const AssignModal: React.FC<{
-  employees: any[];
-  shifts: any[];
+  employees: Employee[];
+  shifts: Shift[];
   selectedEmp: string | null;
   selectedDate: string | null;
   onClose: () => void;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: Partial<RosterEntry> & { daysOfWeek: string }) => Promise<void>;
 }> = ({ employees, shifts, selectedEmp, selectedDate, onClose, onSave }) => {
   const [form, setForm] = useState({
     employeeId: selectedEmp || '',
@@ -66,8 +76,8 @@ const AssignModal: React.FC<{
     try {
       await onSave({ ...form, daysOfWeek: JSON.stringify(form.daysOfWeek) });
       onClose();
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'Failed to save assignment.');
+    } catch {
+      setError('Failed to save assignment.');
     } finally {
       setSaving(false);
     }
@@ -173,9 +183,9 @@ const Roster: React.FC = () => {
     return d;
   });
 
-  const [grid, setGrid] = useState<any>({});
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [shifts, setShifts] = useState<any[]>([]);
+  const [grid, setGrid] = useState<RosterGrid>({});
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState<string | null>(null);
@@ -209,7 +219,7 @@ const Roster: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleAssign = async (data: any) => {
+  const handleAssign = async (data: Partial<RosterEntry> & { daysOfWeek: string }) => {
     await RosterAPI.assign(data);
     load();
   };
@@ -219,8 +229,8 @@ const Roster: React.FC = () => {
     try {
       await RosterAPI.delete(assignmentId);
       load();
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'Failed.');
+    } catch {
+      setError('Failed.');
     }
   };
 

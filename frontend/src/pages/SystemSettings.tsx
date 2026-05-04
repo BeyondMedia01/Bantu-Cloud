@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Save, Edit, Type, Hash, ToggleLeft, Calendar, Info, Clock, AlertCircle, XCircle } from 'lucide-react';
 import { SystemSettingsAPI } from '../api/client';
+import type { SystemSetting } from '../types/domain';
 import { useToast } from '../context/ToastContext';
 
 const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
@@ -29,7 +30,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
     }
   }, [activeCompanyId]);
 
-  const handleUpdate = async (id: string, newValues: any) => {
+  const handleUpdate = async (id: string, newValues: Partial<SystemSetting>) => {
     try {
       await SystemSettingsAPI.update(id, newValues);
       setEditingId(null);
@@ -53,7 +54,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
     }
   };
 
-  const renderValueInput = (setting: any) => {
+  const renderValueInput = (setting: SystemSetting) => {
     if (setting.dataType === 'BOOLEAN') {
       return (
         <label className="relative inline-flex items-center cursor-pointer">
@@ -79,7 +80,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
     );
   };
 
-  const renderValueDisplay = (setting: any) => {
+  const renderValueDisplay = (setting: SystemSetting) => {
     if (setting.dataType === 'BOOLEAN') {
       const isTrue = setting.settingValue === 'true';
       return (

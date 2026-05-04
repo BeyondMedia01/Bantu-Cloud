@@ -284,13 +284,13 @@ const Reports: React.FC = () => {
                 <Dropdown
                   trigger={(isOpen) => (
                     <button type="button" className="flex items-center gap-1.5 bg-muted border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-green transition-colors max-w-[170px]">
-                      <span className="truncate">{runs.find((r: any) => r.id === selectedRunId) ? `${fmtDate(runs.find((r: any) => r.id === selectedRunId).startDate)} – ${fmtDate(runs.find((r: any) => r.id === selectedRunId).endDate)}` : 'Select Run...'}</span>
+                      <span className="truncate">{runs.find((r) => r.id === selectedRunId) ? `${fmtDate(runs.find((r) => r.id === selectedRunId).startDate)} – ${fmtDate(runs.find((r) => r.id === selectedRunId).endDate)}` : 'Select Run...'}</span>
                       <ChevronDown size={12} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                   )}
                   sections={[{ items: [
                     { label: 'Select Run...', onClick: () => setSelectedRunId('') },
-                    ...runs.map((r: any) => ({ label: `${fmtDate(r.startDate)} – ${fmtDate(r.endDate)}`, onClick: () => setSelectedRunId(r.id) })),
+                    ...runs.map((r) => ({ label: `${fmtDate(r.startDate)} – ${fmtDate(r.endDate)}`, onClick: () => setSelectedRunId(r.id) })),
                   ], emptyMessage: 'No runs available' }]}
                 />
               </div>

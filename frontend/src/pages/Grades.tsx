@@ -69,7 +69,7 @@ const Grades: React.FC = () => {
       setEditId(null);
       setForm(emptyForm());
       load();
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to save grade.');
     } finally {
       setSaving(false);
@@ -100,7 +100,7 @@ const Grades: React.FC = () => {
       await GradeAPI.delete(g.id);
       setConfirmDelete(null);
       load();
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to delete grade.');
       setConfirmDelete(null);
     }

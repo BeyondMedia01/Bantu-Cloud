@@ -30,16 +30,16 @@ const PayIncrease: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      const payload: any = { effectiveDate: form.effectiveDate };
+      const payload: Record<string, unknown> = { effectiveDate: form.effectiveDate };
       if (form.type === 'percentage') payload.percentage = parseFloat(form.value);
       else payload.amount = parseFloat(form.value);
-      const filter: any = {};
+      const filter: Record<string, unknown> = {};
       if (form.departmentId) filter.departmentId = form.departmentId;
       if (form.employmentType) filter.employmentType = form.employmentType;
       if (Object.keys(filter).length) payload.filter = filter;
       const res = await UtilitiesAPI.payIncrease(payload);
       setResult(res.data);
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to apply pay increase');
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ const PayIncrease: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {result.employees?.map((emp: any) => (
+                {result.employees?.map((emp) => (
                   <tr key={emp.id}>
                     <td className="px-4 py-2 font-medium">{emp.firstName} {emp.lastName}</td>
                     <td className="px-4 py-2 font-bold text-emerald-600">{emp.baseRate}</td>

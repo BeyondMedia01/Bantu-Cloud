@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, FileUp, Loader, ChevronRight, Hash, Percent, Calendar, Trash, Pencil, X, Check, Zap } from 'lucide-react';
 import { TaxTableAPI } from '../api/client';
+import type { TaxTable, TaxBracket } from '../types/domain';
 import UploadTaxTableModal from '../components/tax/UploadTaxTableModal';
 import NewTaxTableModal from '../components/tax/NewTaxTableModal';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -12,10 +13,10 @@ type PendingRow = { lowerBound: string; upperBound: string; rate: string; fixedA
 
 const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
   const { showToast } = useToast();
-  const [tables, setTables]               = useState<any[]>([]);
+  const [tables, setTables]               = useState<TaxTable[]>([]);
   const [loading, setLoading]             = useState(true);
   const [activeTableId, setActiveTableId] = useState<string | null>(null);
-  const [brackets, setBrackets]           = useState<any[]>([]);
+  const [brackets, setBrackets]           = useState<TaxBracket[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen]       = useState(false);
   const [deleteTableTarget, setDeleteTableTarget] = useState<{ id: string; name: string } | null>(null);
@@ -143,17 +144,17 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
         })),
         ...newBrackets,
       ]);
-      setBrackets(res.data.sort((a: any, b: any) => a.lowerBound - b.lowerBound));
+      setBrackets(res.data.sort((a: TaxBracket, b: TaxBracket) => a.lowerBound - b.lowerBound));
       setPendingRows([]);
       showToast(`${newBrackets.length} bracket${newBrackets.length > 1 ? 's' : ''} saved`, 'success');
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to save brackets.', 'error');
+    } catch {
+      showToast('Failed to save brackets.', 'error');
     } finally {
       setSavingAll(false);
     }
   };
 
-  const startEdit = (bracket: any) => {
+  const startEdit = (bracket: TaxBracket) => {
     setEditingId(bracket.id);
     setEditRow({
       lowerBound:  String(bracket.lowerBound),
@@ -184,8 +185,8 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
             .sort((a, b) => a.lowerBound - b.lowerBound)
       );
       setEditingId(null);
-    } catch (err: any) {
-      setEditError(err.response?.data?.message || 'Failed to save changes.');
+    } catch {
+      setEditError('Failed to save changes.');
     } finally {
       setEditSaving(false);
     }
@@ -193,7 +194,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
 
   if (loading) return <div className="flex justify-center p-12"><Loader className="animate-spin text-accent-green" /></div>;
 
-  const activeTable = tables.find((t: any) => t.id === activeTableId);
+  const activeTable = tables.find((t) => t.id === activeTableId);
 
   const inputCls = 'w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green font-mono';
 
@@ -228,7 +229,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Tables</span>
           </div>
           <div className="p-2">
-            {tables.map((table: any) => (
+            {tables.map((table) => (
               <button
                 key={table.id}
                 onClick={() => { setActiveTableId(table.id); setPendingRows([]); setEditingId(null); }}
@@ -318,7 +319,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {brackets.map((bracket: any) =>
+                  {brackets.map((bracket) =>
                     editingId === bracket.id ? (
                       <tr key={bracket.id} className="bg-blue-50/40">
                         <td className="px-3 py-2.5">

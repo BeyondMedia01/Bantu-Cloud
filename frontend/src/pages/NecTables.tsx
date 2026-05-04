@@ -4,6 +4,7 @@ import {
   Check, X, Pencil, Percent, Hash, ChevronDown,
 } from 'lucide-react';
 import { NecTableAPI } from '../api/client';
+import type { NecTable, NecGrade } from '../types/domain';
 import { Dropdown } from '@/components/ui/dropdown';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
@@ -13,10 +14,10 @@ const EMPTY_TABLE = { name: '', sector: '', currency: 'USD', effectiveDate: '', 
 
 const NecTables: React.FC = () => {
   const { showToast } = useToast();
-  const [tables, setTables]               = useState<any[]>([]);
+  const [tables, setTables]               = useState<NecTable[]>([]);
   const [loading, setLoading]             = useState(true);
   const [activeTableId, setActiveTableId] = useState<string | null>(null);
-  const [grades, setGrades]               = useState<any[]>([]);
+  const [grades, setGrades]               = useState<NecGrade[]>([]);
   const [deleteTableTarget, setDeleteTableTarget] = useState<{ id: string; name: string } | null>(null);
 
   // New table form
@@ -84,8 +85,8 @@ const NecTables: React.FC = () => {
       setActiveTableId(res.data.id);
       setNewTable({ ...EMPTY_TABLE });
       setAddingTable(false);
-    } catch (err: any) {
-      setTableError(err.response?.data?.message || 'Failed to create NEC table.');
+    } catch {
+      setTableError('Failed to create NEC table.');
     } finally {
       setTableSaving(false);
     }
@@ -124,14 +125,14 @@ const NecTables: React.FC = () => {
       setGrades(prev => [...prev, res.data].sort((a, b) => a.gradeCode.localeCompare(b.gradeCode)));
       setNewGrade({ ...EMPTY_GRADE });
       setAddingGrade(false);
-    } catch (err: any) {
-      setAddGradeError(err.response?.data?.message || 'Failed to add grade.');
+    } catch {
+      setAddGradeError('Failed to add grade.');
     } finally {
       setAddGradeSaving(false);
     }
   };
 
-  const startEditGrade = (grade: any) => {
+  const startEditGrade = (grade: NecGrade) => {
     setEditingGradeId(grade.id);
     setEditGrade({
       gradeCode:   grade.gradeCode,
@@ -161,8 +162,8 @@ const NecTables: React.FC = () => {
             .sort((a, b) => a.gradeCode.localeCompare(b.gradeCode))
       );
       setEditingGradeId(null);
-    } catch (err: any) {
-      setEditGradeError(err.response?.data?.message || 'Failed to save grade.');
+    } catch {
+      setEditGradeError('Failed to save grade.');
     } finally {
       setEditGradeSaving(false);
     }
@@ -301,7 +302,7 @@ const NecTables: React.FC = () => {
             {tables.length === 0 && (
               <p className="text-xs text-muted-foreground italic px-3 py-4 text-center">No tables yet.</p>
             )}
-            {tables.map((table: any) => (
+            {tables.map((table) => (
               <button
                 key={table.id}
                 onClick={() => {
@@ -380,7 +381,7 @@ const NecTables: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {grades.map((grade: any) =>
+                  {grades.map((grade) =>
                     editingGradeId === grade.id ? (
                       <tr key={grade.id} className="bg-blue-50/40">
                         <td className="px-3 py-2.5">

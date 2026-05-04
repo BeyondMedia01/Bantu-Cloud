@@ -46,7 +46,7 @@ const AdminUsers: React.FC = () => {
       setShowForm(false);
       setForm({ name: '', email: '', password: '', role: 'CLIENT_ADMIN' });
       load();
-    } catch (err: any) {
+    } catch {
       setError(err.response?.data?.message || 'Failed to create user');
     } finally {
       setSaving(false);
@@ -139,7 +139,7 @@ const AdminUsers: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {users.map((u: any) => (
+              {users.map((u) => (
                 <tr key={u.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-bold text-sm">{u.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{u.email}</td>

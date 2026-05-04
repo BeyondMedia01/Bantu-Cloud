@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
 import { EmployeeAPI, BranchAPI, DepartmentAPI, TaxTableAPI, SystemSettingsAPI } from '../api/client';
+import type { Branch, Department } from '../types/common';
+import type { TaxTable } from '../types/domain';
 import { getActiveCompanyId } from '../lib/companyContext';
 
 import { Button } from '@/components/ui/button';
@@ -170,19 +172,19 @@ const EmployeeNew: React.FC = () => {
   const navigate = useNavigate();
   const companyId = getActiveCompanyId();
 
-  const { data: branches = [] } = useQuery({
+  const { data: branches = [] } = useQuery<Branch[]>({
     queryKey: ['branches', companyId],
     queryFn: () => BranchAPI.getAll({ companyId: companyId! }).then(r => r.data),
     enabled: !!companyId,
   });
 
-  const { data: departments = [] } = useQuery({
+  const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ['departments', companyId],
     queryFn: () => DepartmentAPI.getAll({ companyId: companyId! }).then(r => r.data),
     enabled: !!companyId,
   });
 
-  const { data: taxTables = [] } = useQuery({
+  const { data: taxTables = [] } = useQuery<TaxTable[]>({
     queryKey: ['taxTables'],
     queryFn: () => TaxTableAPI.getAll().then(r => r.data),
   });
@@ -212,10 +214,12 @@ const EmployeeNew: React.FC = () => {
 
   // Set default tax table once system settings load
   useEffect(() => {
-    if ((systemSettings as any[]).length > 0 && !form.getValues('taxTable')) {
-      const defaultSetting = (systemSettings as any[])
-        .filter((s: any) => s.settingName === 'DEFAULT_TAX_TABLE_USD' && s.isActive)
-        .sort((a: any, b: any) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
+    type RawSetting = { settingName: string; isActive: boolean; effectiveFrom: string; settingValue: string };
+    const settings = systemSettings as RawSetting[];
+    if (settings.length > 0 && !form.getValues('taxTable')) {
+      const defaultSetting = settings
+        .filter((s) => s.settingName === 'DEFAULT_TAX_TABLE_USD' && s.isActive)
+        .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
       if (defaultSetting) form.setValue('taxTable', defaultSetting.settingValue);
     }
   }, [systemSettings]);
@@ -248,8 +252,8 @@ const EmployeeNew: React.FC = () => {
         bankAccounts: values.paymentMethod === 'BANK' ? values.bankAccounts : [],
       } as any);
       navigate('/employees');
-    } catch (err: any) {
-      setSubmitError(err.response?.data?.message || 'Failed to create employee');
+    } catch (err) {
+      setSubmitError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to create employee');
     }
   };
 
@@ -420,7 +424,7 @@ const EmployeeNew: React.FC = () => {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger><SelectValue placeholder="— None —" /></SelectTrigger>
                       <SelectContent>
-                        {(departments as any[]).map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                        {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
@@ -430,7 +434,7 @@ const EmployeeNew: React.FC = () => {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger><SelectValue placeholder="— None —" /></SelectTrigger>
                       <SelectContent>
-                        {(branches as any[]).map((b: any) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                        {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
@@ -721,7 +725,7 @@ const EmployeeNew: React.FC = () => {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger><SelectValue placeholder="— Select tax table —" /></SelectTrigger>
                       <SelectContent>
-                        {(taxTables as any[]).map((t: any) => (
+                        {taxTables.map((t) => (
                           <SelectItem key={t.id} value={t.name}>
                             {t.name} ({t.currency}){t.isActive ? ' ★' : ''}
                           </SelectItem>
