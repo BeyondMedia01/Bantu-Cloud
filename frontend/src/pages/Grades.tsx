@@ -6,7 +6,7 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 interface Grade {
   id: string;
   name: string;
-  description: string | null;
+  description?: string | null;
   minSalary: number | null;
   maxSalary: number | null;
   _count?: { employees: number };

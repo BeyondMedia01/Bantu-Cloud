@@ -50,7 +50,7 @@ const LeaveEdit: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      await LeaveAPI.update(id!, { ...form, totalDays: days });
+      await LeaveAPI.update(id!, { ...form, totalDays: days } as any);
       navigate('/leave');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update leave record');

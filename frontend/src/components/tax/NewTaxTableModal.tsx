@@ -5,7 +5,7 @@ import { TaxTableAPI } from '../../api/client';
 
 interface TaxTable {
   id: string;
-  clientId: string;
+  clientId?: string;
   name: string;
   currency: string;
   effectiveDate: string;

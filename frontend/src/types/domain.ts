@@ -103,6 +103,9 @@ export interface TransactionRule {
   name: string;
   condition?: string | null;
   formula?: string | null;
+  valueOverride?: number | null;
+  capAmount?: number | null;
+  description?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -176,6 +179,8 @@ export interface PayrollInput {
   currency?: string | null;
   employeeUSD?: number | null;
   employeeZiG?: number | null;
+  employerUSD?: number | null;
+  duration?: string | null;
   processed?: boolean;
   notes?: string | null;
   employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;

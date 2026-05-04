@@ -6,7 +6,7 @@ import type {
   LeaveRecord, LeaveRequest, LeavePolicy, LeaveBalance, LeaveEncashment,
   Loan, LoanRepayment, Shift, RosterEntry, AttendanceLog, AttendanceSummary,
   Device, SystemSetting, PayrollLog, PayrollUser, NSSAContribution,
-  SalaryStructure, EmployeeDocument,
+  SalaryStructure,
 } from '../types/domain';
 
 // Re-export domain types so pages can import from '../api/client'
@@ -638,8 +638,8 @@ export const RosterAPI = {
 // ─── Attendance ───────────────────────────────────────────────────────────────
 
 export const AttendanceAPI = {
-  getAll: (params?: Record<string, string>) => api.get<{ logs: AttendanceLog[]; total: number }>('/attendance', { params }),
-  getLogs: (params?: Record<string, string>) => api.get<{ logs: AttendanceLog[]; total: number }>('/attendance/logs', { params }),
+  getAll: (params?: Record<string, string>) => api.get<{ data?: AttendanceSummary[]; logs?: AttendanceLog[]; total: number }>('/attendance', { params }),
+  getLogs: (params?: Record<string, string>) => api.get<{ data?: AttendanceLog[]; logs?: AttendanceLog[]; total: number }>('/attendance/logs', { params }),
   getSummary: (startDate: string, endDate: string) =>
     api.get<AttendanceSummary[]>('/attendance/summary', { params: { startDate, endDate } }),
   process: (data: { startDate: string; endDate: string; employeeIds?: string[] }) =>
