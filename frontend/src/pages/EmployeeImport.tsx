@@ -34,7 +34,7 @@ const EmployeeImport: React.FC = () => {
       a.download = `employee_import_template.${format}`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (e) {
       setError('Failed to download template.');
     }
   };
@@ -67,8 +67,8 @@ const EmployeeImport: React.FC = () => {
       setResult(res.data);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch {
-      setError(err.response?.data?.message || 'Import failed. Please check your file and try again.');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Import failed. Please check your file and try again.');
     } finally {
       setUploading(false);
     }

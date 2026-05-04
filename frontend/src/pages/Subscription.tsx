@@ -34,8 +34,8 @@ const Subscription: React.FC = () => {
         const res = await SubscriptionAPI.create(planId);
         window.location.href = res.data.url;
       }
-    } catch {
-      showToast(err.response?.data?.message || 'Failed to process subscription', 'error');
+    } catch (e) {
+      showToast((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to process subscription', 'error');
     } finally {
       setUpgrading(false);
     }
@@ -45,8 +45,8 @@ const Subscription: React.FC = () => {
     try {
       const res = await SubscriptionAPI.portal();
       window.location.href = res.data.url;
-    } catch {
-      showToast(err.response?.data?.message || 'Failed to open billing portal', 'error');
+    } catch (e) {
+      showToast((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to open billing portal', 'error');
     }
   };
 

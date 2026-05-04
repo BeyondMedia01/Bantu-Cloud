@@ -5,7 +5,7 @@ import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download, ChevronDow
 import { Dropdown } from '@/components/ui/dropdown';
 import { EmployeeAPI, BranchAPI, DepartmentAPI, NecTableAPI, TaxTableAPI, SystemSettingsAPI, DocumentsAPI } from '../api/client';
 import type { Branch, Department } from '../types/common';
-import type { NecGrade, TaxTable, Document } from '../types/domain';
+import type { NecGrade, TaxTable, EmployeeDocument as Document } from '../types/domain';
 import { Field } from '../components/common/Field';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { getActiveCompanyId } from '../lib/companyContext';

@@ -32,8 +32,8 @@ const Login: React.FC = () => {
       if (role === 'PLATFORM_ADMIN') navigate('/admin');
       else if (role === 'EMPLOYEE') navigate('/employee');
       else navigate('/dashboard');
-    } catch {
-      setError(err.response?.data?.message || 'Login failed');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }

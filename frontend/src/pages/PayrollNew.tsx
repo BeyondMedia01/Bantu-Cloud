@@ -60,8 +60,8 @@ const PayrollNew: React.FC = () => {
       }
       await PayrollAPI.create(payload);
       navigate('/payroll');
-    } catch {
-      setError(err.response?.data?.message || 'Failed to create payroll run');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to create payroll run');
     } finally {
       setLoading(false);
     }

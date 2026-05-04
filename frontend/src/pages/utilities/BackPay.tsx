@@ -189,8 +189,8 @@ const BackPay: React.FC = () => {
       const res = await UtilitiesAPI.backPay(buildPayload());
       setPreview(res.data);
       setStep(3);
-    } catch {
-      setError(err.response?.data?.message || 'Failed to calculate back pay');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to calculate back pay');
     } finally {
       setPreviewLoading(false);
     }
@@ -203,8 +203,8 @@ const BackPay: React.FC = () => {
       const res = await UtilitiesAPI.backPayCommit(buildPayload());
       setCommit(res.data);
       setStep(4);
-    } catch {
-      setError(err.response?.data?.message || 'Failed to generate back-pay inputs');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to generate back-pay inputs');
     } finally {
       setCommitLoading(false);
     }

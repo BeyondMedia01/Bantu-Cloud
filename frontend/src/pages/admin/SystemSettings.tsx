@@ -35,8 +35,8 @@ const SystemSettings: React.FC = () => {
       );
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
-    } catch {
-      setError(err.response?.data?.message || 'Failed to save settings');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to save settings');
     } finally {
       setSaving(false);
     }

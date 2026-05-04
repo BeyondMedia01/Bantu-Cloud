@@ -19,8 +19,8 @@ const Setup: React.FC = () => {
     try {
       await SetupAPI.init(form);
       navigate('/login');
-    } catch {
-      setError(err.response?.data?.message || 'Setup failed');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Setup failed');
     } finally {
       setLoading(false);
     }

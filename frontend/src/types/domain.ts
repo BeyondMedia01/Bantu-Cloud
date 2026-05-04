@@ -33,6 +33,8 @@ export interface Grade {
   companyId?: string | null;
   name: string;
   description?: string | null;
+  minSalary?: number | null;
+  maxSalary?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +47,8 @@ export interface NecGrade {
   gradeCode: string;
   description?: string | null;
   minWage?: number | null;
+  minRate?: number | null;
+  necLevyRate?: number | null;
   createdAt: string;
   updatedAt: string;
   tableName?: string; // injected client-side when flattening tables
@@ -53,7 +57,11 @@ export interface NecGrade {
 export interface NecTable {
   id: string;
   name: string;
+  sector?: string | null;
+  currency?: string | null;
   effectiveFrom?: string | null;
+  effectiveDate?: string | null;
+  expiryDate?: string | null;
   grades: NecGrade[];
   createdAt: string;
   updatedAt: string;
@@ -74,10 +82,14 @@ export interface TaxBracket {
 
 export interface TaxTable {
   id: string;
+  clientId?: string;
   name: string;
   currency: string;
   isActive: boolean;
+  isAnnual?: boolean;
   effectiveFrom?: string | null;
+  effectiveDate?: string | null;
+  expiryDate?: string | null;
   brackets?: TaxBracket[];
   createdAt: string;
   updatedAt: string;
@@ -121,10 +133,15 @@ export interface PayrollRun {
   companyId: string;
   name: string;
   period: string;
-  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'PROCESSED' | 'CLOSED';
+  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'PROCESSED' | 'CLOSED' | 'COMPLETED';
   currency?: string | null;
   totalGross?: number | null;
   totalNet?: number | null;
+  exchangeRate?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  data?: PayrollRun[];
+  total?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -153,7 +170,32 @@ export interface PayrollInput {
   employeeId: string;
   transactionCodeId: string;
   value: number;
+  amount?: number | null;
+  period?: string | null;
+  units?: number | null;
+  currency?: string | null;
+  employeeUSD?: number | null;
+  employeeZiG?: number | null;
+  processed?: boolean;
   notes?: string | null;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+  transactionCode?: { code?: string; name?: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── System Settings ──────────────────────────────────────────────────────────
+
+export interface SystemSetting {
+  id: string;
+  key?: string;
+  value?: string;
+  settingName?: string;
+  settingValue?: string;
+  dataType?: string;
+  isActive?: boolean;
+  effectiveFrom?: string | null;
+  description?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -164,11 +206,14 @@ export interface LeaveRecord {
   id: string;
   employeeId: string;
   leaveType: string;
+  type?: string;
   startDate: string;
   endDate: string;
   days: number;
+  totalDays?: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   notes?: string | null;
+  reason?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -192,6 +237,11 @@ export interface LeavePolicy {
   leaveType: string;
   entitlementDays: number;
   carryOverDays?: number | null;
+  carryOverLimit?: number | null;
+  accrualRate?: number | null;
+  maxAccumulation?: number | null;
+  encashable?: boolean;
+  encashCap?: number | null;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -205,6 +255,8 @@ export interface LeaveBalance {
   entitled: number;
   taken: number;
   balance: number;
+  accrued?: number | null;
+  leavePolicy?: LeavePolicy | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -215,8 +267,11 @@ export interface LeaveEncashment {
   leaveType: string;
   days: number;
   amount?: number | null;
+  currency?: string | null;
+  totalAmount?: number | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSED';
   reason?: string | null;
+  notes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -228,6 +283,7 @@ export interface LoanRepayment {
   loanId: string;
   dueDate: string;
   amount: number;
+  status?: string;
   paid: boolean;
   paidDate?: string | null;
   createdAt: string;
@@ -240,9 +296,13 @@ export interface Loan {
   amount: number;
   balance: number;
   monthlyInstalment?: number | null;
+  interestRate?: number | null;
+  termMonths?: number | null;
+  description?: string | null;
   startDate: string;
   status: 'ACTIVE' | 'PAID_OFF' | 'WRITTEN_OFF';
   notes?: string | null;
+  employee?: { firstName?: string; lastName?: string } | null;
   repayments?: LoanRepayment[];
   createdAt: string;
   updatedAt: string;
@@ -254,9 +314,18 @@ export interface Shift {
   id: string;
   clientId: string;
   name: string;
+  code?: string | null;
   startTime: string;
   endTime: string;
   breakMinutes?: number | null;
+  normalHours?: number | null;
+  ot0Threshold?: number | null;
+  ot1Threshold?: number | null;
+  ot0Multiplier?: number | null;
+  ot1Multiplier?: number | null;
+  ot2Multiplier?: number | null;
+  isOvernight?: boolean;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -277,19 +346,37 @@ export interface AttendanceLog {
   id: string;
   employeeId: string;
   deviceId?: string | null;
+  deviceUserId?: string | null;
   timestamp: string;
-  type: 'IN' | 'OUT';
+  punchTime?: string | null;
+  punchType?: string | null;
+  type?: 'IN' | 'OUT' | string;
+  source?: string | null;
+  processed?: boolean;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface AttendanceSummary {
+  id?: string;
   employeeId: string;
   date: string;
   checkIn?: string | null;
   checkOut?: string | null;
+  clockIn?: string | null;
+  clockOut?: string | null;
   hoursWorked?: number | null;
   overtime?: number | null;
+  breakMinutes?: number | null;
+  normalMinutes?: number | null;
+  ot0Minutes?: number | null;
+  ot1Minutes?: number | null;
+  ot2Minutes?: number | null;
+  status?: string | null;
+  isManualOverride?: boolean;
+  isPublicHoliday?: boolean;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
 }
 
 // ─── Devices ──────────────────────────────────────────────────────────────────
@@ -298,31 +385,33 @@ export interface Device {
   id: string;
   clientId: string;
   name: string;
+  vendor?: string | null;
   ipAddress?: string | null;
   port?: number | null;
+  username?: string | null;
+  password?: string | null;
+  location?: string | null;
   serialNumber?: string | null;
-  status: 'ONLINE' | 'OFFLINE' | 'ERROR';
+  webhookKey?: string | null;
+  status: 'ONLINE' | 'OFFLINE' | 'ERROR' | string;
+  isActive?: boolean;
   lastSync?: string | null;
+  lastSyncAt?: string | null;
+  lastSyncStatus?: string | null;
+  _count?: { logs?: number } | null;
   createdAt: string;
   updatedAt: string;
 }
 
-// ─── System ───────────────────────────────────────────────────────────────────
-
-export interface SystemSetting {
-  id: string;
-  key: string;
-  value: string;
-  description?: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+// ─── Payroll Support ──────────────────────────────────────────────────────────
 
 export interface PayrollLog {
   id: string;
   payrollRunId: string;
   action: string;
   message?: string | null;
+  oldValue?: string | null;
+  newValue?: string | null;
   userId?: string | null;
   createdAt: string;
 }
@@ -343,6 +432,7 @@ export interface NSSAContribution {
   employeeId: string;
   employeeContribution: number;
   employerContribution: number;
+  submittedToNSSA?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -359,12 +449,19 @@ export interface SalaryStructure {
   updatedAt: string;
 }
 
-export interface Document {
+// ─── Documents (renamed to avoid conflict with browser DOM Document) ──────────
+
+export interface EmployeeDocument {
   id: string;
   employeeId: string;
   name: string;
   type?: string | null;
   url: string;
+  fileUrl?: string | null;
+  size?: number | null;
   createdAt: string;
   updatedAt: string;
 }
+
+// Alias for backwards compatibility
+export type Document = EmployeeDocument;

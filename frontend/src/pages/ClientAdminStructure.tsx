@@ -60,8 +60,8 @@ const ClientAdminStructure: React.FC = () => {
       setEditing(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 5000);
-    } catch {
-      setSaveError(err.response?.data?.message || 'Failed to save changes.');
+    } catch (e) {
+      setSaveError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to save changes.');
     } finally {
       setProfileSaving(false);
     }
@@ -99,7 +99,7 @@ const ClientAdminStructure: React.FC = () => {
       else if (deleteTarget.type === 'departments') await DepartmentAPI.delete(deleteTarget.id);
       else await SubCompanyAPI.delete(deleteTarget.id);
       loadAll();
-    } catch {
+    } catch (e) {
       setError('Failed to delete item');
     } finally {
       setDeleteTarget(null);
@@ -117,8 +117,8 @@ const ClientAdminStructure: React.FC = () => {
       setShowForm(false);
       setFormData({});
       loadAll();
-    } catch {
-      setError(err.response?.data?.message || 'Failed to create');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to create');
     } finally {
       setSaving(false);
     }

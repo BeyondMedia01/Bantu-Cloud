@@ -23,8 +23,8 @@ const CompanyNew: React.FC = () => {
     try {
       await CompanyAPI.create(form);
       navigate('/dashboard');
-    } catch {
-      setError(err.response?.data?.message || 'Failed to create company');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to create company');
     } finally {
       setLoading(false);
     }

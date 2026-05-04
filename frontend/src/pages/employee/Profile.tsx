@@ -52,8 +52,8 @@ const EmployeeProfile: React.FC = () => {
       await EmployeeSelfAPI.updateProfile(form);
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
-    } catch {
-      setError(err.response?.data?.message || 'Failed to save');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to save');
     } finally {
       setSaving(false);
     }

@@ -45,8 +45,8 @@ const LoanNew: React.FC = () => {
         termMonths: parseInt(form.termMonths),
       });
       navigate(`/loans/${res.data.id}`);
-    } catch {
-      setError(err.response?.data?.message || 'Failed to create loan');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to create loan');
     } finally {
       setLoading(false);
     }

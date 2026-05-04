@@ -46,8 +46,8 @@ const AdminUsers: React.FC = () => {
       setShowForm(false);
       setForm({ name: '', email: '', password: '', role: 'CLIENT_ADMIN' });
       load();
-    } catch {
-      setError(err.response?.data?.message || 'Failed to create user');
+    } catch (e) {
+      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to create user');
     } finally {
       setSaving(false);
     }

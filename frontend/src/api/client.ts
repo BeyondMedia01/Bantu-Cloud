@@ -6,8 +6,19 @@ import type {
   LeaveRecord, LeaveRequest, LeavePolicy, LeaveBalance, LeaveEncashment,
   Loan, LoanRepayment, Shift, RosterEntry, AttendanceLog, AttendanceSummary,
   Device, SystemSetting, PayrollLog, PayrollUser, NSSAContribution,
-  SalaryStructure, Document,
+  SalaryStructure, EmployeeDocument,
 } from '../types/domain';
+
+// Re-export domain types so pages can import from '../api/client'
+export type {
+  TaxBand, SubCompany, Grade, NecTable, NecGrade, TaxTable, TaxBracket,
+  TransactionCode, TransactionRule, PayrollRun, Payslip, PayrollInput,
+  LeaveRecord, LeaveRequest, LeavePolicy, LeaveBalance, LeaveEncashment,
+  Loan, LoanRepayment, Shift, RosterEntry, AttendanceLog, AttendanceSummary,
+  Device, SystemSetting, PayrollLog, PayrollUser, NSSAContribution,
+  SalaryStructure, EmployeeDocument,
+} from '../types/domain';
+export type { PaginatedResponse, Branch, Department } from '../types/common';
 
 if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
   throw new Error(

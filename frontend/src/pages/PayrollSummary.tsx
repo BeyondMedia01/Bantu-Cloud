@@ -216,8 +216,8 @@ const PayrollSummary: React.FC = () => {
                   setPayslips(p.data);
                   setRerunSuccess(true);
                   showToast('Payroll rerun completed successfully!', 'success');
-                } catch {
-                  showToast(err.response?.data?.message || 'Rerun failed', 'error');
+                } catch (e) {
+                  showToast((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Rerun failed', 'error');
                 } finally {
                   setExporting('');
                 }
