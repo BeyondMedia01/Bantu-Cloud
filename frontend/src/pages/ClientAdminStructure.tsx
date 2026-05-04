@@ -159,7 +159,7 @@ const ClientAdminStructure: React.FC = () => {
           {!editing ? (
             <button
               onClick={() => setEditing(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-border text-sm font-bold text-slate-500 hover:bg-white transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold text-slate-500 hover:bg-white transition-colors"
             >
               <Edit2 size={14} /> Edit
             </button>

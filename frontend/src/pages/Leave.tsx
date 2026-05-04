@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, Shield, BarChart2, Banknote, CalendarDays, ChevronDown } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Plus, Edit, Trash, CheckCircle2, XCircle, Clock, CalendarDays, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
@@ -23,8 +23,15 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+const SUB_TABS = [
+  { label: 'Leave Policies', to: '/leave/policies' },
+  { label: 'Leave Balances', to: '/leave/balances' },
+  { label: 'Encashments',    to: '/leave/encashments' },
+];
+
 const Leave: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
   const [records, setRecords] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
@@ -118,38 +125,24 @@ const Leave: React.FC = () => {
         </button>
       </header>
 
-      {/* Quick nav to leave sub-sections */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <button
-          onClick={() => navigate('/leave/policies')}
-          className="flex items-center gap-3 p-4 bg-primary rounded-2xl border border-border hover:bg-slate-50 text-left shadow-sm transition-colors"
-        >
-          <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center"><Shield size={18} /></div>
-          <div>
-            <p className="text-sm font-bold text-navy">Leave Policies</p>
-            <p className="text-xs text-slate-400">Accrual rates &amp; carry-over rules</p>
-          </div>
-        </button>
-        <button
-          onClick={() => navigate('/leave/balances')}
-          className="flex items-center gap-3 p-4 bg-primary rounded-2xl border border-border hover:bg-slate-50 text-left shadow-sm transition-colors"
-        >
-          <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center"><BarChart2 size={18} /></div>
-          <div>
-            <p className="text-sm font-bold text-navy">Leave Balances</p>
-            <p className="text-xs text-slate-400">Per-employee accrual tracking</p>
-          </div>
-        </button>
-        <button
-          onClick={() => navigate('/leave/encashments')}
-          className="flex items-center gap-3 p-4 bg-primary rounded-2xl border border-border hover:bg-slate-50 text-left shadow-sm transition-colors"
-        >
-          <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center"><Banknote size={18} /></div>
-          <div>
-            <p className="text-sm font-bold text-navy">Encashments</p>
-            <p className="text-xs text-slate-400">Convert leave days to earnings</p>
-          </div>
-        </button>
+      {/* Sub-navigation tabs */}
+      <div className="flex items-center gap-1 border-b border-border">
+        {SUB_TABS.map((tab) => {
+          const active = location.pathname === tab.to;
+          return (
+            <button
+              key={tab.to}
+              onClick={() => navigate(tab.to)}
+              className={`px-4 py-2.5 text-sm font-bold transition-colors border-b-2 -mb-px ${
+                active
+                  ? 'border-navy text-navy'
+                  : 'border-transparent text-slate-400 hover:text-navy'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Filters */}
@@ -222,25 +215,21 @@ const Leave: React.FC = () => {
           )}
         </div>
 
-        <div className="relative">
-          <input
-            type="date"
-            value={filterStartDate}
-            onChange={(e) => setFilterStartDate(e.target.value)}
-            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green shadow-sm"
-            placeholder="Start date"
-          />
-        </div>
+        <input
+          type="date"
+          value={filterStartDate}
+          onChange={(e) => setFilterStartDate(e.target.value)}
+          className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green shadow-sm"
+          placeholder="Start date"
+        />
 
-        <div className="relative">
-          <input
-            type="date"
-            value={filterEndDate}
-            onChange={(e) => setFilterEndDate(e.target.value)}
-            className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green shadow-sm"
-            placeholder="End date"
-          />
-        </div>
+        <input
+          type="date"
+          value={filterEndDate}
+          onChange={(e) => setFilterEndDate(e.target.value)}
+          className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green shadow-sm"
+          placeholder="End date"
+        />
       </div>
       </div>
 

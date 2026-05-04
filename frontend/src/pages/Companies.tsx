@@ -119,7 +119,7 @@ const Companies: React.FC = () => {
         </div>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="bg-brand text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+          className="bg-brand text-navy px-4 py-2 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
         >
           <Plus size={20} /> Add New Entity
         </button>

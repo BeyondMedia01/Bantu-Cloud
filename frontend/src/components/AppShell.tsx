@@ -315,7 +315,7 @@ const AppShell: React.FC = () => {
       </div>
 
       {/* Main content */}
-      <main className={`flex-1 ${mainML} min-h-screen transition-all duration-200`}>
+      <main className={`flex-1 min-w-0 ${mainML} min-h-screen transition-all duration-200`}>
         <div className="pt-[70px] md:pt-8 px-4 sm:px-8 pb-8 max-w-[1400px] mx-auto">
           <Outlet />
         </div>
