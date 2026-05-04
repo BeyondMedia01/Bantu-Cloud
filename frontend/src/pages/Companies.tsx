@@ -3,6 +3,7 @@ import { Plus, Trash, Building2, MapPin, Hash, Pencil, X, Check } from 'lucide-r
 import { CompanyAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/common/ConfirmModal';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 
 
@@ -21,6 +22,9 @@ const Companies: React.FC = () => {
 
   // Edit form state
   const [editForm, setEditForm] = useState<any>({});
+
+  useEscapeKey(isAdding, () => setIsAdding(false));
+  useEscapeKey(!!editingId, () => setEditingId(null));
 
   const fetchCompanies = async () => {
     try {
@@ -183,6 +187,7 @@ const Companies: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-bold text-navy">Edit Company</h4>
                   <button onClick={() => setEditingId(null)}
+                    aria-label="Close edit panel"
                     className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
                     <X size={16} />
                   </button>
@@ -237,6 +242,7 @@ const Companies: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleDelete(company.id, company.name)}
+                      aria-label="Delete company"
                       className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors">
                       <Trash size={14} />
                     </button>

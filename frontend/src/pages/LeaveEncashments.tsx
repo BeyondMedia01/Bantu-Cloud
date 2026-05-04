@@ -4,6 +4,7 @@ import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveEncashmentAPI, EmployeeAPI, LeaveBalanceAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
 const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ');
@@ -34,6 +35,9 @@ const LeaveEncashments: React.FC = () => {
 
   // Process confirm modal state
   const [processTarget, setProcessTarget] = useState<{ id: string } | null>(null);
+
+  useEscapeKey(!!rejectTarget, () => setRejectTarget(null));
+  useEscapeKey(!!processTarget, () => setProcessTarget(null));
 
   const load = () => {
     setLoading(true);

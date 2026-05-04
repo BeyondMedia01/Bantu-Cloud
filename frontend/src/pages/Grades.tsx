@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Check, Layers } from 'lucide-react';
 import { GradeAPI } from '../api/client';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 interface Grade {
   id: string;
@@ -22,6 +23,10 @@ const Grades: React.FC = () => {
   const [saving, setSaving]         = useState(false);
   const [error, setError]           = useState('');
   const [confirmDelete, setConfirmDelete] = useState<Grade | null>(null);
+
+  useEscapeKey(showCreate, () => setShowCreate(false));
+  useEscapeKey(!!editId, () => setEditId(null));
+  useEscapeKey(!!confirmDelete, () => setConfirmDelete(null));
 
   const load = async () => {
     setLoading(true);

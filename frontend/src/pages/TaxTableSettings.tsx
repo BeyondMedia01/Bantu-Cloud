@@ -298,6 +298,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                   </button>
                   <button
                     onClick={() => handleDeleteTable(activeTable.id, activeTable.name)}
+                    aria-label="Delete tax table"
                     className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                   >
                     <Trash size={15} />
@@ -340,10 +341,10 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1">
-                            <button onClick={handleSaveEdit} disabled={editSaving} className="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors disabled:opacity-50">
+                            <button onClick={handleSaveEdit} disabled={editSaving} aria-label="Save bracket" className="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors disabled:opacity-50">
                               {editSaving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
                             </button>
-                            <button onClick={() => { setEditingId(null); setEditError(''); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
+                            <button onClick={() => { setEditingId(null); setEditError(''); }} aria-label="Cancel edit" className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
                               <X size={13} />
                             </button>
                           </div>
@@ -363,10 +364,10 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                         <td className="px-5 py-3.5 text-sm font-bold font-mono text-navy">{bracket.fixedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => startEdit(bracket)} className="p-1.5 hover:bg-blue-50 rounded-lg text-muted-foreground hover:text-accent-green transition-colors">
+                            <button onClick={() => startEdit(bracket)} aria-label="Edit bracket" className="p-1.5 hover:bg-blue-50 rounded-lg text-muted-foreground hover:text-accent-green transition-colors">
                               <Pencil size={13} />
                             </button>
-                            <button onClick={() => handleDeleteBracket(bracket.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors">
+                            <button onClick={() => handleDeleteBracket(bracket.id)} aria-label="Delete bracket" className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors">
                               <Trash size={13} />
                             </button>
                           </div>
@@ -405,7 +406,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
-                          <button onClick={() => removePending(idx)} className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors">
+                          <button onClick={() => removePending(idx)} aria-label="Remove row" className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors">
                             <X size={13} />
                           </button>
                         </td>

@@ -208,7 +208,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
         {/* Modal header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="font-bold text-lg">{editData ? 'Edit' : 'New'} Transaction Code</h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground">
+          <button onClick={onClose} aria-label="Close modal" className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground">
             <X size={18} />
           </button>
         </div>
@@ -523,7 +523,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
                               {rule.description && ` · ${rule.description}`}
                             </p>
                           </div>
-                          <button onClick={() => handleDeleteRule(rule.id)} className="p-1 text-muted-foreground/40 hover:text-red-400 flex-shrink-0">
+                          <button onClick={() => handleDeleteRule(rule.id)} aria-label="Delete rule" className="p-1 text-muted-foreground/40 hover:text-red-400 flex-shrink-0">
                             <Trash2 size={12} />
                           </button>
                         </div>
@@ -648,10 +648,11 @@ const TarmsAuditPanel: React.FC<TarmsAuditPanelProps> = ({ onClose }) => {
               disabled={loading}
               className="p-1.5 text-muted-foreground hover:text-navy hover:bg-muted rounded-lg disabled:opacity-40"
               title="Re-run audit"
+              aria-label="Re-run audit"
             >
               <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             </button>
-            <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground">
+            <button onClick={onClose} aria-label="Close audit panel" className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground">
               <X size={18} />
             </button>
           </div>
@@ -974,6 +975,7 @@ const Transactions: React.FC = () => {
                                 onClick={(e) => { e.stopPropagation(); openEdit(c); }}
                                 className="p-1.5 text-muted-foreground hover:text-navy hover:bg-muted rounded-lg"
                                 title="Edit"
+                                aria-label="Edit transaction code"
                               >
                                 <Edit size={14} />
                               </button>
@@ -981,6 +983,7 @@ const Transactions: React.FC = () => {
                                 onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}
                                 className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg"
                                 title="Delete"
+                                aria-label="Delete transaction code"
                               >
                                 <Trash2 size={14} />
                               </button>

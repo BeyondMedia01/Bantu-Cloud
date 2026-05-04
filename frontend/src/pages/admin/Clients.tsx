@@ -120,7 +120,7 @@ const AdminClients: React.FC = () => {
                   <td className="px-4 py-3 text-sm">{c._count?.companies ?? 0}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => handleDelete(c.id)} className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg">
+                    <button onClick={() => handleDelete(c.id)} aria-label="Delete client" className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg">
                       <Trash2 size={14} />
                     </button>
                   </td>

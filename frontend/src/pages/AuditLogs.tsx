@@ -76,7 +76,7 @@ const ActionBadge: React.FC<{ action: string }> = ({ action }) => {
 const FilterPill: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-navy text-white rounded-full text-xs font-semibold">
     {label}
-    <button onClick={onRemove} className="hover:opacity-70 transition-opacity">
+    <button onClick={onRemove} aria-label={`Remove filter: ${label}`} className="hover:opacity-70 transition-opacity">
       <X size={12} />
     </button>
   </span>
@@ -175,6 +175,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
             onClick={() => fetchLogs(page)}
             className="p-2.5 rounded-xl border border-border text-muted-foreground hover:text-navy hover:border-border hover:bg-muted transition-all"
             title="Refresh"
+            aria-label="Refresh audit log"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>

@@ -4,6 +4,7 @@ import { Dropdown } from '@/components/ui/dropdown';
 import { CurrencyRateAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 interface Props {
   activeCompanyId?: string | null;
@@ -18,6 +19,8 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
   const [formError, setFormError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEscapeKey(isModalOpen, () => setIsModalOpen(false));
 
   const fetchRates = async () => {
     try {
