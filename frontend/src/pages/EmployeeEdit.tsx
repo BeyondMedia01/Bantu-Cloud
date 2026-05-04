@@ -227,7 +227,6 @@ const EmployeeEdit: React.FC = () => {
       const res = await DocumentsAPI.getByEmployee(id!);
       setDocuments(res.data);
     } catch (err) {
-      console.error('Failed to load documents');
     }
   };
 

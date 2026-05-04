@@ -15,7 +15,6 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
       const response = await PayslipSummaryAPI.getAll();
       setSummaries(response.data);
     } catch (error) {
-      console.error('Failed to fetch payslip summaries');
     }
   };
 

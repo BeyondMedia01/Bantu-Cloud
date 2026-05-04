@@ -27,7 +27,6 @@ const IntelligenceWidget: React.FC = () => {
         if (alertsRes.data?.alerts) setAlerts(alertsRes.data.alerts);
         if (fraudRes.data?.flags) setFraudFlags(fraudRes.data.flags);
       } catch (err) {
-        console.error('Failed to load intelligence data');
       } finally {
         if (mounted) setLoading(false);
       }

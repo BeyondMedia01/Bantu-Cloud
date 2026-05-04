@@ -26,7 +26,6 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
       const res = await NSSASettingsAPI.get();
       setSettings(res.data);
     } catch (err) {
-      console.error('Failed to fetch NSSA settings');
     }
   };
 
@@ -35,7 +34,6 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
       const response = await NSSAContributionAPI.getAll();
       setContributions(response.data);
     } catch (error) {
-      console.error('Failed to fetch NSSA contributions');
     }
   };
 

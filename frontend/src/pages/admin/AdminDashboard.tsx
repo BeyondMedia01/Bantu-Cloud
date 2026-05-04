@@ -11,8 +11,7 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     AdminAPI.getStats()
       .then((r) => setStats(r.data))
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         setError('Unable to load dashboard statistics.');
       })
       .finally(() => setLoading(false));

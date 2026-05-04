@@ -15,7 +15,6 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       const response = await PayslipExportAPI.getAll();
       setExports(response.data);
     } catch (error) {
-      console.error('Failed to fetch export records');
       setFetchError('Failed to load export records. Please try again later.');
     }
   };

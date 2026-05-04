@@ -50,7 +50,6 @@ const Employees: React.FC = () => {
       setBranches(bRes.data);
       setDepartments(dRes.data);
     } catch (error) {
-      console.error('Failed to fetch dependencies', error);
       setFetchError('Failed to load filter dependencies. Please refresh the page.');
     }
   }, [companyId]);
@@ -74,7 +73,6 @@ const Employees: React.FC = () => {
       setEmployees(response.data.data);
       setTotal(response.data.total);
     } catch (error) {
-      console.error('Failed to fetch employees', error);
       setFetchError('Failed to load employee directory. Please check your connection.');
     } finally {
       setLoading(false);

@@ -15,7 +15,6 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
       const response = await PayslipTransactionAPI.getAll();
       setTransactions(response.data);
     } catch (error) {
-      console.error('Failed to fetch payslip transactions');
     }
   };
 

@@ -42,7 +42,7 @@ const Reports: React.FC = () => {
       setLoadingCashflow(true);
       IntelligenceAPI.getCashflow(companyId)
         .then(res => setCashflow(res.data))
-        .catch(() => {})
+        .catch(() => showToast('Failed to load cashflow data', 'error'))
         .finally(() => setLoadingCashflow(false));
     }
   }, [companyId]);

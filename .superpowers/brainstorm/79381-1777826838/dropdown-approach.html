@@ -1,0 +1,42 @@
+<h2>Unified Dropdown Component — Approach</h2>
+<p class="subtitle">How should the shared <code>&lt;Dropdown&gt;</code> component be built?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Wrap shadcn DropdownMenu</h3>
+      <p>Build a thin wrapper around the shadcn/ui <code>DropdownMenu</code> primitive (Radix UI under the hood). Gets focus-trap, keyboard navigation, portal rendering (no z-index wars), and ARIA for free. Style it to match the company selector look.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Keyboard nav & focus trap built in</li><li>Portal = no overflow/z-index issues</li><li>Accessible by default</li><li>Already in the project (shadcn installed)</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Portal makes it harder to style relative to trigger</li><li>More abstraction — harder to customise fully</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Custom React component, same pattern as company selector</h3>
+      <p>Build a <code>&lt;Dropdown&gt;</code> component that mirrors the AppShell company selector — trigger button, absolute-positioned panel, click-outside + Escape to close, chevron rotation. Simple, predictable, on-brand.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Matches existing sidebar dropdown exactly</li><li>Full styling control</li><li>Simple to understand and extend</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Manual z-index management</li><li>Must hand-wire keyboard nav &amp; ARIA</li><li>Click-outside logic duplicated from AppShell</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Headless Popover (Radix) with full custom UI</h3>
+      <p>Use Radix <code>Popover</code> primitive directly (no shadcn layer) and build the entire visual layer from scratch. Maximum control, portal included, but more boilerplate than option A.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Portal rendering</li><li>Full visual control</li><li>Good accessibility primitives</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More setup than A</li><li>Adds Radix dependency directly (already indirect via shadcn)</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:20px">Click an option above, then let me know in the terminal.</p>

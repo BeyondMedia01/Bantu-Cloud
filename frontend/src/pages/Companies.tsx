@@ -8,6 +8,7 @@ import ConfirmModal from '../components/common/ConfirmModal';
 
 const Companies: React.FC = () => {
   const [companies, setCompanies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -25,8 +26,10 @@ const Companies: React.FC = () => {
     try {
       const response = await CompanyAPI.getAll();
       setCompanies(response.data);
-    } catch (error) {
-      console.error('Failed to fetch companies');
+    } catch {
+      showToast('Failed to load companies', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -161,7 +164,16 @@ const Companies: React.FC = () => {
 
       {/* ── Company Cards ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {companies.map(company => (
+        {loading ? Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden animate-pulse">
+            <div className="h-2 bg-muted-foreground/10 w-full" />
+            <div className="p-6 flex flex-col gap-4">
+              <div className="h-5 bg-muted rounded-lg w-2/3" />
+              <div className="h-4 bg-muted rounded-lg w-1/2" />
+              <div className="h-4 bg-muted rounded-lg w-3/4" />
+            </div>
+          </div>
+        )) : companies.map(company => (
           <div key={company.id}
             className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
 
@@ -241,6 +253,7 @@ const Companies: React.FC = () => {
       </div>
     </div>
   );
+
 };
 
 export default Companies;

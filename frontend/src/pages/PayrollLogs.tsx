@@ -20,7 +20,6 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
       const response = await PayrollLogAPI.getAll(params);
       setLogs(response.data);
     } catch (error) {
-      console.error('Failed to fetch payroll logs');
     }
   };
 

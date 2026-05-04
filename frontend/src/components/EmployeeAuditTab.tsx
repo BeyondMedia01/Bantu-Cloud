@@ -13,7 +13,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
   useEffect(() => {
     EmployeeAPI.getAuditLogs(employeeId)
       .then(res => setLogs(res.data))
-      .catch(err => console.error('Failed to load audit logs:', err))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [employeeId]);
 

@@ -15,7 +15,6 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
       const response = await PayrollCoreAPI.getAll();
       setCores(response.data);
     } catch (error) {
-      console.error('Failed to fetch PayrollCore entries');
       setFetchError('Failed to load foundational payroll records. Please try again.');
     }
   };

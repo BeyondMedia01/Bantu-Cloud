@@ -25,7 +25,6 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       const response = await CurrencyRateAPI.getAll();
       setRates(response.data);
     } catch (error) {
-      console.error('Failed to fetch currency rates');
       setFetchError('Failed to load exchange rates. Please check your connection.');
     }
   };

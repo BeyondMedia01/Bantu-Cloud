@@ -136,7 +136,6 @@
 }
 
 @theme {
-  --color-background: var(--color-background);
   --color-primary: var(--color-primary);
   --color-border: var(--color-border);
   --color-accent-green: #10B981;

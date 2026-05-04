@@ -1,16 +1,80 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash, Info, Calendar, Percent, Hash, XCircle } from 'lucide-react';
+import { Plus, Edit, Trash, Info, Calendar, Percent, Hash, XCircle, X } from 'lucide-react';
 import { TaxBandAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
+
+const EMPTY_FORM = {
+  bandNumber: '',
+  description: '',
+  lowerLimitUSD: '',
+  upperLimitUSD: '',
+  taxRatePercent: '',
+  fixedAmountUSD: '',
+  effectiveFrom: '',
+};
 
 const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
   const { showToast } = useToast();
   const [bands, setBands] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBand, setEditingBand] = useState<any>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const sf = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+
+  const openCreate = () => {
+    setEditingBand(null);
+    setForm(EMPTY_FORM);
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (band: any) => {
+    setEditingBand(band);
+    setForm({
+      bandNumber: String(band.bandNumber ?? ''),
+      description: band.description ?? '',
+      lowerLimitUSD: String(band.lowerLimitUSD ?? ''),
+      upperLimitUSD: band.upperLimitUSD != null ? String(band.upperLimitUSD) : '',
+      taxRatePercent: String(band.taxRatePercent ?? ''),
+      fixedAmountUSD: String(band.fixedAmountUSD ?? ''),
+      effectiveFrom: band.effectiveFrom ? band.effectiveFrom.slice(0, 10) : '',
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const payload = {
+      bandNumber: Number(form.bandNumber),
+      description: form.description || null,
+      lowerLimitUSD: Number(form.lowerLimitUSD),
+      upperLimitUSD: form.upperLimitUSD !== '' ? Number(form.upperLimitUSD) : null,
+      taxRatePercent: Number(form.taxRatePercent),
+      fixedAmountUSD: Number(form.fixedAmountUSD),
+      effectiveFrom: form.effectiveFrom || null,
+    };
+    try {
+      if (editingBand) {
+        await TaxBandAPI.update(editingBand.id, payload);
+        showToast('Tax band updated', 'success');
+      } else {
+        await TaxBandAPI.create(payload);
+        showToast('Tax band created', 'success');
+      }
+      setIsModalOpen(false);
+      fetchBands();
+    } catch {
+      showToast('Failed to save tax band', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const fetchBands = async () => {
     try {
@@ -18,7 +82,6 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
       const response = await TaxBandAPI.getAll();
       setBands(response.data);
     } catch (error) {
-      console.error('Failed to fetch tax bands');
       setFetchError('Failed to load tax bands. Please check your connection and try again.');
     }
   };
@@ -60,7 +123,7 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
           <p className="text-muted-foreground font-medium">Manage USD-based PAYE thresholds and statutory rates.</p>
         </div>
         <button 
-          onClick={() => { setEditingBand(null); setIsModalOpen(true); }}
+          onClick={openCreate}
           className="bg-brand text-navy px-6 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
         >
           <Plus size={20} /> Add New Band
@@ -103,7 +166,7 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
-                  onClick={() => { setEditingBand(band); setIsModalOpen(true); }}
+                  onClick={() => openEdit(band)}
                   className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
                 >
                   <Edit size={16} />
@@ -151,17 +214,73 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
         )}
       </div>
 
-      {/* Simple Modal Placeholder */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-navy/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div role="dialog" aria-modal="true" aria-labelledby="tax-band-modal-title" className="bg-card rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-              <h3 id="tax-band-modal-title" className="text-2xl font-bold text-navy mb-6">{editingBand ? 'Edit Tax Band' : 'New Tax Band'}</h3>
-              <p className="text-muted-foreground text-sm mb-8">This feature is coming soon. Use the API or Database direct for now.</p>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="w-full bg-muted py-3 rounded-2xl font-bold text-navy hover:bg-muted transition-colors"
-                > Close </button>
-           </div>
+          <div role="dialog" aria-modal="true" aria-labelledby="tax-band-modal-title"
+            className="bg-card rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 id="tax-band-modal-title" className="text-2xl font-bold text-navy">
+                {editingBand ? 'Edit Tax Band' : 'New Tax Band'}
+              </h3>
+              <button onClick={() => setIsModalOpen(false)}
+                className="p-2 hover:bg-muted rounded-xl text-muted-foreground transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleSave} className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Band Number</label>
+                  <input type="number" required min="1" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                    value={form.bandNumber} onChange={sf('bandNumber')} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Effective From</label>
+                  <input type="date" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                    value={form.effectiveFrom} onChange={sf('effectiveFrom')} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</label>
+                <input type="text" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                  placeholder="e.g. First bracket" value={form.description} onChange={sf('description')} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Lower Limit (USD)</label>
+                  <input type="number" required min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                    value={form.lowerLimitUSD} onChange={sf('lowerLimitUSD')} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Upper Limit (USD, blank = ∞)</label>
+                  <input type="number" min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                    value={form.upperLimitUSD} onChange={sf('upperLimitUSD')} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tax Rate (%)</label>
+                  <input type="number" required min="0" max="100" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                    value={form.taxRatePercent} onChange={sf('taxRatePercent')} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Fixed Cum. Tax (USD)</label>
+                  <input type="number" required min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                    value={form.fixedAmountUSD} onChange={sf('fixedAmountUSD')} />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-3 rounded-2xl font-bold text-muted-foreground bg-muted hover:opacity-80 transition-opacity">
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving}
+                  className="flex-1 py-3 rounded-2xl font-bold text-navy bg-brand hover:opacity-90 transition-opacity disabled:opacity-50">
+                  {saving ? 'Saving…' : editingBand ? 'Save Changes' : 'Create Band'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

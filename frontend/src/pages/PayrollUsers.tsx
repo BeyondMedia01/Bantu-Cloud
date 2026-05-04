@@ -18,7 +18,6 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
       const response = await PayrollUserAPI.getAll();
       setUsers(response.data);
     } catch (error) {
-      console.error('Failed to fetch payroll users');
       setFetchError('Failed to load payroll users. Please check your connection.');
     }
   };

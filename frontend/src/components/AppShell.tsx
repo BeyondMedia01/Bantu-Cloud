@@ -54,7 +54,6 @@ const AppShell: React.FC = () => {
           setActiveCompany(null);
         }
       }).catch((err: unknown) => {
-        console.error('[AppShell] Failed to load companies:', err);
       });
     }
   };
@@ -69,7 +68,6 @@ const AppShell: React.FC = () => {
       const first = d.firstName || d.name?.split(' ')[0] || null;
       setLiveUserName(first);
     }).catch((err: unknown) => {
-      console.error('[AppShell] Failed to load user profile:', err);
     });
   }, []);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
