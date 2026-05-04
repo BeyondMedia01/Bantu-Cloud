@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Search, X, Loader, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
-import { TransactionCodeAPI, TransactionCode } from '../api/client';
+import { TransactionCodeAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 
 const TYPES = ['EARNING', 'BENEFIT', 'DEDUCTION'];
@@ -21,14 +21,12 @@ const emptyForm = {
   incomeCategory: null,
 };
 
-type TcForm = typeof emptyForm;
-
 const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
   const { showToast } = useToast();
-  const [codes, setCodes] = useState<TransactionCode[]>([]);
+  const [codes, setCodes] = useState<any[]>([]);
   const [search, setSearch] = useState('');
-  const [modal, setModal] = useState<{ mode: 'create' | 'edit'; tc?: TransactionCode } | null>(null);
-  const [form, setForm] = useState<TcForm>(emptyForm);
+  const [modal, setModal] = useState<{ mode: 'create' | 'edit'; tc?: any } | null>(null);
+  const [form, setForm] = useState<any>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -50,7 +48,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
     setModal({ mode: 'create' });
   };
 
-  const openEdit = (tc: TransactionCode) => {
+  const openEdit = (tc: any) => {
     setForm({
       code: tc.code,
       name: tc.name,
@@ -88,8 +86,8 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
       }
       await fetch();
       closeModal();
-    } catch (e) {
-      setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to save.');
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to save.');
     } finally {
       setSaving(false);
     }
@@ -99,8 +97,8 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
     try {
       await TransactionCodeAPI.delete(id);
       setCodes(c => c.filter(x => x.id !== id));
-    } catch (e) {
-      showToast((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Cannot delete — this code may be in use.', 'error');
+    } catch (e: any) {
+      showToast(e?.response?.data?.message || 'Cannot delete — this code may be in use.', 'error');
     } finally {
       setDeleteId(null);
     }
@@ -241,7 +239,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                   <input
                     className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green disabled:bg-muted disabled:text-muted-foreground"
                     value={form.code}
-                    onChange={e => setForm((f: TcForm) => ({ ...f, code: e.target.value.toUpperCase() }))}
+                    onChange={e => setForm((f: any) => ({ ...f, code: e.target.value.toUpperCase() }))}
                     disabled={modal.mode === 'edit'}
                     placeholder="e.g. TRANS"
                   />
@@ -255,7 +253,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                       <span>{form.type}</span>
                       <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
-                  )} sections={[{ items: TYPES.map(t => ({ label: t, onClick: () => setForm((f: TcForm) => ({ ...f, type: t })) })) }]} />
+                  )} sections={[{ items: TYPES.map(t => ({ label: t, onClick: () => setForm((f: any) => ({ ...f, type: t })) })) }]} />
                 </div>
               </div>
 
@@ -265,7 +263,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 <input
                   className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
                   value={form.name}
-                  onChange={e => setForm((f: TcForm) => ({ ...f, name: e.target.value }))}
+                  onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. Transport Allowance"
                 />
               </div>
@@ -279,7 +277,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                       <span>{form.calculationType}</span>
                       <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
-                  )} sections={[{ items: CALC_TYPES.map(t => ({ label: t, onClick: () => setForm((f: TcForm) => ({ ...f, calculationType: t })) })) }]} />
+                  )} sections={[{ items: CALC_TYPES.map(t => ({ label: t, onClick: () => setForm((f: any) => ({ ...f, calculationType: t })) })) }]} />
                 </div>
                 {/* Default Value */}
                 <div className="flex flex-col gap-1">
@@ -288,7 +286,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                     type="number"
                     className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
                     value={form.defaultValue}
-                    onChange={e => setForm((f: TcForm) => ({ ...f, defaultValue: e.target.value }))}
+                    onChange={e => setForm((f: any) => ({ ...f, defaultValue: e.target.value }))}
                     placeholder="0.00"
                   />
                 </div>
@@ -306,15 +304,15 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                     </button>
                   );
                 }} sections={[{ items: [
-                  { label: 'None / Standard', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: null })) },
-                  { label: 'Basic Salary', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'BASIC_SALARY' })) },
-                  { label: 'Bonus', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'BONUS' })) },
-                  { label: 'Pension (Exempt)', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'PENSION' })) },
-                  { label: 'Medical Aid (50% Tax Credit)', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'MEDICAL_AID' })) },
-                  { label: 'Allowance', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'ALLOWANCE' })) },
-                  { label: 'Overtime', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'OVERTIME' })) },
-                  { label: 'Commission', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'COMMISSION' })) },
-                  { label: 'Benefit', onClick: () => setForm((f: TcForm) => ({ ...f, incomeCategory: 'BENEFIT' })) },
+                  { label: 'None / Standard', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: null })) },
+                  { label: 'Basic Salary', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'BASIC_SALARY' })) },
+                  { label: 'Bonus', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'BONUS' })) },
+                  { label: 'Pension (Exempt)', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'PENSION' })) },
+                  { label: 'Medical Aid (50% Tax Credit)', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'MEDICAL_AID' })) },
+                  { label: 'Allowance', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'ALLOWANCE' })) },
+                  { label: 'Overtime', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'OVERTIME' })) },
+                  { label: 'Commission', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'COMMISSION' })) },
+                  { label: 'Benefit', onClick: () => setForm((f: any) => ({ ...f, incomeCategory: 'BENEFIT' })) },
                 ]}]} />
               </div>
 
@@ -332,7 +330,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                       type="checkbox"
                       className="mt-0.5 accent-accent-green"
                       checked={form[key]}
-                      onChange={e => setForm((f: TcForm) => ({ ...f, [key]: e.target.checked }))}
+                      onChange={e => setForm((f: any) => ({ ...f, [key]: e.target.checked }))}
                     />
                     <div>
                       <p className="text-sm font-semibold text-foreground/90">{label}</p>

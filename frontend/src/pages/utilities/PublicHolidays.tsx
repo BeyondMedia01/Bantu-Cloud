@@ -35,7 +35,7 @@ const PublicHolidays: React.FC = () => {
       const r = await PublicHolidaysAPI.seed(year);
       showToast(r.data.message, 'success');
       load(year);
-    } catch {
+    } catch (e: any) {
       showToast(e.response?.data?.message || 'Failed to seed holidays', 'error');
     } finally {
       setSeeding(false);
@@ -51,7 +51,7 @@ const PublicHolidays: React.FC = () => {
       setForm({ name: '', date: '' });
       setAddOpen(false);
       load(year);
-    } catch {
+    } catch (e: any) {
       showToast(e.response?.data?.message || 'Failed to add holiday', 'error');
     } finally {
       setSaving(false);

@@ -2,8 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Clock, RefreshCw, Edit2, CheckSquare, Download, Plus, AlertTriangle, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { AttendanceAPI, EmployeeAPI } from '../../api/client';
-import type { AttendanceLog, AttendanceSummary } from '../../types/domain';
-import type { Employee } from '../../types/employee';
 
 type Tab = 'records' | 'logs';
 
@@ -77,7 +75,7 @@ const ManualEntryModal: React.FC<{
     if (!form.employeeId || !form.date) { setError('Employee and Date are required.'); return; }
     setSaving(true); setError('');
     try { await onSave(form); onClose(); }
-    catch { setError('Failed.'); }
+    catch (e: any) { setError(e.response?.data?.message || 'Failed.'); }
     finally { setSaving(false); }
   };
 
@@ -157,9 +155,9 @@ const ManualEntryModal: React.FC<{
 
 const Attendance: React.FC = () => {
   const [tab, setTab] = useState<Tab>('records');
-  const [records, setRecords] = useState<AttendanceSummary[]>([]);
-  const [logs, setLogs] = useState<AttendanceLog[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [showManual, setShowManual] = useState(false);
@@ -215,12 +213,12 @@ const Attendance: React.FC = () => {
       const res = await AttendanceAPI.process({ startDate: filters.startDate, endDate: filters.endDate });
       flash(`Processed ${res.data.processed} records.`);
       loadRecords();
-    } catch {
-      setError('Processing failed.');
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Processing failed.');
     } finally { setProcessing(false); }
   };
 
-  const handleManual = async (data: AttendanceFormData) => {
+  const handleManual = async (data: any) => {
     await AttendanceAPI.manual(data);
     flash('Manual record saved.');
     loadRecords();
@@ -232,8 +230,8 @@ const Attendance: React.FC = () => {
     try {
       const res = await AttendanceAPI.generateInputs({ startDate: filters.startDate, endDate: filters.endDate, period: 'MONTHLY' });
       flash(`Generated ${res.data.created} payroll input rows.`);
-    } catch {
-      setError('Failed to generate inputs.');
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Failed to generate inputs.');
     }
   };
 

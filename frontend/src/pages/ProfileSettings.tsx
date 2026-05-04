@@ -38,7 +38,7 @@ const ProfileSettings: React.FC = () => {
       await UserAPI.update({ firstName: firstName.trim(), lastName: lastName.trim(), phone: phone.trim() } as any);
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
-    } catch (e) {
+    } catch (err: any) {
       setProfileError(err?.response?.data?.message || 'Failed to update profile');
     } finally {
       setProfileLoading(false);
@@ -58,7 +58,7 @@ const ProfileSettings: React.FC = () => {
       setPwSuccess(true);
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
       setTimeout(() => setPwSuccess(false), 3000);
-    } catch (e) {
+    } catch (err: any) {
       setPwError(err?.response?.data?.message || 'Failed to change password');
     } finally {
       setPwLoading(false);

@@ -45,8 +45,8 @@ const LoanNew: React.FC = () => {
         termMonths: parseInt(form.termMonths),
       });
       navigate(`/loans/${res.data.id}`);
-    } catch (e) {
-      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to create loan');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create loan');
     } finally {
       setLoading(false);
     }
@@ -69,12 +69,12 @@ const LoanNew: React.FC = () => {
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee *</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
             <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
-              <span className="truncate">{employees.find((e) => e.id === form.employeeId) ? `${employees.find((e) => e.id === form.employeeId).firstName} ${employees.find((e) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
+              <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
               <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: [
             { label: 'Select employee', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
-            ...employees.map((e) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode || e.id.slice(0, 6)})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
+            ...employees.map((e: any) => ({ label: `${e.firstName} ${e.lastName} (${e.employeeCode || e.id.slice(0, 6)})`, onClick: () => setForm(p => ({ ...p, employeeId: e.id })) })),
           ], emptyMessage: 'No employees found' }]} />
         </div>
 

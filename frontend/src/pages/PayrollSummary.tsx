@@ -55,7 +55,7 @@ const PayrollSummary: React.FC = () => {
     if (!runId) return;
     setExporting(type);
     try {
-      let res: Awaited<ReturnType<typeof PayrollAPI.getPayslips>> | undefined;
+      let res: any;
       let filename: string;
       if (type === 'csv') {
         res = await PayrollAPI.exportCsv(runId);
@@ -216,8 +216,8 @@ const PayrollSummary: React.FC = () => {
                   setPayslips(p.data);
                   setRerunSuccess(true);
                   showToast('Payroll rerun completed successfully!', 'success');
-                } catch (e) {
-                  showToast((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Rerun failed', 'error');
+                } catch (err: any) {
+                  showToast(err.response?.data?.message || 'Rerun failed', 'error');
                 } finally {
                   setExporting('');
                 }
@@ -360,7 +360,7 @@ const PayrollSummary: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {payslips.map((p) => {
+              {payslips.map((p: any) => {
                 const grossUSD = p.grossUSD ?? p.gross ?? 0;
                 const netUSD = p.netPayUSD ?? p.netPay ?? 0;
                 const totalDed = (p.paye ?? 0) + (p.nssaEmployee ?? 0) + (p.aidsLevy ?? 0) + (p.loanDeductions ?? 0);

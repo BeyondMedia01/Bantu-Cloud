@@ -34,8 +34,8 @@ const AdminClients: React.FC = () => {
       setShowForm(false);
       setForm({ name: '', email: '', phone: '', address: '' });
       load();
-    } catch (e) {
-      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to create client');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create client');
     } finally {
       setSaving(false);
     }
@@ -112,7 +112,7 @@ const AdminClients: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {clients.map((c) => (
+              {clients.map((c: any) => (
                 <tr key={c.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-bold text-sm">{c.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{c.email || '—'}</td>

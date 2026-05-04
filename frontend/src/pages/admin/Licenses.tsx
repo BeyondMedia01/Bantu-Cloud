@@ -30,7 +30,7 @@ const AdminLicenses: React.FC = () => {
       await LicenseAPI.issue(form.clientId, parseInt(form.expiryMonths));
       setShowForm(false);
       load();
-    } catch {
+    } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to issue license');
     } finally {
       setSaving(false);
@@ -71,10 +71,10 @@ const AdminLicenses: React.FC = () => {
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Client *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
-                  <span>{form.clientId ? (clients.find((c) => c.id === form.clientId)?.name || 'Select client') : 'Select client'}</span>
+                  <span>{form.clientId ? (clients.find((c: any) => c.id === form.clientId)?.name || 'Select client') : 'Select client'}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
-              )} sections={[{ items: clients.map((c) => ({ label: c.name, onClick: () => setForm((f) => ({ ...f, clientId: c.id })) })) }]} />
+              )} sections={[{ items: clients.map((c: any) => ({ label: c.name, onClick: () => setForm((f) => ({ ...f, clientId: c.id })) })) }]} />
             </div>
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Validity (months)</label>
@@ -107,7 +107,7 @@ const AdminLicenses: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {licenses.map((lic) => {
+              {licenses.map((lic: any) => {
                 const isActive = lic.isActive && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
                 return (
                   <tr key={lic.id} className="hover:bg-muted/30">

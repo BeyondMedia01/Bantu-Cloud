@@ -4,8 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { EmployeeAPI, BranchAPI, DepartmentAPI, NecTableAPI, TaxTableAPI, SystemSettingsAPI, DocumentsAPI } from '../api/client';
-import type { Branch, Department } from '../types/common';
-import type { NecGrade, TaxTable, EmployeeDocument as Document } from '../types/domain';
 import { Field } from '../components/common/Field';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { getActiveCompanyId } from '../lib/companyContext';
@@ -39,10 +37,10 @@ const TITLES = ['Mr', 'Mrs', 'Miss', 'Ms', 'Dr', 'Prof', 'Rev'];
 const EmployeeEdit: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [necGrades, setNecGrades] = useState<NecGrade[]>([]);
-  const [taxTables, setTaxTables] = useState<TaxTable[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [necGrades, setNecGrades] = useState<any[]>([]);
+  const [taxTables, setTaxTables] = useState<any[]>([]);
   const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -74,7 +72,7 @@ const EmployeeEdit: React.FC = () => {
     bankAccounts: [] as any[],
   });
   const [activeTab, setActiveTab] = useState<'PERSONAL' | 'WORK' | 'PAY' | 'TAX' | 'LEAVE' | 'DOCUMENTS' | 'AUDIT'>('PERSONAL');
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [docUploadFile, setDocUploadFile] = useState<File | null>(null);
   const [docForm, setDocForm] = useState({ type: 'OTHER', name: '' });
@@ -93,20 +91,20 @@ const EmployeeEdit: React.FC = () => {
       setTaxTables(tt.data);
       const e = emp.data;
       const empCurrency = e.currency || 'USD';
-      const tableNames = new Set((tt.data as TaxTable[]).map((t) => t.name));
+      const tableNames = new Set((tt.data as any[]).map((t: any) => t.name));
       const settingName = `DEFAULT_TAX_TABLE_${empCurrency}`;
-      const defaultSetting = (ss.data as { settingName: string; isActive: boolean; effectiveFrom: string; settingValue: string }[])
+      const defaultSetting = (ss.data as any[])
         .filter((s) => s.settingName === settingName && s.isActive)
-        .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
+        .sort((a: any, b: any) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
       const resolvedTaxTable = (e.taxTable && tableNames.has(e.taxTable))
         ? e.taxTable
         : (defaultSetting?.settingValue || '');
-      const d = (v: unknown) => (v ? String(v).slice(0, 10) : '');
+      const d = (v: any) => (v ? String(v).slice(0, 10) : '');
 
       // Flatten all grades from all NEC tables for the dropdown
-      const allGrades: NecGrade[] = [];
-      (nec.data as { name: string; grades?: NecGrade[] }[]).forEach((table) => {
-        (table.grades ?? []).forEach((g) => allGrades.push({ ...g, tableName: table.name }));
+      const allGrades: any[] = [];
+      (nec.data as any[]).forEach((table: any) => {
+        (table.grades ?? []).forEach((g: any) => allGrades.push({ ...g, tableName: table.name }));
       });
       setNecGrades(allGrades);
 
@@ -179,7 +177,7 @@ const EmployeeEdit: React.FC = () => {
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const handleAccountChange = (index: number, field: string, value: string | number) => {
+  const handleAccountChange = (index: number, field: string, value: any) => {
     setForm(f => {
       const newAccounts = [...f.bankAccounts];
       newAccounts[index] = { ...newAccounts[index], [field]: value };
@@ -197,7 +195,7 @@ const EmployeeEdit: React.FC = () => {
   const removeAccount = (index: number) => {
     setForm(f => ({
       ...f,
-      bankAccounts: f.bankAccounts.filter((_: unknown, i: number) => i !== index)
+      bankAccounts: f.bankAccounts.filter((_: any, i: number) => i !== index)
     }));
   };
 
@@ -217,8 +215,8 @@ const EmployeeEdit: React.FC = () => {
         bankAccounts: form.paymentMethod === 'BANK' ? form.bankAccounts : [],
       } as any);
       navigate('/employees');
-    } catch (err) {
-      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to update employee');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update employee');
     } finally {
       setLoading(false);
     }
@@ -501,24 +499,24 @@ const EmployeeEdit: React.FC = () => {
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Department</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
-                  <span className="truncate">{departments.find((d) => d.id === form.departmentId)?.name || '— None —'}</span>
+                  <span className="truncate">{departments.find((d: any) => d.id === form.departmentId)?.name || '— None —'}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— None —', onClick: () => setForm(p => ({ ...p, departmentId: '' })) },
-                ...departments.map((d) => ({ label: d.name, onClick: () => setForm(p => ({ ...p, departmentId: d.id })) })),
+                ...departments.map((d: any) => ({ label: d.name, onClick: () => setForm(p => ({ ...p, departmentId: d.id })) })),
               ], emptyMessage: 'No departments' }]} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Branch</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
-                  <span className="truncate">{branches.find((b) => b.id === form.branchId)?.name || '— None —'}</span>
+                  <span className="truncate">{branches.find((b: any) => b.id === form.branchId)?.name || '— None —'}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— None —', onClick: () => setForm(p => ({ ...p, branchId: '' })) },
-                ...branches.map((b) => ({ label: b.name, onClick: () => setForm(p => ({ ...p, branchId: b.id })) })),
+                ...branches.map((b: any) => ({ label: b.name, onClick: () => setForm(p => ({ ...p, branchId: b.id })) })),
               ], emptyMessage: 'No branches' }]} />
             </div>
             <Field label="Cost Center">
@@ -599,12 +597,12 @@ const EmployeeEdit: React.FC = () => {
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">NEC Grade</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
                   <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
-                    <span className="truncate">{necGrades.find((g) => g.id === form.necGradeId) ? `${necGrades.find((g) => g.id === form.necGradeId)!.gradeCode}${necGrades.find((g) => g.id === form.necGradeId)!.description ? ` — ${necGrades.find((g) => g.id === form.necGradeId)!.description}` : ''}` : '— Select grade —'}</span>
+                    <span className="truncate">{necGrades.find((g: any) => g.id === form.necGradeId) ? `${necGrades.find((g: any) => g.id === form.necGradeId).gradeCode}${necGrades.find((g: any) => g.id === form.necGradeId).description ? ` — ${necGrades.find((g: any) => g.id === form.necGradeId).description}` : ''}` : '— Select grade —'}</span>
                     <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 )} sections={[{ items: [
                   { label: '— Select grade —', onClick: () => setForm(p => ({ ...p, necGradeId: '' })) },
-                  ...necGrades.map((g) => ({ label: `${g.gradeCode}${g.description ? ` — ${g.description}` : ''} (${g.tableName})`, onClick: () => setForm(p => ({ ...p, necGradeId: g.id })) })),
+                  ...necGrades.map((g: any) => ({ label: `${g.gradeCode}${g.description ? ` — ${g.description}` : ''} (${g.tableName})`, onClick: () => setForm(p => ({ ...p, necGradeId: g.id })) })),
                 ], emptyMessage: 'No grades available' }]} />
               </div>
             )}
@@ -686,7 +684,7 @@ const EmployeeEdit: React.FC = () => {
                 {ZIMBABWE_BANKS.map(b => <option key={b} value={b} />)}
               </datalist>
 
-              {form.bankAccounts.map((acc, index: number) => (
+              {form.bankAccounts.map((acc: any, index: number) => (
                 <div key={index} className="bg-muted/50 p-4 rounded-2xl border border-border relative group transition-all hover:bg-muted">
                   {form.bankAccounts.length > 1 && (
                     <button 
@@ -811,12 +809,12 @@ const EmployeeEdit: React.FC = () => {
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tax Table *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors text-foreground">
-                  <span className="truncate">{taxTables.find((t) => t.name === form.taxTable) ? `${form.taxTable} (${taxTables.find((t) => t.name === form.taxTable)!.currency})` : (form.taxTable || '— Select tax table —')}</span>
+                  <span className="truncate">{taxTables.find((t: any) => t.name === form.taxTable) ? `${form.taxTable} (${taxTables.find((t: any) => t.name === form.taxTable).currency})` : (form.taxTable || '— Select tax table —')}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: '— Select tax table —', onClick: () => setForm(p => ({ ...p, taxTable: '' })) },
-                ...taxTables.map((t) => ({ label: `${t.name} (${t.currency})${t.isActive ? ' ★' : ''}`, onClick: () => setForm(p => ({ ...p, taxTable: t.name })) })),
+                ...taxTables.map((t: any) => ({ label: `${t.name} (${t.currency})${t.isActive ? ' ★' : ''}`, onClick: () => setForm(p => ({ ...p, taxTable: t.name })) })),
               ], emptyMessage: 'No tax tables available' }]} />
             </div>
             <div className="flex flex-col gap-1.5">

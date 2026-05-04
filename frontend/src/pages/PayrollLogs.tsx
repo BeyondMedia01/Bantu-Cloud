@@ -45,7 +45,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
     }
   };
 
-  const hasValueChange = (log: import("../api/client").PayrollLog & Record<string, unknown>) => log.oldValue || log.newValue;
+  const hasValueChange = (log: any) => log.oldValue || log.newValue;
 
   return (
     <div className="flex flex-col gap-8">

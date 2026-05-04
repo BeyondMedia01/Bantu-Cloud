@@ -16,10 +16,10 @@ const SystemSettings: React.FC = () => {
         const list = r.data;
         setSettings(list);
         const map: Record<string, string> = {};
-        list.forEach((s) => { map[s.settingName] = s.settingValue; });
+        list.forEach((s: any) => { map[s.settingName] = s.settingValue; });
         setValues(map);
       })
-      .catch((e) => setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to load settings'))
+      .catch((err: any) => setError(err.response?.data?.message || 'Failed to load settings'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,8 +35,8 @@ const SystemSettings: React.FC = () => {
       );
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
-    } catch (e) {
-      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to save settings');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save settings');
     } finally {
       setSaving(false);
     }
@@ -72,7 +72,7 @@ const SystemSettings: React.FC = () => {
                   <td colSpan={2} className="px-4 py-8 text-center text-sm text-muted-foreground">No settings configured</td>
                 </tr>
               ) : (
-                settings.map((s) => (
+                settings.map((s: any) => (
                   <tr key={s.id}>
                     <td className="px-4 py-3">
                       <p className="font-bold text-sm">{s.settingName}</p>

@@ -52,7 +52,7 @@ const WorkPeriodSettings: React.FC = () => {
     try {
       await api.put('/work-period-settings', form);
       setSuccess(true);
-    } catch {
+    } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to save settings');
     } finally {
       setSaving(false);

@@ -57,7 +57,7 @@ const PeriodEnd: React.FC = () => {
         setResult(res.data);
       }
       PayrollCalendarAPI.getAll().then((r) => setCalendars(r.data)).catch(() => {});
-    } catch {
+    } catch (err: any) {
       setError(err.response?.data?.message || `Failed to ${confirmPending === 'reopen' ? 're-open' : 'close'} period`);
     } finally {
       setLoading(false);
@@ -140,7 +140,7 @@ const PeriodEnd: React.FC = () => {
               </div>
               {status.pendingInputDetails?.length > 0 && (
                 <div className="mt-3 border-t border-amber-200 pt-3 flex flex-col gap-1.5">
-                  {status.pendingInputDetails.map((inp) => (
+                  {status.pendingInputDetails.map((inp: any) => (
                     <div key={inp.id} className="text-xs text-amber-800 bg-card rounded-lg px-3 py-2 border border-amber-100">
                       <span className="font-bold">{inp.employee}</span>
                       <span className="text-amber-600"> · {inp.transactionCode}</span>

@@ -52,8 +52,8 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       setIsModalOpen(false);
       setForm({ toCurrency: 'ZiG', rate: '', effectiveDate: new Date().toISOString().slice(0, 10), source: 'RBZ', notes: '' });
       fetchRates();
-    } catch (e) {
-      setFormError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to save rate.');
+    } catch (err: any) {
+      setFormError(err.response?.data?.message || 'Failed to save rate.');
     } finally {
       setSaving(false);
     }
@@ -66,7 +66,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
     try {
       await CurrencyRateAPI.delete(deleteTarget);
       fetchRates();
-    } catch (e) {
+    } catch {
       showToast('Failed to delete rate', 'error');
     } finally {
       setDeleteTarget(null);

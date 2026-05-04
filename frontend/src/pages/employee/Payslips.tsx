@@ -55,7 +55,7 @@ const EmployeePayslips: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {payslips.map((p) => (
+              {payslips.map((p: any) => (
                 <tr key={p.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 text-sm font-bold">
                     {p.payrollRun && new Date(p.payrollRun.startDate).toLocaleDateString()} –{' '}

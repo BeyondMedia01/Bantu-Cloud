@@ -39,7 +39,7 @@ const EmployeeProfile: React.FC = () => {
           accountNumber: p.accountNumber || '',
         });
       })
-      .catch((e) => setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to load profile'))
+      .catch((err: any) => setError(err.response?.data?.message || 'Failed to load profile'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -52,8 +52,8 @@ const EmployeeProfile: React.FC = () => {
       await EmployeeSelfAPI.updateProfile(form);
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
-    } catch (e) {
-      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to save');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save');
     } finally {
       setSaving(false);
     }

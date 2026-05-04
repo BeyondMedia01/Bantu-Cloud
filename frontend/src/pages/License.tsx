@@ -63,7 +63,7 @@ const License: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {licenses.map((lic) => {
+              {licenses.map((lic: any) => {
                 const isActive = lic.isActive && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
                 return (
                   <tr key={lic.id} className="hover:bg-muted/30">

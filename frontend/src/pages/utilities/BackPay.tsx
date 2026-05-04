@@ -155,7 +155,7 @@ const BackPay: React.FC = () => {
     setEmpRates((prev) => ({ ...prev, [id]: { ...prev[id], employeeId: id, [field]: value } }));
 
   const buildPayload = () => {
-    const base: Record<string, unknown> = { effectiveDate, employeeIds: selected, currency };
+    const base: any = { effectiveDate, employeeIds: selected, currency };
     if (rateMode === 'uniform') {
       base.uniformNewRate = parseFloat(uniformNewRate);
     } else {
@@ -189,8 +189,8 @@ const BackPay: React.FC = () => {
       const res = await UtilitiesAPI.backPay(buildPayload());
       setPreview(res.data);
       setStep(3);
-    } catch (e) {
-      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to calculate back pay');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to calculate back pay');
     } finally {
       setPreviewLoading(false);
     }
@@ -203,8 +203,8 @@ const BackPay: React.FC = () => {
       const res = await UtilitiesAPI.backPayCommit(buildPayload());
       setCommit(res.data);
       setStep(4);
-    } catch (e) {
-      setError((e as {response?: {data?: {message?: string}}})?.response?.data?.message || 'Failed to generate back-pay inputs');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to generate back-pay inputs');
     } finally {
       setCommitLoading(false);
     }
@@ -358,7 +358,7 @@ const BackPay: React.FC = () => {
             </div>
 
             <div className="max-h-80 overflow-y-auto divide-y divide-border">
-              {employees.map((emp) => {
+              {employees.map((emp: any) => {
                 const isSelected = selected.includes(emp.id);
                 const rates = empRates[emp.id];
                 const isExpanded = expandedEmp === emp.id;

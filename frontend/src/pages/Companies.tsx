@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash, Building2, MapPin, Hash, Pencil, X, Check } from 'lucide-react';
 import { CompanyAPI } from '../api/client';
-import type { Company } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useEscapeKey } from '../hooks/useEscapeKey';
@@ -57,7 +56,7 @@ const Companies: React.FC = () => {
     }
   };
 
-  const startEdit = (company: Company) => {
+  const startEdit = (company: any) => {
     setEditingId(company.id);
     setEditForm({
       name: company.name || '',
@@ -105,7 +104,7 @@ const Companies: React.FC = () => {
   };
 
   const ef = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setEditForm((prev) => ({ ...prev, [field]: e.target.value }));
+    setEditForm((prev: any) => ({ ...prev, [field]: e.target.value }));
 
   const inputCls = "w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium text-sm";
 

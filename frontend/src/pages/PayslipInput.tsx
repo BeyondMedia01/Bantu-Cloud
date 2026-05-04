@@ -4,36 +4,11 @@ import {
   Search, ChevronRight, Info, Calculator, Upload, Download, AlertCircle, ChevronDown
 } from 'lucide-react';
 import { EmployeeAPI, TransactionCodeAPI, PayrollInputAPI } from '../api/client';
-import type { TransactionCode } from '../types/domain';
-import type { Employee } from '../types/employee';
 import { Dropdown } from '@/components/ui/dropdown';
 import { getActiveCompanyId } from '../lib/companyContext';
 import BenefitCalculator from '../components/tax/BenefitCalculator';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
-
-interface PayslipInputRecord {
-  id: string;
-  employeeId: string;
-  transactionCodeId: string;
-  transactionCode?: { name?: string; code?: string; type?: string };
-  employeeUSD?: number | null;
-  employeeZiG?: number | null;
-  employerUSD?: number | null;
-  employerZiG?: number | null;
-  units?: number | null;
-  unitsType?: string | null;
-  duration?: string | null;
-  balance?: number | null;
-  period?: string;
-  notes?: string | null;
-  processed?: boolean;
-}
-
-interface ImportFailure {
-  row: number;
-  reason: string;
-}
 
 const CURRENT_PERIOD = new Date().toISOString().slice(0, 7);
 
@@ -73,11 +48,11 @@ const fmtAmt = (n: number) =>
 
 const PayslipInput: React.FC = () => {
   const { showToast } = useToast();
-  const [employees, setEmployees]       = useState<Employee[]>([]);
-  const [txCodes, setTxCodes]           = useState<TransactionCode[]>([]);
-  const [deleteTarget, setDeleteTarget] = useState<PayslipInputRecord | null>(null);
-  const [selectedEmp, setSelectedEmp]   = useState<Employee | null>(null);
-  const [inputs, setInputs]             = useState<PayslipInputRecord[]>([]);
+  const [employees, setEmployees]       = useState<any[]>([]);
+  const [txCodes, setTxCodes]           = useState<any[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [selectedEmp, setSelectedEmp]   = useState<any>(null);
+  const [inputs, setInputs]             = useState<any[]>([]);
 
   const [empSearch, setEmpSearch]           = useState('');
   const [loadingEmps, setLoadingEmps]       = useState(true);
@@ -98,7 +73,7 @@ const PayslipInput: React.FC = () => {
 
   const [importOpen, setImportOpen]       = useState(false);
   const [importing, setImporting]         = useState(false);
-  const [importResults, setImportResults] = useState<{ created: number, failed: ImportFailure[] } | null>(null);
+  const [importResults, setImportResults] = useState<{ created: number, failed: any[] } | null>(null);
 
   // ── Load employees + transaction codes ────────────────────────────────────
 
@@ -135,7 +110,7 @@ const PayslipInput: React.FC = () => {
     }
   }, []);
 
-  const selectEmployee = (emp: Employee) => {
+  const selectEmployee = (emp: any) => {
     setSelectedEmp(emp);
     setShowAdd(false);
     setEditingId(null);
@@ -172,8 +147,8 @@ const PayslipInput: React.FC = () => {
       setAddForm({ ...EMPTY_FORM });
       setShowAdd(false);
       loadInputs(selectedEmp.id);
-    } catch (e) {
-      setAddError((e as any)?.response?.data?.message || 'Failed to add input.');
+    } catch (err: any) {
+      setAddError(err.response?.data?.message || 'Failed to add input.');
     } finally {
       setAddSaving(false);
     }
@@ -181,7 +156,7 @@ const PayslipInput: React.FC = () => {
 
   // ── Edit ─────────────────────────────────────────────────────────────────
 
-  const startEdit = (inp: PayslipInputRecord) => {
+  const startEdit = (inp: any) => {
     setEditingId(inp.id);
     setEditForm({
       transactionCodeId: inp.transactionCodeId,
@@ -220,8 +195,8 @@ const PayslipInput: React.FC = () => {
       });
       setEditingId(null);
       loadInputs(selectedEmp.id);
-    } catch (e) {
-      setEditError((e as any)?.response?.data?.message || 'Failed to save changes.');
+    } catch (err: any) {
+      setEditError(err.response?.data?.message || 'Failed to save changes.');
     } finally {
       setEditSaving(false);
     }
@@ -229,15 +204,15 @@ const PayslipInput: React.FC = () => {
 
   // ── Delete ───────────────────────────────────────────────────────────────
 
-  const handleDelete = (inp: PayslipInputRecord) => setDeleteTarget(inp);
+  const handleDelete = (inp: any) => setDeleteTarget(inp);
 
   const confirmDeleteInput = async () => {
     if (!deleteTarget) return;
     try {
       await PayrollInputAPI.delete(deleteTarget.id);
       loadInputs(selectedEmp.id);
-    } catch (e) {
-      showToast((e as any)?.response?.data?.message || 'Failed to delete', 'error');
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to delete', 'error');
     } finally {
       setDeleteTarget(null);
     }
@@ -253,8 +228,8 @@ const PayslipInput: React.FC = () => {
       setImportResults(res.data);
       if (selectedEmp) loadInputs(selectedEmp.id);
       loadEmployees(); // Refresh employee list if needed
-    } catch (e) {
-      showToast((e as any)?.response?.data?.message || 'Import failed.', 'error');
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Import failed.', 'error');
     } finally {
       setImporting(false);
       e.target.value = ''; // Reset input
@@ -499,7 +474,7 @@ const PayslipInput: React.FC = () => {
                     ].map(({ label, field }) => (
                       <div key={field} className="flex flex-col gap-1.5">
                         <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{label}</label>
-                        {amtInput((addForm as Record<string, string>)[field], v => setAddForm(p => ({ ...p, [field]: v })), field)}
+                        {amtInput((addForm as any)[field], v => setAddForm(p => ({ ...p, [field]: v })), field)}
                       </div>
                     ))}
                   </div>

@@ -42,32 +42,6 @@ interface Summary {
 
 type Grid = Record<string, Record<string, CellData>>;
 
-interface CalendarEntry {
-  startDate: string;
-  endDate: string;
-  isClosed: boolean;
-}
-
-interface TaxTableEntry {
-  isActive: boolean;
-  currency: string;
-  brackets: {
-    lowerBound: number;
-    upperBound?: number;
-    rate: number;
-    fixedAmount?: number;
-  }[];
-}
-
-interface InputRecord {
-  id: string;
-  employeeId: string;
-  transactionCodeId: string;
-  employeeUSD?: number;
-  employeeZiG?: number;
-  period: string;
-}
-
 // ─── client-side PAYE estimator ──────────────────────────────────────────────
 
 interface ActiveTaxConfig {
@@ -153,8 +127,8 @@ const PayrollInputGrid: React.FC = () => {
       if (!activePeriod) {
         // Fetch active calendar to determine the correct period
         const calRes = await PayrollCalendarAPI.getAll({ isClosed: 'false' });
-        const calendars: CalendarEntry[] = (calRes.data as unknown as CalendarEntry[]) || [];
-        const activeCalendar = calendars.sort((a, b) =>
+        const calendars: any[] = (calRes.data as any) || [];
+        const activeCalendar = calendars.sort((a: any, b: any) =>
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
         )[0];
         activePeriod = activeCalendar
@@ -166,16 +140,16 @@ const PayrollInputGrid: React.FC = () => {
       const inputRes = await PayrollInputAPI.getAll({ period: activePeriod });
 
       // Brackets are now embedded in the table response — no second round-trip needed
-      const activeTables: TaxTableEntry[] = (tablesRes.data as unknown as TaxTableEntry[]) || [];
-      const activeTable = activeTables.find((t) => t.isActive && t.currency === currency);
+      const activeTables: any[] = (tablesRes.data as any) || [];
+      const activeTable = activeTables.find((t: any) => t.isActive && t.currency === currency);
       let resolvedTaxConfig: ActiveTaxConfig | null = null;
       if (activeTable) {
-        const rawBrackets = activeTable.brackets || [];
+        const rawBrackets: any[] = activeTable.brackets || [];
         const nssa = nssaRes.data;
         resolvedTaxConfig = {
           brackets: rawBrackets
-            .sort((a, b) => a.lowerBound - b.lowerBound)
-            .map((b) => ({
+            .sort((a: any, b: any) => a.lowerBound - b.lowerBound)
+            .map((b: any) => ({
               lower: b.lowerBound,
               upper: b.upperBound ?? Infinity,
               rate: b.rate,
@@ -188,7 +162,7 @@ const PayrollInputGrid: React.FC = () => {
 
       const emps: Employee[] = (empRes.data as any).data || empRes.data || [];
       const tcs: TxCode[] = (tcRes.data as any) || [];
-      const inputs: InputRecord[] = (inputRes.data as unknown as InputRecord[]) || [];
+      const inputs: any[] = (inputRes.data as any) || [];
 
       setEmployees(emps);
       setAllTxCodes(tcs);
@@ -363,7 +337,7 @@ const PayrollInputGrid: React.FC = () => {
     setPreviewing(true);
     setError('');
     try {
-      const inputs: { employeeId: string; transactionCodeId: string; amount: number }[] = [];
+      const inputs: any[] = [];
       for (const emp of employees) {
         for (const tc of activeCols) {
           const val = parseFloat(grid[emp.id]?.[tc.id]?.value || '0') || 0;
