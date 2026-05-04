@@ -17,7 +17,7 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 function actionColor(action: string): string {
-  return ACTION_COLORS[action] ?? 'bg-slate-100 text-slate-600';
+  return ACTION_COLORS[action] ?? 'bg-muted text-foreground/80';
 }
 
 const LIMIT = 50;
@@ -71,16 +71,16 @@ const AuditLogs: React.FC = () => {
     <div>
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/admin')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/admin')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Audit Logs</h1>
-          <p className="text-slate-500 font-medium text-sm">All platform actions across users and resources</p>
+          <p className="text-muted-foreground font-medium text-sm">All platform actions across users and resources</p>
         </div>
         <button
           onClick={() => fetchLogs(page)}
-          className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-navy px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors"
+          className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-navy px-3 py-2 rounded-xl hover:bg-muted transition-colors"
         >
           <RefreshCw size={15} /> Refresh
         </button>
@@ -141,7 +141,7 @@ const AuditLogs: React.FC = () => {
               setDateFrom(''); setDateTo('');
               setTimeout(() => fetchLogs(1), 0);
             }}
-            className="px-5 py-2 rounded-full border border-border text-sm font-bold text-slate-500 hover:bg-slate-50"
+            className="px-5 py-2 rounded-full border border-border text-sm font-bold text-muted-foreground hover:bg-muted"
           >
             Clear
           </button>
@@ -151,26 +151,26 @@ const AuditLogs: React.FC = () => {
       {/* Table */}
       <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-slate-400 text-sm font-medium">Loading…</div>
+          <div className="p-12 text-center text-muted-foreground text-sm font-medium">Loading…</div>
         ) : logs.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-sm font-medium">No audit logs found.</div>
+          <div className="p-12 text-center text-muted-foreground text-sm font-medium">No audit logs found.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Timestamp</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Action</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Resource</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">User</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Details</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">IP</th>
+                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Timestamp</th>
+                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Action</th>
+                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Resource</th>
+                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">User</th>
+                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Details</th>
+                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">IP</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-5 py-3 text-slate-500 font-medium whitespace-nowrap">
+                  <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-5 py-3 text-muted-foreground font-medium whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleString(undefined, {
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                       })}
@@ -183,14 +183,14 @@ const AuditLogs: React.FC = () => {
                     <td className="px-5 py-3">
                       <span className="font-medium text-navy">{log.resource}</span>
                       {log.resourceId && (
-                        <span className="text-slate-400 text-[11px] ml-1 font-mono">#{log.resourceId.slice(-6)}</span>
+                        <span className="text-muted-foreground text-[11px] ml-1 font-mono">#{log.resourceId.slice(-6)}</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-slate-600 font-medium">{log.userEmail ?? '—'}</td>
-                    <td className="px-5 py-3 text-slate-400 font-mono text-[11px] max-w-[220px] truncate">
+                    <td className="px-5 py-3 text-foreground/80 font-medium">{log.userEmail ?? '—'}</td>
+                    <td className="px-5 py-3 text-muted-foreground font-mono text-[11px] max-w-[220px] truncate">
                       {log.details ? JSON.stringify(log.details) : '—'}
                     </td>
-                    <td className="px-5 py-3 text-slate-400 font-mono text-[11px]">{log.ipAddress ?? '—'}</td>
+                    <td className="px-5 py-3 text-muted-foreground font-mono text-[11px]">{log.ipAddress ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -201,14 +201,14 @@ const AuditLogs: React.FC = () => {
         {/* Pagination */}
         {!loading && total > LIMIT && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-border">
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-xs text-muted-foreground font-medium">
               {(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, total)} of {total} entries
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => fetchLogs(page - 1)}
                 disabled={page <= 1}
-                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -216,7 +216,7 @@ const AuditLogs: React.FC = () => {
               <button
                 onClick={() => fetchLogs(page + 1)}
                 disabled={page >= totalPages}
-                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={16} />
               </button>

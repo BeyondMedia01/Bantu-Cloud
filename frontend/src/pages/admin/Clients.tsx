@@ -62,7 +62,7 @@ const AdminClients: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Clients</h1>
-          <p className="text-slate-500 text-sm font-medium">Manage platform clients</p>
+          <p className="text-muted-foreground text-sm font-medium">Manage platform clients</p>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90">
           <Plus size={16} /> Add Client
@@ -71,7 +71,7 @@ const AdminClients: React.FC = () => {
 
       {showForm && (
         <form onSubmit={handleCreate} className="mb-6 bg-primary rounded-2xl border border-border p-6 shadow-sm flex flex-col gap-4">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">New Client</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">New Client</h3>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="grid grid-cols-2 gap-4">
             {[
@@ -81,9 +81,9 @@ const AdminClients: React.FC = () => {
               { f: 'address', label: 'Address', required: false },
             ].map(({ f, label, required }) => (
               <div key={f}>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">{label}{required && ' *'}</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">{label}{required && ' *'}</label>
                 <input required={required} value={(form as any)[f]} onChange={set(f)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm" />
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm" />
               </div>
             ))}
           </div>
@@ -91,7 +91,7 @@ const AdminClients: React.FC = () => {
             <button type="submit" disabled={saving} className="bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
               {saving ? 'Creating…' : 'Create Client'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-full border border-border font-bold text-sm text-slate-500 hover:bg-slate-50">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-full border border-border font-bold text-sm text-muted-foreground hover:bg-muted">
               Cancel
             </button>
           </div>
@@ -105,22 +105,22 @@ const AdminClients: React.FC = () => {
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Name', 'Email', 'Phone', 'Companies', 'Created', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {clients.map((c: any) => (
-                <tr key={c.id} className="hover:bg-slate-50/50">
+                <tr key={c.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-bold text-sm">{c.name}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">{c.email || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">{c.phone || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{c.email || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{c.phone || '—'}</td>
                   <td className="px-4 py-3 text-sm">{c._count?.companies ?? 0}</td>
-                  <td className="px-4 py-3 text-sm text-slate-400">{new Date(c.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => handleDelete(c.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg">
+                    <button onClick={() => handleDelete(c.id)} className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg">
                       <Trash2 size={14} />
                     </button>
                   </td>

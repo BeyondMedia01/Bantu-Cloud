@@ -62,17 +62,17 @@ const WorkPeriodSettings: React.FC = () => {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">Work Period Settings</h1>
-          <p className="text-slate-500 font-medium text-sm">Configure default working days and hours used in payroll calculations</p>
+          <p className="text-muted-foreground font-medium text-sm">Configure default working days and hours used in payroll calculations</p>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-slate-400 text-sm font-medium">Loading…</div>
+        <div className="text-muted-foreground text-sm font-medium">Loading…</div>
       ) : (
         <>
           <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 text-sm text-blue-700">
@@ -89,13 +89,13 @@ const WorkPeriodSettings: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <Clock size={18} className="text-slate-400" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Working Days</h3>
+                <Clock size={18} className="text-muted-foreground" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Working Days</h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">
                     Working Days per Period
                   </label>
                   <input
@@ -108,12 +108,12 @@ const WorkPeriodSettings: React.FC = () => {
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Used for pro-rating, short-time, and daily rate calculations</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Used for pro-rating, short-time, and daily rate calculations</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
-                    Working Days per Month <span className="text-slate-400 font-normal">(legacy)</span>
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">
+                    Working Days per Month <span className="text-muted-foreground font-normal">(legacy)</span>
                   </label>
                   <input
                     type="number"
@@ -125,11 +125,11 @@ const WorkPeriodSettings: React.FC = () => {
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Fallback if Working Days per Period is not set</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Fallback if Working Days per Period is not set</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">
                     Calendar Days per Month
                   </label>
                   <input
@@ -142,20 +142,20 @@ const WorkPeriodSettings: React.FC = () => {
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Used for leave encashment and termination notice pay</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Used for leave encashment and termination notice pay</p>
                 </div>
               </div>
             </div>
 
             <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <Clock size={18} className="text-slate-400" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Working Hours</h3>
+                <Clock size={18} className="text-muted-foreground" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Working Hours</h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">
                     Hours per Day
                   </label>
                   <input
@@ -168,20 +168,20 @@ const WorkPeriodSettings: React.FC = () => {
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">
+                  <p className="text-[10px] text-muted-foreground mt-1">
                     Used to derive hours/period when employee has no Hours per Period set.
                     Also used for hourly notice pay in termination.
                   </p>
                 </div>
 
-                <div className="flex items-center bg-slate-50 border border-border rounded-xl p-4">
-                  <div className="text-sm text-slate-500 font-medium">
-                    <p className="font-bold text-slate-700 mb-1">Derived Hours per Period</p>
+                <div className="flex items-center bg-muted border border-border rounded-xl p-4">
+                  <div className="text-sm text-muted-foreground font-medium">
+                    <p className="font-bold text-foreground/90 mb-1">Derived Hours per Period</p>
                     <p className="text-2xl font-bold text-slate-800">
                       {(form.WORKING_DAYS_PER_PERIOD * form.HOURS_PER_DAY).toFixed(1)}
-                      <span className="text-sm font-medium text-slate-400 ml-1">hrs</span>
+                      <span className="text-sm font-medium text-muted-foreground ml-1">hrs</span>
                     </p>
-                    <p className="text-[10px] text-slate-400 mt-1">
+                    <p className="text-[10px] text-muted-foreground mt-1">
                       {form.WORKING_DAYS_PER_PERIOD} days × {form.HOURS_PER_DAY} hrs/day
                     </p>
                   </div>
@@ -209,7 +209,7 @@ const WorkPeriodSettings: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/utilities')}
-                className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50"
+                className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted"
               >
                 Cancel
               </button>

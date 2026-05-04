@@ -104,7 +104,7 @@ const TAG_COLORS: Record<string, string> = {
   ZIMRA: 'bg-accent-green/10 text-accent-green',
   NSSA: 'bg-teal-100 text-teal-600',
   NEC: 'bg-purple-100 text-purple-600',
-  FINANCE: 'bg-slate-100 text-slate-500',
+  FINANCE: 'bg-muted text-muted-foreground',
 };
 
 interface FilingDeadlinesCardProps {
@@ -117,8 +117,8 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
   return (
     <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm h-full flex flex-col">
       <div className="flex items-center gap-2 mb-4">
-        <CalendarClock size={18} className="text-slate-400" />
-        <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Filing Deadlines</h3>
+        <CalendarClock size={18} className="text-muted-foreground" />
+        <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Filing Deadlines</h3>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 auto-rows-fr">
@@ -132,7 +132,7 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
             : urgent ? 'border-red-200 bg-red-50/40'
             : soon ? 'border-amber-200 bg-amber-50/30'
             : 'border-border';
-          const daysColor = urgent && !isFinance ? 'text-red-600' : soon && !isFinance ? 'text-amber-600' : 'text-slate-400';
+          const daysColor = urgent && !isFinance ? 'text-red-600' : soon && !isFinance ? 'text-amber-600' : 'text-muted-foreground';
 
           return (
             <div key={i} className={`rounded-xl border p-3 flex flex-col gap-2 h-full ${borderColor}`}>
@@ -144,7 +144,7 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
               </div>
               <div>
                 <p className="text-xs font-bold text-navy leading-tight">{d.name}</p>
-                <p className="text-[10px] text-slate-400 font-medium mt-0.5 leading-tight">{d.description}</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5 leading-tight">{d.description}</p>
               </div>
               <div className="mt-auto">
                 <p className="text-sm font-bold text-navy">{d.dueDate.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</p>

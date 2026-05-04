@@ -133,14 +133,14 @@ const Reports: React.FC = () => {
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-navy">Reports</h1>
-          <p className="text-slate-500 font-medium text-sm">Generate and export ZIMRA & NSSA-compliant documentation.</p>
+          <p className="text-muted-foreground font-medium text-sm">Generate and export ZIMRA & NSSA-compliant documentation.</p>
         </div>
         <div className="flex items-center gap-2">
           <Dropdown
             trigger={(isOpen) => (
-              <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-green transition-colors">
+              <button type="button" className="flex items-center gap-2 bg-muted border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-green transition-colors">
                 <span>{selectedYear}</span>
-                <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
             )}
             sections={[{ items: YEARS.map(y => ({ label: String(y), onClick: () => setSelectedYear(y) })) }]}
@@ -153,7 +153,7 @@ const Reports: React.FC = () => {
 
           {/* Statutory Returns */}
           <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Statutory Returns</h3>
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Statutory Returns</h3>
             <div className="flex flex-col gap-3">
 
               {/* ZIMRA P16 */}
@@ -164,7 +164,7 @@ const Reports: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm">ZIMRA P16 Annual Summary</p>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Tax Year {selectedYear}</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Tax Year {selectedYear}</p>
                   </div>
                 </div>
                 <button
@@ -184,15 +184,15 @@ const Reports: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm">ZIMRA Monthly PAYE Return</p>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">TaRMS Excel Upload</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">TaRMS Excel Upload</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Dropdown
                     trigger={(isOpen) => (
-                      <button type="button" className="flex items-center gap-2 bg-slate-50 border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-green transition-colors">
+                      <button type="button" className="flex items-center gap-2 bg-muted border border-border rounded-xl px-3 py-2 text-sm font-bold text-navy hover:border-accent-green transition-colors">
                         <span>{MONTHS.find(m => m.id === selectedMonth)?.name}</span>
-                        <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                       </button>
                     )}
                     sections={[{ items: MONTHS.map(m => ({ label: m.name, onClick: () => setSelectedMonth(m.id) })) }]}
@@ -215,7 +215,7 @@ const Reports: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm">NSSA P4A Monthly Return</p>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Social Security Remittance</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Social Security Remittance</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -237,7 +237,7 @@ const Reports: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm">ZIMRA ITF16 Annual Return</p>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Tax Year {selectedYear}</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Tax Year {selectedYear}</p>
                   </div>
                 </div>
                 <button
@@ -251,7 +251,7 @@ const Reports: React.FC = () => {
 
               {/* Pension Fund Exports */}
               <div className="mt-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Pension Fund Exports</h3>
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Pension Fund Exports</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
                     { id: 'mipf', name: 'MIPF Export' },
@@ -262,9 +262,9 @@ const Reports: React.FC = () => {
                       key={p.id}
                       disabled={disabled || isDownloading(`pension-${p.id}`)}
                       onClick={() => downloadPension(p.id)}
-                      className="bg-white border border-border p-4 rounded-2xl flex flex-col gap-2 hover:border-accent-green transition-all text-left"
+                      className="bg-background border border-border p-4 rounded-2xl flex flex-col gap-2 hover:border-accent-green transition-all text-left"
                     >
-                      <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
+                      <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
                         <Download size={16} />
                       </div>
                       <span className="text-xs font-bold text-navy">{p.name}</span>
@@ -278,14 +278,14 @@ const Reports: React.FC = () => {
           {/* Operational Reports */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Operational Reports</h3>
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Operational Reports</h3>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Target Run:</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">Target Run:</span>
                 <Dropdown
                   trigger={(isOpen) => (
-                    <button type="button" className="flex items-center gap-1.5 bg-slate-50 border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-green transition-colors max-w-[170px]">
+                    <button type="button" className="flex items-center gap-1.5 bg-muted border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-green transition-colors max-w-[170px]">
                       <span className="truncate">{runs.find((r: any) => r.id === selectedRunId) ? `${fmtDate(runs.find((r: any) => r.id === selectedRunId).startDate)} – ${fmtDate(runs.find((r: any) => r.id === selectedRunId).endDate)}` : 'Select Run...'}</span>
-                      <ChevronDown size={12} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={12} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                   )}
                   sections={[{ items: [
@@ -298,7 +298,7 @@ const Reports: React.FC = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
-                { key: 'summary-pdf', icon: <FileText size={20} />, color: 'bg-slate-100 text-slate-700', label: 'Payroll Summary PDF', sub: 'Full summary for selected run', fn: downloadSummaryPdf },
+                { key: 'summary-pdf', icon: <FileText size={20} />, color: 'bg-muted text-foreground/90', label: 'Payroll Summary PDF', sub: 'Full summary for selected run', fn: downloadSummaryPdf },
                 { key: 'eft', icon: <CreditCard size={20} />, color: 'bg-orange-50 text-orange-600', label: 'Bank EFT Export', sub: 'Bulk payment CSV', fn: downloadEft },
                 { key: 'payslips', icon: <FileText size={20} />, color: 'bg-purple-50 text-purple-600', label: 'Payslips Export', sub: 'CSV for selected run', fn: downloadPayslips },
                 { key: 'journals', icon: <FileSpreadsheet size={20} />, color: 'bg-indigo-50 text-indigo-600', label: 'Payroll Journals', sub: 'Transaction level export', fn: downloadJournals },
@@ -315,9 +315,9 @@ const Reports: React.FC = () => {
                   <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shrink-0`}>{icon}</div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm truncate">{isDownloading(key) ? 'Wait…' : label}</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase truncate">{sub}</p>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase truncate">{sub}</p>
                   </div>
-                  <Download size={14} className="text-slate-300 shrink-0" />
+                  <Download size={14} className="text-muted-foreground/50 shrink-0" />
                 </button>
               ))}
             </div>
@@ -393,13 +393,13 @@ const Reports: React.FC = () => {
 
 const DeadlineItem: React.FC<{ month: string; day: string; label: string; sub: string; critical?: boolean }> = ({ month, day, label, sub, critical }) => (
   <div className="flex items-center gap-3">
-    <div className={`w-10 h-10 ${critical ? 'bg-red-50 text-red-500' : 'bg-slate-50 text-slate-400'} rounded-xl flex flex-col items-center justify-center font-bold shrink-0`}>
+    <div className={`w-10 h-10 ${critical ? 'bg-red-50 text-red-500' : 'bg-muted text-muted-foreground'} rounded-xl flex flex-col items-center justify-center font-bold shrink-0`}>
       <span className="text-[9px] leading-none uppercase">{month}</span>
       <span className="text-base leading-none">{day}</span>
     </div>
     <div>
       <p className="text-sm font-bold">{label}</p>
-      <p className={`text-[10px] font-bold uppercase tracking-wider ${critical ? 'text-red-400' : 'text-slate-400'}`}>{sub}</p>
+      <p className={`text-[10px] font-bold uppercase tracking-wider ${critical ? 'text-red-400' : 'text-muted-foreground'}`}>{sub}</p>
     </div>
     <Clock size={14} className="text-slate-200 ml-auto shrink-0" />
   </div>

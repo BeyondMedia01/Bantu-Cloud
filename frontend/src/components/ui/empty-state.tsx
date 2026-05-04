@@ -24,9 +24,9 @@ export function EmptyState({ variant, icon, title, description, action, classNam
   const Icon = icon ?? defaultIcons[variant];
   return (
     <div className={cn('flex flex-col items-center justify-center py-16 px-6 text-center', className)}>
-      <Icon size={40} className="text-slate-300 dark:text-slate-600 mb-4" aria-hidden="true" />
+      <Icon size={40} className="text-muted-foreground/50 dark:text-foreground/80 mb-4" aria-hidden="true" />
       <h3 className="text-sm font-semibold text-navy dark:text-slate-100 mb-1">{title}</h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-6">{description}</p>
+      <p className="text-sm text-muted-foreground dark:text-muted-foreground max-w-sm mb-6">{description}</p>
       {action && (
         <Button variant="default" onClick={action.onClick}>
           {action.label}

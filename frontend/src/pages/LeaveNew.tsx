@@ -43,10 +43,10 @@ const LeaveNew: React.FC = () => {
   return (
     <div className="max-w-xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/leave')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
+        <button onClick={() => navigate('/leave')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl"><ArrowLeft size={20} /></button>
         <div>
           <h1 className="text-2xl font-bold">Record Leave</h1>
-          <p className="text-slate-500 font-medium text-sm">Add a leave record for an employee</p>
+          <p className="text-muted-foreground font-medium text-sm">Add a leave record for an employee</p>
         </div>
       </div>
 
@@ -54,11 +54,11 @@ const LeaveNew: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="bg-primary rounded-2xl border border-border p-8 shadow-sm flex flex-col gap-5">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employee *</label>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee *</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: [
             { label: 'Select employee', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
@@ -67,11 +67,11 @@ const LeaveNew: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Leave Type</label>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Leave Type</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{form.type.charAt(0) + form.type.slice(1).toLowerCase().replace('_', ' ')}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: t.charAt(0) + t.slice(1).toLowerCase().replace('_', ' '), onClick: () => setForm(p => ({ ...p, type: t })) })) }]} />
         </div>
@@ -88,11 +88,11 @@ const LeaveNew: React.FC = () => {
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status</label>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span>{form.status.charAt(0) + form.status.slice(1).toLowerCase()}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: [
             { label: 'Pending',  onClick: () => setForm(p => ({ ...p, status: 'PENDING' })) },
@@ -109,7 +109,7 @@ const LeaveNew: React.FC = () => {
           <button type="submit" disabled={loading} className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
             <Save size={16} /> {loading ? 'Saving…' : 'Record Leave'}
           </button>
-          <button type="button" onClick={() => navigate('/leave')} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+          <button type="button" onClick={() => navigate('/leave')} className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted">
             Cancel
           </button>
         </div>

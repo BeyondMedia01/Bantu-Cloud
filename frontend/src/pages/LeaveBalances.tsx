@@ -94,7 +94,7 @@ const LeaveBalances: React.FC = () => {
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-navy">Leave Balances</h1>
-          <p className="text-slate-500 text-sm font-medium">Per-employee, per-type leave balance tracking</p>
+          <p className="text-muted-foreground text-sm font-medium">Per-employee, per-type leave balance tracking</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button
@@ -118,7 +118,7 @@ const LeaveBalances: React.FC = () => {
           trigger={(isOpen) => (
             <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span>{yearFilter}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )}
           sections={[{ items: [0, 1, 2].map(offset => {
@@ -131,7 +131,7 @@ const LeaveBalances: React.FC = () => {
           trigger={(isOpen) => (
             <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{employees.find((e: any) => e.id === employeeFilter) ? `${employees.find((e: any) => e.id === employeeFilter).firstName} ${employees.find((e: any) => e.id === employeeFilter).lastName}` : 'All Employees'}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )}
           sections={[{ items: [
@@ -142,12 +142,12 @@ const LeaveBalances: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-slate-400" /></div>
+        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-muted-foreground" /></div>
       ) : Object.keys(grouped).length === 0 ? (
         <div className="text-center py-16 bg-primary rounded-2xl border border-border">
           <CalendarCheck size={36} className="mx-auto mb-3 text-slate-200" />
-          <p className="font-bold text-slate-500 mb-1">No balances found</p>
-          <p className="text-sm text-slate-400">Leave balances will appear here once accrual has run for active employees</p>
+          <p className="font-bold text-muted-foreground mb-1">No balances found</p>
+          <p className="text-sm text-muted-foreground">Leave balances will appear here once accrual has run for active employees</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -155,13 +155,13 @@ const LeaveBalances: React.FC = () => {
             const emp = rows[0].employee;
             return (
               <div key={empId} className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-                <div className="px-5 py-3 bg-slate-50 border-b border-border flex items-center gap-3">
+                <div className="px-5 py-3 bg-muted border-b border-border flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-accent-green text-white flex items-center justify-center text-xs font-bold">
                     {emp?.firstName?.[0]}{emp?.lastName?.[0]}
                   </div>
                   <div>
                     <p className="font-bold text-sm">{emp?.firstName} {emp?.lastName}</p>
-                    <p className="text-xs text-slate-400 font-semibold">{emp?.employeeCode || '—'}</p>
+                    <p className="text-xs text-muted-foreground font-semibold">{emp?.employeeCode || '—'}</p>
                   </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -169,19 +169,19 @@ const LeaveBalances: React.FC = () => {
                     <thead>
                       <tr className="border-b border-border">
                         {['Type', 'Opening', 'Accrued', 'Taken', 'Encashed', 'Forfeited', 'Balance', ''].map((h) => (
-                          <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                          <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {rows.map((b: any) => (
-                        <tr key={b.id} className="hover:bg-slate-50/50">
+                        <tr key={b.id} className="hover:bg-muted/30">
                           <td className="px-4 py-3 text-sm font-medium">{fmtType(b.leaveType)}</td>
                           <td className="px-4 py-3 text-sm">{b.openingBalance.toFixed(1)}</td>
                           <td className="px-4 py-3 text-sm text-emerald-700 font-medium">+{b.accrued.toFixed(1)}</td>
                           <td className="px-4 py-3 text-sm text-red-600">−{b.taken.toFixed(1)}</td>
                           <td className="px-4 py-3 text-sm text-orange-600">−{b.encashed.toFixed(1)}</td>
-                          <td className="px-4 py-3 text-sm text-slate-400">−{b.forfeited.toFixed(1)}</td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground">−{b.forfeited.toFixed(1)}</td>
                           <td className="px-4 py-3">
                             <span className={`font-bold text-sm ${b.balance <= 0 ? 'text-red-600' : b.balance < 5 ? 'text-amber-600' : 'text-emerald-700'}`}>
                               {b.balance.toFixed(1)} days
@@ -212,12 +212,12 @@ const LeaveBalances: React.FC = () => {
                                 >
                                   OK
                                 </button>
-                                <button onClick={() => { setShowAdjust(null); setAdjValue(''); setAdjNote(''); }} className="text-xs text-slate-400 hover:text-slate-600">✕</button>
+                                <button onClick={() => { setShowAdjust(null); setAdjValue(''); setAdjNote(''); }} className="text-xs text-muted-foreground hover:text-foreground/80">✕</button>
                               </div>
                             ) : (
                               <button
                                 onClick={() => setShowAdjust(b.id)}
-                                className="text-xs font-bold text-slate-400 hover:text-navy px-2 py-1 rounded hover:bg-slate-100"
+                                className="text-xs font-bold text-muted-foreground hover:text-navy px-2 py-1 rounded hover:bg-muted"
                               >
                                 Adjust
                               </button>

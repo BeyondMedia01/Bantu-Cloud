@@ -21,7 +21,7 @@ const fmtDate = (d: string | undefined) =>
   d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const RUN_STATUS_CLASS: Record<string, string> = {
-  DRAFT: 'bg-slate-100 text-slate-600',
+  DRAFT: 'bg-muted text-foreground/80',
   PENDING_APPROVAL: 'bg-amber-100 text-amber-700',
   APPROVED: 'bg-blue-100 text-blue-700',
   PROCESSING: 'bg-purple-100 text-purple-700',
@@ -69,11 +69,11 @@ const Dashboard: React.FC = () => {
       {!hasCompany && (
         <Card className="border-border">
           <CardContent className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-              <TrendingUp size={28} className="text-slate-400" />
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+              <TrendingUp size={28} className="text-muted-foreground" />
             </div>
             <h3 className="text-lg font-bold text-navy">No company selected</h3>
-            <p className="text-sm text-slate-400 font-medium max-w-xs">
+            <p className="text-sm text-muted-foreground font-medium max-w-xs">
               Select a company from the sidebar to load your dashboard metrics and payroll insights.
             </p>
           </CardContent>
@@ -120,7 +120,7 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">Overview</CardTitle>
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Overview</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex justify-center">
@@ -152,7 +152,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex flex-col gap-2">
                   <SummaryItem label="Employees" value={summary?.employeeCount ?? 0} color="bg-slate-900" />
                   <SummaryItem label="Pending Leave" value={summary?.pendingLeave ?? 0} color="bg-brand" />
-                  <SummaryItem label="Active Loans" value={summary?.activeLoans ?? 0} color="bg-slate-200" />
+                  <SummaryItem label="Active Loans" value={summary?.activeLoans ?? 0} color="bg-muted" />
                 </div>
               )}
 
@@ -178,13 +178,13 @@ const Dashboard: React.FC = () => {
             <Card className="cursor-pointer hover:border-accent-green/40 transition-colors" onClick={() => navigate('/payroll')}>
               <CardContent className="pt-4">
                 <div className="flex justify-between items-start mb-2">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Current Run</p>
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${RUN_STATUS_CLASS[currentRun.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Current Run</p>
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${RUN_STATUS_CLASS[currentRun.status] ?? 'bg-muted text-foreground/80'}`}>
                     {currentRun.status.replace('_', ' ')}
                   </span>
                 </div>
                 <p className="font-bold text-sm">{currentRun.name}</p>
-                <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
                   {fmtDate(currentRun.runDate)} · {currentRun.currency}
                 </p>
               </CardContent>
@@ -193,14 +193,14 @@ const Dashboard: React.FC = () => {
             <Card>
               <CardContent className="pt-4">
                 <div className="flex justify-between items-start mb-2">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Last Payroll</p>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Last Payroll</p>
                   <Badge className="bg-emerald-100 text-emerald-600 text-[10px] font-bold gap-1 rounded-full border-0">
                     <CheckCircle2 size={10} /> COMPLETED
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm">{fmtDate(summary.lastRun.runDate)}</span>
-                  <ArrowUpRight size={16} className="text-slate-300" />
+                  <ArrowUpRight size={16} className="text-muted-foreground/50" />
                 </div>
               </CardContent>
             </Card>
@@ -208,7 +208,7 @@ const Dashboard: React.FC = () => {
             <Card className="border-accent-green/30 bg-accent-green/5">
               <CardContent className="pt-4">
                 <div className="flex justify-between items-start mb-2">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Next Action</p>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Next Action</p>
                   <Badge className="bg-accent-green/10 text-accent-green text-[10px] font-bold gap-1 rounded-full border-0">
                     <Clock size={10} /> Pending
                   </Badge>
@@ -223,7 +223,7 @@ const Dashboard: React.FC = () => {
           {/* Exchange Rate */}
           <Card>
             <CardHeader className="pb-1">
-              <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 <TrendingUp size={14} /> Exchange Rate
               </CardTitle>
             </CardHeader>
@@ -240,7 +240,7 @@ const Dashboard: React.FC = () => {
                     {Number(exchangeRate.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
                     {exchangeRate.toCurrency}
                   </p>
-                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
                     {fmtDate(exchangeRate.effectiveDate)}
                     {exchangeRate.source === 'RBZ' ? ' · RBZ' : ''}
                   </p>
@@ -280,7 +280,7 @@ const Dashboard: React.FC = () => {
         <CardContent className="p-8 flex flex-col gap-6">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-slate-500 font-bold text-sm uppercase tracking-wider mb-1">Net Pay Trend</p>
+              <p className="text-muted-foreground font-bold text-sm uppercase tracking-wider mb-1">Net Pay Trend</p>
               {loading ? (
                 <div className="flex flex-col gap-2 mt-1">
                   <Skeleton className="h-8 w-36" />
@@ -293,7 +293,7 @@ const Dashboard: React.FC = () => {
                       ? `${currencySymbol}${trend[trend.length - 1].netPay.toLocaleString()}`
                       : summary?.employeeCount != null ? `${summary.employeeCount} Employees` : '—'}
                   </p>
-                  <p className="text-xs text-slate-400 font-medium mt-1">
+                  <p className="text-xs text-muted-foreground font-medium mt-1">
                     {trend.length > 0 ? `Last completed run · ${trendCurrency}` : 'No payroll runs yet'}
                   </p>
                 </>
@@ -342,7 +342,7 @@ const Dashboard: React.FC = () => {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
-                <p className="text-slate-400 font-medium text-sm">No payroll history yet.</p>
+                <p className="text-muted-foreground font-medium text-sm">No payroll history yet.</p>
                 <button onClick={() => navigate('/payroll/new')} className="text-accent-green text-sm font-bold hover:underline">
                   Run your first payroll →
                 </button>
@@ -361,7 +361,7 @@ const SummaryItem: React.FC<{ label: string; value: number; color: string }> = (
   <div className="flex items-center justify-between">
     <div className="flex items-center gap-2">
       <div className={`w-2 h-2 rounded-full ${color}`} />
-      <span className="text-xs text-slate-400 font-bold uppercase">{label}</span>
+      <span className="text-xs text-muted-foreground font-bold uppercase">{label}</span>
     </div>
     <span className="text-sm font-bold">{value}</span>
   </div>

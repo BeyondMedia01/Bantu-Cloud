@@ -49,10 +49,10 @@ const PayIncrease: React.FC = () => {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
+        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl"><ArrowLeft size={20} /></button>
         <div>
           <h1 className="text-2xl font-bold">Bulk Pay Increase</h1>
-          <p className="text-slate-500 font-medium text-sm">Apply an increase to multiple employees at once</p>
+          <p className="text-muted-foreground font-medium text-sm">Apply an increase to multiple employees at once</p>
         </div>
       </div>
 
@@ -62,16 +62,16 @@ const PayIncrease: React.FC = () => {
             <CheckCircle2 size={24} className="text-emerald-500" />
             <div>
               <p className="font-bold">{result.message}</p>
-              <p className="text-sm text-slate-500">Effective: {result.effectiveDate}</p>
+              <p className="text-sm text-muted-foreground">Effective: {result.effectiveDate}</p>
             </div>
           </div>
-          <div className="bg-slate-50 rounded-xl overflow-hidden border border-border">
+          <div className="bg-muted rounded-xl overflow-hidden border border-border">
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="px-4 py-2 text-left font-bold text-slate-400 text-xs uppercase">Employee</th>
-                  <th className="px-4 py-2 text-left font-bold text-slate-400 text-xs uppercase">New Rate</th>
+                  <th className="px-4 py-2 text-left font-bold text-muted-foreground text-xs uppercase">Employee</th>
+                  <th className="px-4 py-2 text-left font-bold text-muted-foreground text-xs uppercase">New Rate</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -93,13 +93,13 @@ const PayIncrease: React.FC = () => {
         <form onSubmit={handleSubmit} className="bg-primary rounded-2xl border border-border p-8 shadow-sm flex flex-col gap-5">
           {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>}
 
-          <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+          <div className="flex gap-1 bg-muted p-1 rounded-xl w-fit">
             {['percentage', 'amount'].map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, type: t }))}
-                className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all ${form.type === t ? 'bg-white text-navy shadow-sm' : 'text-slate-500'}`}
+                className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all ${form.type === t ? 'tab-pill-active' : 'tab-pill-inactive'}`}
               >
                 {t === 'percentage' ? '% Increase' : 'Fixed Amount'}
               </button>
@@ -108,7 +108,7 @@ const PayIncrease: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
                 {form.type === 'percentage' ? 'Percentage (%)' : 'Amount'} *
               </label>
               <input
@@ -118,30 +118,30 @@ const PayIncrease: React.FC = () => {
                 value={form.value}
                 onChange={set('value')}
                 placeholder={form.type === 'percentage' ? '10' : '50.00'}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 font-medium text-sm"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 font-medium text-sm"
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Effective Date *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Effective Date *</label>
               <input
                 required
                 type="date"
                 value={form.effectiveDate}
                 onChange={set('effectiveDate')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 font-medium text-sm"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 font-medium text-sm"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Filter by Department</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Filter by Department</label>
               <Dropdown className="w-full" trigger={(isOpen) => {
                 const dept = (departments as any[]).find(d => d.id === form.departmentId);
                 return (
-                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                     <span>{dept ? dept.name : 'All Departments'}</span>
-                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 );
               }} sections={[{ items: [
@@ -150,13 +150,13 @@ const PayIncrease: React.FC = () => {
               ]}]} />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Filter by Type</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Filter by Type</label>
               <Dropdown className="w-full" trigger={(isOpen) => {
                 const labels: Record<string,string> = { '': 'All Types', PERMANENT: 'Permanent', CONTRACT: 'Contract', TEMPORARY: 'Temporary' };
                 return (
-                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                     <span>{labels[form.employmentType] || 'All Types'}</span>
-                    <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 );
               }} sections={[{ items: [
@@ -168,7 +168,7 @@ const PayIncrease: React.FC = () => {
             </div>
           </div>
 
-          <p className="text-xs text-slate-400 font-medium">
+          <p className="text-xs text-muted-foreground font-medium">
             Leave filters empty to apply to all active employees in the selected company.
           </p>
 
@@ -176,7 +176,7 @@ const PayIncrease: React.FC = () => {
             <button type="submit" disabled={loading} className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
               <TrendingUp size={16} /> {loading ? 'Applying…' : 'Apply Increase'}
             </button>
-            <button type="button" onClick={() => navigate('/utilities')} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+            <button type="button" onClick={() => navigate('/utilities')} className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted">
               Cancel
             </button>
           </div>

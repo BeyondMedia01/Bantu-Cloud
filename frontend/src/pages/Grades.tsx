@@ -107,7 +107,7 @@ const Grades: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold">Salary Grades</h1>
-          <p className="text-slate-500 font-medium text-sm">
+          <p className="text-muted-foreground font-medium text-sm">
             Define grade bands used for NEC / graded pay structures
           </p>
         </div>
@@ -127,13 +127,13 @@ const Grades: React.FC = () => {
           onSubmit={handleSave}
           className="bg-primary border border-border rounded-2xl p-6 shadow-sm mb-6"
         >
-          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">
+          <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">
             {editId ? 'Edit Grade' : 'New Grade'}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div className="sm:col-span-2">
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Grade Name *</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Grade Name *</label>
               <input
                 type="text"
                 value={form.name}
@@ -144,7 +144,7 @@ const Grades: React.FC = () => {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Description</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Description</label>
               <input
                 type="text"
                 value={form.description}
@@ -154,9 +154,9 @@ const Grades: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Min Salary (USD)</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Min Salary (USD)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">$</span>
                 <input
                   type="number"
                   min="0"
@@ -169,9 +169,9 @@ const Grades: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Max Salary (USD)</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Max Salary (USD)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">$</span>
                 <input
                   type="number"
                   min="0"
@@ -200,7 +200,7 @@ const Grades: React.FC = () => {
             <button
               type="button"
               onClick={cancelForm}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm"
             >
               <X size={14} /> Cancel
             </button>
@@ -210,11 +210,11 @@ const Grades: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="text-center py-16 text-slate-400 text-sm font-medium">Loading…</div>
+        <div className="text-center py-16 text-muted-foreground text-sm font-medium">Loading…</div>
       ) : grades.length === 0 ? (
         <div className="bg-primary border border-border rounded-2xl p-12 text-center shadow-sm">
           <Layers size={36} className="mx-auto mb-3 text-slate-200" />
-          <p className="text-slate-400 font-medium text-sm">No grades defined yet.</p>
+          <p className="text-muted-foreground font-medium text-sm">No grades defined yet.</p>
           <button
             onClick={() => setShowCreate(true)}
             className="mt-4 text-accent-green text-sm font-bold hover:underline"
@@ -227,20 +227,20 @@ const Grades: React.FC = () => {
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Grade</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Description</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Min Salary</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Max Salary</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Employees</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Grade</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Description</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Min Salary</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Max Salary</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Employees</th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {grades.map((g) => (
-                <tr key={g.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={g.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-5 py-3 font-bold text-navy">{g.name}</td>
-                  <td className="px-5 py-3 text-slate-500 font-medium">{g.description ?? '—'}</td>
+                  <td className="px-5 py-3 text-muted-foreground font-medium">{g.description ?? '—'}</td>
                   <td className="px-5 py-3 font-medium">
                     {g.minSalary != null ? `$${g.minSalary.toLocaleString()}` : '—'}
                   </td>
@@ -248,7 +248,7 @@ const Grades: React.FC = () => {
                     {g.maxSalary != null ? `$${g.maxSalary.toLocaleString()}` : '—'}
                   </td>
                   <td className="px-5 py-3">
-                    <span className="text-xs font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                    <span className="text-xs font-black text-muted-foreground bg-muted px-2 py-1 rounded-full">
                       {g._count?.employees ?? '—'}
                     </span>
                   </td>
@@ -256,13 +256,13 @@ const Grades: React.FC = () => {
                     <div className="flex items-center gap-2 justify-end">
                       <button
                         onClick={() => startEdit(g)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-navy hover:bg-muted transition-colors"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => setConfirmDelete(g)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -279,9 +279,9 @@ const Grades: React.FC = () => {
       {/* Delete confirmation */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="grades-delete-modal-title" className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+          <div role="dialog" aria-modal="true" aria-labelledby="grades-delete-modal-title" className="bg-card rounded-2xl shadow-xl p-6 max-w-sm w-full">
             <h3 id="grades-delete-modal-title" className="font-bold text-navy mb-2">Delete "{confirmDelete.name}"?</h3>
-            <p className="text-sm text-slate-500 font-medium mb-1">
+            <p className="text-sm text-muted-foreground font-medium mb-1">
               {(confirmDelete._count?.employees ?? 0) > 0
                 ? `This grade has ${confirmDelete._count!.employees} employee(s) assigned. Employees will remain but lose their grade association.`
                 : 'This grade has no employees. It will be permanently deleted.'}
@@ -289,7 +289,7 @@ const Grades: React.FC = () => {
             <div className="flex gap-3 justify-end mt-6">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="px-5 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+                className="px-5 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm"
               >
                 Cancel
               </button>

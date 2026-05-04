@@ -115,7 +115,7 @@ const EmployeeLeave: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">My Leave</h1>
-          <p className="text-slate-500 text-sm font-medium">Balances, history, and requests</p>
+          <p className="text-muted-foreground text-sm font-medium">Balances, history, and requests</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -142,14 +142,14 @@ const EmployeeLeave: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {balances.map((b: any) => (
             <div key={b.id} className="bg-primary rounded-2xl border border-border p-4 shadow-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{fmtType(b.leaveType)}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{fmtType(b.leaveType)}</p>
               <p className={`text-2xl font-black ${b.balance <= 0 ? 'text-red-500' : b.balance < 5 ? 'text-amber-500' : 'text-emerald-600'}`}>
                 {b.balance.toFixed(1)}
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">days available</p>
-              <div className="mt-2 pt-2 border-t border-border grid grid-cols-2 gap-1 text-xs text-slate-400">
-                <span>Accrued <span className="font-bold text-slate-600">+{b.accrued.toFixed(1)}</span></span>
-                <span>Taken <span className="font-bold text-slate-600">−{b.taken.toFixed(1)}</span></span>
+              <p className="text-xs text-muted-foreground mt-0.5">days available</p>
+              <div className="mt-2 pt-2 border-t border-border grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                <span>Accrued <span className="font-bold text-foreground/80">+{b.accrued.toFixed(1)}</span></span>
+                <span>Taken <span className="font-bold text-foreground/80">−{b.taken.toFixed(1)}</span></span>
               </div>
             </div>
           ))}
@@ -159,21 +159,21 @@ const EmployeeLeave: React.FC = () => {
       {/* Apply for Leave Form */}
       {tab === 'apply' && (
         <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-5">Leave Request</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-5">Leave Request</h3>
           {submitError && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{submitError}</div>}
           <form onSubmit={handleApplySubmit} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Leave Type</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{fmtType(applyForm.type)}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setApplyForm((p: any) => ({ ...p, type: t })) })) }]} />
               {(() => {
                 const bal = balances.find((b: any) => b.leaveType === applyForm.type);
                 return bal ? (
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Balance: <span className={`font-bold ${bal.balance < 1 ? 'text-red-500' : 'text-emerald-600'}`}>{bal.balance.toFixed(1)} days</span>
                   </p>
                 ) : null;
@@ -181,32 +181,32 @@ const EmployeeLeave: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Start Date <span className="text-red-400">*</span></label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Start Date <span className="text-red-400">*</span></label>
                 <input type="date" required value={applyForm.startDate} onChange={setApply('startDate')}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">End Date <span className="text-red-400">*</span></label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">End Date <span className="text-red-400">*</span></label>
                 <input type="date" required value={applyForm.endDate} onChange={setApply('endDate')}
-                  className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
               </div>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Number of Days <span className="text-red-400">*</span></label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Number of Days <span className="text-red-400">*</span></label>
               <input type="number" required min="0.5" step="0.5" value={applyForm.days} onChange={setApply('days')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Reason</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Reason</label>
               <textarea value={applyForm.reason} onChange={setApply('reason')} rows={3}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={submitting}
                 className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
                 {submitting ? 'Submitting…' : 'Submit Request'}
               </button>
-              <button type="button" onClick={() => setTab('history')} className="px-4 py-2 rounded-full border border-border font-bold hover:bg-slate-50">Cancel</button>
+              <button type="button" onClick={() => setTab('history')} className="px-4 py-2 rounded-full border border-border font-bold hover:bg-muted">Cancel</button>
             </div>
           </form>
         </div>
@@ -215,8 +215,8 @@ const EmployeeLeave: React.FC = () => {
       {/* Encashment Request Form */}
       {tab === 'encash' && (
         <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-1">Request Leave Encashment</h3>
-          <p className="text-xs text-slate-400 mb-5">Convert unused leave days into a taxable payment (subject to manager approval)</p>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-1">Request Leave Encashment</h3>
+          <p className="text-xs text-muted-foreground mb-5">Convert unused leave days into a taxable payment (subject to manager approval)</p>
           {encashError && (
             <div className="flex items-center gap-2 mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
               <AlertCircle size={15} /> {encashError}
@@ -224,15 +224,15 @@ const EmployeeLeave: React.FC = () => {
           )}
           <form onSubmit={handleEncashSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Leave Type</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-green transition-colors">
+                <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{fmtType(encashForm.leaveType)}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setEncashForm((p: any) => ({ ...p, leaveType: t })) })) }]} />
               {selectedBalance && (
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Available: <span className={`font-bold ${selectedBalance.balance < 1 ? 'text-red-500' : 'text-emerald-600'}`}>{selectedBalance.balance.toFixed(1)} days</span>
                   {selectedBalance.leavePolicy && !selectedBalance.leavePolicy.encashable && (
                     <span className="ml-2 text-red-500 font-bold">— Not encashable per policy</span>
@@ -241,31 +241,31 @@ const EmployeeLeave: React.FC = () => {
               )}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Days to Encash <span className="text-red-400">*</span></label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Days to Encash <span className="text-red-400">*</span></label>
               <input type="number" required min="0.5" step="0.5" value={encashForm.days} onChange={setEncash('days')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Notes</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Notes</label>
               <input type="text" value={encashForm.notes} onChange={setEncash('notes')} placeholder="Optional reason"
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={encashSubmitting}
                 className="flex items-center gap-1.5 bg-emerald-600 text-white px-4 py-2 rounded-full font-bold shadow hover:bg-emerald-700 disabled:opacity-60">
                 {encashSubmitting ? 'Submitting…' : 'Request Encashment'}
               </button>
-              <button type="button" onClick={() => setTab('history')} className="px-4 py-2 rounded-full border border-border font-bold hover:bg-slate-50">Cancel</button>
+              <button type="button" onClick={() => setTab('history')} className="px-4 py-2 rounded-full border border-border font-bold hover:bg-muted">Cancel</button>
             </div>
           </form>
 
           {/* My Encashment history */}
           {encashments.length > 0 && (
             <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Previous Encashments</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Previous Encashments</p>
               <div className="flex flex-col gap-2">
                 {encashments.map((enc: any) => (
-                  <div key={enc.id} className="flex items-center justify-between text-sm p-3 bg-slate-50 rounded-xl">
+                  <div key={enc.id} className="flex items-center justify-between text-sm p-3 bg-muted rounded-xl">
                     <span className="font-medium">{fmtType(enc.leaveType)} — {enc.days} days</span>
                     <span className="font-bold">{enc.currency} {enc.totalAmount.toFixed(2)}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -284,9 +284,9 @@ const EmployeeLeave: React.FC = () => {
 
       {/* Leave History */}
       {tab === 'history' && (loading ? (
-        <div className="flex items-center justify-center h-48 text-slate-400"><Loader size={24} className="animate-spin" /></div>
+        <div className="flex items-center justify-center h-48 text-muted-foreground"><Loader size={24} className="animate-spin" /></div>
       ) : allItems.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-primary rounded-2xl border border-border">
+        <div className="text-center py-16 text-muted-foreground bg-primary rounded-2xl border border-border">
           <CalendarDays size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No leave history found</p>
         </div>
@@ -295,25 +295,25 @@ const EmployeeLeave: React.FC = () => {
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Type', 'Start Date', 'End Date', 'Days', 'Status', 'Notes'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {allItems.map((r: any) => (
-                <tr key={r.id} className="hover:bg-slate-50/50">
+                <tr key={r.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 text-sm font-medium capitalize">{fmtType(r.type || 'ANNUAL')}</td>
                   <td className="px-4 py-3 text-sm">{new Date(r.startDate).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-sm">{new Date(r.endDate).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-sm font-bold">{r.totalDays ?? r.days}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${statusColor[r.status] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${statusColor[r.status] || 'bg-muted text-foreground/80'}`}>
                       {statusIcon[r.status]} {r.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-400">{r.reason || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{r.reason || '—'}</td>
                 </tr>
               ))}
             </tbody>

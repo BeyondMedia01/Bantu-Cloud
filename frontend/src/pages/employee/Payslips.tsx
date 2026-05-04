@@ -33,13 +33,13 @@ const EmployeePayslips: React.FC = () => {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">My Payslips</h1>
-        <p className="text-slate-500 text-sm font-medium">View and download your payslips</p>
+        <p className="text-muted-foreground text-sm font-medium">View and download your payslips</p>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48 text-slate-400"><Loader size={24} className="animate-spin" /></div>
+        <div className="flex items-center justify-center h-48 text-muted-foreground"><Loader size={24} className="animate-spin" /></div>
       ) : payslips.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-primary rounded-2xl border border-border">
+        <div className="text-center py-16 text-muted-foreground bg-primary rounded-2xl border border-border">
           <FileText size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No payslips yet</p>
         </div>
@@ -48,15 +48,15 @@ const EmployeePayslips: React.FC = () => {
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Period', 'Currency', 'Gross', 'PAYE', 'Net Pay', 'Download'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {payslips.map((p: any) => (
-                <tr key={p.id} className="hover:bg-slate-50/50">
+                <tr key={p.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 text-sm font-bold">
                     {p.payrollRun && new Date(p.payrollRun.startDate).toLocaleDateString()} –{' '}
                     {p.payrollRun && new Date(p.payrollRun.endDate).toLocaleDateString()}

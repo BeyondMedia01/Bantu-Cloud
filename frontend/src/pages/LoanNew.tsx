@@ -55,10 +55,10 @@ const LoanNew: React.FC = () => {
   return (
     <div className="max-w-xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/loans')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
+        <button onClick={() => navigate('/loans')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl"><ArrowLeft size={20} /></button>
         <div>
           <h1 className="text-2xl font-bold">New Loan</h1>
-          <p className="text-slate-500 font-medium text-sm">Issue a new employee loan with repayment schedule</p>
+          <p className="text-muted-foreground font-medium text-sm">Issue a new employee loan with repayment schedule</p>
         </div>
       </div>
 
@@ -66,11 +66,11 @@ const LoanNew: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="bg-primary rounded-2xl border border-border p-8 shadow-sm flex flex-col gap-5">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Employee *</label>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee *</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
-            <button type="button" className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
+            <button type="button" className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{employees.find((e: any) => e.id === form.employeeId) ? `${employees.find((e: any) => e.id === form.employeeId).firstName} ${employees.find((e: any) => e.id === form.employeeId).lastName}` : 'Select employee'}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: [
             { label: 'Select employee', onClick: () => setForm(p => ({ ...p, employeeId: '' })) },
@@ -87,7 +87,7 @@ const LoanNew: React.FC = () => {
 
         {monthlyInstalment && (
           <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estimated Monthly Instalment</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Estimated Monthly Instalment</p>
             <p className="text-2xl font-bold text-accent-green">{Number(monthlyInstalment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         )}
@@ -100,7 +100,7 @@ const LoanNew: React.FC = () => {
           <button type="submit" disabled={loading} className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60">
             <Save size={16} /> {loading ? 'Creating…' : 'Create Loan'}
           </button>
-          <button type="button" onClick={() => navigate('/loans')} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+          <button type="button" onClick={() => navigate('/loans')} className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted">
             Cancel
           </button>
         </div>

@@ -55,7 +55,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Batch Exports</h2>
-          <p className="text-slate-500 font-medium">Compliance ledger for bank transfers and statutory report metadata.</p>
+          <p className="text-muted-foreground font-medium">Compliance ledger for bank transfers and statutory report metadata.</p>
         </div>
         <div className="flex items-center gap-3">
            <button className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-1.5">
@@ -65,13 +65,13 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       </header>
 
       {/* Audit Info Card */}
-      <div className="bg-slate-900 rounded-3xl p-6 text-white flex gap-6 items-center shadow-xl shadow-slate-200">
+      <div className="bg-slate-900 rounded-3xl p-6 text-white flex gap-6 items-center shadow-xl shadow-black/5">
         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
           <ShieldCheck size={32} className="text-accent-green" />
         </div>
         <div>
           <h3 className="text-lg font-bold mb-1">Export Integrity & Chain of Custody</h3>
-          <p className="text-sm text-slate-400 leading-relaxed max-w-2xl">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
             This log serves as an immutable record of all payroll data transmitted outside the system. It tracks the specific destination, format, and the internal authority responsible for each compliance submission.
           </p>
         </div>
@@ -87,7 +87,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       {/* Filters & Search */}
       <div className="flex flex-col md:flex-row gap-4">
          <div className="relative flex-1">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input 
               type="text" 
               placeholder="Search by Employee or Submitter..." 
@@ -101,7 +101,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
            trigger={(isOpen) => (
              <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-bold text-navy shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
                <span className="truncate">{{ALL:'All Export Types',BANK_TRANSFER:'Bank Transfers',NSSA_REPORT:'NSSA Reports',ZIMRA_REPORT:'ZIMRA Reports',PAYSLIP_PDF:'Payslip PDFs'}[filterType] ?? filterType}</span>
-               <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+               <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
              </button>
            )}
            sections={[{ items: [
@@ -119,17 +119,17 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-50 border-b border-border">
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Type / Details</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Employee</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Net Totals</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Format & Status</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Audit Trail</th>
+              <tr className="bg-muted border-b border-border">
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Type / Details</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Employee</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-right">Net Totals</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Format & Status</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Audit Trail</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredExports.length > 0 ? filteredExports.map(exp => (
-                <tr key={exp.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={exp.id} className="hover:bg-muted/30 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
                        <div className={`p-2.5 rounded-xl border ${getStatusStyle(exp.exportStatus)}`}>
@@ -137,25 +137,25 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
                        </div>
                        <div>
                           <p className="text-sm font-black text-navy">{exp.exportType.replace('_', ' ')}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Period: {new Date(exp.payPeriod).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</p>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase mt-0.5">Period: {new Date(exp.payPeriod).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</p>
                        </div>
                     </div>
                   </td>
                   <td className="px-6 py-5">
                     <div>
                       <p className="text-sm font-bold text-navy">{exp.employee?.fullName}</p>
-                      <p className="text-[10px] text-slate-400 font-bold">{exp.employee?.employeeID}</p>
+                      <p className="text-[10px] text-muted-foreground font-bold">{exp.employee?.employeeID}</p>
                     </div>
                   </td>
                   <td className="px-6 py-5 text-right">
                     <div className="flex flex-col gap-0.5 font-mono">
                        {exp.netPayUSD > 0 && <span className="text-sm font-black text-navy">${exp.netPayUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>}
-                       {exp.netPayZiG > 0 && <span className="text-xs text-slate-400 font-bold">Z {exp.netPayZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>}
+                       {exp.netPayZiG > 0 && <span className="text-xs text-muted-foreground font-bold">Z {exp.netPayZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>}
                     </div>
                   </td>
                   <td className="px-6 py-5">
                      <div className="flex flex-col gap-2">
-                        <span className="px-2 py-0.5 bg-slate-100 rounded-lg text-[10px] font-black text-slate-400 uppercase self-start border border-slate-200">{exp.exportFormat}</span>
+                        <span className="px-2 py-0.5 bg-muted rounded-lg text-[10px] font-black text-muted-foreground uppercase self-start border border-border">{exp.exportFormat}</span>
                         <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase px-2 py-0.5 rounded-lg border self-start ${getStatusStyle(exp.exportStatus)}`}>
                            {exp.exportStatus === 'EXPORTED' ? <CheckCircle2 size={12} /> : exp.exportStatus === 'FAILED' ? <XCircle size={12} /> : <Clock size={12} />}
                            {exp.exportStatus}
@@ -165,15 +165,15 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
                   <td className="px-6 py-5">
                     <div className="flex flex-col gap-1">
                        <p className="text-[10px] font-bold text-navy">By: {exp.exportedBy || 'System'}</p>
-                       <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">On: {exp.exportDate ? new Date(exp.exportDate).toLocaleDateString() : 'Pending'}</p>
+                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">On: {exp.exportDate ? new Date(exp.exportDate).toLocaleDateString() : 'Pending'}</p>
                     </div>
                   </td>
                 </tr>
               )) : (
                 <tr>
                    <td colSpan={5} className="px-6 py-24 text-center">
-                      <div className="flex flex-col items-center gap-4 text-slate-300">
-                         <div className="p-4 bg-slate-50 rounded-full border border-border border-dashed">
+                      <div className="flex flex-col items-center gap-4 text-muted-foreground/50">
+                         <div className="p-4 bg-muted rounded-full border border-border border-dashed">
                             <ExternalLink size={48} className="opacity-20" />
                          </div>
                          <p className="italic font-medium">No export records found in the ledger.</p>
@@ -186,7 +186,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
         </div>
       </div>
       
-      <div className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 text-slate-500">
+      <div className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 text-muted-foreground">
          <Info size={16} className="text-accent-green" />
          <p className="text-xs font-medium italic">All bank account metadata attached to these exports are point-in-time snapshots extracted from PayrollCore records.</p>
       </div>

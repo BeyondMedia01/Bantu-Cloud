@@ -77,13 +77,13 @@ const PublicHolidays: React.FC = () => {
       <div className="mb-6 flex items-center gap-3">
         <button
           onClick={() => navigate('/utilities')}
-          className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400"
+          className="p-2 hover:bg-muted rounded-xl transition-colors text-muted-foreground"
         >
           <ChevronLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">Public Holidays</h1>
-          <p className="text-slate-500 text-sm font-medium">Zimbabwean public holidays used for attendance and payroll</p>
+          <p className="text-muted-foreground text-sm font-medium">Zimbabwean public holidays used for attendance and payroll</p>
         </div>
       </div>
 
@@ -92,7 +92,7 @@ const PublicHolidays: React.FC = () => {
         <Dropdown trigger={(isOpen) => (
           <button type="button" className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 text-sm font-semibold bg-primary hover:border-accent-green transition-colors">
             <span>{year}</span>
-            <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </button>
         )} sections={[{ items: [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1].map(y => ({ label: String(y), onClick: () => setYear(y) })) }]} />
 
@@ -120,7 +120,7 @@ const PublicHolidays: React.FC = () => {
           <h3 className="font-bold mb-4">Add Custom Holiday</h3>
           <form onSubmit={handleAdd} className="flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Name</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Name</label>
               <input
                 type="text"
                 value={form.name}
@@ -131,7 +131,7 @@ const PublicHolidays: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Date</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Date</label>
               <input
                 type="date"
                 value={form.date}
@@ -150,7 +150,7 @@ const PublicHolidays: React.FC = () => {
             <button
               type="button"
               onClick={() => setAddOpen(false)}
-              className="text-slate-400 font-bold text-sm px-4 py-2 rounded-xl hover:bg-slate-100 transition-colors"
+              className="text-muted-foreground font-bold text-sm px-4 py-2 rounded-xl hover:bg-muted transition-colors"
             >
               Cancel
             </button>
@@ -162,53 +162,53 @@ const PublicHolidays: React.FC = () => {
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
         {loading ? (
           <div className="animate-pulse">
-            <div className="border-b border-border px-5 py-4 bg-slate-50">
-              <div className="h-3 w-24 bg-slate-200 rounded" />
+            <div className="border-b border-border px-5 py-4 bg-muted">
+              <div className="h-3 w-24 bg-muted rounded" />
             </div>
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="px-5 py-4 border-b border-border last:border-0 flex items-center justify-between">
                 <div className="space-y-2">
-                  <div className="h-3 w-48 bg-slate-100 rounded" />
-                  <div className="h-2 w-32 bg-slate-50 rounded" />
+                  <div className="h-3 w-48 bg-muted rounded" />
+                  <div className="h-2 w-32 bg-muted rounded" />
                 </div>
-                <div className="h-7 w-16 bg-slate-100 rounded-full" />
+                <div className="h-7 w-16 bg-muted rounded-full" />
               </div>
             ))}
           </div>
         ) : holidays.length === 0 ? (
           <div className="p-12 text-center">
-            <CalendarCheck size={40} className="mx-auto text-slate-300 mb-3" />
-            <p className="font-bold text-slate-400">No holidays for {year}</p>
-            <p className="text-sm text-slate-400 mt-1">Click "Seed Zimbabwe Holidays" to populate this year's holidays.</p>
+            <CalendarCheck size={40} className="mx-auto text-muted-foreground/50 mb-3" />
+            <p className="font-bold text-muted-foreground">No holidays for {year}</p>
+            <p className="text-sm text-muted-foreground mt-1">Click "Seed Zimbabwe Holidays" to populate this year's holidays.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
-                <th className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">#</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Holiday</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Day</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">#</th>
+                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Holiday</th>
+                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Date</th>
+                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Day</th>
                 <th className="px-5 py-4" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {holidays.map((h, i) => (
-                <tr key={h.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3 text-sm text-slate-400 font-bold">{i + 1}</td>
+                <tr key={h.id} className="hover:bg-muted transition-colors">
+                  <td className="px-5 py-3 text-sm text-muted-foreground font-bold">{i + 1}</td>
                   <td className="px-5 py-3 font-bold text-sm">{h.name}</td>
-                  <td className="px-5 py-3 text-sm text-slate-600">
+                  <td className="px-5 py-3 text-sm text-foreground/80">
                     {new Date(h.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </td>
-                  <td className="px-5 py-3 text-sm text-slate-400 font-medium">
+                  <td className="px-5 py-3 text-sm text-muted-foreground font-medium">
                     {new Date(h.date).toLocaleDateString('en-GB', { weekday: 'long' })}
                   </td>
                   <td className="px-5 py-3 text-right">
                     <button
                       onClick={() => handleDelete(h.id)}
                       disabled={deletingId === h.id}
-                      className="p-1.5 hover:bg-red-50 hover:text-red-500 text-slate-300 rounded-lg transition-colors disabled:opacity-40"
+                      className="p-1.5 hover:bg-red-50 hover:text-red-500 text-muted-foreground/50 rounded-lg transition-colors disabled:opacity-40"
                       title="Remove holiday"
                     >
                       <Trash2 size={15} />
@@ -222,7 +222,7 @@ const PublicHolidays: React.FC = () => {
         )}
       </div>
 
-      <p className="text-xs text-slate-400 mt-4 font-medium">
+      <p className="text-xs text-muted-foreground mt-4 font-medium">
         {holidays.length} holiday{holidays.length !== 1 ? 's' : ''} for {year}
       </p>
     </div>

@@ -40,14 +40,14 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
       <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in duration-200">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+          className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors"
         >
           <X size={20} />
         </button>
 
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-navy">Bulk Upload</h3>
-          <p className="text-slate-500 text-sm font-medium">Populate brackets for {tableName}</p>
+          <p className="text-muted-foreground text-sm font-medium">Populate brackets for {tableName}</p>
         </div>
 
         {success ? (
@@ -56,12 +56,12 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
               <CheckCircle2 size={32} />
             </div>
             <h4 className="font-bold text-navy mb-1">Import Successful</h4>
-            <p className="text-sm text-slate-500">Tax brackets have been updated.</p>
+            <p className="text-sm text-muted-foreground">Tax brackets have been updated.</p>
           </div>
         ) : (
           <div className="space-y-6">
             <div 
-              className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-colors ${file ? 'border-accent-green bg-blue-50/30' : 'border-border hover:border-slate-300'}`}
+              className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-colors ${file ? 'border-accent-green bg-blue-50/30' : 'border-border hover:border-border'}`}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 e.preventDefault();
@@ -71,13 +71,13 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
                 }
               }}
             >
-              <div className={`p-4 rounded-2xl mb-4 ${file ? 'bg-accent-green text-white' : 'bg-slate-100 text-slate-400'}`}>
+              <div className={`p-4 rounded-2xl mb-4 ${file ? 'bg-accent-green text-white' : 'bg-muted text-muted-foreground'}`}>
                 {file ? <FileText size={32} /> : <Upload size={32} />}
               </div>
               
               <div className="text-center">
                 <p className="font-bold text-navy mb-1">{file ? file.name : 'Choose a file'}</p>
-                <p className="text-xs text-slate-500 font-medium">Supports CSV, PDF or Excel tax tables</p>
+                <p className="text-xs text-muted-foreground font-medium">Supports CSV, PDF or Excel tax tables</p>
               </div>
 
               <input 
@@ -89,7 +89,7 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
               />
               <label 
                 htmlFor="tax-file-input"
-                className="mt-6 px-6 py-2 bg-slate-100 hover:bg-slate-200 rounded-full text-sm font-bold text-navy cursor-pointer transition-colors"
+                className="mt-6 px-6 py-2 bg-muted hover:bg-muted rounded-full text-sm font-bold text-navy cursor-pointer transition-colors"
                 >
                 Browse Files
               </label>

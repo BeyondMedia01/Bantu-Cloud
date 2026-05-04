@@ -83,16 +83,16 @@ const StepBar: React.FC<{ step: number }> = ({ step }) => (
           <div className="flex flex-col items-center gap-1">
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
-                ${done ? 'bg-emerald-500 text-white' : active ? 'bg-accent-green text-white' : 'bg-slate-100 text-slate-400'}`}
+                ${done ? 'bg-emerald-500 text-white' : active ? 'bg-accent-green text-white' : 'bg-muted text-muted-foreground'}`}
             >
               {done ? <CheckCircle2 size={14} /> : n}
             </div>
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-accent-green' : 'text-slate-400'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-accent-green' : 'text-muted-foreground'}`}>
               {label}
             </span>
           </div>
           {i < STEP_LABELS.length - 1 && (
-            <div className={`flex-1 h-0.5 mx-2 mb-4 ${step > n ? 'bg-emerald-400' : 'bg-slate-200'}`} />
+            <div className={`flex-1 h-0.5 mx-2 mb-4 ${step > n ? 'bg-emerald-400' : 'bg-muted'}`} />
           )}
         </React.Fragment>
       );
@@ -216,12 +216,12 @@ const BackPay: React.FC = () => {
     <div className="max-w-4xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl">
+        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">Retroactive Pay Wizard</h1>
-          <p className="text-slate-500 font-medium text-sm">
+          <p className="text-muted-foreground font-medium text-sm">
             Calculate shortfalls from a past rate change and generate back-pay inputs for the current payroll run
           </p>
         </div>
@@ -238,28 +238,28 @@ const BackPay: React.FC = () => {
       {/* ── Step 1: Parameters ──────────────────────────────────────────────── */}
       {step === 1 && (
         <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm flex flex-col gap-5">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Rate Change Parameters</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Rate Change Parameters</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
                 Effective Date <span className="text-red-400">*</span>
               </label>
               <input
                 type="date"
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
               />
-              <p className="text-xs text-slate-400 mt-1">All COMPLETED payroll runs on or after this date will be included</p>
+              <p className="text-xs text-muted-foreground mt-1">All COMPLETED payroll runs on or after this date will be included</p>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Currency</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors">
                   <span>{currency}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'USD', onClick: () => setCurrency('USD') },
@@ -270,7 +270,7 @@ const BackPay: React.FC = () => {
 
           {/* Rate mode */}
           <div>
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Rate Mode</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-2">Rate Mode</label>
             <div className="flex gap-3">
               {(['uniform', 'individual'] as const).map((mode) => (
                 <button
@@ -280,7 +280,7 @@ const BackPay: React.FC = () => {
                   className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
                     rateMode === mode
                       ? 'bg-accent-green text-white border-accent-green'
-                      : 'bg-slate-50 text-slate-500 border-border hover:border-accent-green'
+                      : 'bg-muted text-muted-foreground border-border hover:border-accent-green'
                   }`}
                 >
                   {mode === 'uniform' ? 'Uniform rate for all' : 'Per-employee rates'}
@@ -291,7 +291,7 @@ const BackPay: React.FC = () => {
 
           {rateMode === 'uniform' && (
             <div className="max-w-xs">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
                 New Base Rate ({currency}) <span className="text-red-400">*</span>
               </label>
               <input
@@ -301,14 +301,14 @@ const BackPay: React.FC = () => {
                 value={uniformNewRate}
                 onChange={(e) => setUniformNewRate(e.target.value)}
                 placeholder="e.g. 2000"
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
               />
-              <p className="text-xs text-slate-400 mt-1">Old rate will be taken from each employee's current base rate</p>
+              <p className="text-xs text-muted-foreground mt-1">Old rate will be taken from each employee's current base rate</p>
             </div>
           )}
 
           {rateMode === 'individual' && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               You will enter old and new rates per employee on the next screen.
             </p>
           )}
@@ -329,7 +329,7 @@ const BackPay: React.FC = () => {
         <div className="flex flex-col gap-5">
           <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
             <div className="p-4 border-b border-border flex items-center justify-between">
-              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">
                 <Users size={14} className="inline mr-1.5 mb-0.5" />
                 Select Employees ({selected.length} selected)
               </h3>
@@ -365,7 +365,7 @@ const BackPay: React.FC = () => {
 
                 return (
                   <div key={emp.id}>
-                    <label className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-3 px-4 py-3 hover:bg-muted cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -375,7 +375,7 @@ const BackPay: React.FC = () => {
                       <span className="font-medium text-sm flex-1">
                         {emp.firstName} {emp.lastName}
                       </span>
-                      <span className="text-xs text-slate-400 font-semibold">{emp.employeeCode}</span>
+                      <span className="text-xs text-muted-foreground font-semibold">{emp.employeeCode}</span>
                       {rateMode === 'individual' && isSelected && (
                         <button
                           type="button"
@@ -390,18 +390,18 @@ const BackPay: React.FC = () => {
                     {rateMode === 'individual' && isSelected && isExpanded && (
                       <div className="px-11 pb-3 flex gap-4 bg-blue-50/40">
                         <div>
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Old Rate</label>
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Old Rate</label>
                           <input
                             type="number"
                             min="0"
                             step="0.01"
                             value={rates?.oldRate ?? ''}
                             onChange={(e) => updateEmpRate(emp.id, 'oldRate', e.target.value)}
-                            className="w-28 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20"
+                            className="w-28 px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20"
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">New Rate</label>
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">New Rate</label>
                           <input
                             type="number"
                             min="0"
@@ -409,7 +409,7 @@ const BackPay: React.FC = () => {
                             value={rates?.newRate ?? ''}
                             onChange={(e) => updateEmpRate(emp.id, 'newRate', e.target.value)}
                             placeholder="Required"
-                            className="w-28 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20"
+                            className="w-28 px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20"
                           />
                         </div>
                       </div>
@@ -421,7 +421,7 @@ const BackPay: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => { setError(''); setStep(1); }} className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50 text-sm">
+            <button onClick={() => { setError(''); setStep(1); }} className="px-4 py-2 rounded-full font-bold border border-border hover:bg-muted text-sm">
               Back
             </button>
             <button
@@ -447,26 +447,26 @@ const BackPay: React.FC = () => {
             <div className="bg-primary rounded-2xl border border-border p-4 shadow-sm text-center">
               <CalendarDays size={20} className="mx-auto mb-1 text-blue-500" />
               <p className="text-2xl font-bold text-navy">{preview.summary.totalRuns}</p>
-              <p className="text-xs text-slate-400 font-semibold mt-0.5">Affected Runs</p>
+              <p className="text-xs text-muted-foreground font-semibold mt-0.5">Affected Runs</p>
             </div>
             <div className="bg-primary rounded-2xl border border-border p-4 shadow-sm text-center">
               <Users size={20} className="mx-auto mb-1 text-purple-500" />
               <p className="text-2xl font-bold text-navy">{preview.summary.totalEmployees}</p>
-              <p className="text-xs text-slate-400 font-semibold mt-0.5">Employees Owed</p>
+              <p className="text-xs text-muted-foreground font-semibold mt-0.5">Employees Owed</p>
             </div>
             <div className="bg-primary rounded-2xl border border-border p-4 shadow-sm text-center">
               <Banknote size={20} className="mx-auto mb-1 text-emerald-500" />
               <p className="text-2xl font-bold text-navy">
                 {preview.summary.totalGross.toFixed(2)}
               </p>
-              <p className="text-xs text-slate-400 font-semibold mt-0.5">Total Gross ({preview.summary.currency})</p>
+              <p className="text-xs text-muted-foreground font-semibold mt-0.5">Total Gross ({preview.summary.currency})</p>
             </div>
           </div>
 
           {/* Affected run pills */}
           {preview.affectedRuns.length > 0 && (
             <div className="bg-primary rounded-2xl border border-border p-4 shadow-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Affected Payroll Runs</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Affected Payroll Runs</p>
               <div className="flex flex-wrap gap-2">
                 {preview.affectedRuns.map((r) => (
                   <span key={r.id} className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">
@@ -479,15 +479,15 @@ const BackPay: React.FC = () => {
 
           {/* Per-employee table */}
           <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-border bg-slate-50">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Per-Employee Shortfall</p>
+            <div className="px-5 py-3 border-b border-border bg-muted">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Per-Employee Shortfall</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border">
                     {['Employee', 'Old Rate', 'New Rate', 'Runs', 'Gross Back Pay', 'Tax (est.)', 'Net (est.)'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -495,18 +495,18 @@ const BackPay: React.FC = () => {
                   {preview.results.map((r) => (
                     <React.Fragment key={r.employeeId}>
                       <tr
-                        className={`hover:bg-slate-50/50 transition-colors ${r.totalGross > 0 ? 'cursor-pointer' : ''}`}
+                        className={`hover:bg-muted/30 transition-colors ${r.totalGross > 0 ? 'cursor-pointer' : ''}`}
                         onClick={() => r.totalGross > 0 && setExpandedEmp(expandedEmp === r.employeeId ? null : r.employeeId)}
                       >
                         <td className="px-4 py-3">
                           <p className="text-sm font-bold">{r.name}</p>
-                          <p className="text-xs text-slate-400">{r.employeeCode}</p>
+                          <p className="text-xs text-muted-foreground">{r.employeeCode}</p>
                         </td>
                         <td className="px-4 py-3 text-sm">{currency} {r.oldRate.toFixed(2)}</td>
                         <td className="px-4 py-3 text-sm font-bold text-emerald-700">{currency} {r.newRate.toFixed(2)}</td>
                         <td className="px-4 py-3 text-sm">{r.affectedRunCount}</td>
                         <td className="px-4 py-3 text-sm font-bold">
-                          {r.totalGross > 0 ? fmt(r.totalGross, currency) : <span className="text-slate-400 text-xs">{r.note || '—'}</span>}
+                          {r.totalGross > 0 ? fmt(r.totalGross, currency) : <span className="text-muted-foreground text-xs">{r.note || '—'}</span>}
                         </td>
                         <td className="px-4 py-3 text-sm text-red-500">{r.totalGross > 0 ? fmt(r.taxEstimate, currency) : '—'}</td>
                         <td className="px-4 py-3 text-sm font-bold text-emerald-700">{r.totalGross > 0 ? fmt(r.netEstimate, currency) : '—'}</td>
@@ -516,7 +516,7 @@ const BackPay: React.FC = () => {
                           <td colSpan={7} className="px-4 pb-3 bg-blue-50/40">
                             <div className="flex flex-wrap gap-2 pt-2">
                               {r.runBreakdown.map((rb) => (
-                                <span key={rb.runId} className="text-xs px-2.5 py-1 bg-white border border-border rounded-lg font-medium text-slate-600">
+                                <span key={rb.runId} className="text-xs px-2.5 py-1 bg-background border border-border rounded-lg font-medium text-foreground/80">
                                   {fmtDate(rb.runDate)}: +{currency} {rb.shortfall.toFixed(2)}
                                 </span>
                               ))}
@@ -537,7 +537,7 @@ const BackPay: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => { setError(''); setStep(2); }} className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50 text-sm">
+            <button onClick={() => { setError(''); setStep(2); }} className="px-4 py-2 rounded-full font-bold border border-border hover:bg-muted text-sm">
               Back
             </button>
             {preview.summary.totalEmployees > 0 && (
@@ -573,30 +573,30 @@ const BackPay: React.FC = () => {
 
           {commit.inputs.length > 0 && (
             <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-              <div className="px-5 py-3 border-b border-border bg-slate-50">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Created PayrollInputs</p>
+              <div className="px-5 py-3 border-b border-border bg-muted">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Created PayrollInputs</p>
               </div>
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border">
                     {['Employee', 'Runs', 'Back-Pay Amount', 'Period', 'Notes'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {commit.inputs.map((inp) => (
-                    <tr key={inp.id} className="hover:bg-slate-50/50">
+                    <tr key={inp.id} className="hover:bg-muted/30">
                       <td className="px-4 py-3">
                         <p className="text-sm font-bold">{inp.employeeName}</p>
-                        <p className="text-xs text-slate-400">{inp.employeeCode}</p>
+                        <p className="text-xs text-muted-foreground">{inp.employeeCode}</p>
                       </td>
                       <td className="px-4 py-3 text-sm">{inp.affectedRunCount}</td>
                       <td className="px-4 py-3 text-sm font-bold text-emerald-700">
                         {fmt(inp.totalShortfall, inp.currency)}
                       </td>
                       <td className="px-4 py-3 text-sm font-medium">{inp.period}</td>
-                      <td className="px-4 py-3 text-xs text-slate-500">{inp.notes}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{inp.notes}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -612,7 +612,7 @@ const BackPay: React.FC = () => {
           <div className="flex gap-3">
             <button
               onClick={() => { setStep(1); setEffectiveDate(''); setUniformNewRate(''); setSelected([]); setEmpRates({}); setPreview(null); setCommit(null); setError(''); }}
-              className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50 text-sm"
+              className="px-4 py-2 rounded-full font-bold border border-border hover:bg-muted text-sm"
             >
               Start Over
             </button>

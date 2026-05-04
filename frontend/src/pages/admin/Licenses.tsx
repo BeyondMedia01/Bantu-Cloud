@@ -55,7 +55,7 @@ const AdminLicenses: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">License Management</h1>
-          <p className="text-slate-500 text-sm font-medium">Issue and manage client licenses</p>
+          <p className="text-muted-foreground text-sm font-medium">Issue and manage client licenses</p>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90">
           <Plus size={16} /> Issue License
@@ -64,29 +64,29 @@ const AdminLicenses: React.FC = () => {
 
       {showForm && (
         <form onSubmit={handleIssue} className="mb-6 bg-primary rounded-2xl border border-border p-6 shadow-sm flex flex-col gap-4">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Issue New License</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Issue New License</h3>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Client *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Client *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                   <span>{form.clientId ? (clients.find((c: any) => c.id === form.clientId)?.name || 'Select client') : 'Select client'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: clients.map((c: any) => ({ label: c.name, onClick: () => setForm((f) => ({ ...f, clientId: c.id })) })) }]} />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Validity (months)</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Validity (months)</label>
               <input type="number" value={form.expiryMonths} onChange={(e) => setForm((f) => ({ ...f, expiryMonths: e.target.value }))}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm" />
             </div>
           </div>
           <div className="flex gap-3">
             <button type="submit" disabled={saving} className="bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
               {saving ? 'Issuing…' : 'Issue License'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-full border border-border font-bold text-sm text-slate-500 hover:bg-slate-50">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-full border border-border font-bold text-sm text-muted-foreground hover:bg-muted">
               Cancel
             </button>
           </div>
@@ -94,15 +94,15 @@ const AdminLicenses: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center h-48 text-slate-400"><Loader size={24} className="animate-spin" /></div>
+        <div className="flex items-center justify-center h-48 text-muted-foreground"><Loader size={24} className="animate-spin" /></div>
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Client', 'Token', 'Issued', 'Expires', 'Status', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -110,9 +110,9 @@ const AdminLicenses: React.FC = () => {
               {licenses.map((lic: any) => {
                 const isActive = lic.isActive && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
                 return (
-                  <tr key={lic.id} className="hover:bg-slate-50/50">
+                  <tr key={lic.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-bold text-sm">{lic.client?.name || lic.clientId}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-400">{lic.token?.slice(0, 16)}…</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{lic.token?.slice(0, 16)}…</td>
                     <td className="px-4 py-3 text-sm">{lic.createdAt ? new Date(lic.createdAt).toLocaleDateString() : '—'}</td>
                     <td className="px-4 py-3 text-sm">{lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString() : 'Never'}</td>
                     <td className="px-4 py-3">
@@ -123,7 +123,7 @@ const AdminLicenses: React.FC = () => {
                     </td>
                     <td className="px-4 py-3">
                       {actionId === lic.clientId ? (
-                        <span className="text-xs text-slate-400">…</span>
+                        <span className="text-xs text-muted-foreground">…</span>
                       ) : isActive ? (
                         <button onClick={() => handleRevoke(lic.clientId)} className="text-xs font-bold text-red-500 hover:underline">Revoke</button>
                       ) : (

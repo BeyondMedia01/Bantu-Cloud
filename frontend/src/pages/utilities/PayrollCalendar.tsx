@@ -126,12 +126,12 @@ const PayrollCalendar: React.FC = () => {
     <div className="max-w-4xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Payroll Calendar</h1>
-          <p className="text-slate-500 font-medium text-sm">Manage payroll periods — create, close, and track each pay cycle</p>
+          <p className="text-muted-foreground font-medium text-sm">Manage payroll periods — create, close, and track each pay cycle</p>
         </div>
         <button
           onClick={() => { setShowForm(!showForm); setError(''); }}
@@ -144,20 +144,20 @@ const PayrollCalendar: React.FC = () => {
       {/* Create form */}
       {showForm && (
         <form onSubmit={handleCreate} className="bg-primary border border-border rounded-2xl p-6 shadow-sm mb-6">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">New Payroll Period</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">New Payroll Period</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Period Type</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Period Type</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span>{form.periodType}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: PERIOD_TYPES.map(t => ({ label: t, onClick: () => setForm((p) => ({ ...p, periodType: t })) })) }]} />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Year</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Year</label>
               <input
                 type="number"
                 min="2020"
@@ -169,11 +169,11 @@ const PayrollCalendar: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Month</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Month</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span>{MONTHS[form.month - 1] || 'Select month'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: MONTHS.map((m, i) => ({ label: m, onClick: () => setForm((p) => ({ ...p, month: i + 1 })) })) }]} />
             </div>
@@ -181,7 +181,7 @@ const PayrollCalendar: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Start Date</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Start Date</label>
               <input
                 type="date"
                 value={form.startDate}
@@ -191,7 +191,7 @@ const PayrollCalendar: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">End Date</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">End Date</label>
               <input
                 type="date"
                 value={form.endDate}
@@ -201,7 +201,7 @@ const PayrollCalendar: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Pay Day (day of month)</label>
+              <label className="block text-sm font-bold text-foreground/80 mb-1.5">Pay Day (day of month)</label>
               <input
                 type="number"
                 min="1"
@@ -225,7 +225,7 @@ const PayrollCalendar: React.FC = () => {
             >
               <Check size={15} /> {saving ? 'Creating…' : 'Create Period'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm">
               Cancel
             </button>
           </div>
@@ -234,7 +234,7 @@ const PayrollCalendar: React.FC = () => {
 
       {/* Year filter */}
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-sm font-bold text-slate-500">Year:</span>
+        <span className="text-sm font-bold text-muted-foreground">Year:</span>
         <div className="flex gap-2">
           {yearOptions.map((y) => (
             <button
@@ -243,7 +243,7 @@ const PayrollCalendar: React.FC = () => {
               className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
                 yearFilter === y
                   ? 'bg-navy text-white'
-                  : 'border border-border text-slate-500 hover:bg-slate-50'
+                  : 'border border-border text-muted-foreground hover:bg-muted'
               }`}
             >
               {y}
@@ -254,7 +254,7 @@ const PayrollCalendar: React.FC = () => {
             className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
               yearFilter === ''
                 ? 'bg-navy text-white'
-                : 'border border-border text-slate-500 hover:bg-slate-50'
+                : 'border border-border text-muted-foreground hover:bg-muted'
             }`}
           >
             All
@@ -264,10 +264,10 @@ const PayrollCalendar: React.FC = () => {
 
       {/* Entries */}
       {loading ? (
-        <div className="text-center py-16 text-slate-400 text-sm font-medium">Loading…</div>
+        <div className="text-center py-16 text-muted-foreground text-sm font-medium">Loading…</div>
       ) : entries.length === 0 ? (
         <div className="bg-primary border border-border rounded-2xl p-12 text-center shadow-sm">
-          <p className="text-slate-400 font-medium text-sm">No payroll periods found for the selected year.</p>
+          <p className="text-muted-foreground font-medium text-sm">No payroll periods found for the selected year.</p>
           <button
             onClick={() => setShowForm(true)}
             className="mt-4 text-accent-green text-sm font-bold hover:underline"
@@ -331,15 +331,15 @@ const YearGroup: React.FC<{
     <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden mb-4">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50/50 transition-colors"
+        className="w-full flex items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors"
       >
         <div className="flex items-center gap-3">
           <span className="font-bold text-navy">{year}</span>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             {items.length} period{items.length !== 1 ? 's' : ''} · {closed} closed
           </span>
         </div>
-        {open ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+        {open ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
       </button>
 
       {open && (
@@ -372,18 +372,18 @@ const PeriodRow: React.FC<{
   const end   = new Date(entry.endDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
   return (
-    <div className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/30 transition-colors">
+    <div className="flex items-center gap-4 px-6 py-4 hover:bg-muted/20 transition-colors">
       {/* Month */}
       <div className="w-24 shrink-0">
         <p className="font-bold text-navy text-sm">{monthName}</p>
-        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">{entry.periodType}</p>
+        <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{entry.periodType}</p>
       </div>
 
       {/* Date range */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-600">{start} — {end}</p>
+        <p className="text-sm font-medium text-foreground/80">{start} — {end}</p>
         {entry.payDay && (
-          <p className="text-[11px] text-slate-400 font-medium">Pay day: {entry.payDay}{ordinal(entry.payDay)} of month</p>
+          <p className="text-[11px] text-muted-foreground font-medium">Pay day: {entry.payDay}{ordinal(entry.payDay)} of month</p>
         )}
       </div>
 
@@ -391,14 +391,14 @@ const PeriodRow: React.FC<{
       {entry._count !== undefined && (
         <div className="shrink-0 text-center w-14">
           <p className="text-lg font-bold text-navy">{entry._count.payrollRuns}</p>
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Runs</p>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase">Runs</p>
         </div>
       )}
 
       {/* Status badge */}
       <div className="shrink-0">
         {entry.isClosed ? (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[11px] font-black uppercase tracking-wide">
+          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-muted-foreground text-[11px] font-black uppercase tracking-wide">
             <Lock size={10} /> Closed
           </span>
         ) : (
@@ -422,7 +422,7 @@ const PeriodRow: React.FC<{
         <button
           onClick={onDelete}
           title="Delete period"
-          className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
         >
           <Trash2 size={15} />
         </button>
@@ -442,13 +442,13 @@ const ConfirmDialog: React.FC<{
   onCancel: () => void;
 }> = ({ title, message, confirmLabel, confirmClass, onConfirm, onCancel }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+    <div className="bg-card rounded-2xl shadow-xl p-6 max-w-sm w-full">
       <h3 className="font-bold text-navy mb-2">{title}</h3>
-      <p className="text-sm text-slate-500 font-medium mb-6">{message}</p>
+      <p className="text-sm text-muted-foreground font-medium mb-6">{message}</p>
       <div className="flex gap-3 justify-end">
         <button
           onClick={onCancel}
-          className="px-5 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+          className="px-5 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm"
         >
           Cancel
         </button>

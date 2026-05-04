@@ -36,7 +36,7 @@ const ConfirmModal: React.FC<Props> = ({
             </div>
             <div className="flex flex-col gap-1">
               <DialogTitle className="font-bold text-navy text-base">{title}</DialogTitle>
-              <DialogDescription className="text-sm text-slate-500 font-medium leading-relaxed">
+              <DialogDescription className="text-sm text-muted-foreground font-medium leading-relaxed">
                 {message}
               </DialogDescription>
             </div>

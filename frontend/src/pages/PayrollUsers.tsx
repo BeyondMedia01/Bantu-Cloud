@@ -53,12 +53,12 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
       case 'ADMIN': return 'bg-purple-50 text-purple-600 border-purple-100';
       case 'PAYROLL_OFFICER': return 'bg-accent-green/10 text-accent-green border-accent-green/20';
       case 'AUDITOR': return 'bg-amber-50 text-amber-600 border-amber-100';
-      default: return 'bg-slate-100 text-slate-500 border-slate-200';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
   const PermissionTag = ({ active, label, icon: Icon }: { active: boolean, label: string, icon: any }) => (
-    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-tight ${active ? 'bg-emerald-50 text-accent-green border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100 opacity-50'}`}>
+    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-tight ${active ? 'bg-emerald-50 text-accent-green border-emerald-100' : 'bg-muted text-muted-foreground border-border opacity-50'}`}>
         <Icon size={12} />
         {label}
         {active ? <Check size={12} className="ml-1" /> : <X size={12} className="ml-1" />}
@@ -79,7 +79,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Access Control</h2>
-          <p className="text-slate-500 font-medium">Manage user roles, system access, and fine-grained data permissions.</p>
+          <p className="text-muted-foreground font-medium">Manage user roles, system access, and fine-grained data permissions.</p>
         </div>
         <button
           onClick={() => { showToast('Feature coming soon', 'success'); }}
@@ -90,13 +90,13 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
       </header>
 
       {/* RBAC Info Card */}
-      <div className="bg-gradient-to-br from-navy to-slate-800 rounded-3xl p-6 text-white flex flex-col md:flex-row gap-6 items-start md:items-center shadow-xl shadow-slate-200">
+      <div className="bg-gradient-to-br from-navy to-slate-800 rounded-3xl p-6 text-white flex flex-col md:flex-row gap-6 items-start md:items-center shadow-xl shadow-black/5">
         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
           <Key size={32} className="text-accent-green" />
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-bold mb-1">Robust Role-Based Access Control (RBAC)</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Roles define base templates (e.g., Auditors view everything, Officers edit payroll). <strong>Granular Permissions</strong> override these defaults, giving you surgical control over exactly what each user can execute, edit, or export. <i>Admins automatically inherit all permissions.</i>
           </p>
         </div>
@@ -111,19 +111,19 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
 
       {/* Table Section */}
       <div className="bg-primary rounded-3xl border border-border shadow-sm overflow-hidden">
-        <div className="p-4 px-6 border-b border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-4 px-6 border-b border-border bg-muted/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input 
                 type="text" 
                 placeholder="Search by name or email..."
                 aria-label="Search users"
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/30 shadow-sm"
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/30 shadow-sm"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                <UsersIcon size={14} /> {filteredUsers.length} Users Active
             </div>
         </div>
@@ -131,17 +131,17 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-50 border-b border-border">
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest w-[250px]">Identity</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Role Level</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Granular Permissions</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Status / Last Login</th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+              <tr className="bg-muted border-b border-border">
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest w-[250px]">Identity</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Role Level</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Granular Permissions</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Status / Last Login</th>
+                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredUsers.length > 0 ? filteredUsers.map(user => (
-                <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={user.id} className="hover:bg-muted/30 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full shadow-sm flex items-center justify-center font-bold text-xs uppercase text-white"
@@ -150,7 +150,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-navy truncate">{user.fullName}</p>
-                        <p className="text-[10px] text-slate-400 font-semibold truncate">{user.email}</p>
+                        <p className="text-[10px] text-muted-foreground font-semibold truncate">{user.email}</p>
                       </div>
                     </div>
                   </td>
@@ -175,7 +175,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                               {user.isActive ? 'Active' : 'Suspended'}
                            </span>
                         </div>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase">
                            {user.lastLogin ? `Seen: ${new Date(user.lastLogin).toLocaleDateString()}` : 'Never logged in'}
                         </p>
                      </div>
@@ -184,14 +184,14 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => { showToast('Feature coming soon', 'success'); }}
-                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-navy transition-colors"
+                        className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
                         title="Edit Permissions"
                       >
                         <ShieldAlert size={16} />
                       </button>
                       <button 
                         onClick={() => handleDelete(user.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                        className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                         title="Revoke Access"
                       >
                         <Trash size={16} />
@@ -202,8 +202,8 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
               )) : (
                 <tr>
                    <td colSpan={5} className="px-6 py-24 text-center">
-                      <div className="flex flex-col items-center gap-4 text-slate-300">
-                         <div className="p-4 bg-slate-50 rounded-full border border-border border-dashed">
+                      <div className="flex flex-col items-center gap-4 text-muted-foreground/50">
+                         <div className="p-4 bg-muted rounded-full border border-border border-dashed">
                             <UsersIcon size={48} className="opacity-20" />
                          </div>
                          <p className="italic font-medium">No users found. Invite an administrator to get started.</p>

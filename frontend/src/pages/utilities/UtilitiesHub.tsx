@@ -116,7 +116,7 @@ const UtilitiesHub: React.FC = () => {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Utilities</h1>
-        <p className="text-slate-500 text-sm font-medium">Payroll utilities and bulk operations</p>
+        <p className="text-muted-foreground text-sm font-medium">Payroll utilities and bulk operations</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -131,7 +131,7 @@ const UtilitiesHub: React.FC = () => {
             </div>
             <div>
               <p className="font-bold text-navy mb-1">{u.title}</p>
-              <p className="text-sm text-slate-500 font-medium leading-relaxed">{u.description}</p>
+              <p className="text-sm text-muted-foreground font-medium leading-relaxed">{u.description}</p>
             </div>
           </button>
         ))}

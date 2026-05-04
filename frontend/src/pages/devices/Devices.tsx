@@ -29,57 +29,57 @@ const DeviceForm: React.FC<{
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSave(form); }}
       className="bg-primary border border-border rounded-2xl p-6 shadow-sm mb-6">
-      <p className="text-xs font-black uppercase tracking-wider text-slate-400 mb-5">
+      <p className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-5">
         {initial.name ? 'Edit Device' : 'Add Device'}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">Device Name *</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">Device Name *</label>
           <input type="text" value={form.name} onChange={set('name')} required
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">Vendor</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">Vendor</label>
           <Dropdown className="w-full" trigger={(isOpen) => (
             <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{VENDOR_LABELS[form.vendor] || form.vendor}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: Object.entries(VENDOR_LABELS).map(([v, l]) => ({ label: l, onClick: () => set('vendor')({ target: { value: v } } as any) })) }]} />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">IP Address *</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">IP Address *</label>
           <input type="text" value={form.ipAddress} onChange={set('ipAddress')} required placeholder="192.168.1.100"
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">Port</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">Port</label>
           <input type="number" value={form.port} onChange={set('port')} min={1} max={65535}
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">Username</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">Username</label>
           <input type="text" value={form.username} onChange={set('username')}
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">Password</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">Password</label>
           <div className="relative">
             <input type={showPwd ? 'text' : 'password'} value={form.password} onChange={set('password')}
               className="w-full px-3 py-2 pr-9 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
             <button type="button" onClick={() => setShowPwd((s) => !s)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground/80">
               {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           </div>
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">Serial Number</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">Serial Number</label>
           <input type="text" value={form.serialNumber} onChange={set('serialNumber')} placeholder="For ADMS push matching"
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5">Location</label>
+          <label className="block text-xs font-bold text-foreground/80 mb-1.5">Location</label>
           <input type="text" value={form.location} onChange={set('location')} placeholder="e.g. Main Entrance"
             className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" />
         </div>
@@ -93,7 +93,7 @@ const DeviceForm: React.FC<{
           <Check size={14} /> {saving ? 'Saving…' : 'Save Device'}
         </button>
         <button type="button" onClick={onCancel}
-          className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full font-bold text-sm text-slate-500 hover:bg-slate-50">
+          className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full font-bold text-sm text-muted-foreground hover:bg-muted">
           <X size={14} /> Cancel
         </button>
       </div>
@@ -192,7 +192,7 @@ const Devices: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold">Biometric Devices</h1>
-          <p className="text-slate-500 font-medium text-sm">Manage ZKTeco and Hikvision attendance devices</p>
+          <p className="text-muted-foreground font-medium text-sm">Manage ZKTeco and Hikvision attendance devices</p>
         </div>
         {!showForm && !editing && (
           <button onClick={() => { setShowForm(true); setError(''); }}
@@ -217,11 +217,11 @@ const Devices: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="text-center py-16 text-slate-400 text-sm">Loading…</div>
+        <div className="text-center py-16 text-muted-foreground text-sm">Loading…</div>
       ) : devices.length === 0 ? (
         <div className="bg-primary border border-dashed border-border rounded-2xl p-12 text-center">
-          <Server size={32} className="text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-400 font-medium">No devices configured yet.</p>
+          <Server size={32} className="text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-muted-foreground font-medium">No devices configured yet.</p>
           <button onClick={() => setShowForm(true)} className="mt-3 text-accent-green text-sm font-bold hover:underline">
             Add first device →
           </button>
@@ -237,56 +237,56 @@ const Devices: React.FC = () => {
                 <div className="bg-primary border border-border rounded-2xl p-5 shadow-sm">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${d.isActive ? 'bg-emerald-100' : 'bg-slate-100'}`}>
-                        {d.isActive ? <Wifi size={16} className="text-emerald-600" /> : <WifiOff size={16} className="text-slate-400" />}
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${d.isActive ? 'bg-emerald-100' : 'bg-muted'}`}>
+                        {d.isActive ? <Wifi size={16} className="text-emerald-600" /> : <WifiOff size={16} className="text-muted-foreground" />}
                       </div>
                       <div>
                         <h2 className="font-bold text-navy">{d.name}</h2>
-                        <p className="text-xs text-slate-400 font-semibold">
+                        <p className="text-xs text-muted-foreground font-semibold">
                           {VENDOR_LABELS[d.vendor] || d.vendor}{d.location ? ` · ${d.location}` : ''}
                         </p>
                       </div>
                     </div>
-                    <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${d.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${d.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                       {d.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
 
-                  <div className="text-xs text-slate-500 font-medium space-y-1 mb-3">
+                  <div className="text-xs text-muted-foreground font-medium space-y-1 mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-500 w-16">Address</span>
-                      <span className="font-mono text-slate-600">{d.ipAddress}:{d.port}</span>
+                      <span className="text-muted-foreground w-16">Address</span>
+                      <span className="font-mono text-foreground/80">{d.ipAddress}:{d.port}</span>
                     </div>
                     {d.serialNumber && (
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-500 w-16">Serial</span>
-                        <span className="font-mono text-slate-600">{d.serialNumber}</span>
+                        <span className="text-muted-foreground w-16">Serial</span>
+                        <span className="font-mono text-foreground/80">{d.serialNumber}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-500 w-16">Last sync</span>
-                      <span className={d.lastSyncStatus === 'error' ? 'text-red-500' : 'text-slate-600'}>
+                      <span className="text-muted-foreground w-16">Last sync</span>
+                      <span className={d.lastSyncStatus === 'error' ? 'text-red-500' : 'text-foreground/80'}>
                         {fmtRelative(d.lastSyncAt)}{d.lastSyncStatus === 'error' ? ' (error)' : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-500 w-16">Records</span>
-                      <span className="text-slate-600">{d._count?.attendanceLogs ?? 0} logs</span>
+                      <span className="text-muted-foreground w-16">Records</span>
+                      <span className="text-foreground/80">{d._count?.attendanceLogs ?? 0} logs</span>
                     </div>
                   </div>
 
                   {/* Webhook key */}
                   {d.webhookKey && (
-                    <div className="mb-3 p-3 bg-slate-50 rounded-xl border border-border">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">ADMS / Webhook Key</p>
+                    <div className="mb-3 p-3 bg-muted rounded-xl border border-border">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1.5">ADMS / Webhook Key</p>
                       <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono text-slate-600 truncate flex-1">{d.webhookKey}</code>
+                        <code className="text-xs font-mono text-foreground/80 truncate flex-1">{d.webhookKey}</code>
                         <button onClick={() => copyKey(d.id, d.webhookKey)}
-                          className="flex-shrink-0 text-slate-400 hover:text-navy">
+                          className="flex-shrink-0 text-muted-foreground hover:text-navy">
                           {copiedKey === d.id ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
                         </button>
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1 break-all">
+                      <p className="text-[10px] text-muted-foreground mt-1 break-all">
                         ZKTeco URL: <span className="font-mono">{serverUrl}/api/biometric/zkteco?key={d.webhookKey}</span>
                       </p>
                     </div>
@@ -300,20 +300,20 @@ const Devices: React.FC = () => {
 
                   <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
                     <button onClick={() => handleTest(d)} disabled={testing === d.id}
-                      className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-navy px-3 py-1.5 rounded-lg hover:bg-slate-50 border border-border disabled:opacity-50">
+                      className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-navy px-3 py-1.5 rounded-lg hover:bg-muted border border-border disabled:opacity-50">
                       <Wifi size={12} /> {testing === d.id ? 'Testing…' : 'Test'}
                     </button>
                     <button onClick={() => handleSync(d)} disabled={syncing === d.id}
-                      className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-navy px-3 py-1.5 rounded-lg hover:bg-slate-50 border border-border disabled:opacity-50">
+                      className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-navy px-3 py-1.5 rounded-lg hover:bg-muted border border-border disabled:opacity-50">
                       <RefreshCw size={12} className={syncing === d.id ? 'animate-spin' : ''} />
                       {syncing === d.id ? 'Syncing…' : 'Sync Now'}
                     </button>
                     <button onClick={() => { setEditing(d); setShowForm(false); setError(''); }}
-                      className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-navy px-3 py-1.5 rounded-lg hover:bg-slate-50 border border-border">
+                      className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-navy px-3 py-1.5 rounded-lg hover:bg-muted border border-border">
                       <Edit2 size={12} /> Edit
                     </button>
                     <button onClick={() => handleDelete(d.id)}
-                      className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 border border-border">
+                      className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 border border-border">
                       <Trash2 size={12} /> Delete
                     </button>
                   </div>

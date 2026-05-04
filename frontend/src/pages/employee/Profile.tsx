@@ -63,19 +63,19 @@ const EmployeeProfile: React.FC = () => {
     setForm((prev) => ({ ...prev, [f]: e.target.value }));
 
   if (loading) return (
-    <div className="flex items-center justify-center h-48 text-slate-400"><Loader size={24} className="animate-spin" /></div>
+    <div className="flex items-center justify-center h-48 text-muted-foreground"><Loader size={24} className="animate-spin" /></div>
   );
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">My Profile</h1>
-        <p className="text-slate-500 text-sm font-medium">View your employment details and update contact information</p>
+        <p className="text-muted-foreground text-sm font-medium">View your employment details and update contact information</p>
       </div>
 
       {/* Read-only info */}
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm mb-6">
-        <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">Employment Details</h3>
+        <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">Employment Details</h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
           {[
             ['Full Name', `${profile?.firstName || ''} ${profile?.lastName || ''}`],
@@ -89,7 +89,7 @@ const EmployeeProfile: React.FC = () => {
             ['Tax Number', profile?.taxNumber || '—'],
           ].map(([k, v]) => (
             <div key={k}>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">{k}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">{k}</p>
               <p className="font-medium">{v}</p>
             </div>
           ))}
@@ -101,19 +101,19 @@ const EmployeeProfile: React.FC = () => {
       {saved && <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">Changes saved successfully</div>}
 
       <form onSubmit={handleSave} className="bg-primary rounded-2xl border border-border p-6 shadow-sm flex flex-col gap-4">
-        <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Contact & Banking</h3>
+        <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Contact & Banking</h3>
         <div className="grid grid-cols-2 gap-4">
           {(['homeAddress', 'nextOfKin'] as const).map((f) => (
             <div key={f}>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
                 {f === 'homeAddress' ? 'Home Address' : 'Next of Kin'}
               </label>
               <input type="text" value={form[f]} onChange={set(f)}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm" />
             </div>
           ))}
           <div>
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Bank Name</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Bank Name</label>
             <datalist id="zw-banks-profile">
               {ZIMBABWE_BANKS.map((b) => <option key={b} value={b} />)}
             </datalist>
@@ -122,13 +122,13 @@ const EmployeeProfile: React.FC = () => {
               value={form.bankName}
               onChange={set('bankName')}
               placeholder="Search or type bank name"
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Bank Account Number</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Bank Account Number</label>
             <input type="text" value={form.accountNumber} onChange={set('accountNumber')}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm" />
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm" />
           </div>
         </div>
         <button type="submit" disabled={saving} className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 w-fit text-sm">

@@ -71,14 +71,14 @@ const ProfileSettings: React.FC = () => {
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold text-navy">Profile Settings</h1>
-        <p className="text-sm text-slate-400 font-medium mt-1">Manage your account information and password</p>
+        <p className="text-sm text-muted-foreground font-medium mt-1">Manage your account information and password</p>
       </div>
 
       {/* Personal Info */}
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-5">
-          <User size={16} className="text-slate-400" />
-          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400">Personal Information</h2>
+          <User size={16} className="text-muted-foreground" />
+          <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Personal Information</h2>
         </div>
 
         {profileSuccess && (
@@ -95,24 +95,24 @@ const ProfileSettings: React.FC = () => {
         <form onSubmit={handleSaveProfile} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="profile-first-name" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">First Name</label>
+              <label htmlFor="profile-first-name" className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">First Name</label>
               <input id="profile-first-name" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="Jane" />
             </div>
             <div>
-              <label htmlFor="profile-last-name" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Last Name</label>
+              <label htmlFor="profile-last-name" className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Last Name</label>
               <input id="profile-last-name" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} placeholder="Smith" />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="profile-phone" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="profile-phone" className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
                 <span className="flex items-center gap-1"><Phone size={12} /> Phone Number (2FA)</span>
               </label>
               <input id="profile-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} placeholder="+263 77 123 4567" />
             </div>
             <div>
-              <label htmlFor="profile-email" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
-              <input id="profile-email" type="email" value={email} disabled className={`${inputCls} bg-slate-50 text-slate-400 cursor-not-allowed`} />
+              <label htmlFor="profile-email" className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Email</label>
+              <input id="profile-email" type="email" value={email} disabled className={`${inputCls} bg-muted text-muted-foreground cursor-not-allowed`} />
             </div>
           </div>
           <div className="flex justify-end">
@@ -126,8 +126,8 @@ const ProfileSettings: React.FC = () => {
       {/* Change Password */}
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-5">
-          <Lock size={16} className="text-slate-400" />
-          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400">Change Password</h2>
+          <Lock size={16} className="text-muted-foreground" />
+          <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Change Password</h2>
         </div>
 
         {pwSuccess && (
@@ -143,20 +143,20 @@ const ProfileSettings: React.FC = () => {
 
         <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
           <div>
-            <label htmlFor="profile-current-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Current Password</label>
+            <label htmlFor="profile-current-password" className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Current Password</label>
             <input id="profile-current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" className={inputCls} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="profile-new-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">New Password</label>
+              <label htmlFor="profile-new-password" className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">New Password</label>
               <input id="profile-new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
             </div>
             <div>
-              <label htmlFor="profile-confirm-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Confirm New Password</label>
+              <label htmlFor="profile-confirm-password" className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Confirm New Password</label>
               <input id="profile-confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" className={inputCls} />
             </div>
           </div>
-          <p className="text-xs text-slate-400 font-medium">Minimum 8 characters</p>
+          <p className="text-xs text-muted-foreground font-medium">Minimum 8 characters</p>
           <div className="flex justify-end">
             <button type="submit" disabled={pwLoading} className="bg-brand text-navy font-bold text-sm px-4 py-2 rounded-full shadow hover:opacity-90 transition-opacity disabled:opacity-50">
               {pwLoading ? 'Updating…' : 'Update Password'}

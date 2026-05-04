@@ -13,14 +13,14 @@ const EmployeeActions: React.FC<EmployeeActionsProps> = ({ total }) => {
     <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
         <h1 className="text-2xl font-bold text-navy">Employees</h1>
-        <p className="text-slate-500 font-medium text-sm">
+        <p className="text-muted-foreground font-medium text-sm">
           A total of <span className="text-accent-green font-bold">{total}</span> personnel in the system.
         </p>
       </div>
       <div className="flex items-center gap-2">
         <button
           onClick={() => navigate('/employees/import')}
-          className="flex items-center gap-1.5 border border-border text-slate-600 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-1.5 border border-border text-foreground/80 px-4 py-2 rounded-full font-bold text-sm hover:bg-muted transition-colors"
         >
           <Upload size={14} /> Bulk Import
         </button>

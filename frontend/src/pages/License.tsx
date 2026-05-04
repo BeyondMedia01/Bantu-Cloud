@@ -31,7 +31,7 @@ const License: React.FC = () => {
   };
 
   if (!isAdmin) return (
-    <div className="text-center py-16 text-slate-400">
+    <div className="text-center py-16 text-muted-foreground">
       <Shield size={40} className="mx-auto mb-3 opacity-30" />
       <p className="font-medium">License management is only available to platform administrators</p>
     </div>
@@ -41,13 +41,13 @@ const License: React.FC = () => {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">License Management</h1>
-        <p className="text-slate-500 text-sm font-medium">Manage client licenses</p>
+        <p className="text-muted-foreground text-sm font-medium">Manage client licenses</p>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48 text-slate-400"><Loader size={24} className="animate-spin" /></div>
+        <div className="flex items-center justify-center h-48 text-muted-foreground"><Loader size={24} className="animate-spin" /></div>
       ) : licenses.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-primary rounded-2xl border border-border">
+        <div className="text-center py-16 text-muted-foreground bg-primary rounded-2xl border border-border">
           <Shield size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No licenses found</p>
         </div>
@@ -56,9 +56,9 @@ const License: React.FC = () => {
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Client', 'Token (partial)', 'Issued', 'Expires', 'Status', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -66,9 +66,9 @@ const License: React.FC = () => {
               {licenses.map((lic: any) => {
                 const isActive = lic.isActive && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
                 return (
-                  <tr key={lic.id} className="hover:bg-slate-50/50">
+                  <tr key={lic.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-bold text-sm">{lic.client?.name || lic.clientId}</td>
-                    <td className="px-4 py-3 text-sm font-mono text-slate-400">{lic.token?.slice(0, 12)}…</td>
+                    <td className="px-4 py-3 text-sm font-mono text-muted-foreground">{lic.token?.slice(0, 12)}…</td>
                     <td className="px-4 py-3 text-sm">{lic.createdAt ? new Date(lic.createdAt).toLocaleDateString() : '—'}</td>
                     <td className="px-4 py-3 text-sm">{lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString() : 'Never'}</td>
                     <td className="px-4 py-3">
@@ -79,7 +79,7 @@ const License: React.FC = () => {
                     </td>
                     <td className="px-4 py-3">
                       {actionLoading === lic.clientId ? (
-                        <Clock size={14} className="text-slate-400 animate-spin" />
+                        <Clock size={14} className="text-muted-foreground animate-spin" />
                       ) : isActive ? (
                         <button onClick={() => handleRevoke(lic.clientId)} className="text-xs font-bold text-red-500 hover:underline">
                           Revoke

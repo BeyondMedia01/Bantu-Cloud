@@ -54,35 +54,35 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
       <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in duration-200">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+          className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors"
         >
           <X size={20} />
         </button>
 
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-navy">New Tax Table</h3>
-          <p className="text-slate-500 text-sm font-medium">Define a new tax structure</p>
+          <p className="text-muted-foreground text-sm font-medium">Define a new tax structure</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Table Name</label>
+            <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Table Name</label>
             <input 
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. 2024 USD Standard"
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Currency</label>
+              <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold hover:border-accent-green transition-all">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-2xl text-sm font-bold hover:border-accent-green transition-all">
                   <span>{currency}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'USD', onClick: () => setCurrency('USD') },
@@ -90,36 +90,36 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
               ]}]} />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Effective Date</label>
+              <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Effective Date</label>
               <input
                 type="date"
                 required
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Bracket Type</label>
-            <div className="flex rounded-2xl overflow-hidden border border-border bg-slate-50">
+            <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Bracket Type</label>
+            <div className="flex rounded-2xl overflow-hidden border border-border bg-muted">
               <button
                 type="button"
                 onClick={() => setIsAnnual(true)}
-                className={`flex-1 py-3 text-sm font-bold transition-all ${isAnnual ? 'bg-accent-green text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                className={`flex-1 py-3 text-sm font-bold transition-all ${isAnnual ? 'bg-accent-green text-white' : 'text-muted-foreground hover:bg-muted'}`}
               >
                 Annual (FDS)
               </button>
               <button
                 type="button"
                 onClick={() => setIsAnnual(false)}
-                className={`flex-1 py-3 text-sm font-bold transition-all ${!isAnnual ? 'bg-accent-green text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                className={`flex-1 py-3 text-sm font-bold transition-all ${!isAnnual ? 'bg-accent-green text-white' : 'text-muted-foreground hover:bg-muted'}`}
               >
                 Monthly
               </button>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+            <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
               {isAnnual ? 'Brackets use annual income (ZIMRA FDS standard)' : 'Brackets use monthly income directly'}
             </p>
           </div>

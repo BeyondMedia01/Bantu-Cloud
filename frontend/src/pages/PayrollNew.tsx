@@ -76,18 +76,18 @@ const PayrollNew: React.FC = () => {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl">
+        <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">New Payroll Run</h1>
-          <p className="text-slate-500 font-medium text-sm">Calculate and process payroll for all active employees</p>
+          <p className="text-muted-foreground font-medium text-sm">Calculate and process payroll for all active employees</p>
         </div>
       </div>
 
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl mb-6">
         <AlertCircle size={16} className="text-accent-green mt-0.5 shrink-0" />
-        <p className="text-sm font-medium text-slate-600">
+        <p className="text-sm font-medium text-foreground/80">
           This will calculate PAYE, AIDS Levy, and NSSA for all active employees.
           <strong> Dual Currency</strong> runs calculate PAYE independently in USD and ZiG using your tax tables for each currency.
         </p>
@@ -98,30 +98,30 @@ const PayrollNew: React.FC = () => {
       <form onSubmit={handleSubmit} className="bg-primary rounded-2xl border border-border p-8 shadow-sm flex flex-col gap-6">
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Period Start <span className="text-red-400">*</span></label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Period Start <span className="text-red-400">*</span></label>
             <input
               type="date"
               required
               value={form.startDate}
               onChange={set('startDate')}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Period End <span className="text-red-400">*</span></label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Period End <span className="text-red-400">*</span></label>
             <input
               type="date"
               required
               value={form.endDate}
               onChange={set('endDate')}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
             />
           </div>
         </div>
 
         {/* Currency mode */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Currency Mode</label>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Currency Mode</label>
           <div className="grid grid-cols-1 gap-2">
             {(['USD', 'ZiG', 'DUAL'] as CurrencyMode[]).map((mode) => (
               <label
@@ -129,7 +129,7 @@ const PayrollNew: React.FC = () => {
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
                   form.currencyMode === mode
                     ? 'border-accent-green bg-blue-50'
-                    : 'border-border bg-slate-50 hover:bg-slate-100'
+                    : 'border-border bg-muted hover:bg-muted'
                 }`}
               >
                 <input
@@ -153,7 +153,7 @@ const PayrollNew: React.FC = () => {
         {needsExchangeRate && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 USD → ZiG Exchange Rate <span className="text-red-400">*</span>
               </label>
               {latestRate && (
@@ -174,20 +174,20 @@ const PayrollNew: React.FC = () => {
               value={form.exchangeRate}
               onChange={set('exchangeRate')}
               placeholder={latestRate ? `e.g. ${latestRate.rate}` : 'e.g. 27.5'}
-              className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm"
             />
-            <p className="text-xs text-slate-400">How many ZiG equal 1 USD (e.g. 27.5 means 1 USD = 27.5 ZiG)</p>
+            <p className="text-xs text-muted-foreground">How many ZiG equal 1 USD (e.g. 27.5 means 1 USD = 27.5 ZiG)</p>
           </div>
         )}
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Notes (optional)</label>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Notes (optional)</label>
           <textarea
             value={form.notes}
             onChange={set('notes')}
             rows={3}
             placeholder="e.g. March 2025 dual-currency payroll run"
-            className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm resize-none"
+            className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green font-medium text-sm resize-none"
           />
         </div>
 
@@ -199,7 +199,7 @@ const PayrollNew: React.FC = () => {
           >
             <Play size={16} /> {loading ? 'Creating Run…' : 'Create Payroll Run'}
           </button>
-          <button type="button" onClick={() => navigate('/payroll')} className="px-4 py-2.5 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+          <button type="button" onClick={() => navigate('/payroll')} className="px-4 py-2.5 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted">
             Cancel
           </button>
         </div>

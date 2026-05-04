@@ -26,6 +26,6 @@ describe('StatCard', () => {
 
   it('applies neutral color by default', () => {
     render(<StatCard label="Test" value={10} trend="no change" />);
-    expect(screen.getByText('no change')).toHaveClass('text-slate-500');
+    expect(screen.getByText('no change')).toHaveClass('text-muted-foreground');
   });
 });

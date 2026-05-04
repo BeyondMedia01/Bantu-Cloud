@@ -12,7 +12,7 @@ const STATUS_COLORS: Record<string, string> = {
   APPROVED: 'bg-emerald-50 text-emerald-700',
   REJECTED: 'bg-red-50 text-red-700',
   PENDING:  'bg-amber-50 text-amber-700',
-  CANCELLED: 'bg-slate-100 text-slate-500',
+  CANCELLED: 'bg-muted text-muted-foreground',
 };
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
@@ -115,7 +115,7 @@ const Leave: React.FC = () => {
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-navy">Leave Management</h1>
-          <p className="text-slate-500 font-medium text-sm">Track and manage employee leave records</p>
+          <p className="text-muted-foreground font-medium text-sm">Track and manage employee leave records</p>
         </div>
         <button
           onClick={() => navigate('/leave/new')}
@@ -136,7 +136,7 @@ const Leave: React.FC = () => {
               className={`px-4 py-2.5 text-sm font-bold transition-colors border-b-2 -mb-px ${
                 active
                   ? 'border-navy text-navy'
-                  : 'border-transparent text-slate-400 hover:text-navy'
+                  : 'border-transparent text-muted-foreground hover:text-navy'
               }`}
             >
               {tab.label}
@@ -148,11 +148,11 @@ const Leave: React.FC = () => {
       {/* Filters */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Filters</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Filters</p>
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs font-bold text-slate-400 hover:text-red-500 px-3 py-1.5 rounded-full border border-border hover:border-red-200 hover:bg-red-50 transition-colors"
+              className="text-xs font-bold text-muted-foreground hover:text-red-500 px-3 py-1.5 rounded-full border border-border hover:border-red-200 hover:bg-red-50 transition-colors"
             >
               × Clear filters
             </button>
@@ -164,7 +164,7 @@ const Leave: React.FC = () => {
           trigger={(isOpen) => (
             <button type="button" className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
               <span className="truncate">{filterStatus ? filterStatus.charAt(0) + filterStatus.slice(1).toLowerCase() : 'All Statuses'}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )}
           sections={[{ items: [
@@ -191,7 +191,7 @@ const Leave: React.FC = () => {
             <button
               type="button"
               onClick={() => { setFilterEmployee(''); setFilterEmployeeQuery(''); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy text-lg leading-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-navy text-lg leading-none"
             >×</button>
           )}
           {empDropdownOpen && filteredEmployees.length > 0 && (
@@ -200,7 +200,7 @@ const Leave: React.FC = () => {
                 <button
                   key={e.id}
                   type="button"
-                  className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-slate-50 transition-colors"
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-muted transition-colors"
                   onMouseDown={() => {
                     setFilterEmployee(e.id);
                     setFilterEmployeeQuery(`${e.firstName} ${e.lastName}`);
@@ -208,7 +208,7 @@ const Leave: React.FC = () => {
                   }}
                 >
                   <span className="font-bold text-navy">{e.firstName} {e.lastName}</span>
-                  <span className="text-slate-400 ml-2 text-xs">{e.employeeCode}</span>
+                  <span className="text-muted-foreground ml-2 text-xs">{e.employeeCode}</span>
                 </button>
               ))}
             </div>
@@ -249,18 +249,18 @@ const Leave: React.FC = () => {
           <div className="overflow-x-auto scroll-x-shadow">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-border bg-slate-50">
+                <tr className="border-b border-border bg-muted">
                   {['Employee', 'Leave Type', 'Dates', 'Days', 'Status', 'Actions'].map((h) => (
-                    <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                    <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.length > 0 ? filtered.map((item: any) => (
-                  <tr key={item.id} className="hover:bg-slate-100/70 transition-colors">
+                  <tr key={item.id} className="hover:bg-muted/70 transition-colors">
                     <td className="px-5 py-4">
                       <p className="text-sm font-bold">{item.employee?.firstName} {item.employee?.lastName}</p>
-                      <p className="text-xs text-slate-400 font-semibold">{item.employee?.employeeCode || '—'}</p>
+                      <p className="text-xs text-muted-foreground font-semibold">{item.employee?.employeeCode || '—'}</p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="text-sm font-medium capitalize">
@@ -269,13 +269,13 @@ const Leave: React.FC = () => {
                     </td>
                     <td className="px-5 py-4">
                       <p className="text-sm font-medium">{fmtDate(item.startDate)}</p>
-                      <p className="text-xs text-slate-400">to {fmtDate(item.endDate)}</p>
+                      <p className="text-xs text-muted-foreground">to {fmtDate(item.endDate)}</p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="text-sm font-bold">{item.totalDays ?? item.days ?? '—'}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[item.status] || 'bg-slate-100 text-slate-600'}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[item.status] || 'bg-muted text-foreground/80'}`}>
                         {STATUS_ICONS[item.status]} {item.status}
                       </span>
                     </td>
@@ -283,14 +283,14 @@ const Leave: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => navigate(`/leave/${item.id}/edit`)}
-                          className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-navy transition-colors"
+                          className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
                           aria-label="Edit leave record"
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(item)}
-                          className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                          className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                           aria-label="Delete leave record"
                         >
                           <Trash size={16} />
@@ -300,7 +300,7 @@ const Leave: React.FC = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
+                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground font-medium">
                       No records match your filters.
                     </td>
                   </tr>

@@ -406,7 +406,7 @@ const PayrollInputGrid: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-400">
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
         <RefreshCw size={22} className="animate-spin mr-2" /> Loading grid…
       </div>
     );
@@ -430,7 +430,7 @@ const PayrollInputGrid: React.FC = () => {
             <LayoutGrid size={18} className="text-accent-green" />
             <h1 className="text-xl font-bold">Payroll Input Grid</h1>
           </div>
-          <p className="text-slate-500 text-xs font-medium mt-0.5">
+          <p className="text-muted-foreground text-xs font-medium mt-0.5">
             Inline editing · Ctrl+V pastes from Excel · Enter moves down
           </p>
         </div>
@@ -444,7 +444,7 @@ const PayrollInputGrid: React.FC = () => {
           <Dropdown trigger={(isOpen) => (
             <button type="button" className="flex items-center gap-2 px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
               <span>{currency}</span>
-              <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           )} sections={[{ items: [
             { label: 'USD', onClick: () => setCurrency('USD') },
@@ -454,7 +454,7 @@ const PayrollInputGrid: React.FC = () => {
             onClick={handleServerPreview}
             disabled={previewing}
             title="Get accurate PAYE from server tax tables"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border border-border bg-primary hover:bg-slate-50 disabled:opacity-60"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border border-border bg-primary hover:bg-muted disabled:opacity-60"
           >
             <RefreshCw size={13} className={previewing ? 'animate-spin' : ''} />
             {serverPreviewActive ? 'Refresh' : 'Preview'}
@@ -463,7 +463,7 @@ const PayrollInputGrid: React.FC = () => {
             onClick={handleSaveAll}
             disabled={saving || !hasDirty}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold shadow disabled:opacity-50 ${
-              hasDirty ? 'bg-brand text-navy' : 'bg-slate-100 text-slate-400 border border-border'
+              hasDirty ? 'bg-brand text-navy' : 'bg-muted text-muted-foreground border border-border'
             }`}
           >
             <Save size={13} />
@@ -471,7 +471,7 @@ const PayrollInputGrid: React.FC = () => {
           </button>
           <button
             onClick={() => navigate('/payroll/inputs')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border border-border bg-primary hover:bg-slate-50"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border border-border bg-primary hover:bg-muted"
           >
             <List size={13} /> List View
           </button>
@@ -504,9 +504,9 @@ const PayrollInputGrid: React.FC = () => {
         <div className="overflow-x-auto" onPaste={handleGridPaste}>
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b-2 border-border">
+              <tr className="bg-muted border-b-2 border-border">
                 {/* Sticky employee column */}
-                <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider min-w-[180px] border-r border-border">
+                <th className="sticky left-0 z-10 bg-muted px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[180px] border-r border-border">
                   Employee
                 </th>
 
@@ -521,17 +521,17 @@ const PayrollInputGrid: React.FC = () => {
                             tc.type === 'DEDUCTION' ? 'bg-red-400' : 'bg-blue-400'
                           }`}
                         />
-                        <span className="text-xs font-black text-slate-600 truncate">{tc.code}</span>
+                        <span className="text-xs font-black text-foreground/80 truncate">{tc.code}</span>
                       </div>
                       <button
                         onClick={() => removeColumn(tc.id)}
-                        className="text-slate-400 hover:text-red-400 flex-shrink-0"
+                        className="text-muted-foreground hover:text-red-400 flex-shrink-0"
                         aria-label={`Remove ${tc.code}`}
                       >
                         <X size={11} />
                       </button>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-normal mt-0.5 text-left truncate max-w-[100px]">
+                    <p className="text-[10px] text-muted-foreground font-normal mt-0.5 text-left truncate max-w-[100px]">
                       {tc.name}
                     </p>
                   </th>
@@ -559,7 +559,7 @@ const PayrollInputGrid: React.FC = () => {
                               {tc.type.slice(0, 3)}
                             </span>
                             <span className="font-medium text-xs">{tc.code}</span>
-                            <span className="text-slate-400 text-xs">{tc.name}</span>
+                            <span className="text-muted-foreground text-xs">{tc.name}</span>
                           </>
                         ),
                       })),
@@ -569,7 +569,7 @@ const PayrollInputGrid: React.FC = () => {
                 </th>
 
                 {/* Summary columns */}
-                <th className="px-3 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[90px] border-l-2 border-border text-right">
+                <th className="px-3 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[90px] border-l-2 border-border text-right">
                   Gross
                 </th>
                 <th className="px-3 py-3 text-xs font-bold text-red-400 uppercase tracking-wider min-w-[90px] text-right">
@@ -585,13 +585,13 @@ const PayrollInputGrid: React.FC = () => {
               {employees.map((emp, empIdx) => {
                 const sum = summaries[emp.id];
                 return (
-                  <tr key={emp.id} className="group hover:bg-slate-50/40">
+                  <tr key={emp.id} className="group hover:bg-muted/40">
                     {/* Sticky employee name */}
-                    <td className="sticky left-0 z-10 bg-primary group-hover:bg-slate-50/40 px-4 py-2 border-r border-border">
+                    <td className="sticky left-0 z-10 bg-primary group-hover:bg-muted/40 px-4 py-2 border-r border-border">
                       <p className="text-sm font-bold text-navy leading-tight">
                         {emp.firstName} {emp.lastName}
                       </p>
-                      <p className="text-[11px] text-slate-400 font-semibold">{emp.employeeCode}</p>
+                      <p className="text-[11px] text-muted-foreground font-semibold">{emp.employeeCode}</p>
                     </td>
 
                     {/* Editable cells */}
@@ -628,7 +628,7 @@ const PayrollInputGrid: React.FC = () => {
                                 ? 'border border-amber-300 bg-amber-50 focus:ring-amber-200 text-amber-800'
                                 : isDirty
                                   ? 'border border-blue-300 bg-blue-50/70 focus:ring-blue-200'
-                                  : 'border border-transparent bg-slate-100 hover:bg-white hover:border-border focus:ring-accent-green/20 focus:bg-white'
+                                  : 'border border-transparent bg-muted hover:bg-white hover:border-border focus:ring-accent-green/20 focus:bg-white'
                               }`}
                           />
                         </td>
@@ -662,8 +662,8 @@ const PayrollInputGrid: React.FC = () => {
             {/* Totals row */}
             {employees.length > 0 && (
               <tfoot>
-                <tr className="border-t-2 border-border bg-slate-50">
-                  <td className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-xs font-black text-slate-500 uppercase tracking-wider border-r border-border">
+                <tr className="border-t-2 border-border bg-muted">
+                  <td className="sticky left-0 z-10 bg-muted px-4 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider border-r border-border">
                     Totals
                   </td>
                   {activeCols.map((tc) => {
@@ -673,8 +673,8 @@ const PayrollInputGrid: React.FC = () => {
                     );
                     return (
                       <td key={tc.id} className="px-2 py-3 text-right">
-                        <span className="text-sm font-bold text-slate-600">
-                          {total > 0 ? total.toFixed(2) : <span className="text-slate-400">—</span>}
+                        <span className="text-sm font-bold text-foreground/80">
+                          {total > 0 ? total.toFixed(2) : <span className="text-muted-foreground">—</span>}
                         </span>
                       </td>
                     );
@@ -696,7 +696,7 @@ const PayrollInputGrid: React.FC = () => {
         </div>
 
         {/* Footer legend */}
-        <div className="px-4 py-2.5 border-t border-border bg-slate-50/70 flex flex-wrap items-center gap-4 text-[11px] text-slate-400 font-medium">
+        <div className="px-4 py-2.5 border-t border-border bg-muted/70 flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground font-medium">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400" /> Earning
           </span>

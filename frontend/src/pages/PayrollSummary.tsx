@@ -117,17 +117,17 @@ const PayrollSummary: React.FC = () => {
   if (loading) return (
     <div className="flex flex-col gap-6 animate-pulse">
       <div className="flex items-center gap-4">
-        <div className="w-9 h-9 rounded-xl bg-slate-100" />
+        <div className="w-9 h-9 rounded-xl bg-muted" />
         <div className="space-y-2">
-          <div className="h-5 w-40 bg-slate-100 rounded" />
-          <div className="h-3 w-56 bg-slate-50 rounded" />
+          <div className="h-5 w-40 bg-muted rounded" />
+          <div className="h-3 w-56 bg-muted rounded" />
         </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="bg-primary border border-border rounded-2xl p-4 space-y-3">
-            <div className="h-3 w-16 bg-slate-100 rounded" />
-            <div className="h-6 w-20 bg-slate-100 rounded" />
+            <div className="h-3 w-16 bg-muted rounded" />
+            <div className="h-6 w-20 bg-muted rounded" />
           </div>
         ))}
       </div>
@@ -135,9 +135,9 @@ const PayrollSummary: React.FC = () => {
         <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Employee', 'Basic', 'Gross', 'PAYE', 'NSSA', 'AIDS Levy', 'Net Pay'].map((h) => (
-                  <th key={h} className="px-5 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground/50 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -146,12 +146,12 @@ const PayrollSummary: React.FC = () => {
                 <tr key={i}>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 shrink-0" />
-                      <div className="space-y-2"><div className="h-3 w-24 bg-slate-100 rounded" /><div className="h-2 w-14 bg-slate-50 rounded" /></div>
+                      <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
+                      <div className="space-y-2"><div className="h-3 w-24 bg-muted rounded" /><div className="h-2 w-14 bg-muted rounded" /></div>
                     </div>
                   </td>
                   {Array.from({ length: 6 }).map((_, ci) => (
-                    <td key={ci} className="px-5 py-4"><div className="h-3 w-16 bg-slate-100 rounded" /></td>
+                    <td key={ci} className="px-5 py-4"><div className="h-3 w-16 bg-muted rounded" /></td>
                   ))}
                 </tr>
               ))}
@@ -165,7 +165,7 @@ const PayrollSummary: React.FC = () => {
   const statusColor: Record<string, string> = {
     COMPLETED: 'bg-emerald-100 text-emerald-700',
     PROCESSING: 'bg-blue-100 text-blue-700',
-    DRAFT: 'bg-slate-100 text-slate-600',
+    DRAFT: 'bg-muted text-foreground/80',
     ERROR: 'bg-red-100 text-red-700',
     PENDING_APPROVAL: 'bg-amber-100 text-amber-700',
     APPROVED: 'bg-teal-100 text-teal-700',
@@ -175,22 +175,22 @@ const PayrollSummary: React.FC = () => {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">Payroll Summary</h1>
           {run && (
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-slate-500 text-sm font-medium">
+              <p className="text-muted-foreground text-sm font-medium">
                 {new Date(run.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
                 {' – '}
                 {new Date(run.endDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor[run.status] || 'bg-slate-100 text-slate-600'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor[run.status] || 'bg-muted text-foreground/80'}`}>
                 {run.status}
               </span>
-              <span className="text-slate-400 text-xs font-bold">
+              <span className="text-muted-foreground text-xs font-bold">
                 {isDual ? 'USD + ZiG' : ccy}
               </span>
             </div>
@@ -245,7 +245,7 @@ const PayrollSummary: React.FC = () => {
           <button
             onClick={() => handleExport('csv')}
             disabled={!!exporting}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-muted disabled:opacity-50 transition-colors"
           >
             <Download size={14} /> {exporting === 'csv' ? 'Exporting…' : 'Export CSV'}
           </button>
@@ -302,7 +302,7 @@ const PayrollSummary: React.FC = () => {
       {totals && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: 'Employees', value: String(totals.employees), icon: Users, color: 'text-slate-600', bg: 'bg-slate-50' },
+            { label: 'Employees', value: String(totals.employees), icon: Users, color: 'text-foreground/80', bg: 'bg-muted' },
             {
               label: isDual ? 'Gross (USD)' : 'Total Gross',
               value: isDual ? `$${fmt(totals.grossUSD)}` : `${ccy} ${fmt(totals.gross)}`,
@@ -321,7 +321,7 @@ const PayrollSummary: React.FC = () => {
               <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center mb-2`}>
                 <Icon size={15} className={color} />
               </div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">{label}</p>
               <p className="text-lg font-bold text-navy leading-tight">{value}</p>
             </div>
           ))}
@@ -330,17 +330,17 @@ const PayrollSummary: React.FC = () => {
 
       {/* Detail table */}
       {payslips.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-primary border border-border rounded-2xl">
+        <div className="text-center py-16 text-muted-foreground bg-primary border border-border rounded-2xl">
           <p className="font-medium">No payslips found for this run.</p>
         </div>
       ) : (
         <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-x-auto">
           <div className="px-6 py-4 border-b border-border">
-            <h2 className="font-bold text-sm uppercase tracking-wider text-slate-500">Employee Breakdown</h2>
+            <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Employee Breakdown</h2>
           </div>
           <table className="w-full text-left min-w-max">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {[
                   'Employee', 'Position',
                   isDual ? 'Basic (USD)' : 'Basic',
@@ -353,7 +353,7 @@ const PayrollSummary: React.FC = () => {
                   ...(isDual ? ['Net Pay (ZiG)'] : []),
                   'NSSA Empr', 'WCIF', 'SDF', 'ZIMDEF', 'NEC Empr'
                 ].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -367,12 +367,12 @@ const PayrollSummary: React.FC = () => {
                 const showLoans = totals && totals.loans > 0;
 
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={p.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       <p className="font-bold text-sm">{p.employee?.firstName} {p.employee?.lastName}</p>
-                      <p className="text-[11px] text-slate-400">{p.employee?.employeeCode}</p>
+                      <p className="text-[11px] text-muted-foreground">{p.employee?.employeeCode}</p>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{p.employee?.position || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-foreground/80">{p.employee?.position || '—'}</td>
                     <td className="px-4 py-3 text-sm font-bold">{fmt(p.basicSalary ?? p.employee?.baseRate)}</td>
                     <td className="px-4 py-3 text-sm font-bold">{fmt(isDual ? grossUSD : p.gross)}</td>
                     {isDual && <td className="px-4 py-3 text-sm font-bold">{fmt(p.grossZIG)}</td>}
@@ -395,7 +395,7 @@ const PayrollSummary: React.FC = () => {
             {/* Totals row */}
             {totals && (
               <tfoot>
-                <tr className="border-t-2 border-border bg-slate-50 font-bold">
+                <tr className="border-t-2 border-border bg-muted font-bold">
                   <td className="px-4 py-3 text-sm" colSpan={2}>Totals</td>
                   <td className="px-4 py-3 text-sm">—</td>
                   <td className="px-4 py-3 text-sm">{fmt(isDual ? totals.grossUSD : totals.gross)}</td>

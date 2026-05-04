@@ -14,7 +14,7 @@ const Landing: React.FC = () => {
           <span className="text-lg font-bold">Bantu Payroll</span>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/login')} className="text-sm font-bold text-slate-500 hover:text-navy transition-colors">Sign In</button>
+          <button onClick={() => navigate('/login')} className="text-sm font-bold text-muted-foreground hover:text-navy transition-colors">Sign In</button>
           <button onClick={() => navigate('/register')} className="bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
             Get Started
           </button>
@@ -29,7 +29,7 @@ const Landing: React.FC = () => {
         <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6">
           Payroll Made Simple<br />for <span className="text-accent-green">Zimbabwe</span>
         </h1>
-        <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto mb-10">
+        <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto mb-10">
           Automated PAYE calculation, NSSA contributions, leave management, and loans — built for Zimbabwean businesses.
         </p>
         <div className="flex items-center justify-center gap-4">
@@ -39,7 +39,7 @@ const Landing: React.FC = () => {
           >
             Start Free Trial <ArrowRight size={20} />
           </button>
-          <button onClick={() => navigate('/login')} className="px-8 py-4 rounded-full font-bold border border-border hover:bg-slate-50 transition-colors text-lg">
+          <button onClick={() => navigate('/login')} className="px-8 py-4 rounded-full font-bold border border-border hover:bg-muted transition-colors text-lg">
             Sign In
           </button>
         </div>
@@ -59,7 +59,7 @@ const Landing: React.FC = () => {
               <div key={f.title} className="p-6 rounded-2xl border border-border bg-background">
                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-accent-green mb-4">{f.icon}</div>
                 <h3 className="font-bold mb-2">{f.title}</h3>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-muted-foreground font-medium leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -91,16 +91,16 @@ const Landing: React.FC = () => {
       {/* CTA */}
       <section className="bg-brand text-navy py-20 px-6 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
-        <p className="text-slate-300 font-medium mb-8 max-w-md mx-auto">Join businesses across Zimbabwe using Bantu Payroll to stay compliant and save time.</p>
+        <p className="text-muted-foreground/50 font-medium mb-8 max-w-md mx-auto">Join businesses across Zimbabwe using Bantu Payroll to stay compliant and save time.</p>
         <button
           onClick={() => navigate('/register')}
-          className="bg-white text-navy px-8 py-4 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+          className="bg-card text-navy px-8 py-4 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2"
         >
           Get Started Free <ArrowRight size={18} />
         </button>
       </section>
 
-      <footer className="bg-primary border-t border-border py-8 px-6 text-center text-sm text-slate-400 font-medium">
+      <footer className="bg-primary border-t border-border py-8 px-6 text-center text-sm text-muted-foreground font-medium">
         © {new Date().getFullYear()} Bantu Payroll. Built for Zimbabwe.
       </footer>
     </div>

@@ -78,12 +78,12 @@ const EmployeeImport: React.FC = () => {
     <div className="max-w-2xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/employees')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/employees')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">Bulk Import Employees</h1>
-          <p className="text-slate-500 font-medium text-sm">Upload a CSV or Excel file to add multiple employees at once</p>
+          <p className="text-muted-foreground font-medium text-sm">Upload a CSV or Excel file to add multiple employees at once</p>
         </div>
       </div>
 
@@ -91,9 +91,9 @@ const EmployeeImport: React.FC = () => {
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm mb-4">
         <div className="flex items-center gap-3 mb-1">
           <span className="w-6 h-6 rounded-full bg-brand text-navy text-xs font-bold flex items-center justify-center shrink-0">1</span>
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Download Template</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Download Template</h3>
         </div>
-        <p className="text-sm text-slate-500 mb-4 pl-9">
+        <p className="text-sm text-muted-foreground mb-4 pl-9">
           Start by downloading the template. Fill in your employee data — the columns must stay the same for the upload to work.
         </p>
         <div className="flex gap-3 pl-9">
@@ -105,7 +105,7 @@ const EmployeeImport: React.FC = () => {
           </button>
           <button
             onClick={() => downloadTemplate('csv')}
-            className="flex items-center gap-1.5 border border-border text-slate-600 px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-50"
+            className="flex items-center gap-1.5 border border-border text-foreground/80 px-4 py-2 rounded-full text-sm font-bold hover:bg-muted"
           >
             <FileText size={16} /> Download CSV Template
           </button>
@@ -116,9 +116,9 @@ const EmployeeImport: React.FC = () => {
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm mb-4">
         <div className="flex items-center gap-3 mb-1">
           <span className="w-6 h-6 rounded-full bg-brand text-navy text-xs font-bold flex items-center justify-center shrink-0">2</span>
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Upload Filled File</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Upload Filled File</h3>
         </div>
-        <p className="text-sm text-slate-500 mb-4 pl-9">
+        <p className="text-sm text-muted-foreground mb-4 pl-9">
           Upload your completed template. Accepted formats: <strong>.csv</strong> and <strong>.xlsx</strong>. Max 5 MB.
         </p>
 
@@ -129,7 +129,7 @@ const EmployeeImport: React.FC = () => {
         {/* Drop zone */}
         <div
           className={`ml-9 border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer ${
-            dragging ? 'border-brand bg-brand/5' : 'border-slate-200 hover:border-slate-300'
+            dragging ? 'border-brand bg-brand/5' : 'border-border hover:border-border'
           }`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
@@ -143,16 +143,16 @@ const EmployeeImport: React.FC = () => {
             className="hidden"
             onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
           />
-          <Upload size={28} className="mx-auto mb-3 text-slate-300" />
+          <Upload size={28} className="mx-auto mb-3 text-muted-foreground/50" />
           {file ? (
             <div>
               <p className="text-sm font-bold text-navy">{file.name}</p>
-              <p className="text-xs text-slate-400 mt-1">{(file.size / 1024).toFixed(1)} KB — click to change</p>
+              <p className="text-xs text-muted-foreground mt-1">{(file.size / 1024).toFixed(1)} KB — click to change</p>
             </div>
           ) : (
             <div>
-              <p className="text-sm font-bold text-slate-500">Drag & drop your file here</p>
-              <p className="text-xs text-slate-400 mt-1">or click to browse</p>
+              <p className="text-sm font-bold text-muted-foreground">Drag & drop your file here</p>
+              <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
             </div>
           )}
         </div>
@@ -169,7 +169,7 @@ const EmployeeImport: React.FC = () => {
             <button
               type="button"
               onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-              className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50"
+              className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted"
             >
               Clear
             </button>
@@ -180,7 +180,7 @@ const EmployeeImport: React.FC = () => {
       {/* Results */}
       {result && (
         <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
-          <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-4">Import Results</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">Import Results</h3>
 
           <div className="flex gap-4 mb-4">
             <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl">
@@ -203,20 +203,20 @@ const EmployeeImport: React.FC = () => {
 
           {result.failed.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Failed Rows</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Failed Rows</p>
               <div className="rounded-xl border border-border overflow-hidden">
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-border">
-                      <th className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Row</th>
-                      <th className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Name</th>
-                      <th className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Reason</th>
+                    <tr className="bg-muted border-b border-border">
+                      <th className="px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Row</th>
+                      <th className="px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Reason</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {result.failed.map((f) => (
                       <tr key={f.row}>
-                        <td className="px-4 py-2 text-slate-500 font-medium">{f.row}</td>
+                        <td className="px-4 py-2 text-muted-foreground font-medium">{f.row}</td>
                         <td className="px-4 py-2 font-semibold">{f.name || '—'}</td>
                         <td className="px-4 py-2 text-red-600 font-medium">{f.reason}</td>
                       </tr>

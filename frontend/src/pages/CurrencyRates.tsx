@@ -86,7 +86,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-navy mb-1">Exchange Rates</h1>
-          <p className="text-slate-500 font-medium text-sm">Manage USD to ZiG conversion rates for payroll ledgers.</p>
+          <p className="text-muted-foreground font-medium text-sm">Manage USD to ZiG conversion rates for payroll ledgers.</p>
         </div>
         <button
           onClick={() => { setIsModalOpen(true); setFormError(''); }}
@@ -108,37 +108,37 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
         <div className="bg-primary rounded-2xl p-6 border border-border shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-50 text-accent-green rounded-xl"><Anchor size={20} /></div>
-            <span className="font-bold text-slate-400 text-xs uppercase tracking-wider">Base Currency</span>
+            <span className="font-bold text-muted-foreground text-xs uppercase tracking-wider">Base Currency</span>
           </div>
           <p className="text-2xl font-black text-navy">USD ($)</p>
-          <p className="text-xs text-slate-400 font-medium mt-1">All tax logic anchors to USD.</p>
+          <p className="text-xs text-muted-foreground font-medium mt-1">All tax logic anchors to USD.</p>
         </div>
         <div className="bg-primary rounded-2xl p-6 border border-border shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><TrendingUp size={20} /></div>
-            <span className="font-bold text-slate-400 text-xs uppercase tracking-wider">Current ZiG Rate</span>
+            <span className="font-bold text-muted-foreground text-xs uppercase tracking-wider">Current ZiG Rate</span>
           </div>
           <p className="text-2xl font-black text-navy">
             {latestZig ? Number(latestZig.rate).toFixed(4) : 'N/A'}
           </p>
-          <p className="text-xs text-slate-400 font-medium mt-1">ZiG per 1 USD.</p>
+          <p className="text-xs text-muted-foreground font-medium mt-1">ZiG per 1 USD.</p>
         </div>
         <div className="bg-primary rounded-2xl p-6 border border-border shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-purple-50 text-purple-600 rounded-xl"><History size={20} /></div>
-            <span className="font-bold text-slate-400 text-xs uppercase tracking-wider">Historical Records</span>
+            <span className="font-bold text-muted-foreground text-xs uppercase tracking-wider">Historical Records</span>
           </div>
           <p className="text-2xl font-black text-navy">{rates.length}</p>
-          <p className="text-xs text-slate-400 font-medium mt-1">Versioned rate entries.</p>
+          <p className="text-xs text-muted-foreground font-medium mt-1">Versioned rate entries.</p>
         </div>
       </div>
 
       {/* Info */}
       <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex gap-4 items-start">
-        <div className="p-2 bg-white rounded-xl text-amber-500 shadow-sm shrink-0"><Info size={20} /></div>
+        <div className="p-2 bg-card rounded-xl text-amber-500 shadow-sm shrink-0"><Info size={20} /></div>
         <div>
           <h3 className="font-bold text-navy mb-0.5">Precision Notice</h3>
-          <p className="text-sm text-slate-600 leading-relaxed">
+          <p className="text-sm text-foreground/80 leading-relaxed">
             Ensure rates are verified against official <strong>RBZ</strong> or approved market sources before committing. Rates affect all ZiG payroll calculations.
           </p>
         </div>
@@ -149,20 +149,20 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
         <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-slate-50 border-b border-border">
-              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Pair</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Rate</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Effective From</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Source</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+            <tr className="bg-muted border-b border-border">
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Pair</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Effective From</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Source</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rates.length > 0 ? rates.map((rate) => (
-              <tr key={rate.id} className="hover:bg-slate-50/50 transition-colors group">
+              <tr key={rate.id} className="hover:bg-muted/30 transition-colors group">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-navy font-bold text-xs">
+                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-navy font-bold text-xs">
                       {rate.toCurrency?.slice(0, 3)}
                     </div>
                     <span className="text-sm font-bold">{rate.fromCurrency} → {rate.toCurrency}</span>
@@ -174,18 +174,18 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   </p>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-slate-500">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar size={14} />
                     <span className="text-sm">{new Date(rate.effectiveDate).toLocaleDateString()}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="px-2 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 uppercase">{rate.source || 'Manual'}</span>
+                  <span className="px-2 py-1 bg-muted rounded-lg text-[10px] font-bold text-muted-foreground uppercase">{rate.source || 'Manual'}</span>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <button
                     onClick={() => handleDelete(rate.id)}
-                    className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <Trash size={16} />
                   </button>
@@ -195,7 +195,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
               <tr>
                 <td colSpan={5} className="px-6 py-20 text-center">
                   <Globe size={48} className="mx-auto mb-4 text-slate-200" />
-                  <p className="text-slate-400 font-medium text-sm">No exchange rates configured.</p>
+                  <p className="text-muted-foreground font-medium text-sm">No exchange rates configured.</p>
                 </td>
               </tr>
             )}
@@ -207,17 +207,17 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       {/* Create Rate Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+          <div className="bg-card rounded-2xl shadow-xl p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-navy">New Exchange Rate</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
-                <X size={18} className="text-slate-400" />
+              <button onClick={() => setIsModalOpen(false)} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
+                <X size={18} className="text-muted-foreground" />
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-600 mb-1.5">To Currency</label>
+                <label className="block text-sm font-bold text-foreground/80 mb-1.5">To Currency</label>
                 <input
                   type="text"
                   value={form.toCurrency}
@@ -227,10 +227,10 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                   required
                 />
-                <p className="text-xs text-slate-400 font-medium mt-1">From currency is always USD.</p>
+                <p className="text-xs text-muted-foreground font-medium mt-1">From currency is always USD.</p>
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-600 mb-1.5">Rate *</label>
+                <label className="block text-sm font-bold text-foreground/80 mb-1.5">Rate *</label>
                 <input
                   type="number"
                   step="any"
@@ -241,10 +241,10 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium font-mono focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
                   required
                 />
-                <p className="text-xs text-slate-400 font-medium mt-1">How many {form.toCurrency || 'units'} equal 1 USD.</p>
+                <p className="text-xs text-muted-foreground font-medium mt-1">How many {form.toCurrency || 'units'} equal 1 USD.</p>
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-600 mb-1.5">Effective Date *</label>
+                <label className="block text-sm font-bold text-foreground/80 mb-1.5">Effective Date *</label>
                 <input
                   type="date"
                   value={form.effectiveDate}
@@ -254,13 +254,13 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-600 mb-1.5">Source</label>
+                <label className="block text-sm font-bold text-foreground/80 mb-1.5">Source</label>
                 <Dropdown className="w-full" trigger={(isOpen) => {
                   const labels: Record<string,string> = { RBZ: 'RBZ (Official)', MANUAL: 'Manual', IMPORT: 'Import' };
                   return (
                     <button type="button" className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                       <span>{labels[form.source] || form.source}</span>
-                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                   );
                 }} sections={[{ items: [
@@ -270,7 +270,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                 ]}]} />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-600 mb-1.5">Notes</label>
+                <label className="block text-sm font-bold text-foreground/80 mb-1.5">Notes</label>
                 <input
                   type="text"
                   value={form.notes}
@@ -295,7 +295,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50 text-sm"
+                  className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm"
                 >
                   Cancel
                 </button>

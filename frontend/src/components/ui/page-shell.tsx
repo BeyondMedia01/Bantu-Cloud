@@ -24,7 +24,7 @@ export function PageShell({ title, subtitle, onBack, actions, children, classNam
           )}
           <div>
             <h1 className="text-2xl font-bold text-navy">{title}</h1>
-            {subtitle && <p className="text-slate-500 font-medium text-sm">{subtitle}</p>}
+            {subtitle && <p className="text-muted-foreground font-medium text-sm">{subtitle}</p>}
           </div>
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}

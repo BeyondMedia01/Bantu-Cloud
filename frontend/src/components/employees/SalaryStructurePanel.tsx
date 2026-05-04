@@ -114,7 +114,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-base font-bold text-navy">Salary Structure</h2>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">
             Recurring pay components automatically included in each payroll run
           </p>
         </div>
@@ -132,14 +132,14 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
       {/* Add form */}
       {showForm && (
         <form onSubmit={handleSave} className="bg-primary border border-border rounded-2xl p-5 mb-5 shadow-sm">
-          <p className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4">New Recurring Component</p>
+          <p className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-4">New Recurring Component</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="sm:col-span-2 lg:col-span-1">
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Transaction Code *</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">Transaction Code *</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span className="truncate">{txCodes.find((tc: any) => tc.id === form.transactionCodeId) ? `${txCodes.find((tc: any) => tc.id === form.transactionCodeId).code} — ${txCodes.find((tc: any) => tc.id === form.transactionCodeId).name}` : 'Select code…'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'Select code…', onClick: () => setForm(f => ({ ...f, transactionCodeId: '' })) },
@@ -148,9 +148,9 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Value *</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">Value *</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">
                   {form.currency === 'USD' ? '$' : 'Z$'}
                 </span>
                 <input
@@ -167,11 +167,11 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Currency</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors">
                   <span>{form.currency}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'USD', onClick: () => setForm(f => ({ ...f, currency: 'USD' })) },
@@ -180,7 +180,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Effective From *</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">Effective From *</label>
               <input
                 type="date"
                 value={form.effectiveFrom}
@@ -191,7 +191,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Effective To (leave blank for open-ended)</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">Effective To (leave blank for open-ended)</label>
               <input
                 type="date"
                 value={form.effectiveTo}
@@ -202,7 +202,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Notes</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">Notes</label>
               <input
                 type="text"
                 value={form.notes}
@@ -230,7 +230,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             <button
               type="button"
               onClick={() => { setShowForm(false); setError(''); setForm({ ...BLANK_FORM }); }}
-              className="flex items-center gap-2 px-4 py-2 border border-border rounded-full font-bold text-sm text-slate-500 hover:bg-slate-50"
+              className="flex items-center gap-2 px-4 py-2 border border-border rounded-full font-bold text-sm text-muted-foreground hover:bg-muted"
             >
               <X size={14} /> Cancel
             </button>
@@ -244,11 +244,11 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
 
       {/* Table */}
       {loading ? (
-        <div className="text-center py-8 text-slate-400 text-sm font-medium">Loading…</div>
+        <div className="text-center py-8 text-muted-foreground text-sm font-medium">Loading…</div>
       ) : records.length === 0 ? (
         <div className="bg-primary border border-dashed border-border rounded-2xl p-8 text-center">
-          <p className="text-slate-400 text-sm font-medium">No salary components defined.</p>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-muted-foreground text-sm font-medium">No salary components defined.</p>
+          <p className="text-muted-foreground text-xs mt-1">
             Components added here auto-populate each payroll run — no need to re-enter every month.
           </p>
           <button
@@ -264,13 +264,13 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Code</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Type</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Value</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider hidden sm:table-cell">Effective From</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider hidden sm:table-cell">Effective To</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wider">Status</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Code</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Type</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Value</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Effective From</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Effective To</th>
+                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Status</th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
@@ -280,14 +280,14 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                 const active = isActive(r);
                 const future = new Date(r.effectiveFrom) > new Date();
                 return (
-                  <tr key={r.id} className={`transition-colors ${active ? 'hover:bg-slate-50/50' : 'opacity-50 hover:bg-slate-50/30'}`}>
+                  <tr key={r.id} className={`transition-colors ${active ? 'hover:bg-muted/30' : 'opacity-50 hover:bg-muted/20'}`}>
                     <td className="px-5 py-3">
                       <p className="font-bold text-navy">{tc?.code ?? '—'}</p>
-                      <p className="text-[11px] text-slate-400 font-medium">{tc?.name}</p>
+                      <p className="text-[11px] text-muted-foreground font-medium">{tc?.name}</p>
                     </td>
                     <td className="px-5 py-3">
                       {tc?.type && (
-                        <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${TYPE_BADGE[tc.type] || 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${TYPE_BADGE[tc.type] || 'bg-muted text-foreground/80'}`}>
                           {tc.type}
                         </span>
                       )}
@@ -295,13 +295,13 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                     <td className="px-5 py-3 font-bold text-navy">
                       {r.currency === 'USD' ? '$' : 'Z$'}{Number(r.value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       {' '}
-                      <span className="text-[11px] font-semibold text-slate-400">{r.currency}</span>
+                      <span className="text-[11px] font-semibold text-muted-foreground">{r.currency}</span>
                     </td>
-                    <td className="px-5 py-3 text-slate-500 font-medium hidden sm:table-cell">
+                    <td className="px-5 py-3 text-muted-foreground font-medium hidden sm:table-cell">
                       {r.effectiveFrom.slice(0, 10)}
                     </td>
-                    <td className="px-5 py-3 text-slate-500 font-medium hidden sm:table-cell">
-                      {r.effectiveTo ? r.effectiveTo.slice(0, 10) : <span className="text-slate-300 text-xs">Open-ended</span>}
+                    <td className="px-5 py-3 text-muted-foreground font-medium hidden sm:table-cell">
+                      {r.effectiveTo ? r.effectiveTo.slice(0, 10) : <span className="text-muted-foreground/50 text-xs">Open-ended</span>}
                     </td>
                     <td className="px-5 py-3">
                       {active ? (
@@ -313,7 +313,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                           Future
                         </span>
                       ) : (
-                        <span className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                        <span className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                           Expired
                         </span>
                       )}
@@ -325,7 +325,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                             type="button"
                             onClick={() => handleEndDate(r.id)}
                             title="End-date today"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-600 hover:bg-amber-50 transition-colors"
                           >
                             <CalendarOff size={13} />
                           </button>
@@ -334,7 +334,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                           type="button"
                           onClick={() => handleDelete(r.id)}
                           title="Delete permanently"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -352,7 +352,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
               <button
                 type="button"
                 onClick={() => setShowInactive((v) => !v)}
-                className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground/80 transition-colors"
               >
                 {showInactive ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                 {showInactive ? 'Hide' : 'Show'} {inactive.length} expired component{inactive.length !== 1 ? 's' : ''}
@@ -360,8 +360,8 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             </div>
           )}
 
-          <div className="border-t border-border px-5 py-2.5 bg-slate-50/50">
-            <p className="text-[11px] text-slate-400 font-medium">
+          <div className="border-t border-border px-5 py-2.5 bg-muted/30">
+            <p className="text-[11px] text-muted-foreground font-medium">
               Active components are automatically included in payroll runs — no need to add them as manual inputs each month.
               Explicit payroll inputs for the same transaction code take precedence.
             </p>

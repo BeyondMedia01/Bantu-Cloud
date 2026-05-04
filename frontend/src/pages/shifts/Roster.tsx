@@ -28,7 +28,7 @@ const SHIFT_COLORS: Record<string, string> = {
 
 function shiftColor(code: string) {
   const first = (code || '').charAt(0).toUpperCase();
-  return SHIFT_COLORS[first] || 'bg-slate-100 text-slate-700 border-slate-200';
+  return SHIFT_COLORS[first] || 'bg-muted text-foreground/90 border-border';
 }
 
 const AssignModal: React.FC<{
@@ -75,21 +75,21 @@ const AssignModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-bold text-navy text-lg">Assign Shift</h2>
-          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+          <button onClick={onClose} aria-label="Close" className="text-muted-foreground hover:text-foreground/80"><X size={18} /></button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5">Employee *</label>
+            <label className="block text-xs font-bold text-foreground/80 mb-1.5">Employee *</label>
             <Dropdown className="w-full" trigger={(isOpen) => {
               const emp = employees.find(e => e.id === form.employeeId);
               return (
                 <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span className="truncate">{emp ? `${emp.firstName} ${emp.lastName} (${emp.employeeCode})` : 'Select employee…'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               );
             }} sections={[{ items: [
@@ -98,13 +98,13 @@ const AssignModal: React.FC<{
             ]}]} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5">Shift *</label>
+            <label className="block text-xs font-bold text-foreground/80 mb-1.5">Shift *</label>
             <Dropdown className="w-full" trigger={(isOpen) => {
               const sh = shifts.find(s => s.id === form.shiftId);
               return (
                 <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span className="truncate">{sh ? `${sh.name}${sh.code ? ` (${sh.code})` : ''}` : 'Select shift…'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               );
             }} sections={[{ items: [
@@ -114,18 +114,18 @@ const AssignModal: React.FC<{
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Start Date *</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">Start Date *</label>
               <input type="date" value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
                 className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">End Date (blank = ongoing)</label>
+              <label className="block text-xs font-bold text-foreground/80 mb-1.5">End Date (blank = ongoing)</label>
               <input type="date" value={form.endDate} onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
                 className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-2">Days of Week</label>
+            <label className="block text-xs font-bold text-foreground/80 mb-2">Days of Week</label>
             <div className="flex gap-2">
               {DAYS.map((day, i) => (
                 <button key={i} type="button"
@@ -133,7 +133,7 @@ const AssignModal: React.FC<{
                   className={`w-9 h-9 rounded-full text-xs font-bold border transition-colors ${
                     form.daysOfWeek.includes(i)
                       ? 'bg-accent-green text-white border-accent-green'
-                      : 'bg-slate-50 text-slate-500 border-border hover:bg-slate-100'
+                      : 'bg-muted text-muted-foreground border-border hover:bg-muted'
                   }`}>
                   {day.charAt(0)}
                 </button>
@@ -141,7 +141,7 @@ const AssignModal: React.FC<{
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5">Notes</label>
+            <label className="block text-xs font-bold text-foreground/80 mb-1.5">Notes</label>
             <input type="text" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
               placeholder="Optional notes…"
               className="w-full px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
@@ -156,7 +156,7 @@ const AssignModal: React.FC<{
             {saving ? 'Saving…' : 'Assign Shift'}
           </button>
           <button onClick={onClose}
-            className="px-4 py-2 border border-border rounded-full font-bold text-sm text-slate-500 hover:bg-slate-50">
+            className="px-4 py-2 border border-border rounded-full font-bold text-sm text-muted-foreground hover:bg-muted">
             Cancel
           </button>
         </div>
@@ -240,7 +240,7 @@ const Roster: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold">Roster</h1>
-          <p className="text-slate-500 font-medium text-sm">Weekly shift assignments for all employees</p>
+          <p className="text-muted-foreground font-medium text-sm">Weekly shift assignments for all employees</p>
         </div>
         <button onClick={() => openModal()}
           className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm">
@@ -252,9 +252,9 @@ const Roster: React.FC = () => {
 
       {/* Week navigator */}
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={prevWeek} aria-label="Previous week" className="p-2 rounded-lg border border-border hover:bg-slate-50"><ChevronLeft size={16} /></button>
-        <button onClick={goToday} className="px-4 py-1.5 text-xs font-bold border border-border rounded-full hover:bg-slate-50">Today</button>
-        <button onClick={nextWeek} aria-label="Next week" className="p-2 rounded-lg border border-border hover:bg-slate-50"><ChevronRight size={16} /></button>
+        <button onClick={prevWeek} aria-label="Previous week" className="p-2 rounded-lg border border-border hover:bg-muted"><ChevronLeft size={16} /></button>
+        <button onClick={goToday} className="px-4 py-1.5 text-xs font-bold border border-border rounded-full hover:bg-muted">Today</button>
+        <button onClick={nextWeek} aria-label="Next week" className="p-2 rounded-lg border border-border hover:bg-muted"><ChevronRight size={16} /></button>
         <span className="text-sm font-bold text-navy ml-1">
           {fmtDisplay(dates[0])} – {fmtDisplay(dates[6])} {weekStart.getFullYear()}
         </span>
@@ -263,13 +263,13 @@ const Roster: React.FC = () => {
       {/* Grid */}
       <div className="bg-primary border border-border rounded-2xl overflow-hidden shadow-sm">
         {loading ? (
-          <div className="text-center py-16 text-slate-400 text-sm">Loading…</div>
+          <div className="text-center py-16 text-muted-foreground text-sm">Loading…</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px] border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-border">
-                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-400 w-48">
+                <tr className="bg-muted border-b border-border">
+                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-wider text-muted-foreground w-48">
                     <div className="flex items-center gap-1.5"><Users size={12} /> Employee</div>
                   </th>
                   {dates.map((d) => {
@@ -278,10 +278,10 @@ const Roster: React.FC = () => {
                     const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                     return (
                       <th key={str} className={`px-2 py-3 text-center min-w-[90px] ${isToday ? 'bg-accent-green/5' : ''}`}>
-                        <div className={`text-[10px] font-black uppercase tracking-wider ${isWeekend ? 'text-slate-300' : 'text-slate-400'}`}>
+                        <div className={`text-[10px] font-black uppercase tracking-wider ${isWeekend ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
                           {DAYS[d.getDay()]}
                         </div>
-                        <div className={`text-sm font-bold mt-0.5 ${isToday ? 'text-accent-green' : isWeekend ? 'text-slate-400' : 'text-navy'}`}>
+                        <div className={`text-sm font-bold mt-0.5 ${isToday ? 'text-accent-green' : isWeekend ? 'text-muted-foreground' : 'text-navy'}`}>
                           {d.getDate()}
                         </div>
                       </th>
@@ -292,18 +292,18 @@ const Roster: React.FC = () => {
               <tbody>
                 {employees.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-12 text-slate-400 text-sm">
+                    <td colSpan={8} className="text-center py-12 text-muted-foreground text-sm">
                       No employees found. Add employees first.
                     </td>
                   </tr>
                 ) : (
                   employees.map((emp, idx) => (
-                    <tr key={emp.id} className={`border-b border-border last:border-0 ${idx % 2 === 1 ? 'bg-slate-50/50' : ''}`}>
+                    <tr key={emp.id} className={`border-b border-border last:border-0 ${idx % 2 === 1 ? 'bg-muted/30' : ''}`}>
                       <td className="px-4 py-2.5">
                         <div className="font-bold text-sm text-navy truncate max-w-[160px]">
                           {emp.firstName} {emp.lastName}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-semibold">{emp.employeeCode}</div>
+                        <div className="text-[10px] text-muted-foreground font-semibold">{emp.employeeCode}</div>
                       </td>
                       {dates.map((d) => {
                         const str = fmtDate(d);
@@ -323,7 +323,7 @@ const Roster: React.FC = () => {
                             ) : (
                               <button
                                 onClick={() => openModal(emp.id, str)}
-                                className="text-slate-300 hover:text-accent-green hover:bg-accent-green/10 w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-colors">
+                                className="text-muted-foreground/50 hover:text-accent-green hover:bg-accent-green/10 w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-colors">
                                 <Plus size={14} />
                               </button>
                             )}

@@ -41,7 +41,7 @@ const Setup: React.FC = () => {
       <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-2">Initialize Platform</h1>
-          <p className="text-slate-500 font-medium">Creates the PLATFORM_ADMIN account and first client. This endpoint is disabled once setup is complete.</p>
+          <p className="text-muted-foreground font-medium">Creates the PLATFORM_ADMIN account and first client. This endpoint is disabled once setup is complete.</p>
         </div>
 
         {error && (
@@ -56,11 +56,11 @@ const Setup: React.FC = () => {
             { field: 'clientName', label: 'First Client Name', type: 'text', placeholder: 'Acme Corp' },
           ].map(({ field, label, type, placeholder }) => (
             <div key={field} className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">{label}</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{label}</label>
               <input
                 type={type}
                 required
-                className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder={placeholder}
                 value={(form as any)[field]}
                 onChange={set(field)}

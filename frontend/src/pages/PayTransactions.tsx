@@ -119,7 +119,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Earnings & Deductions</h2>
-          <p className="text-slate-500 font-medium">Define transaction codes and calculation logic for payslip line items.</p>
+          <p className="text-muted-foreground font-medium">Define transaction codes and calculation logic for payslip line items.</p>
         </div>
         <button onClick={openCreate} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-1.5">
           <Plus size={20} /> Add Code
@@ -127,13 +127,13 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
       </header>
 
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="p-4 px-6 border-b border-border bg-slate-50/50">
+        <div className="p-4 px-6 border-b border-border bg-muted/30">
           <div className="relative max-w-md">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search by code or name..."
-              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green"
+              className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -143,18 +143,18 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Code / Name</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Calculation</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Flags</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Code / Name</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Type</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Calculation</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Flags</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.length > 0 ? filtered.map(tc => (
-                <tr key={tc.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={tc.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs ${typeColor(tc.type)}`}>
@@ -162,7 +162,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                       </div>
                       <div>
                         <p className="text-sm font-bold">{tc.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{tc.code}</p>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{tc.code}</p>
                       </div>
                     </div>
                   </td>
@@ -172,36 +172,36 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                     </span>
                     {tc.preTax && <span className="ml-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase bg-orange-100 text-orange-600">Pre-Tax</span>}
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-700">
+                  <td className="px-6 py-4 text-sm text-foreground/90">
                     <span className="font-medium capitalize">{tc.calculationType || 'fixed'}</span>
                     {tc.defaultValue != null && (
-                      <span className="ml-1 text-slate-400 text-xs">({tc.defaultValue})</span>
+                      <span className="ml-1 text-muted-foreground text-xs">({tc.defaultValue})</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1 flex-wrap">
-                      {tc.affectsPaye !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-500">PAYE</span>}
-                      {tc.affectsNssa !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-500">NSSA</span>}
-                      {tc.taxable !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-500">Taxable</span>}
+                      {tc.affectsPaye !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground">PAYE</span>}
+                      {tc.affectsNssa !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground">NSSA</span>}
+                      {tc.taxable !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground">Taxable</span>}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${tc.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
+                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${tc.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                       {tc.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => openEdit(tc)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-navy transition-colors" title="Edit">
+                      <button onClick={() => openEdit(tc)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="Edit">
                         <Edit2 size={16} />
                       </button>
                       {deleteId === tc.id ? (
                         <div className="flex items-center gap-1">
                           <button onClick={() => handleDelete(tc.id)} className="px-2 py-1 bg-red-500 text-white rounded text-xs font-bold">Confirm</button>
-                          <button onClick={() => setDeleteId(null)} className="px-2 py-1 bg-slate-100 rounded text-xs font-bold">Cancel</button>
+                          <button onClick={() => setDeleteId(null)} className="px-2 py-1 bg-muted rounded text-xs font-bold">Cancel</button>
                         </div>
                       ) : (
-                        <button onClick={() => setDeleteId(tc.id)} className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+                        <button onClick={() => setDeleteId(tc.id)} className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors" title="Delete">
                           <Trash2 size={16} />
                         </button>
                       )}
@@ -210,7 +210,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium italic">
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground font-medium italic">
                     No transaction codes found.
                   </td>
                 </tr>
@@ -223,10 +223,10 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
       {/* Create / Edit Modal */}
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div role="dialog" aria-modal="true" aria-labelledby="pay-transaction-modal-title" className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="pay-transaction-modal-title" className="bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 id="pay-transaction-modal-title" className="text-lg font-bold">{modal.mode === 'create' ? 'Add Transaction Code' : `Edit — ${modal.tc?.code}`}</h3>
-              <button onClick={closeModal} aria-label="Close" className="p-1 hover:bg-slate-100 rounded-lg"><X size={18} /></button>
+              <button onClick={closeModal} aria-label="Close" className="p-1 hover:bg-muted rounded-lg"><X size={18} /></button>
             </div>
 
             <div className="px-6 py-5 flex flex-col gap-4">
@@ -235,23 +235,23 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
               <div className="grid grid-cols-2 gap-4">
                 {/* Code — read-only in edit mode */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Code *</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Code *</label>
                   <input
-                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green disabled:bg-slate-50 disabled:text-slate-400"
+                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green disabled:bg-muted disabled:text-muted-foreground"
                     value={form.code}
                     onChange={e => setForm((f: any) => ({ ...f, code: e.target.value.toUpperCase() }))}
                     disabled={modal.mode === 'edit'}
                     placeholder="e.g. TRANS"
                   />
-                  <p className="text-[10px] text-slate-400 font-medium">For ZIMRA compliance, medical aid codes should be numerical (e.g. 5401)</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">For ZIMRA compliance, medical aid codes should be numerical (e.g. 5401)</p>
                 </div>
                 {/* Type */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Type *</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Type *</label>
                   <Dropdown className="w-full" trigger={(isOpen) => (
                     <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-green transition-colors bg-primary">
                       <span>{form.type}</span>
-                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                   )} sections={[{ items: TYPES.map(t => ({ label: t, onClick: () => setForm((f: any) => ({ ...f, type: t })) })) }]} />
                 </div>
@@ -259,7 +259,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
 
               {/* Name */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Name *</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Name *</label>
                 <input
                   className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
                   value={form.name}
@@ -271,17 +271,17 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
               <div className="grid grid-cols-2 gap-4">
                 {/* Calculation Type */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Calculation</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Calculation</label>
                   <Dropdown className="w-full" trigger={(isOpen) => (
                     <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-green transition-colors bg-primary capitalize">
                       <span>{form.calculationType}</span>
-                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                   )} sections={[{ items: CALC_TYPES.map(t => ({ label: t, onClick: () => setForm((f: any) => ({ ...f, calculationType: t })) })) }]} />
                 </div>
                 {/* Default Value */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Default Value</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Default Value</label>
                   <input
                     type="number"
                     className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
@@ -294,13 +294,13 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
 
               {/* Income Category (Tax Rule) */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tax Rule / Category</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tax Rule / Category</label>
                 <Dropdown className="w-full" trigger={(isOpen) => {
                   const cats: Record<string,string> = { '': 'None / Standard', BASIC_SALARY: 'Basic Salary', BONUS: 'Bonus', PENSION: 'Pension (Exempt)', MEDICAL_AID: 'Medical Aid (50% Tax Credit)', ALLOWANCE: 'Allowance', OVERTIME: 'Overtime', COMMISSION: 'Commission', BENEFIT: 'Benefit' };
                   return (
                     <button type="button" className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm hover:border-accent-green transition-colors bg-primary">
                       <span>{cats[form.incomeCategory || ''] || 'None / Standard'}</span>
-                      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                   );
                 }} sections={[{ items: [
@@ -333,8 +333,8 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                       onChange={e => setForm((f: any) => ({ ...f, [key]: e.target.checked }))}
                     />
                     <div>
-                      <p className="text-sm font-semibold text-slate-700">{label}</p>
-                      <p className="text-[10px] text-slate-400">{desc}</p>
+                      <p className="text-sm font-semibold text-foreground/90">{label}</p>
+                      <p className="text-[10px] text-muted-foreground">{desc}</p>
                     </div>
                   </label>
                 ))}
@@ -342,7 +342,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
             </div>
 
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
-              <button onClick={closeModal} className="px-4 py-2 rounded-xl border border-border text-sm font-bold hover:bg-slate-50">Cancel</button>
+              <button onClick={closeModal} className="px-4 py-2 rounded-xl border border-border text-sm font-bold hover:bg-muted">Cancel</button>
               <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-accent-green text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
                 {saving && <Loader size={14} className="animate-spin" />}
                 {modal.mode === 'create' ? 'Create' : 'Save Changes'}

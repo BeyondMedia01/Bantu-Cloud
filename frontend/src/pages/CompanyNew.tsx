@@ -33,12 +33,12 @@ const CompanyNew: React.FC = () => {
   return (
     <div className="max-w-xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">New Company</h1>
-          <p className="text-slate-500 font-medium text-sm">Add a company to your account</p>
+          <p className="text-muted-foreground font-medium text-sm">Add a company to your account</p>
         </div>
       </div>
 
@@ -78,7 +78,7 @@ const CompanyNew: React.FC = () => {
           >
             <Save size={16} /> {loading ? 'Creating…' : 'Create Company'}
           </button>
-          <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50">
+          <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted">
             Cancel
           </button>
         </div>

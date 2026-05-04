@@ -57,7 +57,7 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Tax Configuration</h2>
-          <p className="text-slate-500 font-medium">Manage USD-based PAYE thresholds and statutory rates.</p>
+          <p className="text-muted-foreground font-medium">Manage USD-based PAYE thresholds and statutory rates.</p>
         </div>
         <button 
           onClick={() => { setEditingBand(null); setIsModalOpen(true); }}
@@ -69,12 +69,12 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
 
       {/* Info Card */}
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex gap-4 items-start">
-        <div className="p-2 bg-white rounded-xl text-accent-green shadow-sm">
+        <div className="p-2 bg-card rounded-xl text-accent-green shadow-sm">
           <Info size={24} />
         </div>
         <div>
           <h3 className="font-bold text-navy mb-1">Zimbabwe PAYE Logic</h3>
-          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">
+          <p className="text-sm text-foreground/80 leading-relaxed max-w-2xl">
             These bands are applied to the <strong>USD portion</strong> of employee earnings. The calculation engine iterates through these bands in order of <em>Band Number</em> to compute the total progressive tax liability.
           </p>
         </div>
@@ -93,24 +93,24 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
           <div key={band.id} className="bg-primary rounded-2xl border border-border p-6 shadow-sm hover:border-accent-green transition-all group">
             <div className="flex justify-between items-start mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-bold group-hover:bg-blue-50 group-hover:text-accent-green transition-colors">
+                <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-muted-foreground font-bold group-hover:bg-blue-50 group-hover:text-accent-green transition-colors">
                   <Hash size={20} />
                 </div>
                 <div>
                   <h4 className="font-bold text-navy">Band {band.bandNumber}</h4>
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{band.description || 'Tax Bracket'}</p>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{band.description || 'Tax Bracket'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
                   onClick={() => { setEditingBand(band); setIsModalOpen(true); }}
-                  className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-navy transition-colors"
+                  className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
                 >
                   <Edit size={16} />
                 </button>
                 <button 
                   onClick={() => handleDelete(band.id)}
-                  className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                  className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                 >
                   <Trash size={16} />
                 </button>
@@ -118,14 +118,14 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="p-3 bg-slate-50 rounded-xl border border-border/50">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Range (USD)</p>
+              <div className="p-3 bg-muted rounded-xl border border-border/50">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Range (USD)</p>
                 <p className="text-sm font-bold text-navy">
                   ${band.lowerLimitUSD.toLocaleString()} — {band.upperLimitUSD ? `$${band.upperLimitUSD.toLocaleString()}` : '∞'}
                 </p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-border/50">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tax Rate</p>
+              <div className="p-3 bg-muted rounded-xl border border-border/50">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Tax Rate</p>
                 <p className="text-sm font-bold text-accent-green flex items-center gap-1">
                   <Percent size={14} /> {band.taxRatePercent}%
                 </p>
@@ -133,18 +133,18 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-border">
-              <div className="flex items-center gap-2 text-slate-400">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar size={14} />
                 <span className="text-[10px] font-bold uppercase">Effective: {new Date(band.effectiveFrom).toLocaleDateString()}</span>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Fixed Cum. Tax</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Fixed Cum. Tax</p>
                 <p className="text-sm font-bold text-navy">${band.fixedAmountUSD.toLocaleString()}</p>
               </div>
             </div>
           </div>
         )) : (
-          <div className="col-span-full py-20 bg-primary rounded-2xl border border-dashed border-border flex flex-col items-center justify-center text-slate-400">
+          <div className="col-span-full py-20 bg-primary rounded-2xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground">
              <Hash size={48} className="mb-4 opacity-20" />
              <p className="font-medium italic">No tax bands configured yet.</p>
           </div>
@@ -154,12 +154,12 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
       {/* Simple Modal Placeholder */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-navy/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div role="dialog" aria-modal="true" aria-labelledby="tax-band-modal-title" className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+           <div role="dialog" aria-modal="true" aria-labelledby="tax-band-modal-title" className="bg-card rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
               <h3 id="tax-band-modal-title" className="text-2xl font-bold text-navy mb-6">{editingBand ? 'Edit Tax Band' : 'New Tax Band'}</h3>
-              <p className="text-slate-500 text-sm mb-8">This feature is coming soon. Use the API or Database direct for now.</p>
+              <p className="text-muted-foreground text-sm mb-8">This feature is coming soon. Use the API or Database direct for now.</p>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="w-full bg-slate-100 py-3 rounded-2xl font-bold text-navy hover:bg-slate-200 transition-colors"
+                className="w-full bg-muted py-3 rounded-2xl font-bold text-navy hover:bg-muted transition-colors"
                 > Close </button>
            </div>
         </div>

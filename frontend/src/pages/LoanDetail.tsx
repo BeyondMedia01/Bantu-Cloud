@@ -32,12 +32,12 @@ const LoanDetail: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64 text-slate-400">
+    <div className="flex items-center justify-center h-64 text-muted-foreground">
       <Loader size={24} className="animate-spin" />
     </div>
   );
 
-  if (!loan) return <div className="text-slate-400 text-center py-16">Loan not found</div>;
+  if (!loan) return <div className="text-muted-foreground text-center py-16">Loan not found</div>;
 
   const paid = repayments.filter((r) => r.status === 'PAID').reduce((s: number, r: any) => s + r.amount, 0);
   const outstanding = loan.amount - paid;
@@ -45,10 +45,10 @@ const LoanDetail: React.FC = () => {
   return (
     <div className="max-w-3xl">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/loans')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
+        <button onClick={() => navigate('/loans')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl"><ArrowLeft size={20} /></button>
         <div>
           <h1 className="text-2xl font-bold">Loan Details</h1>
-          <p className="text-slate-500 font-medium text-sm">
+          <p className="text-muted-foreground font-medium text-sm">
             {loan.employee?.firstName} {loan.employee?.lastName} · {loan.status}
           </p>
         </div>
@@ -67,7 +67,7 @@ const LoanDetail: React.FC = () => {
           { label: 'Outstanding', value: outstanding.toFixed(2) },
         ].map((s) => (
           <div key={s.label} className="bg-primary rounded-2xl border border-border p-4 shadow-sm">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{s.label}</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{s.label}</p>
             <p className="text-xl font-bold">{s.value}</p>
           </div>
         ))}
@@ -75,7 +75,7 @@ const LoanDetail: React.FC = () => {
 
       {/* Loan info */}
       <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm mb-6">
-        <h3 className="font-bold mb-4 text-sm uppercase tracking-wider text-slate-400">Loan Information</h3>
+        <h3 className="font-bold mb-4 text-sm uppercase tracking-wider text-muted-foreground">Loan Information</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
           {[
             ['Start Date', new Date(loan.startDate).toLocaleDateString()],
@@ -85,7 +85,7 @@ const LoanDetail: React.FC = () => {
             ['Description', loan.description || '—'],
           ].map(([k, v]) => (
             <div key={k}>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">{k}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">{k}</p>
               <p className="font-medium">{v}</p>
             </div>
           ))}
@@ -100,29 +100,29 @@ const LoanDetail: React.FC = () => {
         <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-border bg-slate-50">
+            <tr className="border-b border-border bg-muted">
               {['#', 'Due Date', 'Amount', 'Status', 'Paid On', 'Action'].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {repayments.map((r: any, i: number) => (
               <tr key={r.id} className={r.status === 'PAID' ? 'opacity-60' : ''}>
-                <td className="px-4 py-3 text-sm font-bold text-slate-400">{i + 1}</td>
+                <td className="px-4 py-3 text-sm font-bold text-muted-foreground">{i + 1}</td>
                 <td className="px-4 py-3 text-sm">{new Date(r.dueDate).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-sm font-bold">{r.amount?.toFixed(2)}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${
                     r.status === 'PAID' ? 'bg-emerald-50 text-emerald-700' :
                     r.status === 'DUE' ? 'bg-amber-50 text-amber-700' :
-                    'bg-slate-100 text-slate-600'
+                    'bg-muted text-foreground/80'
                   }`}>
                     {r.status === 'PAID' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                     {r.status}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-slate-400">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {r.paidDate ? new Date(r.paidDate).toLocaleDateString() : '—'}
                 </td>
                 <td className="px-4 py-3">

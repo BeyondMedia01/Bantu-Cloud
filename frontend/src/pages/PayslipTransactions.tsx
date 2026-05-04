@@ -59,7 +59,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-navy mb-1">Transaction Ledger</h2>
-          <p className="text-slate-500 font-medium">Detailed audit trail of individual earnings and deductions per employee.</p>
+          <p className="text-muted-foreground font-medium">Detailed audit trail of individual earnings and deductions per employee.</p>
         </div>
         <button className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-1.5">
           <Plus size={20} /> Add Entry
@@ -68,12 +68,12 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
 
       {/* Info Stats */}
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex gap-4 items-start">
-        <div className="p-2 bg-white rounded-xl text-accent-green shadow-sm">
+        <div className="p-2 bg-card rounded-xl text-accent-green shadow-sm">
           <Info size={24} />
         </div>
         <div>
           <h3 className="font-bold text-navy mb-1">Ledger Integrity</h3>
-          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">
+          <p className="text-sm text-foreground/80 leading-relaxed max-w-2xl">
             This ledger captures the <strong>point-in-time exchange rate</strong> for every transaction. This ensures that even if rates fluctuate later, the historical payroll records remain audit-compliant and mathematically consistent.
           </p>
         </div>
@@ -81,14 +81,14 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
 
       {/* Ledger Table */}
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="p-4 px-6 border-b border-border bg-slate-50/50 flex items-center justify-between">
+        <div className="p-4 px-6 border-b border-border bg-muted/30 flex items-center justify-between">
             <div className="relative flex-1 max-w-md">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input 
                 type="text" 
                 placeholder="Search by Employee or Code..."
                 aria-label="Search transactions"
-                className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/30"
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/30"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -97,26 +97,26 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Employee / Period</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Transaction Code</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Orig. Amount</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Rate (to USD)</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">USD Value</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee / Period</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Transaction Code</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Orig. Amount</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate (to USD)</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">USD Value</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredTransactions.length > 0 ? filteredTransactions.map(t => (
-                <tr key={t.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={t.id} className="hover:bg-muted/30 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                         <User size={18} />
                       </div>
                       <div>
                         <p className="text-sm font-bold text-navy">{t.employee?.fullName}</p>
-                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase">
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase">
                           <Calendar size={12} />
                           {new Date(t.payPeriod).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
                         </div>
@@ -128,7 +128,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-md self-start ${t.transaction?.type === 'EARNING' ? 'bg-emerald-50 text-accent-green' : 'bg-red-50 text-red-500'}`}>
                         {t.transactionCode}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium mt-1">
+                      <span className="text-[10px] text-muted-foreground font-medium mt-1">
                         {t.description || t.transaction?.description || '—'}
                       </span>
                     </div>
@@ -137,21 +137,21 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                     <p className="text-sm font-bold text-navy">
                       {t.currencyCode === 'ZiG' ? 'Z' : '$'}{t.amountOriginal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">{t.currencyCode}</span>
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase">{t.currencyCode}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-slate-500 font-mono">
+                  <td className="px-6 py-4 text-sm font-medium text-muted-foreground font-mono">
                     {t.rateToUSD.toFixed(6)}
                   </td>
                   <td className="px-6 py-4">
                     <p className="text-sm font-bold text-accent-green">
                       ${t.amountInUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
-                    {t.isManual && <span className="text-[9px] bg-slate-100 px-1 rounded text-slate-400 uppercase font-bold">Manual</span>}
+                    {t.isManual && <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground uppercase font-bold">Manual</span>}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 
                       onClick={() => handleDelete(t.id)}
-                      className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <Trash size={16} />
                     </button>
@@ -159,7 +159,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground">
                     <Hash size={48} className="mx-auto mb-4 opacity-20" />
                     <p className="italic font-medium">No transactions recorded in the ledger yet.</p>
                   </td>

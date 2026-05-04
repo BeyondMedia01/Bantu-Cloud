@@ -205,7 +205,7 @@ const NecTables: React.FC = () => {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-navy">NEC Tables</h1>
-          <p className="text-slate-500 text-sm font-medium">
+          <p className="text-muted-foreground text-sm font-medium">
             Manage National Employment Council minimum wage tables and levy rates per sector.
           </p>
         </div>
@@ -223,7 +223,7 @@ const NecTables: React.FC = () => {
           <h3 className="font-bold text-navy mb-4">Create NEC Table</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Table Name *</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Table Name *</label>
               <input
                 className={inputCls + ' text-sm'}
                 placeholder="e.g. Engineering Sector 2025"
@@ -232,7 +232,7 @@ const NecTables: React.FC = () => {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Sector *</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Sector *</label>
               <input
                 className={inputCls + ' text-sm'}
                 placeholder="e.g. Engineering, Mining, Agriculture"
@@ -241,11 +241,11 @@ const NecTables: React.FC = () => {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Currency</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
                 <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-border rounded-xl text-sm font-medium hover:border-accent-green transition-colors bg-primary">
                   <span>{newTable.currency}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: [
                 { label: 'USD', onClick: () => setNewTable(p => ({ ...p, currency: 'USD' })) },
@@ -253,7 +253,7 @@ const NecTables: React.FC = () => {
               ]}]} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Effective Date *</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Effective Date *</label>
               <input
                 type="date"
                 className={inputCls + ' text-sm'}
@@ -262,7 +262,7 @@ const NecTables: React.FC = () => {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expiry Date</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Expiry Date</label>
               <input
                 type="date"
                 className={inputCls + ' text-sm'}
@@ -283,7 +283,7 @@ const NecTables: React.FC = () => {
             </button>
             <button
               onClick={() => { setAddingTable(false); setTableError(''); }}
-              className="px-4 py-2 rounded-full text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+              className="px-4 py-2 rounded-full text-xs font-bold text-muted-foreground hover:bg-muted transition-colors"
             >
               Cancel
             </button>
@@ -294,12 +294,12 @@ const NecTables: React.FC = () => {
       <div className="flex gap-6 items-start">
         {/* ── Sidebar ───────────────────────────────────────────────────────── */}
         <aside className="w-64 shrink-0 bg-primary border border-border rounded-2xl overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-border bg-slate-50">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">NEC Tables</span>
+          <div className="p-4 border-b border-border bg-muted">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">NEC Tables</span>
           </div>
           <div className="p-2">
             {tables.length === 0 && (
-              <p className="text-xs text-slate-400 italic px-3 py-4 text-center">No tables yet.</p>
+              <p className="text-xs text-muted-foreground italic px-3 py-4 text-center">No tables yet.</p>
             )}
             {tables.map((table: any) => (
               <button
@@ -312,13 +312,13 @@ const NecTables: React.FC = () => {
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${
                   activeTableId === table.id
                     ? 'bg-accent-green text-white shadow-md'
-                    : 'text-slate-600 hover:bg-slate-50'
+                    : 'text-foreground/80 hover:bg-muted'
                 }`}
               >
                 <div className="flex flex-col min-w-0">
                   <span className="text-sm font-bold truncate">{table.name}</span>
                   <span className={`text-[10px] font-bold uppercase truncate ${
-                    activeTableId === table.id ? 'text-white/70' : 'text-slate-400'
+                    activeTableId === table.id ? 'text-white/70' : 'text-muted-foreground'
                   }`}>
                     {table.sector} · {table.currency}
                   </span>
@@ -334,11 +334,11 @@ const NecTables: React.FC = () => {
           {activeTable ? (
             <>
               {/* Panel header */}
-              <div className="p-5 border-b border-border bg-slate-50/50 flex justify-between items-center">
+              <div className="p-5 border-b border-border bg-muted/30 flex justify-between items-center">
                 <div>
                   <h3 className="font-bold text-navy">{activeTable.name}</h3>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                       <Calendar size={11} /> Effective: {new Date(activeTable.effectiveDate).toLocaleDateString()}
                     </span>
                     {activeTable.expiryDate && (
@@ -354,13 +354,13 @@ const NecTables: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => { setAddingGrade(true); setEditingGradeId(null); setNewGrade({ ...EMPTY_GRADE }); setAddGradeError(''); }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-bold text-foreground/80 hover:bg-muted transition-colors"
                   >
                     <Plus size={13} className="text-emerald-500" /> Add Grade
                   </button>
                   <button
                     onClick={() => handleDeleteTable(activeTable.id, activeTable.name)}
-                    className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                   >
                     <Trash size={15} />
                   </button>
@@ -371,11 +371,11 @@ const NecTables: React.FC = () => {
               <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-border bg-slate-50">
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Grade Code</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Description</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Min Rate</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">NEC Levy %</th>
+                  <tr className="border-b border-border bg-muted">
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Grade Code</th>
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Description</th>
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Min Rate</th>
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">NEC Levy %</th>
                     <th className="px-5 py-3 w-20" />
                   </tr>
                 </thead>
@@ -402,7 +402,7 @@ const NecTables: React.FC = () => {
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">
                               {activeTable.currency === 'USD' ? '$' : 'Z'}
                             </span>
                             <input
@@ -428,7 +428,7 @@ const NecTables: React.FC = () => {
                               value={editGrade.necLevyRate}
                               onChange={e => setEditGrade(p => ({ ...p, necLevyRate: e.target.value }))}
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">%</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
@@ -442,7 +442,7 @@ const NecTables: React.FC = () => {
                             </button>
                             <button
                               onClick={() => { setEditingGradeId(null); setEditGradeError(''); }}
-                              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"
+                              className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground"
                             >
                               <X size={13} />
                             </button>
@@ -450,11 +450,11 @@ const NecTables: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      <tr key={grade.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <tr key={grade.id} className="hover:bg-muted/30 transition-colors group">
                         <td className="px-5 py-3.5">
                           <span className="font-black text-navy text-sm font-mono">{grade.gradeCode}</span>
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-slate-500">{grade.description || <span className="text-slate-300 italic text-xs">—</span>}</td>
+                        <td className="px-5 py-3.5 text-sm text-muted-foreground">{grade.description || <span className="text-muted-foreground/50 italic text-xs">—</span>}</td>
                         <td className="px-5 py-3.5">
                           <span className="font-bold text-sm text-navy font-mono">
                             {activeTable.currency} {grade.minRate.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -469,13 +469,13 @@ const NecTables: React.FC = () => {
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => startEditGrade(grade)}
-                              className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-green transition-colors"
+                              className="p-1.5 hover:bg-blue-50 rounded-lg text-muted-foreground hover:text-accent-green transition-colors"
                             >
                               <Pencil size={13} />
                             </button>
                             <button
                               onClick={() => handleDeleteGrade(grade.id)}
-                              className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                              className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                             >
                               <Trash size={13} />
                             </button>
@@ -515,7 +515,7 @@ const NecTables: React.FC = () => {
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">
                               {activeTable.currency === 'USD' ? '$' : 'Z'}
                             </span>
                             <input
@@ -541,7 +541,7 @@ const NecTables: React.FC = () => {
                               value={newGrade.necLevyRate}
                               onChange={e => setNewGrade(p => ({ ...p, necLevyRate: e.target.value }))}
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">%</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
@@ -555,7 +555,7 @@ const NecTables: React.FC = () => {
                             </button>
                             <button
                               onClick={() => { setAddingGrade(false); setAddGradeError(''); setNewGrade({ ...EMPTY_GRADE }); }}
-                              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"
+                              className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground"
                             >
                               <X size={13} />
                             </button>
@@ -572,7 +572,7 @@ const NecTables: React.FC = () => {
 
                   {grades.length === 0 && !addingGrade && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic text-sm">
+                      <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic text-sm">
                         No grades defined.{' '}
                         <button
                           onClick={() => setAddingGrade(true)}
@@ -588,7 +588,7 @@ const NecTables: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center p-20 text-slate-400">
+            <div className="flex flex-col items-center justify-center p-20 text-muted-foreground">
               <Hash size={48} className="opacity-10 mb-4" />
               <p className="font-medium">Select a NEC table to manage grades</p>
               <p className="text-xs mt-1">Or create a new table to get started</p>

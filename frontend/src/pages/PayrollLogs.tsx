@@ -42,7 +42,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
       case 'LOGIN':         return 'bg-sky-50 text-sky-600 border-sky-100';
       case 'CREATE':        return 'bg-emerald-50 text-emerald-600 border-emerald-100';
       case 'UPDATE':        return 'bg-accent-green/10 text-accent-green border-accent-green/20';
-      default:              return 'bg-slate-100 text-slate-500 border-slate-200';
+      default:              return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -52,7 +52,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
     <div className="flex flex-col gap-8">
       <header>
         <h2 className="text-3xl font-bold text-navy mb-1">Payroll Activity Logs</h2>
-        <p className="text-slate-500 font-medium">Immutable audit trail of all actions, changes, and system events.</p>
+        <p className="text-muted-foreground font-medium">Immutable audit trail of all actions, changes, and system events.</p>
       </header>
 
       {/* Immutability Banner */}
@@ -60,21 +60,21 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
         <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0">
           <AlertCircle size={22} />
         </div>
-        <p className="text-sm text-slate-500 leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           <strong className="text-white">Read-Only Archive.</strong> Entries in this log are append-only and cannot be edited or deleted by any user. This ensures full compliance integrity for audits and regulatory reviews.
         </p>
       </div>
 
       {/* Filters */}
       <div className="bg-primary rounded-3xl border border-border shadow-sm overflow-hidden">
-        <div className="p-4 px-6 border-b border-border bg-slate-50/50 flex flex-col sm:flex-row gap-3 items-center">
+        <div className="p-4 px-6 border-b border-border bg-muted/30 flex flex-col sm:flex-row gap-3 items-center">
           <div className="relative flex-1 min-w-0">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search by entity, entity ID, or user..."
               aria-label="Search payroll logs"
-              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green shadow-sm"
+              className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green shadow-sm"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -82,10 +82,10 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
           <div className="flex gap-2 shrink-0">
             <Dropdown
               trigger={(isOpen) => (
-                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-green transition-colors">
-                  <Filter size={14} className="text-slate-400 shrink-0" />
+                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-background border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-green transition-colors">
+                  <Filter size={14} className="text-muted-foreground shrink-0" />
                   <span className="truncate">{filterAction ? filterAction.replace('_', ' ') : 'All Actions'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )}
               sections={[{ items: [
@@ -95,9 +95,9 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
             />
             <Dropdown
               trigger={(isOpen) => (
-                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-green transition-colors">
+                <button type="button" className="flex items-center gap-2 px-3 py-2 bg-background border border-border rounded-xl text-sm font-semibold shadow-sm hover:border-accent-green transition-colors">
                   <span className="truncate">{filterStatus || 'All Statuses'}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )}
               sections={[{ items: [
@@ -107,13 +107,13 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
               ]}]}
             />
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">{filteredLogs.length} entries</span>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest shrink-0">{filteredLogs.length} entries</span>
         </div>
 
         {/* Log Entries */}
         <div className="divide-y divide-border">
           {filteredLogs.length > 0 ? filteredLogs.map(log => (
-            <div key={log.id} className="hover:bg-slate-50/40 transition-colors">
+            <div key={log.id} className="hover:bg-muted/40 transition-colors">
               <div
                 className="p-4 px-6 flex flex-col sm:flex-row sm:items-center gap-4 cursor-pointer"
                 onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
@@ -134,10 +134,10 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                     </span>
                     <span className="text-sm font-bold text-navy">{log.entityAffected}</span>
                     {log.entityId && (
-                      <span className="text-xs font-mono text-slate-400 truncate max-w-[120px]" title={log.entityId}>#{log.entityId.slice(0, 8)}…</span>
+                      <span className="text-xs font-mono text-muted-foreground truncate max-w-[120px]" title={log.entityId}>#{log.entityId.slice(0, 8)}…</span>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
                     <span className="flex items-center gap-1"><Clock size={11} />{new Date(log.actionTimestamp).toLocaleString()}</span>
                     {log.payrollUser && <span className="flex items-center gap-1"><User size={11} />{log.payrollUser.fullName}</span>}
                     {log.ipAddress && <span className="flex items-center gap-1"><Database size={11} />{log.ipAddress}</span>}
@@ -149,7 +149,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
 
                 {/* Expand toggle */}
                 {hasValueChange(log) && (
-                  <div className="text-slate-300 shrink-0">
+                  <div className="text-muted-foreground/50 shrink-0">
                     {expandedId === log.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   </div>
                 )}
@@ -160,7 +160,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                 <div className="px-6 pb-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   {log.oldValue && (
                     <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Before</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2">Before</p>
                       <pre className="bg-red-50 border border-red-100 p-4 rounded-xl text-xs text-red-800 overflow-auto max-h-48 font-mono whitespace-pre-wrap">
                         {(() => { try { return JSON.stringify(JSON.parse(log.oldValue), null, 2); } catch { return log.oldValue; } })()}
                       </pre>
@@ -168,7 +168,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                   )}
                   {log.newValue && (
                     <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">After</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2">After</p>
                       <pre className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl text-xs text-emerald-800 overflow-auto max-h-48 font-mono whitespace-pre-wrap">
                         {(() => { try { return JSON.stringify(JSON.parse(log.newValue), null, 2); } catch { return log.newValue; } })()}
                       </pre>
@@ -176,15 +176,15 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                   )}
                   {log.notes && (
                     <div className="md:col-span-2">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Notes</p>
-                      <p className="text-sm text-slate-600">{log.notes}</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Notes</p>
+                      <p className="text-sm text-foreground/80">{log.notes}</p>
                     </div>
                   )}
                 </div>
               )}
             </div>
           )) : (
-            <div className="p-20 text-center text-slate-400">
+            <div className="p-20 text-center text-muted-foreground">
               <FileText size={36} className="mx-auto mb-3 opacity-20" />
               <p className="italic font-medium">No log entries found matching your criteria.</p>
             </div>

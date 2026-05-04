@@ -13,7 +13,7 @@ const statusColor: Record<string, string> = {
   ACTIVE: 'bg-blue-50 text-blue-700',
   PAID_OFF: 'bg-emerald-50 text-emerald-700',
   DEFAULTED: 'bg-red-50 text-red-700',
-  CANCELLED: 'bg-slate-100 text-slate-600',
+  CANCELLED: 'bg-muted text-foreground/80',
 };
 
 const Loans: React.FC = () => {
@@ -39,7 +39,7 @@ const Loans: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Loans</h1>
-          <p className="text-slate-500 text-sm font-medium">Track employee loans and repayment schedules</p>
+          <p className="text-muted-foreground text-sm font-medium">Track employee loans and repayment schedules</p>
         </div>
         <button
           onClick={() => navigate('/loans/new')}
@@ -55,7 +55,7 @@ const Loans: React.FC = () => {
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${filter === s ? 'bg-brand text-navy border-navy' : 'border-border text-slate-500 hover:bg-slate-50'}`}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${filter === s ? 'bg-brand text-navy border-navy' : 'border-border text-muted-foreground hover:bg-muted'}`}
           >
             {s || 'All'}
           </button>
@@ -84,18 +84,18 @@ const Loans: React.FC = () => {
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', ''].map((h) => (
-                  <th key={h} scope="col" className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} scope="col" className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((loan: any) => (
-                <tr key={loan.id} className="hover:bg-slate-50/50 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
+                <tr key={loan.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
                   <td className="px-4 py-3">
                     <p className="font-bold text-sm">{loan.employee?.firstName} {loan.employee?.lastName}</p>
-                    <p className="text-xs text-slate-400">{loan.employee?.employeeCode}</p>
+                    <p className="text-xs text-muted-foreground">{loan.employee?.employeeCode}</p>
                   </td>
                   <td className="px-4 py-3 text-sm font-bold">{fmtAmt(loan.amount)}</td>
                   <td className="px-4 py-3 text-sm">{loan.interestRate}%</td>
@@ -103,11 +103,11 @@ const Loans: React.FC = () => {
                   <td className="px-4 py-3 text-sm font-medium">{fmtAmt(loan.monthlyInstalment)}</td>
                   <td className="px-4 py-3 text-sm">{fmtDate(loan.startDate)}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[loan.status] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[loan.status] || 'bg-muted text-foreground/80'}`}>
                       {loan.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-400">
+                  <td className="px-4 py-3 text-muted-foreground">
                     <ChevronRight size={16} />
                   </td>
                 </tr>

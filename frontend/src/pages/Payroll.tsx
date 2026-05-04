@@ -100,7 +100,7 @@ const Payroll: React.FC = () => {
   const statusColor: Record<string, string> = {
     COMPLETED: 'bg-emerald-50 text-emerald-700',
     PROCESSING: 'bg-blue-50 text-blue-700',
-    DRAFT: 'bg-slate-100 text-slate-600',
+    DRAFT: 'bg-muted text-foreground/80',
     ERROR: 'bg-red-50 text-red-700',
     PENDING_APPROVAL: 'bg-amber-50 text-amber-700',
     APPROVED: 'bg-teal-50 text-teal-700',
@@ -111,7 +111,7 @@ const Payroll: React.FC = () => {
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-navy">Payroll</h1>
-          <p className="text-slate-500 font-medium text-sm">{total} payroll runs</p>
+          <p className="text-muted-foreground font-medium text-sm">{total} payroll runs</p>
         </div>
         <button
           onClick={() => navigate('/payroll/new')}
@@ -130,8 +130,8 @@ const Payroll: React.FC = () => {
       ) : runs.length === 0 ? (
         <div className="text-center py-20 bg-primary rounded-2xl border border-border shadow-sm">
           <FileText size={40} className="mx-auto mb-3 text-slate-200" />
-          <p className="font-bold text-slate-500 mb-2">No payroll runs yet</p>
-          <p className="text-sm text-slate-400 mb-6">Create your first payroll run to get started</p>
+          <p className="font-bold text-muted-foreground mb-2">No payroll runs yet</p>
+          <p className="text-sm text-muted-foreground mb-6">Create your first payroll run to get started</p>
           <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-1.5">
             <Plus size={14} /> Create Payroll Run
           </button>
@@ -141,9 +141,9 @@ const Payroll: React.FC = () => {
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Period', 'Run Date', 'Currency', 'Rate', 'Employees', 'Status', ''].map((h) => (
-                  <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -151,12 +151,12 @@ const Payroll: React.FC = () => {
               {runs.map((run: any) => (
                 <tr
                   key={run.id}
-                  className="hover:bg-slate-100/70 cursor-pointer transition-colors"
+                  className="hover:bg-muted/70 cursor-pointer transition-colors"
                   onClick={() => navigate(`/payroll/${run.id}/payslips`)}
                 >
                   <td className="px-5 py-4">
                     <p className="font-bold text-sm">{new Date(run.startDate).toLocaleDateString()}</p>
-                    <p className="text-xs text-slate-400">to {new Date(run.endDate).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">to {new Date(run.endDate).toLocaleDateString()}</p>
                   </td>
                   <td className="px-5 py-4 text-sm">{new Date(run.runDate).toLocaleDateString()}</td>
                   <td className="px-5 py-4 text-sm font-bold">
@@ -185,17 +185,17 @@ const Payroll: React.FC = () => {
                           >
                             {rateSaving ? '…' : 'Save'}
                           </button>
-                          <button onClick={() => setEditingRate(null)} className="text-slate-400 hover:text-slate-600">
+                          <button onClick={() => setEditingRate(null)} className="text-muted-foreground hover:text-foreground/80">
                             <X size={14} />
                           </button>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-slate-600">{run.exchangeRate ? `${run.exchangeRate}` : '—'}</span>
+                          <span className="text-foreground/80">{run.exchangeRate ? `${run.exchangeRate}` : '—'}</span>
                           {['DRAFT', 'APPROVED', 'ERROR'].includes(run.status) && (
                             <button
                               onClick={() => { setEditingRate(run.id); setRateInput(String(run.exchangeRate || '')); }}
-                              className="text-slate-300 hover:text-accent-green transition-colors"
+                              className="text-muted-foreground/50 hover:text-accent-green transition-colors"
                               title="Edit exchange rate"
                             >
                               <Pencil size={12} />
@@ -204,7 +204,7 @@ const Payroll: React.FC = () => {
                         </div>
                       )
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </td>
                   <td className="px-5 py-4 text-sm">
@@ -213,7 +213,7 @@ const Payroll: React.FC = () => {
                       : (run.employeeCount ?? run._count?.payslips ?? '—')}
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[run.status] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[run.status] || 'bg-muted text-foreground/80'}`}>
                       {run.status}
                     </span>
                   </td>
@@ -262,7 +262,7 @@ const Payroll: React.FC = () => {
                       {run.status === 'COMPLETED' && (<>
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate(`/payroll/${run.id}/summary`); }}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-full hover:bg-slate-200"
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-muted text-foreground/90 rounded-full hover:bg-muted"
                           title="View Payroll Summary"
                         >
                           <FileText size={12} /> Summary
@@ -300,7 +300,7 @@ const Payroll: React.FC = () => {
                           }]}
                         />
                       </>)}
-                      <ChevronRight size={16} className="text-slate-400 ml-1" />
+                      <ChevronRight size={16} className="text-muted-foreground ml-1" />
                     </div>
                   </td>
                 </tr>

@@ -11,7 +11,7 @@ export function SectionCard({ title, children, className }: SectionCardProps) {
   return (
     <Card className={className}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           {title}
         </CardTitle>
       </CardHeader>

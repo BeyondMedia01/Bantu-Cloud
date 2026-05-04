@@ -19,7 +19,7 @@ const ResetPassword: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6 font-inter text-center">
         <div>
-          <p className="text-lg font-bold text-slate-500 mb-4">Invalid or missing reset token.</p>
+          <p className="text-lg font-bold text-muted-foreground mb-4">Invalid or missing reset token.</p>
           <button onClick={() => navigate('/forgot-password')} className="text-accent-green font-bold hover:underline">
             Request a new link
           </button>
@@ -62,7 +62,7 @@ const ResetPassword: React.FC = () => {
               <CheckCircle2 size={28} />
             </div>
             <h2 className="text-xl font-bold mb-2">Password updated</h2>
-            <p className="text-slate-500 font-medium text-sm mb-6">
+            <p className="text-muted-foreground font-medium text-sm mb-6">
               Your password has been changed. You can now sign in with your new password.
             </p>
             <button
@@ -75,7 +75,7 @@ const ResetPassword: React.FC = () => {
         ) : (
           <>
             <h1 className="text-2xl font-bold mb-1">Set new password</h1>
-            <p className="text-slate-500 font-medium text-sm mb-6">Choose a strong password — at least 8 characters.</p>
+            <p className="text-muted-foreground font-medium text-sm mb-6">Choose a strong password — at least 8 characters.</p>
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">
@@ -85,7 +85,7 @@ const ResetPassword: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">New Password</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">New Password</label>
                 <div className="relative">
                   <input
                     type={showPw ? 'text' : 'password'}
@@ -94,12 +94,12 @@ const ResetPassword: React.FC = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium pr-11"
+                    className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium pr-11"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-navy p-1"
                   >
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -107,14 +107,14 @@ const ResetPassword: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Confirm Password</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Confirm Password</label>
                 <input
                   type={showPw ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                  className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 />
               </div>
 

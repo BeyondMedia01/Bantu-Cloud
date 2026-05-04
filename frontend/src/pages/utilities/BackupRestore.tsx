@@ -92,7 +92,7 @@ const BackupRestore: React.FC = () => {
       <button
         onClick={() => navigate('/utilities')}
         aria-label="Go back"
-        className="flex items-center gap-2 text-slate-500 hover:text-navy mb-6 transition-colors"
+        className="flex items-center gap-2 text-muted-foreground hover:text-navy mb-6 transition-colors"
       >
         <ArrowLeft size={20} />
         <span className="font-medium">Back to Utilities</span>
@@ -100,7 +100,7 @@ const BackupRestore: React.FC = () => {
 
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Backup & Restore</h1>
-        <p className="text-slate-500 text-sm font-medium">Protect your data and ensure business continuity</p>
+        <p className="text-muted-foreground text-sm font-medium">Protect your data and ensure business continuity</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -110,7 +110,7 @@ const BackupRestore: React.FC = () => {
             <Download size={24} />
           </div>
           <h2 className="text-xl font-bold text-navy mb-2">Export Data</h2>
-          <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+          <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">
             Download a complete snapshot of your company's data in JSON format.
             This includes employees, payroll history, loans, and settings.
           </p>
@@ -130,7 +130,7 @@ const BackupRestore: React.FC = () => {
             <Upload size={24} />
           </div>
           <h2 className="text-xl font-bold text-navy mb-2">Restore Data</h2>
-          <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+          <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">
             Upload a previously generated backup file to restore your data.{' '}
             <span className="text-orange-600">This will update or add records to your current database.</span>
           </p>
@@ -142,7 +142,7 @@ const BackupRestore: React.FC = () => {
               onChange={handleFileSelect}
               disabled={loading}
             />
-            <div className="w-full bg-white border-2 border-dashed border-slate-300 rounded-xl py-3 font-semibold text-slate-600 hover:border-navy hover:text-navy transition-all flex items-center justify-center gap-2">
+            <div className="w-full bg-card border-2 border-dashed border-border rounded-xl py-3 font-semibold text-foreground/80 hover:border-navy hover:text-navy transition-all flex items-center justify-center gap-2">
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Upload size={20} />}
               Select Backup File
             </div>
@@ -172,12 +172,12 @@ const BackupRestore: React.FC = () => {
       )}
 
       {/* Safety notice */}
-      <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+      <div className="mt-8 p-6 bg-muted rounded-2xl border border-border">
         <div className="flex items-center gap-2 text-navy font-bold mb-3 text-sm italic">
           <AlertTriangle size={16} />
           IMPORTANT SAFETY INFORMATION
         </div>
-        <ul className="text-xs text-slate-500 font-medium space-y-2 list-disc pl-4 leading-relaxed italic">
+        <ul className="text-xs text-muted-foreground font-medium space-y-2 list-disc pl-4 leading-relaxed italic">
           <li>Always generate a fresh backup before performing a restore operation.</li>
           <li>Ensure nobody else is processing payroll while a restore is in progress.</li>
           <li>For security, backup files should be stored in a password-protected location.</li>

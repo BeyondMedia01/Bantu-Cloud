@@ -14,7 +14,7 @@ interface StatCardProps {
 const trendColors = {
   up: 'text-green-600',
   down: 'text-red-500',
-  neutral: 'text-slate-500',
+  neutral: 'text-muted-foreground',
 };
 
 export function StatCard({ label, value, trend, trendDirection = 'neutral', icon: Icon, className }: StatCardProps) {
@@ -23,7 +23,7 @@ export function StatCard({ label, value, trend, trendDirection = 'neutral', icon
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
             <p className="mt-1 text-2xl font-bold text-navy">{value}</p>
             {trend && (
               <p className={cn('mt-1 text-xs font-medium', trendColors[trendDirection])}>
@@ -32,8 +32,8 @@ export function StatCard({ label, value, trend, trendDirection = 'neutral', icon
             )}
           </div>
           {Icon && (
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
-              <Icon size={20} className="text-slate-500" aria-hidden="true" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+              <Icon size={20} className="text-muted-foreground" aria-hidden="true" />
             </div>
           )}
         </div>

@@ -39,8 +39,8 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start">
       {/* Settings Side Nav */}
-      <aside className="w-full lg:w-80 bg-white rounded-3xl border border-border shadow-sm overflow-hidden shrink-0">
-        <div className="p-6 border-b border-border bg-slate-50/50">
+      <aside className="w-full lg:w-80 bg-card rounded-3xl border border-border shadow-sm overflow-hidden shrink-0">
+        <div className="p-6 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3 text-navy">
             <div className="p-2 bg-brand text-navy rounded-xl shadow-lg">
               <SettingsIcon size={20} />
@@ -52,7 +52,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
         <div className="p-4 space-y-6">
           {['Configuration', 'Payroll Assets', 'Compliance'].map(group => (
             <div key={group}>
-              <h3 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{group}</h3>
+              <h3 className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">{group}</h3>
               <div className="space-y-1">
                 {menuItems.filter(item => item.group === group).map(item => {
                   const Icon = item.icon;
@@ -60,7 +60,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
                     <button
                       key={item.id}
                       onClick={() => setActiveTab(item.id as SettingsSection)}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all group ${activeTab === item.id ? 'bg-brand text-navy shadow-xl shadow-navy/20' : 'text-slate-500 hover:bg-slate-50 font-medium'}`}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all group ${activeTab === item.id ? 'bg-brand text-navy shadow-xl shadow-navy/20' : 'text-muted-foreground hover:bg-muted font-medium'}`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon size={18} className={activeTab === item.id ? 'text-accent-green' : 'group-hover:text-navy transition-colors'} />

@@ -211,7 +211,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-navy">Tax Tables</h1>
-          <p className="text-slate-500 text-sm font-medium">Manage multi-currency progressive tax structures.</p>
+          <p className="text-muted-foreground text-sm font-medium">Manage multi-currency progressive tax structures.</p>
         </div>
         <button
           onClick={() => setIsNewModalOpen(true)}
@@ -224,21 +224,21 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
       <div className="flex gap-6 items-start">
         {/* Sidebar */}
         <aside className="w-64 shrink-0 bg-primary border border-border rounded-2xl overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-border bg-slate-50">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Tables</span>
+          <div className="p-4 border-b border-border bg-muted">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Tables</span>
           </div>
           <div className="p-2">
             {tables.map((table: any) => (
               <button
                 key={table.id}
                 onClick={() => { setActiveTableId(table.id); setPendingRows([]); setEditingId(null); }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${activeTableId === table.id ? 'bg-accent-green text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${activeTableId === table.id ? 'bg-accent-green text-white shadow-md' : 'text-foreground/80 hover:bg-muted'}`}
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-bold truncate">{table.name}</span>
                   <div className="flex items-center gap-1.5">
-                    <span className={`text-[10px] font-bold uppercase ${activeTableId === table.id ? 'text-white/70' : 'text-slate-400'}`}>{table.currency}</span>
-                    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full ${activeTableId === table.id ? 'bg-white/20 text-white/80' : 'bg-slate-100 text-slate-400'}`}>
+                    <span className={`text-[10px] font-bold uppercase ${activeTableId === table.id ? 'text-white/70' : 'text-muted-foreground'}`}>{table.currency}</span>
+                    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full ${activeTableId === table.id ? 'bg-white/20 text-white/80' : 'bg-muted text-muted-foreground'}`}>
                       {table.isAnnual === false ? 'Monthly' : 'Annual'}
                     </span>
                   </div>
@@ -259,7 +259,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
           {activeTable ? (
             <>
               {/* Panel header */}
-              <div className="p-5 border-b border-border bg-slate-50/50 flex justify-between items-center">
+              <div className="p-5 border-b border-border bg-muted/30 flex justify-between items-center">
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-bold text-navy">{activeTable.name}</h2>
@@ -269,7 +269,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                       </span>
                     )}
                   </div>
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
                     <Calendar size={12} /> Effective: {new Date(activeTable.effectiveDate).toLocaleDateString()}
                   </span>
                 </div>
@@ -286,19 +286,19 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                   )}
                   <button
                     onClick={addPendingRow}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-bold text-foreground/80 hover:bg-muted transition-colors"
                   >
                     <Plus size={13} className="text-emerald-500" /> Add Bracket
                   </button>
                   <button
                     onClick={() => setIsUploadModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-bold text-foreground/80 hover:bg-muted transition-colors"
                   >
                     <FileUp size={13} className="text-accent-green" /> Bulk Upload
                   </button>
                   <button
                     onClick={() => handleDeleteTable(activeTable.id, activeTable.name)}
-                    className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                   >
                     <Trash size={15} />
                   </button>
@@ -308,11 +308,11 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
               <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-border bg-slate-50">
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Lower Bound</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Upper Bound</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Rate %</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Fixed Cumulative</th>
+                  <tr className="border-b border-border bg-muted">
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Lower Bound</th>
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Upper Bound</th>
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Rate %</th>
+                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Fixed Cumulative</th>
                     <th className="px-5 py-3 w-20" />
                   </tr>
                 </thead>
@@ -329,12 +329,12 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                         <td className="px-3 py-2.5">
                           <div className="relative">
                             <input type="number" step="0.01" min="0" max="100" value={editRow.rate} onChange={e => setEditRow(p => ({ ...p, rate: e.target.value }))} placeholder="0.00" className={inputCls + ' pr-6'} />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">%</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
                             <input type="number" step="0.01" value={editRow.fixedAmount} onChange={e => setEditRow(p => ({ ...p, fixedAmount: e.target.value }))} placeholder="0.00" className={inputCls + ' pl-5'} />
                           </div>
                         </td>
@@ -343,17 +343,17 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                             <button onClick={handleSaveEdit} disabled={editSaving} className="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors disabled:opacity-50">
                               {editSaving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
                             </button>
-                            <button onClick={() => { setEditingId(null); setEditError(''); }} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
+                            <button onClick={() => { setEditingId(null); setEditError(''); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
                               <X size={13} />
                             </button>
                           </div>
                         </td>
                       </tr>
                     ) : (
-                      <tr key={bracket.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <tr key={bracket.id} className="hover:bg-muted/30 transition-colors group">
                         <td className="px-5 py-3.5 text-sm font-bold text-navy font-mono">{bracket.lowerBound.toLocaleString()}</td>
-                        <td className="px-5 py-3.5 text-sm font-mono text-slate-500">
-                          {bracket.upperBound != null ? bracket.upperBound.toLocaleString() : <span className="text-[10px] font-black text-slate-300 uppercase italic tracking-widest">And Above</span>}
+                        <td className="px-5 py-3.5 text-sm font-mono text-muted-foreground">
+                          {bracket.upperBound != null ? bracket.upperBound.toLocaleString() : <span className="text-[10px] font-black text-muted-foreground/50 uppercase italic tracking-widest">And Above</span>}
                         </td>
                         <td className="px-5 py-3.5">
                           <span className="px-2.5 py-1 rounded-full bg-blue-50 text-accent-green text-xs font-bold flex items-center gap-1 w-fit">
@@ -363,10 +363,10 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                         <td className="px-5 py-3.5 text-sm font-bold font-mono text-navy">{bracket.fixedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => startEdit(bracket)} className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-accent-green transition-colors">
+                            <button onClick={() => startEdit(bracket)} className="p-1.5 hover:bg-blue-50 rounded-lg text-muted-foreground hover:text-accent-green transition-colors">
                               <Pencil size={13} />
                             </button>
-                            <button onClick={() => handleDeleteBracket(bracket.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+                            <button onClick={() => handleDeleteBracket(bracket.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors">
                               <Trash size={13} />
                             </button>
                           </div>
@@ -395,17 +395,17 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                         <td className="px-3 py-2.5">
                           <div className="relative">
                             <input type="number" step="0.01" min="0" max="100" value={row.rate} onChange={e => updatePending(idx, 'rate', e.target.value)} placeholder="0.00" className={inputCls + ' pr-6'} />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">%</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
                             <input type="number" step="0.01" value={row.fixedAmount} onChange={e => updatePending(idx, 'fixedAmount', e.target.value)} placeholder="0.00" className={inputCls + ' pl-5'} />
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
-                          <button onClick={() => removePending(idx)} className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+                          <button onClick={() => removePending(idx)} className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors">
                             <X size={13} />
                           </button>
                         </td>
@@ -420,7 +420,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
 
                   {brackets.length === 0 && pendingRows.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic text-sm">
+                      <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic text-sm">
                         No brackets defined.{' '}
                         <button onClick={addPendingRow} className="text-accent-green font-bold not-italic hover:underline">Add the first bracket →</button>
                       </td>
@@ -440,7 +440,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                     <button
                       onClick={() => setPendingRows([])}
                       disabled={savingAll}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50"
                     >
                       Discard All
                     </button>
@@ -457,7 +457,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
               )}
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center p-20 text-slate-400">
+            <div className="flex flex-col items-center justify-center p-20 text-muted-foreground">
               <Hash size={48} className="opacity-10 mb-4" />
               <p className="font-medium">Select a tax table to view brackets</p>
             </div>

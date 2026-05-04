@@ -51,7 +51,7 @@ const Register: React.FC = () => {
       <div className="w-full max-w-[480px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-2">Create your account</h1>
-          <p className="text-slate-500 font-medium">You'll need a license token from your platform admin</p>
+          <p className="text-muted-foreground font-medium">You'll need a license token from your platform admin</p>
         </div>
 
         {error && (
@@ -62,13 +62,13 @@ const Register: React.FC = () => {
           {/* Name Row */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">First Name</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">First Name</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><User size={18} /></span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"><User size={18} /></span>
                 <input
                   type="text"
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                   placeholder="Jane"
                   value={form.firstName}
                   onChange={set('firstName')}
@@ -76,13 +76,13 @@ const Register: React.FC = () => {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Last Name</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Last Name</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><User size={18} /></span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"><User size={18} /></span>
                 <input
                   type="text"
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                   placeholder="Smith"
                   value={form.lastName}
                   onChange={set('lastName')}
@@ -93,13 +93,13 @@ const Register: React.FC = () => {
 
           {/* Phone */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Phone Number <span className="text-slate-400">(for 2FA)</span></label>
+            <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Phone Number <span className="text-muted-foreground">(for 2FA)</span></label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Phone size={18} /></span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"><Phone size={18} /></span>
               <input
                 type="tel"
                 required
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                className="w-full pl-12 pr-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="+263 77 123 4567"
                 value={form.phone}
                 onChange={set('phone')}
@@ -112,13 +112,13 @@ const Register: React.FC = () => {
             { field: 'licenseToken', label: 'License Token', icon: <Key size={18} />, type: 'text', placeholder: 'Paste your license token' },
           ].map(({ field, label, icon, type, placeholder }) => (
             <div key={field} className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">{label}</label>
+              <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{label}</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">{icon}</span>
                 <input
                   type={type}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                   placeholder={placeholder}
                   value={(form as any)[field]}
                   onChange={set(field)}
@@ -129,13 +129,13 @@ const Register: React.FC = () => {
 
           {/* Password with strength meter */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Password</label>
+            <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Password</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Lock size={18} /></span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"><Lock size={18} /></span>
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                className="w-full pl-12 pr-12 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="Min. 8 characters"
                 value={form.password}
                 onChange={set('password')}
@@ -143,7 +143,7 @@ const Register: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-navy transition-colors"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -151,7 +151,7 @@ const Register: React.FC = () => {
             </div>
             {form.password.length > 0 && (
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${strengthColor}`}
                     style={{ width: `${(strength / 4) * 100}%` }}
@@ -173,7 +173,7 @@ const Register: React.FC = () => {
             <ArrowRight size={18} />
           </button>
 
-          <p className="text-center text-sm font-medium text-slate-500">
+          <p className="text-center text-sm font-medium text-muted-foreground">
             Already have an account?
             <Link to="/login" className="ml-2 font-bold text-accent-green hover:underline">Sign in</Link>
           </p>

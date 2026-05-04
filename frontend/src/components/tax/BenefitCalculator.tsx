@@ -40,28 +40,28 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-border flex items-center justify-between bg-slate-50">
+        <div className="p-6 border-b border-border flex items-center justify-between bg-muted">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-accent-green/10 rounded-xl text-accent-green">
               <Calculator size={20} />
             </div>
             <div>
               <h3 className="font-bold text-navy">ZIMRA Benefit Calculator</h3>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Statutory Calculation Helper</p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Statutory Calculation Helper</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+          <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground">
             <X size={20} />
           </button>
         </div>
 
         <div className="p-6">
           {/* Type Selector */}
-          <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl mb-6">
+          <div className="flex gap-2 p-1 bg-muted rounded-2xl mb-6">
             <button
               onClick={() => setType('HOUSING')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                type === 'HOUSING' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+                type === 'HOUSING' ? 'bg-white text-navy shadow-sm' : 'text-muted-foreground hover:text-navy'
               }`}
             >
               <Home size={16} /> Housing
@@ -69,7 +69,7 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
             <button
               onClick={() => setType('SCHOOL')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                type === 'SCHOOL' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+                type === 'SCHOOL' ? 'bg-white text-navy shadow-sm' : 'text-muted-foreground hover:text-navy'
               }`}
             >
               <GraduationCap size={16} /> School Fees
@@ -79,12 +79,12 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
           {type === 'HOUSING' ? (
             <div className="space-y-4 animate-in slide-in-from-left-2 duration-300">
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Housing Type</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase">Housing Type</label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setHousingType('OWNED')}
                     className={`flex-1 py-3 px-4 rounded-2xl border-2 transition-all text-sm font-bold ${
-                      housingType === 'OWNED' ? 'border-accent-green bg-accent-green/5 text-accent-green' : 'border-border text-slate-400'
+                      housingType === 'OWNED' ? 'border-accent-green bg-accent-green/5 text-accent-green' : 'border-border text-muted-foreground'
                     }`}
                   >
                     Employer Owned (7% Rule)
@@ -92,7 +92,7 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
                   <button
                     onClick={() => setHousingType('RENTED')}
                     className={`flex-1 py-3 px-4 rounded-2xl border-2 transition-all text-sm font-bold ${
-                      housingType === 'RENTED' ? 'border-accent-green bg-accent-green/5 text-accent-green' : 'border-border text-slate-400'
+                      housingType === 'RENTED' ? 'border-accent-green bg-accent-green/5 text-accent-green' : 'border-border text-muted-foreground'
                     }`}
                   >
                     Rented / Lease
@@ -101,32 +101,32 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
               </div>
 
               {housingType === 'OWNED' ? (
-                <div className="p-4 bg-slate-50 rounded-2xl border border-border">
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                <div className="p-4 bg-muted rounded-2xl border border-border">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Under ZIMRA rules, free/subsidized housing in employer-owned property is taxed at <span className="font-bold text-navy">7% of gross salary</span>.
                   </p>
                   <div className="mt-3 flex justify-between items-center">
-                    <span className="text-xs font-medium text-slate-400">Current Salary:</span>
+                    <span className="text-xs font-medium text-muted-foreground">Current Salary:</span>
                     <span className="text-sm font-bold text-navy">${baseSalary.toLocaleString()}</span>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Market Rental / Cost to Employer</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Market Rental / Cost to Employer</label>
                     <input
                       type="number"
-                      className="w-full mt-1 px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy"
+                      className="w-full mt-1 px-4 py-3 bg-muted border border-border rounded-xl font-bold text-navy"
                       placeholder="0.00"
                       value={marketValue}
                       onChange={(e) => setMarketValue(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Amount Paid by Employee (if any)</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Amount Paid by Employee (if any)</label>
                     <input
                       type="number"
-                      className="w-full mt-1 px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy"
+                      className="w-full mt-1 px-4 py-3 bg-muted border border-border rounded-xl font-bold text-navy"
                       placeholder="0.00"
                       value={employeePayment}
                       onChange={(e) => setEmployeePayment(e.target.value)}
@@ -141,10 +141,10 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
                 School fees paid by the employer for an employee's children are a taxable benefit. The full amount is added to taxable income.
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Total Fees Paid</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase">Total Fees Paid</label>
                 <input
                   type="number"
-                  className="w-full mt-1 px-4 py-3 bg-slate-50 border border-border rounded-xl font-bold text-navy text-lg"
+                  className="w-full mt-1 px-4 py-3 bg-muted border border-border rounded-xl font-bold text-navy text-lg"
                   placeholder="0.00"
                   value={feesAmount}
                   onChange={(e) => setFeesAmount(e.target.value)}
@@ -157,7 +157,7 @@ const BenefitCalculator: React.FC<BenefitCalculatorProps> = ({ isOpen, onClose, 
           <div className="mt-8 pt-6 border-t border-border flex flex-col gap-4">
             <div className="flex justify-between items-end">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Calculated Benefit</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Calculated Benefit</p>
                 <p className="text-3xl font-black text-navy mt-1">${result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
               <button

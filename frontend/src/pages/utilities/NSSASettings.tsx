@@ -57,17 +57,17 @@ const NSSASettingsPage: React.FC = () => {
     <div className="max-w-2xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">NSSA Settings</h1>
-          <p className="text-slate-500 font-medium text-sm">Configure National Social Security Authority contribution rates</p>
+          <p className="text-muted-foreground font-medium text-sm">Configure National Social Security Authority contribution rates</p>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-slate-400 text-sm font-medium">Loading…</div>
+        <div className="text-muted-foreground text-sm font-medium">Loading…</div>
       ) : (
         <>
           {/* Info banner */}
@@ -83,28 +83,28 @@ const NSSASettingsPage: React.FC = () => {
             {/* USD Rates card */}
             <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-1">
-                <Shield size={18} className="text-slate-400" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">USD Payroll — Contribution Rates</h3>
+                <Shield size={18} className="text-muted-foreground" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">USD Payroll — Contribution Rates</h3>
               </div>
-              <p className="text-xs text-slate-400 font-medium mb-4">Applies to USD-currency payroll runs only.</p>
+              <p className="text-xs text-muted-foreground font-medium mb-4">Applies to USD-currency payroll runs only.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employee Rate (%)</label>
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">Employee Rate (%)</label>
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employeeRate}
                       onChange={(e) => handleChange('employeeRate', e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">%</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employer Rate (%)</label>
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">Employer Rate (%)</label>
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employerRate}
                       onChange={(e) => handleChange('employerRate', e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">%</span>
                   </div>
                 </div>
               </div>
@@ -113,28 +113,28 @@ const NSSASettingsPage: React.FC = () => {
             {/* ZiG Rates card */}
             <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-1">
-                <Shield size={18} className="text-slate-400" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">ZiG Payroll — Contribution Rates</h3>
+                <Shield size={18} className="text-muted-foreground" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">ZiG Payroll — Contribution Rates</h3>
               </div>
-              <p className="text-xs text-slate-400 font-medium mb-4">Applies to ZiG-currency payroll runs only. Changes here do not affect USD payroll.</p>
+              <p className="text-xs text-muted-foreground font-medium mb-4">Applies to ZiG-currency payroll runs only. Changes here do not affect USD payroll.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employee Rate (%)</label>
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">Employee Rate (%)</label>
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employeeRateZIG}
                       onChange={(e) => handleChange('employeeRateZIG', e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">%</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">Employer Rate (%)</label>
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">Employer Rate (%)</label>
                   <div className="relative">
                     <input type="number" step="0.01" min="0" max="100" value={form.employerRateZIG}
                       onChange={(e) => handleChange('employerRateZIG', e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">%</span>
                   </div>
                 </div>
               </div>
@@ -143,16 +143,16 @@ const NSSASettingsPage: React.FC = () => {
             {/* WCIF card */}
             <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <Shield size={18} className="text-slate-400" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">WCIF Rate</h3>
+                <Shield size={18} className="text-muted-foreground" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">WCIF Rate</h3>
               </div>
               <div className="max-w-xs">
-                <label className="block text-sm font-bold text-slate-600 mb-1.5">WCIF Rate (%)</label>
+                <label className="block text-sm font-bold text-foreground/80 mb-1.5">WCIF Rate (%)</label>
                 <div className="relative">
                   <input type="number" step="0.01" min="0" max="100" value={form.wcifRate}
                     onChange={(e) => handleChange('wcifRate', e.target.value)}
                     className="w-full px-4 py-2.5 pr-10 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green" required />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">%</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">%</span>
                 </div>
               </div>
             </div>
@@ -160,17 +160,17 @@ const NSSASettingsPage: React.FC = () => {
             {/* Ceiling card */}
             <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <Shield size={18} className="text-slate-400" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Maximum Insurable Earnings</h3>
+                <Shield size={18} className="text-muted-foreground" />
+                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Maximum Insurable Earnings</h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">
                     Earnings Ceiling (USD / month)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">$</span>
                     <input
                       type="number"
                       step="1"
@@ -181,17 +181,17 @@ const NSSASettingsPage: React.FC = () => {
                       required
                     />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium mt-1.5">
+                  <p className="text-xs text-muted-foreground font-medium mt-1.5">
                     Applies to USD payrolls only.
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1.5">
+                  <label className="block text-sm font-bold text-foreground/80 mb-1.5">
                     Earnings Ceiling (ZiG / month)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold font-mono">Z</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold font-mono">Z</span>
                     <input
                       type="number"
                       step="1"
@@ -202,7 +202,7 @@ const NSSASettingsPage: React.FC = () => {
                       required
                     />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium mt-1.5">
+                  <p className="text-xs text-muted-foreground font-medium mt-1.5">
                     Applies to ZiG payrolls only — set independently from the USD ceiling.
                   </p>
                 </div>
@@ -210,31 +210,31 @@ const NSSASettingsPage: React.FC = () => {
             </div>
 
             {/* Summary */}
-            <div className="bg-slate-50 border border-border rounded-2xl p-5">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Contribution Summary</p>
+            <div className="bg-muted border border-border rounded-2xl p-5">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Contribution Summary</p>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase mb-2">USD Payroll</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase mb-2">USD Payroll</p>
                   <div className="space-y-1">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Max Employee</span>
+                      <span className="text-muted-foreground font-medium">Max Employee</span>
                       <span className="font-bold text-emerald-600">$ {maxEmployeeContribUSD}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Max Employer</span>
+                      <span className="text-muted-foreground font-medium">Max Employer</span>
                       <span className="font-bold text-blue-600">$ {maxEmployerContribUSD}</span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase mb-2">ZiG Payroll</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase mb-2">ZiG Payroll</p>
                   <div className="space-y-1">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Max Employee</span>
+                      <span className="text-muted-foreground font-medium">Max Employee</span>
                       <span className="font-bold text-emerald-600">Z {maxEmployeeContribZIG}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Max Employer</span>
+                      <span className="text-muted-foreground font-medium">Max Employer</span>
                       <span className="font-bold text-blue-600">Z {maxEmployerContribZIG}</span>
                     </div>
                   </div>
@@ -262,7 +262,7 @@ const NSSASettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/utilities')}
-                className="px-4 py-2 rounded-full border border-border font-bold text-slate-500 hover:bg-slate-50"
+                className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted"
               >
                 Cancel
               </button>

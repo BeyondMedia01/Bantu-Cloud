@@ -29,11 +29,11 @@ const AdminDashboard: React.FC = () => {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Platform Administration</h1>
-        <p className="text-slate-500 text-sm font-medium">Manage the Bantu Payroll platform</p>
+        <p className="text-muted-foreground text-sm font-medium">Manage the Bantu Payroll platform</p>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48 text-slate-400"><Loader size={24} className="animate-spin" /></div>
+        <div className="flex items-center justify-center h-48 text-muted-foreground"><Loader size={24} className="animate-spin" /></div>
       ) : error ? (
         <div className="flex items-center justify-center h-48 text-red-500 gap-2 bg-red-50 rounded-xl mb-8">
           <AlertCircle size={20} />
@@ -51,7 +51,7 @@ const AdminDashboard: React.FC = () => {
                 {c.icon}
               </div>
               <p className="text-2xl font-bold mb-1">{c.value}</p>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{c.label}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{c.label}</p>
             </Link>
           ))}
         </div>
@@ -71,7 +71,7 @@ const AdminDashboard: React.FC = () => {
             className="bg-primary border border-border rounded-2xl p-6 shadow-sm hover:border-accent-green hover:shadow-md transition-all text-left block"
           >
             <p className="font-bold mb-1">{item.title}</p>
-            <p className="text-sm text-slate-500 font-medium">{item.desc}</p>
+            <p className="text-sm text-muted-foreground font-medium">{item.desc}</p>
           </Link>
         ))}
       </div>

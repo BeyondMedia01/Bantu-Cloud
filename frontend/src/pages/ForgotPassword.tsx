@@ -38,7 +38,7 @@ const ForgotPassword: React.FC = () => {
               <Mail size={28} />
             </div>
             <h2 className="text-xl font-bold mb-2">Check your inbox</h2>
-            <p className="text-slate-500 font-medium text-sm mb-6">
+            <p className="text-muted-foreground font-medium text-sm mb-6">
               If <strong>{email}</strong> is registered, we've sent a password reset link. Check your spam folder if it doesn't arrive.
             </p>
             <button
@@ -52,13 +52,13 @@ const ForgotPassword: React.FC = () => {
           <>
             <button
               onClick={() => navigate('/login')}
-              className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-navy transition-colors mb-6"
+              className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground hover:text-navy transition-colors mb-6"
             >
               <ArrowLeft size={15} /> Back to Sign In
             </button>
 
             <h1 className="text-2xl font-bold mb-1">Forgot password?</h1>
-            <p className="text-slate-500 font-medium text-sm mb-6">
+            <p className="text-muted-foreground font-medium text-sm mb-6">
               Enter your email and we'll send you a reset link.
             </p>
 
@@ -70,7 +70,7 @@ const ForgotPassword: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Email Address</label>
                 <input
                   type="email"
                   required
@@ -79,7 +79,7 @@ const ForgotPassword: React.FC = () => {
                   placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                  className="w-full px-4 py-3.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 />
               </div>
               <button

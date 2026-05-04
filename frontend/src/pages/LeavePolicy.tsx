@@ -115,7 +115,7 @@ const LeavePolicy: React.FC = () => {
       <header className="flex justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-navy">Leave Policies</h1>
-          <p className="text-slate-500 text-sm font-medium">Configure accrual rates, caps, and carry-over rules per leave type</p>
+          <p className="text-muted-foreground text-sm font-medium">Configure accrual rates, caps, and carry-over rules per leave type</p>
         </div>
         <button onClick={openAdd} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
           <Plus size={18} /> Add Policy
@@ -127,42 +127,42 @@ const LeavePolicy: React.FC = () => {
       {/* Policy Form */}
       {showForm && (
         <div className="bg-primary border border-border rounded-2xl p-6 shadow-sm">
-          <h2 className="font-bold text-sm uppercase tracking-wider text-slate-400 mb-5">
+          <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-5">
             {editId ? 'Edit Policy' : 'New Leave Policy'}
           </h2>
           <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Leave Type</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Leave Type</label>
               <Dropdown className="w-full" disabled={!!editId} trigger={(isOpen) => (
-                <button type="button" disabled={!!editId} className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors disabled:opacity-60">
+                <button type="button" disabled={!!editId} className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium flex items-center justify-between hover:border-accent-green transition-colors disabled:opacity-60">
                   <span>{fmtType(form.leaveType)}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               )} sections={[{ items: LEAVE_TYPES.map(t => ({ label: fmtType(t), onClick: () => setForm((p: any) => ({ ...p, leaveType: t })) })) }]} />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Accrual Rate (days/month)</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Accrual Rate (days/month)</label>
               <input type="number" step="any" min="0" required value={form.accrualRate} onChange={set('accrualRate')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Max Accumulation (days cap)</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Max Accumulation (days cap)</label>
               <input type="number" step="1" min="0" required value={form.maxAccumulation} onChange={set('maxAccumulation')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Carry-Over Limit (days, 0 = forfeit all)</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Carry-Over Limit (days, 0 = forfeit all)</label>
               <input type="number" step="1" min="0" required value={form.carryOverLimit} onChange={set('carryOverLimit')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Encashment Cap (days/year, 0 = unlimited)</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Encashment Cap (days/year, 0 = unlimited)</label>
               <input type="number" step="1" min="0" required value={form.encashCap} onChange={set('encashCap')}
-                className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
             </div>
             <div className="flex items-center gap-3 pt-6">
               <input type="checkbox" id="encashable" checked={form.encashable} onChange={set('encashable')} className="w-4 h-4 accent-accent-green" />
-              <label htmlFor="encashable" className="text-sm font-medium text-slate-700">Allow encashment</label>
+              <label htmlFor="encashable" className="text-sm font-medium text-foreground/90">Allow encashment</label>
             </div>
 
             <div className="sm:col-span-2 lg:col-span-3 flex gap-3 pt-2">
@@ -171,7 +171,7 @@ const LeavePolicy: React.FC = () => {
                 {saving ? 'Saving…' : editId ? 'Update Policy' : 'Create Policy'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
-                className="px-4 py-2 rounded-full font-bold border border-border hover:bg-slate-50">
+                className="px-4 py-2 rounded-full font-bold border border-border hover:bg-muted">
                 Cancel
               </button>
             </div>
@@ -181,27 +181,27 @@ const LeavePolicy: React.FC = () => {
 
       {/* Policies Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-slate-400" /></div>
+        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-muted-foreground" /></div>
       ) : policies.length === 0 ? (
         <div className="text-center py-16 bg-primary rounded-2xl border border-border">
           <Shield size={36} className="mx-auto mb-3 text-slate-200" />
-          <p className="font-bold text-slate-500 mb-1">No leave policies configured</p>
-          <p className="text-sm text-slate-400">Add policies to enable monthly accruals and year-end carry-over</p>
+          <p className="font-bold text-muted-foreground mb-1">No leave policies configured</p>
+          <p className="text-sm text-muted-foreground">Add policies to enable monthly accruals and year-end carry-over</p>
         </div>
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-slate-50">
+              <tr className="border-b border-border bg-muted">
                 {['Leave Type', 'Accrual Rate', 'Max Cap', 'Carry-Over', 'Encashable', 'Encash Cap', ''].map((h) => (
-                  <th key={h} className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {policies.map((p: any) => (
-                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={p.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-5 py-4">
                     <span className="font-bold text-sm">{fmtType(p.leaveType)}</span>
                   </td>
@@ -209,7 +209,7 @@ const LeavePolicy: React.FC = () => {
                   <td className="px-5 py-4 text-sm font-medium">{p.maxAccumulation} days</td>
                   <td className="px-5 py-4 text-sm font-medium">{p.carryOverLimit > 0 ? `${p.carryOverLimit} days` : 'Forfeit all'}</td>
                   <td className="px-5 py-4">
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.encashable ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.encashable ? 'bg-emerald-50 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                       {p.encashable ? 'Yes' : 'No'}
                     </span>
                   </td>
@@ -218,8 +218,8 @@ const LeavePolicy: React.FC = () => {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(p)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-navy transition-colors" title="Edit"><Edit size={16} /></button>
-                      <button onClick={() => handleDelete(p.id)} className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors" title="Delete"><Trash size={16} /></button>
+                      <button onClick={() => openEdit(p)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="Edit"><Edit size={16} /></button>
+                      <button onClick={() => handleDelete(p.id)} className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors" title="Delete"><Trash size={16} /></button>
                     </div>
                   </td>
                 </tr>

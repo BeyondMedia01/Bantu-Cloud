@@ -145,7 +145,7 @@ const Employees: React.FC = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm font-medium text-slate-500">
+        <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
           <span>
             Showing <span className="font-bold text-navy">{rangeStart}–{rangeEnd}</span> of{' '}
             <span className="font-bold text-navy">{total}</span> employees
@@ -154,17 +154,17 @@ const Employees: React.FC = () => {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 rounded-full border border-border hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-xs"
+              className="px-4 py-2 rounded-full border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-xs"
             >
               ← Previous
             </button>
-            <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold">
+            <span className="px-3 py-1.5 bg-muted rounded-full text-xs font-bold">
               {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-4 py-2 rounded-full border border-border hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-xs"
+              className="px-4 py-2 rounded-full border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-xs"
             >
               Next →
             </button>

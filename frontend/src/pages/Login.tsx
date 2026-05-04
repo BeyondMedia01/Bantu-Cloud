@@ -49,7 +49,7 @@ const Login: React.FC = () => {
       <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">Welcome back</h2>
-          <p className="text-slate-500 font-medium">Please enter your details to continue</p>
+          <p className="text-muted-foreground font-medium">Please enter your details to continue</p>
         </div>
 
         {error && (
@@ -60,14 +60,14 @@ const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+            <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Email Address</label>
             <div className="relative">
-              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                className="w-full pl-12 pr-4 py-3.5 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -76,14 +76,14 @@ const Login: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Password</label>
+            <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Password</label>
             <div className="relative">
-              <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
-                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                className="w-full pl-12 pr-12 py-3.5 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -91,7 +91,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-navy transition-colors"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -109,23 +109,23 @@ const Login: React.FC = () => {
           </button>
 
           <div className="flex items-center justify-between text-sm mt-1">
-            <p className="font-medium text-slate-500">
+            <p className="font-medium text-muted-foreground">
               Don't have an account?
               <Link to="/register" className="ml-2 font-bold text-accent-green hover:underline">Register</Link>
             </p>
-            <Link to="/forgot-password" className="font-bold text-slate-400 hover:text-navy transition-colors">
+            <Link to="/forgot-password" className="font-bold text-muted-foreground hover:text-navy transition-colors">
               Forgot password?
             </Link>
           </div>
           {isInitialized === false && (
-            <p className="text-center text-xs text-slate-400 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <p className="text-center text-xs text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-500">
               First time? <Link to="/setup" className="font-bold text-accent-green hover:underline">Platform Setup</Link>
             </p>
           )}
         </form>
       </div>
 
-      <div className="mt-10 flex items-center gap-8 text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">
+      <div className="mt-10 flex items-center gap-8 text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">
         <span>Contact</span>
         <span>Privacy</span>
         <span>Terms</span>

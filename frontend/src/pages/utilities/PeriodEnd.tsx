@@ -78,10 +78,10 @@ const PeriodEnd: React.FC = () => {
         />
       )}
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl"><ArrowLeft size={20} /></button>
+        <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl"><ArrowLeft size={20} /></button>
         <div>
           <h1 className="text-2xl font-bold">Period End Processing</h1>
-          <p className="text-slate-500 font-medium text-sm">Close a payroll period and finalise all runs</p>
+          <p className="text-muted-foreground font-medium text-sm">Close a payroll period and finalise all runs</p>
         </div>
       </div>
 
@@ -89,7 +89,7 @@ const PeriodEnd: React.FC = () => {
         <div className="bg-primary rounded-2xl border border-emerald-200 p-8 shadow-sm">
           <CheckCircle2 size={32} className="text-emerald-500 mb-4" />
           <h3 className="font-bold text-lg mb-2">Period Closed Successfully</h3>
-          <div className="text-sm text-slate-600 space-y-1">
+          <div className="text-sm text-foreground/80 space-y-1">
             <p>Runs completed: <strong>{result.runsCompleted}</strong></p>
             <p>Repayments marked DUE: <strong>{result.repaymentsMarked}</strong></p>
           </div>
@@ -102,14 +102,14 @@ const PeriodEnd: React.FC = () => {
           {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>}
 
           <div>
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Select Payroll Period *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Select Payroll Period *</label>
             <Dropdown className="w-full" trigger={(isOpen) => {
               const cal = (calendars as any[]).find(c => c.id === selectedId);
               const label = cal ? `${cal.isClosed ? '🔒 ' : ''}${cal.periodType} — ${new Date(cal.startDate).toLocaleDateString()} to ${new Date(cal.endDate).toLocaleDateString()}` : 'Choose an open period…';
               return (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                   <span className="truncate">{label}</span>
-                  <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               );
             }} sections={[{ items: [
@@ -119,7 +119,7 @@ const PeriodEnd: React.FC = () => {
           </div>
 
           {statusLoading && (
-            <div className="flex items-center gap-2 text-slate-400"><Loader size={16} className="animate-spin" /> Checking status…</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><Loader size={16} className="animate-spin" /> Checking status…</div>
           )}
 
           {status && !selectedCal?.isClosed && (
@@ -134,14 +134,14 @@ const PeriodEnd: React.FC = () => {
                   {status.readyToClose ? 'Ready to close' : 'Not ready to close'}
                 </p>
               </div>
-              <div className="text-sm space-y-0.5 text-slate-600">
+              <div className="text-sm space-y-0.5 text-foreground/80">
                 <p>Runs in progress: <strong>{status.runsInProgress}</strong></p>
                 <p>Unprocessed inputs: <strong>{status.pendingInputs}</strong></p>
               </div>
               {status.pendingInputDetails?.length > 0 && (
                 <div className="mt-3 border-t border-amber-200 pt-3 flex flex-col gap-1.5">
                   {status.pendingInputDetails.map((inp: any) => (
-                    <div key={inp.id} className="text-xs text-amber-800 bg-white rounded-lg px-3 py-2 border border-amber-100">
+                    <div key={inp.id} className="text-xs text-amber-800 bg-card rounded-lg px-3 py-2 border border-amber-100">
                       <span className="font-bold">{inp.employee}</span>
                       <span className="text-amber-600"> · {inp.transactionCode}</span>
                       <span className="text-amber-500 ml-1">({inp.period}, {inp.currency} {inp.amount})</span>
@@ -158,12 +158,12 @@ const PeriodEnd: React.FC = () => {
           )}
 
           {selectedCal?.isClosed && (
-            <div className="p-4 rounded-xl border bg-slate-50 border-slate-200">
+            <div className="p-4 rounded-xl border bg-muted border-border">
               <div className="flex items-center gap-2">
-                <Lock size={16} className="text-slate-400" />
-                <p className="font-bold text-sm text-slate-600">This period is currently closed.</p>
+                <Lock size={16} className="text-muted-foreground" />
+                <p className="font-bold text-sm text-foreground/80">This period is currently closed.</p>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Re-opening will allow you to run payroll and modify inputs for this cycle.
               </p>
             </div>

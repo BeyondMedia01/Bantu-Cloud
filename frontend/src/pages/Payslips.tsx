@@ -145,10 +145,10 @@ const Payslips: React.FC = () => {
   if (loading) return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4 animate-pulse">
-        <div className="w-9 h-9 rounded-xl bg-slate-100" />
+        <div className="w-9 h-9 rounded-xl bg-muted" />
         <div className="space-y-2">
-          <div className="h-4 w-24 bg-slate-100 rounded" />
-          <div className="h-3 w-48 bg-slate-50 rounded" />
+          <div className="h-4 w-24 bg-muted rounded" />
+          <div className="h-3 w-48 bg-muted rounded" />
         </div>
       </div>
       <SkeletonTable headers={['Employee', 'Basic', 'Gross', 'PAYE', 'NSSA', 'Net Pay', '']} />
@@ -158,19 +158,19 @@ const Payslips: React.FC = () => {
   const isDual = run?.dualCurrency;
   const ccy = run?.currency || 'USD';
 
-  const thCls = 'px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap';
+  const thCls = 'px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap';
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-slate-100 rounded-xl">
+          <button onClick={() => navigate('/payroll')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl">
             <ArrowLeft size={20} />
           </button>
           <div>
             <h1 className="text-2xl font-bold">Payslips</h1>
             {run && (
-              <p className="text-slate-500 font-medium text-sm">
+              <p className="text-muted-foreground font-medium text-sm">
                 {new Date(run.startDate).toLocaleDateString()} – {new Date(run.endDate).toLocaleDateString()}
                 {' · '}
                 {isDual ? (
@@ -184,11 +184,11 @@ const Payslips: React.FC = () => {
         <div className="flex items-center gap-2">
           {confirmSendAll ? (
             <>
-              <span className="text-sm font-medium text-slate-500">Send to {payslips.length} employees?</span>
+              <span className="text-sm font-medium text-muted-foreground">Send to {payslips.length} employees?</span>
               <button onClick={handleSendAll} className="flex items-center gap-1.5 px-4 py-2 bg-accent-green text-white rounded-full text-sm font-bold hover:opacity-90">
                 <Send size={14} /> Confirm
               </button>
-              <button onClick={() => setConfirmSendAll(false)} className="px-3 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50">
+              <button onClick={() => setConfirmSendAll(false)} className="px-3 py-2 border border-border rounded-full text-sm font-bold hover:bg-muted">
                 Cancel
               </button>
             </>
@@ -196,20 +196,20 @@ const Payslips: React.FC = () => {
             <button
               onClick={() => setConfirmSendAll(true)}
               disabled={sendingAll}
-              className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-muted disabled:opacity-50"
             >
               {sendingAll ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
               {sendingAll ? 'Sending…' : 'Send All Payslips'}
             </button>
           )}
-          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-slate-50">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-muted">
             <Download size={16} /> Export CSV
           </button>
         </div>
       </div>
 
       {payslips.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-muted-foreground">
           <FileText size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No payslips found for this run</p>
         </div>
@@ -232,7 +232,7 @@ const Payslips: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 {cards.map((s) => (
                   <div key={s.label} className="bg-primary rounded-2xl border border-border p-4 shadow-sm">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{s.label}</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{s.label}</p>
                     <p className="text-xl font-bold">{s.value}</p>
                   </div>
                 ))}
@@ -243,7 +243,7 @@ const Payslips: React.FC = () => {
           <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-x-auto">
             <table className="w-full text-left min-w-max">
               <thead>
-                <tr className="border-b border-border bg-slate-50">
+                <tr className="border-b border-border bg-muted">
                   <th scope="col" className={thCls}>Employee</th>
                   <th scope="col" className={thCls}>Position</th>
 
@@ -305,12 +305,12 @@ const Payslips: React.FC = () => {
                   const netUSD = p.netPayUSD ?? p.netPay;
 
                   return (
-                    <tr key={p.id} className="hover:bg-slate-50/50">
+                    <tr key={p.id} className="hover:bg-muted/30">
                       <td className="px-4 py-3">
                         <p className="font-bold text-sm">{p.employee?.firstName} {p.employee?.lastName}</p>
-                        <p className="text-xs text-slate-400">{p.employee?.employeeCode}</p>
+                        <p className="text-xs text-muted-foreground">{p.employee?.employeeCode}</p>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{p.employee?.position}</td>
+                      <td className="px-4 py-3 text-sm text-foreground/80">{p.employee?.position}</td>
 
                       {/* Basic from employee master */}
                       <td className="px-4 py-3 text-sm font-bold">{fmt(p.basicSalary)}</td>
@@ -356,7 +356,7 @@ const Payslips: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => handlePreview(p.id, p.employee?.lastName || '', p.employee?.firstName || '')}
-                            className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-navy"
+                            className="flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-navy"
                             title="Preview payslip"
                           >
                             <Eye size={14} /> Preview
@@ -375,7 +375,7 @@ const Payslips: React.FC = () => {
                             <button
                               onClick={() => handleSend(p.id)}
                               disabled={sendingIds.has(p.id)}
-                              className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-navy disabled:opacity-40"
+                              className="flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-navy disabled:opacity-40"
                             >
                               {sendingIds.has(p.id)
                                 ? <Loader2 size={14} className="animate-spin" />
@@ -400,7 +400,7 @@ const Payslips: React.FC = () => {
           onClick={closePreview}
         >
           <div
-            className="relative bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="relative bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden"
             style={{ width: '90vw', maxWidth: 900, height: '90vh' }}
             onClick={e => e.stopPropagation()}
           >
@@ -432,9 +432,9 @@ const Payslips: React.FC = () => {
       {/* Loading overlay for preview fetch */}
       {previewLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-3 shadow-2xl">
+          <div className="bg-card rounded-2xl p-8 flex flex-col items-center gap-3 shadow-2xl">
             <Loader2 size={32} className="animate-spin text-[#1a2e4a]" />
-            <p className="text-sm font-semibold text-slate-600">Loading preview…</p>
+            <p className="text-sm font-semibold text-foreground/80">Loading preview…</p>
           </div>
         </div>
       )}
