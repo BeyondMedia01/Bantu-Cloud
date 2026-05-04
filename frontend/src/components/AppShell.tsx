@@ -67,7 +67,7 @@ const AppShell: React.FC = () => {
       // Prefer dedicated firstName, fall back to first word of full name
       const first = d.firstName || d.name?.split(' ')[0] || null;
       setLiveUserName(first);
-    }).catch((err: unknown) => {
+    }).catch(() => {
     });
   }, []);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
