@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, CalendarDays, User } from 'lucide-react';
 import { EmployeeSelfAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
+import { getAvatarGradient } from '@/lib/avatarGradient';
 
 const EmployeeDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -75,7 +76,8 @@ const EmployeeDashboard: React.FC = () => {
       {/* Welcome */}
       <div className="bg-primary rounded-2xl border border-border p-8 shadow-sm mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-slate-100 border border-border flex items-center justify-center text-2xl font-bold text-slate-400">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
+            style={getAvatarGradient(`${profile?.firstName} ${profile?.lastName}`)}>
             {profile?.firstName?.[0]}{profile?.lastName?.[0]}
           </div>
           <div>

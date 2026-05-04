@@ -5,6 +5,7 @@ import type { Employee } from '../../types/employee';
 import { ReportsAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 import { StatusBadge } from '../common/StatusBadge';
+import { getAvatarGradient } from '@/lib/avatarGradient';
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -57,7 +58,8 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) =>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-9 h-9 rounded-full bg-slate-100 border border-border flex items-center justify-center text-slate-400 font-bold text-xs uppercase"
+                        className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs uppercase text-white"
+                        style={getAvatarGradient(`${emp.firstName} ${emp.lastName}`)}
                         aria-hidden="true"
                       >
                         {emp.firstName?.[0]}{emp.lastName?.[0]}

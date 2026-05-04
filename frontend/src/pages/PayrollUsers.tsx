@@ -3,6 +3,7 @@ import { PayrollUserAPI } from '../api/client';
 import { useState, useEffect } from 'react';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
+import { getAvatarGradient } from '@/lib/avatarGradient';
 
 const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
   const { showToast } = useToast();
@@ -143,7 +144,8 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                 <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
+                      <div className="w-10 h-10 rounded-full shadow-sm flex items-center justify-center font-bold text-xs uppercase text-white"
+                        style={getAvatarGradient(user.fullName)}>
                         {user.fullName[0]}{user.fullName.split(' ')[1]?.[0] || ''}
                       </div>
                       <div className="min-w-0">

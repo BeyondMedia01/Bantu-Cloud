@@ -2,6 +2,7 @@ import * as React from "react"
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
 
 import { cn } from "@/lib/utils"
+import { getAvatarGradient } from "@/lib/avatarGradient"
 
 function Avatar({
   className,
@@ -38,13 +39,18 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
 
 function AvatarFallback({
   className,
+  seed,
+  style,
   ...props
-}: AvatarPrimitive.Fallback.Props) {
+}: AvatarPrimitive.Fallback.Props & { seed?: string | null }) {
+  const gradientStyle = seed != null ? getAvatarGradient(seed) : undefined;
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
+      style={{ ...gradientStyle, ...style }}
       className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+        "flex size-full items-center justify-center rounded-full text-sm font-bold group-data-[size=sm]/avatar:text-xs",
+        !seed && "bg-muted text-muted-foreground",
         className
       )}
       {...props}

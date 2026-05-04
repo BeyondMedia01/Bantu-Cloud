@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash, Search, Database, Coins, XCircle } from 'lucide-react';
 import { PayrollCoreAPI } from '../api/client';
+import { getAvatarGradient } from '@/lib/avatarGradient';
 
 const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompanyId }) => {
   const [cores, setCores] = useState<any[]>([]);
@@ -105,7 +106,8 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                 <tr key={core.id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-border flex items-center justify-center text-slate-400 font-bold text-xs uppercase">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs uppercase text-white"
+                        style={getAvatarGradient(core.fullName)}>
                         {core.fullName[0]}
                       </div>
                       <div>
