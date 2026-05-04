@@ -7,8 +7,8 @@ interface Grade {
   id: string;
   name: string;
   description?: string | null;
-  minSalary: number | null;
-  maxSalary: number | null;
+  minSalary?: number | null;
+  maxSalary?: number | null;
   _count?: { employees: number };
 }
 

@@ -8,7 +8,7 @@ interface TaxTable {
   clientId?: string;
   name: string;
   currency: string;
-  effectiveDate: string;
+  effectiveDate?: string | null;
   expiryDate: string | null;
   isAnnual: boolean;
   isActive: boolean;

@@ -180,6 +180,7 @@ export interface PayrollInput {
   employeeUSD?: number | null;
   employeeZiG?: number | null;
   employerUSD?: number | null;
+  employerZiG?: number | null;
   duration?: string | null;
   processed?: boolean;
   notes?: string | null;
