@@ -53,7 +53,7 @@ const AppShell: React.FC = () => {
         } else {
           setActiveCompany(null);
         }
-      }).catch((err: unknown) => {
+      }).catch(() => {
       });
     }
   };
