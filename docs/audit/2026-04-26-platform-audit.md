@@ -876,3 +876,151 @@
 - **Issue:** `prisma.payrollInput.findMany({ where: {...}, include: { transactionCode: { select: {...} } } })` fetches the full `PayrollInput` row with no `select` on the model itself. The `PayrollInput` model has ~15 columns including `employeeUSD`, `employeeZiG`, `companyUSD`, `companyZiG`, `unitsType`, `units`, `balance`, `processed`, `period`, `notes`, etc. The engine uses most of these, but `createdAt`, `updatedAt`, `importSource`, and relation metadata are hydrated unnecessarily for every input on every payroll run. For a company with 200 employees × 10 inputs each this is 2,000 full model objects per run.
 - **Fix:** Add a `select` clause to the `payrollInput.findMany` that covers only the fields consumed by the processing loop: `id`, `employeeId`, `transactionCodeId`, `payrollRunId`, `employeeUSD`, `employeeZiG`, `companyUSD`, `companyZiG`, `units`, `unitsType`, `balance`, `processed`, `period`, plus the `transactionCode` sub-select already present.
 
+---
+
+## Schema Findings (Task 7)
+
+### [SC-001][High][Schema] `PayrollRun` has no cascade on Company delete — orphaned run rows block tenant offboarding
+- **Model:** `PayrollRun`
+- **Field:** `companyId` relation to `Company`
+- **Issue:** `company Company @relation(fields: [companyId], references: [id])` has no `onDelete` clause, so Prisma defaults to `Restrict`. If a company is deleted (e.g., tenant offboarding, test cleanup), the delete is blocked by existing `PayrollRun` rows. Cascades exist on `PayrollRun → Payslip` and `PayrollRun → PayrollTransaction`, so the child tables would be cleaned up — but the run itself would not, leaving the delete to fail at the DB level with a foreign key violation and no actionable error message to the caller.
+- **Fix:** Add `onDelete: Cascade` to the `company` relation on `PayrollRun`. Alternatively, add `onDelete: Restrict` explicitly and implement a soft-delete or archival flow for companies, with documentation.
+
+### [SC-002][High][Schema] `Employee` → `Company` and `Employee` → `Client` relations have no `onDelete` — cascading deletes of Company/Client fail silently or produce FK violations
+- **Model:** `Employee`
+- **Field:** `companyId` and `clientId` relations
+- **Issue:** Both `company Company @relation(...)` and `client Client @relation(...)` on `Employee` omit `onDelete`. The default `Restrict` means deleting a `Company` or `Client` with active employees throws a FK violation. `Company` cascades to many other models (`Branch`, `Department`, `PayrollRun`, etc.) via explicit `onDelete: Cascade`, so partial company deletes will succeed for those children but then fail when the DB hits `Employee` — leaving the company partially deleted and the DB in an inconsistent state. This is a data integrity risk during any tenant offboarding or company restructure operation.
+- **Fix:** Add `onDelete: Cascade` to both the `company` and `client` relations on `Employee`. Ensure all downstream Employee relations (`Payslip`, `LeaveBalance`, `Loan`, etc.) are consistently set — most already have `onDelete: Cascade` on the Employee FK, which is correct.
+
+### [SC-003][High][Schema] `Loan` → `Employee` has no cascade — deleting an employee leaves orphaned loans and repayments
+- **Model:** `Loan`
+- **Field:** `employeeId` relation to `Employee`
+- **Issue:** `employee Employee @relation(fields: [employeeId], references: [id])` has no `onDelete`. If an employee is deleted (discharge workflow, data correction), the `Loan` rows are not cleaned up. `LoanRepayment` cascades from `Loan` (`onDelete: Cascade`), so repayments would remain orphaned via the non-cascading parent. Orphaned loans retain financial balances that can appear in reports and payroll processing, corrupting totals.
+- **Fix:** Add `onDelete: Cascade` to the `employee` relation on `Loan`. If business rules require loan records to survive employee deletion, use `onDelete: Restrict` and enforce a "settle or write-off all loans before archiving employee" guard in the discharge route.
+
+### [SC-004][High][Schema] `LeaveRecord` → `Employee` has no cascade — deleting an employee orphans leave history
+- **Model:** `LeaveRecord`
+- **Field:** `employeeId` relation to `Employee`
+- **Issue:** `employee Employee @relation(fields: [employeeId], references: [id])` has no `onDelete`. Deletion of an employee does not remove associated leave records. Unlike `LeaveBalance` (which cascades), `LeaveRecord` will retain rows tied to a non-existent employee, polluting leave reports and blocking future `employeeId` reuse if codes are recycled.
+- **Fix:** Add `onDelete: Cascade` to the `employee` relation on `LeaveRecord`.
+
+### [SC-005][High][Schema] `LeaveRequest` → `Employee` has no cascade — same orphan risk as LeaveRecord
+- **Model:** `LeaveRequest`
+- **Field:** `employeeId` relation to `Employee`
+- **Issue:** Same pattern as SC-004. `employee Employee @relation(fields: [employeeId], references: [id])` has no `onDelete`. Pending or approved leave requests referencing a deleted employee will linger in the `LeaveRequest` table, appearing in manager approval queues with a broken employee reference.
+- **Fix:** Add `onDelete: Cascade` to the `employee` relation on `LeaveRequest`.
+
+### [SC-006][High][Schema] `PayrollTransaction` → `Employee` has no cascade — payroll history orphaned on employee delete
+- **Model:** `PayrollTransaction`
+- **Field:** `employeeId` relation to `Employee`
+- **Issue:** `employee Employee @relation(fields: [employeeId], references: [id])` has no `onDelete`. If an employee is deleted while a completed payroll run references them, `PayrollTransaction` rows are left with a dangling `employeeId`. These rows feed payroll reports; orphaned rows will produce null-reference errors in any reporting query that joins back to `Employee`.
+- **Fix:** Add `onDelete: Restrict` (preferred for financial audit trail — block employee deletion if payroll transactions exist) or `onDelete: SetNull` (if the employee FK is made nullable). Do not cascade-delete financial transactions; preserve them with a null or archived employee reference.
+
+### [SC-007][High][Schema] `CurrencyRate` has no unique constraint on `(companyId, fromCurrency, toCurrency, effectiveDate)` — duplicate rates for same day accepted silently
+- **Model:** `CurrencyRate`
+- **Field:** `(companyId, fromCurrency, toCurrency, effectiveDate)`
+- **Issue:** Only `@@index([companyId, effectiveDate])` exists; there is no `@@unique`. A duplicate POST request (retry, double-click) or an import script run twice will insert two rows for the same currency pair and date. The payroll engine selects the "most recent" rate by `effectiveDate desc` — on a tie it picks the first row returned by the DB (non-deterministic). This can cause different payroll runs to use different exchange rates for the same nominal date, producing calculation discrepancies that are invisible at the UI level.
+- **Fix:** Add `@@unique([companyId, fromCurrency, toCurrency, effectiveDate])`. Update the upsert/create routes to use `prisma.currencyRate.upsert({ where: { companyId_fromCurrency_toCurrency_effectiveDate: ... }, ... })`.
+
+### [SC-008][High][Schema] `SystemSetting` has no `companyId` — global settings cannot be overridden per-tenant; all tenants share a single row
+- **Model:** `SystemSetting`
+- **Field:** `settingName` (no tenant scoping)
+- **Issue:** `SystemSetting` has no `companyId` or `clientId`. The `@@unique([settingName, effectiveFrom])` constraint means there can only be one global value per setting per effective date, shared across all tenants. Settings like `nssaRate`, `wcifRate`, `zimdefRate` vary by company industry. The schema comment on `Company` notes industry-specific overrides on the `Company` model itself (e.g., `wcifRate`, `sdfRate`), but `SystemSetting` as a fallback has no tenant dimension, so any tenant-specific default must be hard-coded in application logic rather than stored in the settings table. This creates a rigid global-only table that cannot serve multi-tenant configuration needs.
+- **Fix:** Add an optional `clientId String?` column and update `@@unique` to `@@unique([clientId, settingName, effectiveFrom])` (null `clientId` = global default). Index `[clientId, settingName, isActive]` for tenant-aware lookups. Update the settings resolver to prefer a client-scoped row over the global fallback.
+
+### [SC-009][Medium][Schema] `PayrollRun.payrollCalendarId` is optional (`String?`) — payroll runs can exist with no calendar linkage, breaking period validation
+- **Model:** `PayrollRun`
+- **Field:** `payrollCalendarId`
+- **Issue:** `payrollCalendarId String?` allows a `PayrollRun` to be created without being linked to a `PayrollCalendar`. The calendar is the source of truth for whether a period is open/closed (`isClosed`). Without a calendar link, the payroll engine cannot enforce that duplicate runs are not created for the same closed period. Routes that check `payrollCalendar.isClosed` will simply skip the check when the FK is null.
+- **Fix:** Either (a) make `payrollCalendarId` required (`String`, not `String?`) and enforce calendar creation before payroll run creation; or (b) keep it optional but add a DB check constraint or application-level guard that prevents creating a second `DRAFT` or `APPROVED` run for the same `(companyId, startDate, endDate)` without a calendar reference.
+
+### [SC-010][Medium][Schema] `PayrollInput.payrollRunId` is optional (`String?`) — inputs can float detached from any run, complicating deduplication
+- **Model:** `PayrollInput`
+- **Field:** `payrollRunId`
+- **Issue:** `payrollRunId String?` is intentional for "pre-loaded" inputs not yet attached to a run, but there is no lifecycle enforcement. An input record with `payrollRunId = null` and `processed = false` that was created but never attached to a run will persist indefinitely. The processing engine queries `where: { payrollRunId, processed: false }` so these orphaned inputs are invisible to normal processing but accumulate as dead data. There is also no `@@unique` to prevent two active inputs for the same `(employeeId, transactionCodeId, period)`.
+- **Fix:** Add `@@unique([employeeId, transactionCodeId, period])` to prevent duplicate active inputs per period. Add a periodic cleanup job or soft-delete flag for unattached inputs older than N periods.
+
+### [SC-011][Medium][Schema] `EmployeeBankAccount.splitType` is a free-text `String` — no DB-level constraint prevents invalid values
+- **Model:** `EmployeeBankAccount`
+- **Field:** `splitType String @default("REMAINDER")`
+- **Issue:** The comment notes valid values are `"FIXED" | "PERCENTAGE" | "REMAINDER"`, but the field is a plain `String`. Any other value (e.g., a typo like `"FIXED_AMOUNT"`, an empty string, or a value from a different locale) is accepted by the DB. The bank payment export logic branches on this string; an unexpected value silently falls through to an unhandled case, potentially exporting zero amounts or skipping an employee's bank transfer.
+- **Fix:** Define a `SplitType` enum (`FIXED`, `PERCENTAGE`, `REMAINDER`) and change the field to `splitType SplitType @default(REMAINDER)`. This enforces valid values at the DB level.
+
+### [SC-012][Medium][Schema] `EmployeeDocument.type` is a free-text `String` — document type classification is unconstrained
+- **Model:** `EmployeeDocument`
+- **Field:** `type String`
+- **Issue:** The comment lists `"ID", "CONTRACT", "MEDICAL", "OTHER"` as valid values but the field is a plain `String`. Documents can be stored with arbitrary type strings, making document-type filtering unreliable (e.g., a query for `type = "ID"` would miss documents stored as `"id"` or `"National ID"`). No DB constraint prevents invalid classification.
+- **Fix:** Define a `DocumentType` enum and apply it to the field. If extension is needed, keep `OTHER` as a catch-all and add a `subType String?` for free-text.
+
+### [SC-013][Medium][Schema] `AttendanceLog.punchType` and `.source` are free-text strings — no DB constraint on punch event classification
+- **Model:** `AttendanceLog`
+- **Field:** `punchType String`, `source String`
+- **Issue:** `punchType` should be one of `IN | OUT | BREAK_IN | BREAK_OUT` and `source` one of `DEVICE | MANUAL | IMPORT | HIKVISION`. Both are plain strings. The attendance processing engine branches on these values; an unexpected value (e.g., device firmware returning `"CHECK_IN"` instead of `"IN"`) silently falls through, producing an unprocessed log that never generates an `AttendanceRecord`. This can cause ghost absences in payroll.
+- **Fix:** Define `PunchType` and `AttendanceSource` enums. Change both fields to use the respective enum.
+
+### [SC-014][Medium][Schema] `AttendanceRecord.status` is a free-text `String` — attendance status is unconstrained
+- **Model:** `AttendanceRecord`
+- **Field:** `status String @default("PRESENT")`
+- **Issue:** Valid values noted in the comment are `PRESENT | ABSENT | HALF_DAY | HOLIDAY | LEAVE`, but the field is a plain `String`. Payroll processing logic and leave integration branch on this value. Any spelling variation or future value added by a developer without updating all branch sites will produce silent incorrect behavior.
+- **Fix:** Define an `AttendanceStatus` enum and apply it to the field.
+
+### [SC-015][Medium][Schema] `LeavePolicy.leaveType` and `LeaveBalance.leaveType` are free-text strings — leave type taxonomy is unconstrained across three tables
+- **Model:** `LeavePolicy`, `LeaveBalance`, `LeaveRecord`, `LeaveRequest`
+- **Field:** `leaveType String` (all four models)
+- **Issue:** All four leave models store leave type as a plain `String`. The `@@unique([companyId, leaveType])` on `LeavePolicy` provides some protection, but `LeaveBalance`, `LeaveRecord`, and `LeaveRequest` have no such constraint. A `LeaveRequest` created with `type = "annual"` (lowercase) will not match a `LeavePolicy` with `leaveType = "ANNUAL"`, causing the policy lookup to fail silently and skip accrual or entitlement validation.
+- **Fix:** Define a `LeaveType` enum covering `ANNUAL`, `SICK`, `MATERNITY`, `PATERNITY`, `UNPAID`, `STUDY`, `COMPASSIONATE`, `OTHER`. Use it on all four models. For `OTHER`, add an optional `leaveTypeCustom String?` for extensibility.
+
+### [SC-016][Medium][Schema] `LeaveEncashment.status` is a free-text `String` — encashment workflow state is unconstrained
+- **Model:** `LeaveEncashment`
+- **Field:** `status String @default("PENDING")`
+- **Issue:** Valid values are `PENDING | APPROVED | PROCESSED | REJECTED` but the field is a plain `String`. No DB constraint prevents invalid state transitions or typos. The payroll integration reads this field to decide whether to include the encashment amount in a payroll run; an invalid status silently skips the encashment.
+- **Fix:** Define an `EncashmentStatus` enum and apply it to the field. This also makes the `LeaveStatus` enum (already defined for `LeaveRecord`/`LeaveRequest`) a candidate for reuse if the status values are aligned.
+
+### [SC-017][Medium][Schema] `TransactionCode.calculationType` is a free-text `String` — calculation engine branches on this without DB validation
+- **Model:** `TransactionCode`
+- **Field:** `calculationType String @default("fixed")`
+- **Issue:** The payroll calculation engine branches on `calculationType` being one of `"fixed" | "percentage" | "formula"`. This is a plain `String`. A value saved with mixed case (`"Fixed"`) or a typo (`"percentge"`) bypasses all branching, defaulting to zero or throwing an unhandled error at payroll run time. The incorrect value would not be caught until a payroll run is processed.
+- **Fix:** Define a `CalculationType` enum (`FIXED`, `PERCENTAGE`, `FORMULA`) and migrate the field. Update the engine to use enum comparison.
+
+### [SC-018][Medium][Schema] `PayrollCore` has no `@@index` on `(companyId, employeeId)` — bank export queries will full-scan the table
+- **Model:** `PayrollCore`
+- **Field:** `companyId`, `employeeId`
+- **Issue:** `PayrollCore` is used for bank export generation and currency configuration snapshots. There are no indexes on this model at all. Bank export routes filter by `companyId` and optionally `employeeId`. Without an index, every bank export request performs a sequential scan of the entire `PayrollCore` table. As the platform grows and snapshot records accumulate, this becomes a progressively worse full table scan.
+- **Fix:** Add `@@index([companyId])` and `@@index([employeeId])`. Consider `@@unique([companyId, employeeId])` if only one active `PayrollCore` per employee per company is the intended invariant (currently no uniqueness is enforced).
+
+### [SC-019][Medium][Schema] `TaxTable` has no index on `(clientId, isActive)` or `(clientId, currency, isActive)` — active tax table lookup requires a full table scan per client
+- **Model:** `TaxTable`
+- **Field:** `clientId`, `isActive`, `currency`
+- **Issue:** Every payroll run fetches the active tax table via a query like `{ where: { clientId, isActive: true, currency } }`. The `TaxTable` model has no indexes. For a platform with many clients each maintaining multiple historical tax tables, this query scans all rows to find the single active one. At scale (50 clients × 10 historical tables each = 500 rows minimum) this is a sequential scan on every payroll calculation.
+- **Fix:** Add `@@index([clientId, isActive])` and `@@index([clientId, currency, isActive])`.
+
+### [SC-020][Medium][Schema] `TransactionCodeRule` has no index on `isActive` — rule evaluation scans all rules for a transaction code
+- **Model:** `TransactionCodeRule`
+- **Field:** `isActive`, `transactionCodeId`
+- **Issue:** The existing `@@index([transactionCodeId])` covers the primary lookup, but rule evaluation typically also filters `isActive: true`. Without a compound index, the DB fetches all rules for a transaction code (active and inactive) and filters in memory. For codes with many historical inactive rules this grows unboundedly.
+- **Fix:** Change the existing index to `@@index([transactionCodeId, isActive])` or add a separate `@@index([transactionCodeId, isActive, priority])` to also support the `orderBy: { priority }` that rule evaluation uses.
+
+### [SC-021][Low][Schema] `TaxBracket` has no `updatedAt` — bracket changes leave no audit trail
+- **Model:** `TaxBracket`
+- **Field:** missing `updatedAt`
+- **Issue:** `TaxBracket` has only `createdAt`. Tax brackets are mutated when a client updates their tax table. Without `updatedAt`, there is no way to determine when a bracket was last changed, breaking the audit trail for ZIMRA compliance. If a payroll was calculated with incorrect brackets, the investigation cannot determine when the bracket was edited.
+- **Fix:** Add `updatedAt DateTime @updatedAt` to `TaxBracket`.
+
+### [SC-022][Low][Schema] `LoanRepayment` — `payrollRunId` FK has no cascade — run deletion leaves repayments with stale run references
+- **Model:** `LoanRepayment`
+- **Field:** `payrollRunId` relation to `PayrollRun`
+- **Issue:** `payrollRun PayrollRun? @relation(fields: [payrollRunId], references: [id])` has no `onDelete`. If a `DRAFT` payroll run is cancelled and deleted, any `LoanRepayment` rows already linked to it retain the stale `payrollRunId`. On the next payroll run, the repayment processor queries `where: { status: UNPAID }` (not filtered by run) and may re-process repayments that were already partially committed to the cancelled run, leading to double-deduction.
+- **Fix:** Add `onDelete: SetNull` to the `payrollRun` relation on `LoanRepayment`. Add application-level logic to reset `status` back to `UNPAID` when the linked run is deleted.
+
+### [SC-023][Low][Schema] `NecTable` and `NecGrade` have no index on `(clientId)` and `(clientId, sector)` — NEC grade lookup for payroll is unindexed at the client level
+- **Model:** `NecTable`
+- **Field:** `clientId`, `sector`
+- **Issue:** `NecTable` has no `@@index` declarations. When the payroll engine resolves a `NEC_GRADE` employee's rate, it queries `NecTable` filtered by `clientId` and `sector`. Without an index, this is a full table scan. As clients build up historical NEC tables per sector, this degrades.
+- **Fix:** Add `@@index([clientId])` and `@@index([clientId, sector])` to `NecTable`.
+
+### [SC-024][Low][Schema] `Employee` model has 55+ fields — candidate for decomposition into sub-tables
+- **Model:** `Employee`
+- **Field:** multiple field groups
+- **Issue:** The `Employee` model has approximately 55 columns spanning personal data, employment data, pay configuration, tax configuration, and split-currency configuration. This violates the single-responsibility principle at the schema level. SELECT * on `Employee` (which occurs in several routes without a `select`) hydrates all 55 columns including tax directives, ZIMRA TIN, motor vehicle benefit details, and bank account fragments — many of which are only needed in specific contexts. Wide rows also increase the cost of index scans on the table.
+- **Fix:** Consider extracting into related sub-tables: `EmployeeTaxConfig` (all `tax*` fields, `tin`, `accumulativeSetting`), `EmployeePayConfig` (`baseRate`, `currency`, `paymentBasis`, `splitZig*`, `motorVehicle*`), and `EmployeePersonalInfo` (`dateOfBirth`, `gender`, `nationality`, `nationalId`, `passportNumber`, `nextOfKin*`). Keep only the most-queried operational fields (`companyId`, `employeeCode`, `firstName`, `lastName`, `position`, `employmentType`, `startDate`, `dischargeDate`) on the core `Employee` table. This is a large migration; prioritise adding `select` clauses to all routes as an interim fix.
+
