@@ -46,7 +46,7 @@ const Login: React.FC = () => {
         <h1 className="text-3xl font-bold tracking-tight text-navy">Bantu Payroll</h1>
       </div>
 
-      <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-10">
+      <div className="w-full max-w-[440px] bg-primary rounded-2xl border border-border shadow-sm p-6 sm:p-10">
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">Welcome back</h2>
           <p className="text-muted-foreground font-medium">Please enter your details to continue</p>

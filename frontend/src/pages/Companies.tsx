@@ -265,7 +265,7 @@ const Companies: React.FC = () => {
                       <Trash size={14} />
                     </button>
                     <button onClick={() => startEdit(company)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-accent-green hover:bg-blue-50 rounded-lg transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-accent-green hover:bg-emerald-50 rounded-lg transition-colors">
                       <Pencil size={13} /> Edit
                     </button>
                   </div>

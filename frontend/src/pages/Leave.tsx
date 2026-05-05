@@ -126,7 +126,7 @@ const Leave: React.FC = () => {
       </header>
 
       {/* Sub-navigation tabs */}
-      <div className="flex items-center gap-1 border-b border-border">
+      <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
         {SUB_TABS.map((tab) => {
           const active = location.pathname === tab.to;
           return (
@@ -158,7 +158,7 @@ const Leave: React.FC = () => {
             </button>
           )}
         </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <Dropdown
           className="w-full"
           trigger={(isOpen) => (

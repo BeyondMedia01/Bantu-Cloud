@@ -146,14 +146,22 @@ const AppShell: React.FC = () => {
   const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <Link
-        to={homeLink}
-        className={`flex items-center border-b border-border shrink-0 py-5
-          ${collapsed && !mobile ? 'justify-center px-0' : 'gap-3 px-5'}`}
-      >
-        <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
-        {(!collapsed || mobile) && <span className="text-lg font-bold tracking-tight">Bantu</span>}
-      </Link>
+      <div className={`flex items-center border-b border-border shrink-0 py-5
+          ${collapsed && !mobile ? 'justify-center px-0' : 'gap-3 px-5'}`}>
+        <Link to={homeLink} className="flex items-center gap-3 flex-1 min-w-0">
+          <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
+          {(!collapsed || mobile) && <span className="text-lg font-bold tracking-tight">Bantu</span>}
+        </Link>
+        {mobile && (
+          <button
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close navigation menu"
+            className="p-1.5 rounded-lg hover:bg-muted text-slate-400 transition-colors shrink-0"
+          >
+            <PanelLeftClose size={18} />
+          </button>
+        )}
+      </div>
 
       {/* Company switcher — hidden when collapsed */}
       {!isEmployee && !isAdmin && (!collapsed || mobile) && (
@@ -315,7 +323,7 @@ const AppShell: React.FC = () => {
 
       {/* Main content */}
       <main className={`flex-1 min-w-0 ${mainML} min-h-screen transition-all duration-200`}>
-        <div className="pt-[70px] md:pt-8 px-4 sm:px-8 pb-8 max-w-[1400px] mx-auto">
+        <div className="pt-16 md:pt-8 px-4 sm:px-8 pb-8 max-w-[1400px] mx-auto">
           <Outlet />
         </div>
       </main>

@@ -239,7 +239,7 @@ const ClientAdminStructure: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl w-fit max-w-full overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t}
@@ -258,7 +258,7 @@ const ClientAdminStructure: React.FC = () => {
               New {TAB_LABELS[tab].replace(/s$/, '')}
             </h3>
             {error && <p className="text-sm text-red-600">{error}</p>}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Name <span className="text-red-400">*</span></label>
                 <input
