@@ -148,7 +148,7 @@ const AppShell: React.FC = () => {
       {/* Logo */}
       <div className={`flex items-center border-b border-border shrink-0 py-5
           ${collapsed && !mobile ? 'justify-center px-0' : 'gap-3 px-5'}`}>
-        <Link to={homeLink} className="flex items-center gap-3 flex-1 min-w-0">
+        <Link to={homeLink} className={`flex items-center gap-3 min-w-0 ${collapsed && !mobile ? '' : 'flex-1'}`}>
           <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
           {(!collapsed || mobile) && <span className="text-lg font-bold tracking-tight">Bantu</span>}
         </Link>
