@@ -78,7 +78,7 @@ function FormLabel({
     >
       {children}
       {required && (
-        <span className="ml-0.5 text-red-500" aria-hidden="true">*</span>
+        <span className="ml-0.5 text-destructive" aria-hidden="true">*</span>
       )}
     </Label>
   )
@@ -116,7 +116,7 @@ function FormMessage({ className, children, ...props }: React.ComponentProps<"p"
     <p
       data-slot="form-message"
       id={formMessageId}
-      className={cn("text-xs text-red-500", className)}
+      className={cn("text-xs text-destructive", className)}
       {...props}
     >
       {body}

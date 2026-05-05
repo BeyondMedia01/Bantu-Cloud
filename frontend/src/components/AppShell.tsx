@@ -135,7 +135,7 @@ const AppShell: React.FC = () => {
         title={collapsed ? link.label : undefined}
         className={`flex items-center gap-3 rounded-xl text-sm font-bold transition-all
           ${collapsed ? 'justify-center px-0 py-2.5 mx-1' : 'px-3 py-2.5'}
-          ${active ? 'bg-brand text-navy shadow-sm' : 'text-muted-foreground hover:bg-muted dark:hover:bg-slate-700 hover:text-navy dark:hover:text-slate-100'}`}
+          ${active ? 'bg-brand text-navy shadow-sm' : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted hover:text-navy dark:hover:text-foreground'}`}
       >
         <span className="shrink-0">{link.icon}</span>
         {!collapsed && <span>{link.label}</span>}

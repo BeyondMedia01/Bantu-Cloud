@@ -9,7 +9,7 @@ interface FieldProps {
 }
 
 const inputClass =
-  'w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium text-sm';
+  'w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium text-sm';
 
 export const Field: React.FC<FieldProps> = ({ label, required, className, children }) => {
   const id = React.useId();

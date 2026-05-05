@@ -4,6 +4,7 @@ import { ArrowLeft, Download, Users, TrendingUp, TrendingDown, DollarSign, Bankn
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { Dropdown } from '../components/ui/dropdown';
+import { RUN_STATUS_CLASS } from '../lib/payrollStatusColors';
 
 const fmt = (n: number | null | undefined) =>
   n != null ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -162,14 +163,6 @@ const PayrollSummary: React.FC = () => {
     </div>
   );
 
-  const statusColor: Record<string, string> = {
-    COMPLETED: 'bg-emerald-100 text-emerald-700',
-    PROCESSING: 'bg-blue-100 text-blue-700',
-    DRAFT: 'bg-muted text-foreground/80',
-    ERROR: 'bg-red-100 text-red-700',
-    PENDING_APPROVAL: 'bg-amber-100 text-amber-700',
-    APPROVED: 'bg-teal-100 text-teal-700',
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -187,7 +180,7 @@ const PayrollSummary: React.FC = () => {
                 {' – '}
                 {new Date(run.endDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor[run.status] || 'bg-muted text-foreground/80'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${RUN_STATUS_CLASS[run.status] || 'bg-muted text-foreground/80'}`}>
                 {run.status}
               </span>
               <span className="text-muted-foreground text-xs font-bold">

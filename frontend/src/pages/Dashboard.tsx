@@ -16,18 +16,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { RUN_STATUS_CLASS } from '../lib/payrollStatusColors';
 
 const fmtDate = (d: string | undefined) =>
   d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-
-const RUN_STATUS_CLASS: Record<string, string> = {
-  DRAFT: 'bg-muted text-foreground/80',
-  PENDING_APPROVAL: 'bg-amber-100 text-amber-700',
-  APPROVED: 'bg-blue-100 text-blue-700',
-  PROCESSING: 'bg-purple-100 text-purple-700',
-  COMPLETED: 'bg-emerald-100 text-emerald-600',
-  ERROR: 'bg-red-100 text-red-600',
-};
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
@@ -49,11 +41,11 @@ const Dashboard: React.FC = () => {
 
   const pieData = summary
     ? [
-        { name: 'Employees', value: Math.max(summary.employeeCount, 1), fill: '#0F172A' },
-        { name: 'Pending Leave', value: Math.max(summary.pendingLeave, 0), fill: '#b2db64' },
-        { name: 'Active Loans', value: Math.max(summary.activeLoans, 0), fill: '#E2E8F0' },
+        { name: 'Employees', value: Math.max(summary.employeeCount, 1), fill: 'var(--color-navy)' },
+        { name: 'Pending Leave', value: Math.max(summary.pendingLeave, 0), fill: 'var(--color-brand)' },
+        { name: 'Active Loans', value: Math.max(summary.activeLoans, 0), fill: 'var(--border)' },
       ]
-    : [{ name: 'N/A', value: 1, fill: '#E2E8F0' }];
+    : [{ name: 'N/A', value: 1, fill: 'var(--border)' }];
 
   const currentRun = summary?.currentRun ?? null;
   const noTinCount = summary?.noTinCount ?? 0;
@@ -319,16 +311,16 @@ const Dashboard: React.FC = () => {
                 <AreaChart data={trend} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#b2db64" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#b2db64" stopOpacity={0} />
+                      <stop offset="5%" stopColor="var(--color-brand)" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="var(--color-brand)" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorGross" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0F172A" stopOpacity={0.08} />
-                      <stop offset="95%" stopColor="#0F172A" stopOpacity={0} />
+                      <stop offset="5%" stopColor="var(--color-navy)" stopOpacity={0.08} />
+                      <stop offset="95%" stopColor="var(--color-navy)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 600 }} dy={10} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 12, fontWeight: 600 }} dy={10} />
                   <Tooltip
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: 12 }}
                     formatter={(value, name) => [
@@ -336,8 +328,8 @@ const Dashboard: React.FC = () => {
                       name === 'netPay' ? 'Net Pay' : 'Gross Pay',
                     ]}
                   />
-                  <Area type="monotone" dataKey="grossPay" stroke="#CBD5E1" strokeWidth={2} fillOpacity={1} fill="url(#colorGross)" />
-                  <Area type="monotone" dataKey="netPay" stroke="#b2db64" strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" />
+                  <Area type="monotone" dataKey="grossPay" stroke="var(--border)" strokeWidth={2} fillOpacity={1} fill="url(#colorGross)" />
+                  <Area type="monotone" dataKey="netPay" stroke="var(--color-brand)" strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (

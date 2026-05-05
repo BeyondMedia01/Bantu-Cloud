@@ -9,7 +9,7 @@ interface EmployeeModalProps {
 }
 
 const labelClass = 'text-xs font-bold text-foreground/60 uppercase tracking-wider';
-const inputClass = 'w-full bg-background border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/20 font-medium text-foreground';
+const inputClass = 'w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/20 font-medium text-foreground';
 
 const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialData }) => {
   const [formData, setFormData] = useState(initialData || {
@@ -93,7 +93,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="em-currency" className={labelClass}>Currency</label>
                 <Dropdown className="w-full" trigger={(isOpen) => (
-                  <button type="button" className="w-full bg-background border border-border rounded-xl px-4 py-2.5 font-bold text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
+                  <button type="button" className="w-full bg-background border border-border rounded-lg px-4 py-2.5 font-bold text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
                     <span>{formData.currency}</span>
                     <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -105,7 +105,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="em-taxable-benefits" className="text-xs font-bold text-accent-green uppercase tracking-wider">Tax. Benefits</label>
                 <input id="em-taxable-benefits" type="number" step="0.01" placeholder="0.00"
-                  className="w-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/20 font-bold text-accent-green"
+                  className="w-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800 rounded-lg px-4 py-2.5 focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green/20 font-bold text-accent-green"
                   value={formData.taxableBenefits} onChange={e => setFormData({ ...formData, taxableBenefits: parseFloat(e.target.value) })} />
               </div>
             </div>

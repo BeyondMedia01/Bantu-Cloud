@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
+import { RUN_STATUS_CLASS } from '../lib/payrollStatusColors';
 
 const Payroll: React.FC = () => {
   const navigate = useNavigate();
@@ -97,14 +98,6 @@ const Payroll: React.FC = () => {
     }
   };
 
-  const statusColor: Record<string, string> = {
-    COMPLETED: 'bg-emerald-50 text-emerald-700',
-    PROCESSING: 'bg-blue-50 text-blue-700',
-    DRAFT: 'bg-muted text-foreground/80',
-    ERROR: 'bg-red-50 text-red-700',
-    PENDING_APPROVAL: 'bg-amber-50 text-amber-700',
-    APPROVED: 'bg-teal-50 text-teal-700',
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -213,7 +206,7 @@ const Payroll: React.FC = () => {
                       : (run.employeeCount ?? run._count?.payslips ?? '—')}
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[run.status] || 'bg-muted text-foreground/80'}`}>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${RUN_STATUS_CLASS[run.status] || 'bg-muted text-foreground/80'}`}>
                       {run.status}
                     </span>
                   </td>

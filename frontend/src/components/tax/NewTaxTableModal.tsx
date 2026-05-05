@@ -72,7 +72,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. 2024 USD Standard"
-              className="w-full px-4 py-3 bg-muted border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
             />
           </div>
 
@@ -80,7 +80,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
             <div>
               <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Currency</label>
               <Dropdown className="w-full" trigger={(isOpen) => (
-                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-2xl text-sm font-bold hover:border-accent-green transition-all">
+                <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-lg text-sm font-bold hover:border-accent-green transition-all">
                   <span>{currency}</span>
                   <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -96,7 +96,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
                 required
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
-                className="w-full px-4 py-3 bg-muted border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
               />
             </div>
           </div>
@@ -134,7 +134,7 @@ const NewTaxTableModal: React.FC<NewTaxTableModalProps> = ({ onClose, onSuccess 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand text-navy py-4 rounded-2xl font-bold shadow-lg shadow-navy/10 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-4"
+            className="w-full bg-brand text-navy py-4 rounded-lg font-bold shadow-lg shadow-navy/10 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-4"
           >
             {loading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
             {loading ? 'Creating...' : 'Create Table'}
