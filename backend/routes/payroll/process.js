@@ -880,8 +880,17 @@ const empRepayments = repaymentsByEmployee[emp.id] || [];
         // For dual-currency runs the USD side is the FDS_AVERAGE reference currency.
         // baseRate is already in run currency (USD for dual runs) after the conversion at line 825.
         // Do not divide again by xr for ZiG employees — that was a double-conversion.
+        //
+        // ZIMRA requirement: the FDS_AVERAGE basis must include the FULL consolidated gross,
+        // including any ZiG base salary from FIXED-mode splits. baseZIG is computed later
+        // (lines 930+), so we compute the ZiG base component provisionally here.
+        // For FIXED mode, baseZIG is additive on top of baseRate; add its USD equivalent.
+        // PERCENTAGE mode keeps the same consolidated total as baseRate — nothing to add.
+        const provisionalBaseZIG = (run.dualCurrency && emp.splitZigMode === 'FIXED' && (emp.splitZigValue || 0) > 0)
+          ? emp.splitZigValue
+          : 0;
         const currGross = run.dualCurrency
-          ? baseRate + inputEarningsUSD + (inputEarningsZIG / xr)
+          ? baseRate + inputEarningsUSD + (inputEarningsZIG / xr) + (provisionalBaseZIG / xr)
           : baseRate + inputEarnings;
         fdsAvgPAYEBasis = round2((ytd.cumGross + currGross) / (ytd.uniqueMonths.size + 1));
       }
