@@ -322,7 +322,7 @@ const Dashboard: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 12, fontWeight: 600 }} dy={10} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: 12 }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', fontSize: 12 }}
                     formatter={(value, name) => [
                       `${currencySymbol}${Number(value).toLocaleString()}`,
                       name === 'netPay' ? 'Net Pay' : 'Gross Pay',

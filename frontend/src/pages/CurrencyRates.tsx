@@ -227,7 +227,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   onChange={(e) => setForm((p) => ({ ...p, toCurrency: e.target.value.toUpperCase() }))}
                   placeholder="ZiG"
                   maxLength={6}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                   required
                 />
                 <p className="text-xs text-muted-foreground font-medium mt-1">From currency is always USD.</p>
@@ -241,7 +241,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   value={form.rate}
                   onChange={(e) => setForm((p) => ({ ...p, rate: e.target.value }))}
                   placeholder="e.g. 13.5"
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium font-mono focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                   required
                 />
                 <p className="text-xs text-muted-foreground font-medium mt-1">How many {form.toCurrency || 'units'} equal 1 USD.</p>
@@ -252,7 +252,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   type="date"
                   value={form.effectiveDate}
                   onChange={(e) => setForm((p) => ({ ...p, effectiveDate: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                   required
                 />
               </div>
@@ -279,7 +279,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                   value={form.notes}
                   onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
                   placeholder="Optional note…"
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                 />
               </div>
 

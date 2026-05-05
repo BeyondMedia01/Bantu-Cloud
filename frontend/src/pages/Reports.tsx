@@ -310,7 +310,7 @@ const Reports: React.FC = () => {
                   key={key}
                   disabled={disabled || isDownloading(key)}
                   onClick={fn}
-                  className="bg-primary rounded-2xl border border-border shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow text-left disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="bg-primary rounded-2xl border border-border shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shrink-0`}>{icon}</div>
                   <div className="flex-1 min-w-0">

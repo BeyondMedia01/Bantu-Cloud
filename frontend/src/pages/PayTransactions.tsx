@@ -133,7 +133,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
             <input
               type="text"
               placeholder="Search by code or name..."
-              className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-accent-green"
+              className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus-visible:outline-none focus-visible:border-accent-green"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -237,7 +237,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Code *</label>
                   <input
-                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green disabled:bg-muted disabled:text-muted-foreground"
+                    className="border border-border rounded-xl px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-accent-green disabled:bg-muted disabled:text-muted-foreground"
                     value={form.code}
                     onChange={e => setForm((f: any) => ({ ...f, code: e.target.value.toUpperCase() }))}
                     disabled={modal.mode === 'edit'}
@@ -261,7 +261,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Name *</label>
                 <input
-                  className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
+                  className="border border-border rounded-xl px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-accent-green"
                   value={form.name}
                   onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. Transport Allowance"
@@ -284,7 +284,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Default Value</label>
                   <input
                     type="number"
-                    className="border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent-green"
+                    className="border border-border rounded-xl px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-accent-green"
                     value={form.defaultValue}
                     onChange={e => setForm((f: any) => ({ ...f, defaultValue: e.target.value }))}
                     placeholder="0.00"

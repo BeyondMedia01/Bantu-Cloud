@@ -231,41 +231,41 @@ const TaxConfiguration: React.FC<{ activeCompanyId?: string | null }> = ({ activ
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Band Number</label>
-                  <input type="number" required min="1" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                  <input type="number" required min="1" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all"
                     value={form.bandNumber} onChange={sf('bandNumber')} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Effective From</label>
-                  <input type="date" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                  <input type="date" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all"
                     value={form.effectiveFrom} onChange={sf('effectiveFrom')} />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</label>
-                <input type="text" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                <input type="text" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all"
                   placeholder="e.g. First bracket" value={form.description} onChange={sf('description')} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Lower Limit (USD)</label>
-                  <input type="number" required min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                  <input type="number" required min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all"
                     value={form.lowerLimitUSD} onChange={sf('lowerLimitUSD')} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Upper Limit (USD, blank = ∞)</label>
-                  <input type="number" min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                  <input type="number" min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all"
                     value={form.upperLimitUSD} onChange={sf('upperLimitUSD')} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tax Rate (%)</label>
-                  <input type="number" required min="0" max="100" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                  <input type="number" required min="0" max="100" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all"
                     value={form.taxRatePercent} onChange={sf('taxRatePercent')} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Fixed Cum. Tax (USD)</label>
-                  <input type="number" required min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all"
+                  <input type="number" required min="0" step="0.01" className="px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all"
                     value={form.fixedAmountUSD} onChange={sf('fixedAmountUSD')} />
                 </div>
               </div>

@@ -67,7 +67,7 @@ const Login: React.FC = () => {
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full pl-12 pr-4 py-3.5 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                className="w-full pl-12 pr-4 py-3.5 bg-muted border border-border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all font-medium"
                 placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -83,7 +83,7 @@ const Login: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
-                className="w-full pl-12 pr-12 py-3.5 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green transition-all font-medium"
+                className="w-full pl-12 pr-12 py-3.5 bg-muted border border-border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green transition-all font-medium"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

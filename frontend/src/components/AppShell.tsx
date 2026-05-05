@@ -156,7 +156,7 @@ const AppShell: React.FC = () => {
           <button
             onClick={() => setSidebarOpen(false)}
             aria-label="Close navigation menu"
-            className="p-1.5 rounded-lg hover:bg-muted text-slate-400 transition-colors shrink-0"
+            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors shrink-0"
           >
             <PanelLeftClose size={18} />
           </button>
@@ -172,7 +172,7 @@ const AppShell: React.FC = () => {
             aria-haspopup="listbox"
             aria-expanded={companyDropdown}
             aria-label={`Active company: ${activeCompany?.name || 'No company'}. Click to switch.`}
-            className="w-full flex items-center gap-2 px-3 py-2.5 bg-muted dark:bg-slate-700/40 border border-border rounded-xl hover:bg-muted dark:hover:bg-slate-700 transition-colors text-sm font-semibold"
+            className="w-full flex items-center gap-2 px-3 py-2.5 bg-muted dark:bg-muted/40 border border-border rounded-xl hover:bg-muted dark:hover:bg-slate-700 transition-colors text-sm font-semibold"
           >
             <Building2 size={14} className="text-brand shrink-0" aria-hidden="true" />
             <span className="truncate flex-1 text-left">{activeCompany?.name || 'No company'}</span>

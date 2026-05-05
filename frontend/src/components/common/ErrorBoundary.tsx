@@ -39,13 +39,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
               <AlertTriangle className="h-7 w-7 text-red-500" aria-hidden="true" />
             </div>
-            <h1 className="mb-2 text-xl font-bold text-slate-900">Something went wrong</h1>
+            <h1 className="mb-2 text-xl font-bold text-foreground">Something went wrong</h1>
             <p className="mb-6 text-sm text-muted-foreground">
               An unexpected error occurred. Please refresh the page or contact support if the problem persists.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 transition-colors"
+              className="rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-colors"
             >
               Refresh page
             </button>

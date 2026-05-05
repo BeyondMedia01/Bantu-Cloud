@@ -405,12 +405,12 @@ const Payslips: React.FC = () => {
             onClick={e => e.stopPropagation()}
           >
             {/* Modal header */}
-            <div className="flex items-center justify-between px-5 py-3 bg-[#1a2e4a] text-white shrink-0">
+            <div className="flex items-center justify-between px-5 py-3 bg-navy text-white shrink-0">
               <span className="font-bold text-sm truncate">{previewName}</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={downloadFromPreview}
-                  className="flex items-center gap-1.5 bg-[#B2DB64] text-[#1a2e4a] px-3 py-1.5 rounded-full text-xs font-bold hover:opacity-90"
+                  className="flex items-center gap-1.5 bg-brand text-navy px-3 py-1.5 rounded-full text-xs font-bold hover:opacity-90"
                 >
                   <Download size={13} /> Download
                 </button>
@@ -433,7 +433,7 @@ const Payslips: React.FC = () => {
       {previewLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-card rounded-2xl p-8 flex flex-col items-center gap-3 shadow-2xl">
-            <Loader2 size={32} className="animate-spin text-[#1a2e4a]" />
+            <Loader2 size={32} className="animate-spin text-navy" />
             <p className="text-sm font-semibold text-foreground/80">Loading preview…</p>
           </div>
         </div>

@@ -189,7 +189,7 @@ const NecTables: React.FC = () => {
   }
 
   const activeTable = tables.find(t => t.id === activeTableId);
-  const inputCls = 'w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green font-mono';
+  const inputCls = 'w-full px-2.5 py-1.5 border border-border rounded-lg text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green font-mono';
 
   return (
     <div className="flex flex-col gap-6">

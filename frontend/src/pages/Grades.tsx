@@ -144,7 +144,7 @@ const Grades: React.FC = () => {
                 value={form.name}
                 onChange={field('name')}
                 placeholder="e.g. Grade A, Band 3, NEC Grade 7"
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                 required
               />
             </div>
@@ -155,7 +155,7 @@ const Grades: React.FC = () => {
                 value={form.description}
                 onChange={field('description')}
                 placeholder="Optional description or category"
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
               />
             </div>
             <div>
@@ -169,7 +169,7 @@ const Grades: React.FC = () => {
                   value={form.minSalary}
                   onChange={field('minSalary')}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                 />
               </div>
             </div>
@@ -184,7 +184,7 @@ const Grades: React.FC = () => {
                   value={form.maxSalary}
                   onChange={field('maxSalary')}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                 />
               </div>
             </div>

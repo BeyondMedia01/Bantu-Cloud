@@ -54,7 +54,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
               <div className="w-1.5 h-1.5 rounded-full bg-accent-green"></div>
             </div>
 
-            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-muted text-muted-foreground mb-2 inline-block">

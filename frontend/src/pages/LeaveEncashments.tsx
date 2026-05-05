@@ -163,12 +163,12 @@ const LeaveEncashments: React.FC = () => {
                 onChange={(e) => setRejectReason(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') confirmReject(); if (e.key === 'Escape') { setRejectTarget(null); setRejectReason(''); } }}
                 placeholder="e.g. Insufficient leave balance"
-                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green"
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
               />
             </div>
             <div className="flex justify-end gap-2">
               <button onClick={() => { setRejectTarget(null); setRejectReason(''); }} className="px-4 py-2 rounded-full border border-border text-sm font-bold text-muted-foreground hover:bg-muted">Cancel</button>
-              <button onClick={confirmReject} className="px-4 py-2 rounded-full bg-red-500 text-white text-sm font-bold hover:bg-red-600">Reject</button>
+              <button onClick={confirmReject} className="px-4 py-2 rounded-full bg-destructive text-white text-sm font-bold hover:bg-destructive/90">Reject</button>
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@ const LeaveEncashments: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Days to Encash <span className="text-red-400">*</span></label>
               <input type="number" required min="0.5" step="0.5" value={form.days} onChange={set('days')}
-                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green" />
               {selectedBalance && form.days && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Est. amount: <span className="font-bold text-navy">
@@ -248,7 +248,7 @@ const LeaveEncashments: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Notes</label>
               <input type="text" value={form.notes} onChange={set('notes')} placeholder="Optional"
-                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/20 focus-visible:border-accent-green" />
             </div>
             <div className="sm:col-span-2 flex gap-3 pt-2">
               <button type="submit" disabled={saving}
