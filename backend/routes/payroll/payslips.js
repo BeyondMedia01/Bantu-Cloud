@@ -287,7 +287,9 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
           transactions: empTxs,
           basicSalary,
           ytdStat: {},
-          ytdMap: {}
+          ytdMap: {},
+          ytdStatZIG: {},
+          ytdMapZIG: {},
         });
 
         groupsMap[gName].push({
