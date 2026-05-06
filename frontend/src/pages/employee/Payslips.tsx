@@ -61,10 +61,10 @@ const EmployeePayslips: React.FC = () => {
                     {p.payrollRun && new Date(p.payrollRun.startDate).toLocaleDateString()} –{' '}
                     {p.payrollRun && new Date(p.payrollRun.endDate).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-sm">{p.payrollRun?.currency}</td>
+                  <td className="px-4 py-3 text-sm font-bold">{p.payrollRun?.currency}</td>
                   <td className="px-4 py-3 text-sm font-bold">{p.gross?.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-sm text-red-500">{p.paye?.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-emerald-600">{p.netPay?.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm font-bold text-destructive">{p.paye?.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm font-bold text-emerald-600 dark:text-emerald-400">{p.netPay?.toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <button
                       onClick={() => handlePdf(p.payrollRunId, p.id)}
