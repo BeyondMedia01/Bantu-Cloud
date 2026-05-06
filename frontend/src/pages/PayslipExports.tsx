@@ -147,7 +147,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
                     </div>
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <div className="flex flex-col gap-0.5 font-mono">
+                    <div className="flex flex-col gap-0.5 tabular-nums">
                        {exp.netPayUSD > 0 && <span className="text-sm font-black text-navy">${exp.netPayUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>}
                        {exp.netPayZiG > 0 && <span className="text-xs text-muted-foreground font-bold">Z {exp.netPayZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>}
                     </div>

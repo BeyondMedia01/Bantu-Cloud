@@ -138,7 +138,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                     </p>
                     <span className="text-[10px] text-muted-foreground font-bold uppercase">{t.currencyCode}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-muted-foreground font-mono">
+                  <td className="px-6 py-4 text-sm font-medium text-muted-foreground tabular-nums">
                     {t.rateToUSD.toFixed(6)}
                   </td>
                   <td className="px-6 py-4">
