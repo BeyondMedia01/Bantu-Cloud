@@ -56,6 +56,8 @@ const s = StyleSheet.create({
   colSubHdr: { flexDirection: 'row', backgroundColor: '#eef2f7', paddingHorizontal: 4,
                paddingVertical: 3, borderBottomWidth: 0.3, borderColor: BORDER },
   colSubHdrLabel: { flex: 1, fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: DARK_NAVY },
+  colSubHdrUnits: { width: 32, fontFamily: 'Helvetica-Bold', fontSize: 6.5,
+                    textAlign: 'right', color: TEXT_MUTED },
   colSubHdrAmt: { width: 54, fontFamily: 'Helvetica-Bold', fontSize: 6.5,
                   textAlign: 'right', color: DARK_NAVY },
   colSubHdrAmtZIG: { width: 54, fontFamily: 'Helvetica-Bold', fontSize: 6.5,
@@ -65,6 +67,7 @@ const s = StyleSheet.create({
   dataRow: { flexDirection: 'row', paddingHorizontal: 4, paddingVertical: 1.8 },
   dataDesc: { flex: 1, color: TEXT_DARK, fontSize: 7.5 },
   dataDescCredit: { flex: 1, color: TEXT_MUTED, fontSize: 7, fontStyle: 'italic' },
+  dataUnits: { width: 32, textAlign: 'right', color: TEXT_MUTED, fontSize: 7 },
   dataAmt: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
              color: DARK_NAVY, fontSize: 7.5 },
   dataAmtZIG: { width: 54, textAlign: 'right', fontFamily: 'Helvetica-Bold',
@@ -265,6 +268,7 @@ const SummaryDocument = ({ data }) => {
                       <View style={s.colLeft}>
                         <View style={s.colSubHdr}>
                           <Text style={s.colSubHdrLabel}>EARNINGS</Text>
+                          <Text style={s.colSubHdrUnits}>UNITS</Text>
                           <Text style={s.colSubHdrAmt}>{isDual ? 'USD' : ccy}</Text>
                           {pIsDual && <Text style={s.colSubHdrAmtZIG}>ZiG</Text>}
                         </View>
@@ -272,6 +276,9 @@ const SummaryDocument = ({ data }) => {
                           <View key={i} style={s.dataRow}>
                             <Text style={e.taxCredit ? s.dataDescCredit : s.dataDesc}>
                               {e.name}{e.taxCredit ? ' *' : ''}
+                            </Text>
+                            <Text style={s.dataUnits}>
+                              {e.units != null ? `${e.units}${e.unitsType ? ' ' + e.unitsType : ''}` : ''}
                             </Text>
                             <Text style={e.taxCredit ? s.dataAmtMuted : s.dataAmt}>
                               {fmt(e.allowance)}
@@ -292,12 +299,16 @@ const SummaryDocument = ({ data }) => {
                       <View style={s.colRight}>
                         <View style={s.colSubHdr}>
                           <Text style={s.colSubHdrLabel}>DEDUCTIONS</Text>
+                          <Text style={s.colSubHdrUnits}>UNITS</Text>
                           <Text style={s.colSubHdrAmt}>{isDual ? 'USD' : ccy}</Text>
                           {pIsDual && <Text style={s.colSubHdrAmtZIG}>ZiG</Text>}
                         </View>
                         {deductions.map((d, i) => (
                           <View key={i} style={s.dataRow}>
                             <Text style={s.dataDesc}>{normalizeLabel(d.name)}</Text>
+                            <Text style={s.dataUnits}>
+                              {d.units != null ? `${d.units}${d.unitsType ? ' ' + d.unitsType : ''}` : ''}
+                            </Text>
                             <Text style={s.dataAmt}>{fmt(d.deduction)}</Text>
                             {pIsDual && (
                               <Text style={s.dataAmtZIG}>
