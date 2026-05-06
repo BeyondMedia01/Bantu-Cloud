@@ -37,3 +37,7 @@ Thumbs.db
 /tmp/
 .tmp/
 .worktrees/
+
+# SQLite desktop offline
+backend/dev.db
+backend/generated/
