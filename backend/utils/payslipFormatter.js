@@ -177,6 +177,8 @@ async function payslipToBuffer(payslipId) {
   });
   if (!payslip) return null;
 
+  const runPeriod = `${new Date(payslip.payrollRun.startDate).getFullYear()}-${String(new Date(payslip.payrollRun.startDate).getMonth() + 1).padStart(2, '0')}`;
+
   const [transactions, payrollInputs] = await Promise.all([
     prisma.payrollTransaction.findMany({
       where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
@@ -184,7 +186,13 @@ async function payslipToBuffer(payslipId) {
       orderBy: { createdAt: 'asc' },
     }),
     prisma.payrollInput.findMany({
-      where: { payrollRunId: payslip.payrollRunId, employeeId: payslip.employeeId },
+      where: {
+        employeeId: payslip.employeeId,
+        OR: [
+          { payrollRunId: payslip.payrollRunId },
+          { payrollRunId: null, period: { lte: runPeriod } },
+        ],
+      },
       select: { transactionCodeId: true, units: true, unitsType: true },
     }),
   ]);

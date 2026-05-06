@@ -220,9 +220,17 @@ router.get('/:runId/payslip-summary', requirePermission('export_reports'), async
       orderBy: { createdAt: 'asc' },
     });
 
-    // Fetch PayrollInput records to get units/unitsType (not stored on PayrollTransaction)
+    // Fetch PayrollInput records to get units/unitsType (not stored on PayrollTransaction).
+    // Include both run-linked inputs AND unlinked inputs matched by period (payrollRunId: null),
+    // since inputs staged before processing retain payrollRunId: null.
+    const runPeriod = `${new Date(run.startDate).getFullYear()}-${String(new Date(run.startDate).getMonth() + 1).padStart(2, '0')}`;
     const allInputs = await prisma.payrollInput.findMany({
-      where: { payrollRunId: run.id },
+      where: {
+        OR: [
+          { payrollRunId: run.id },
+          { payrollRunId: null, period: { lte: runPeriod } },
+        ],
+      },
       select: { employeeId: true, transactionCodeId: true, units: true, unitsType: true },
     });
     // Build lookup: `${employeeId}:${transactionCodeId}` → { units, unitsType }
