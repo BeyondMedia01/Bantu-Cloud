@@ -3,6 +3,9 @@ import { FileText, Loader } from 'lucide-react';
 import { EmployeeSelfAPI, PayrollAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 
+const fmt = (n: number | null | undefined) =>
+  n != null ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+
 const EmployeePayslips: React.FC = () => {
   const { showToast } = useToast();
   const [payslips, setPayslips] = useState<any[]>([]);
@@ -57,14 +60,14 @@ const EmployeePayslips: React.FC = () => {
             <tbody className="divide-y divide-border">
               {payslips.map((p: any) => (
                 <tr key={p.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 text-sm font-bold">
+                  <td className="px-4 py-3 text-sm font-medium">
                     {p.payrollRun && new Date(p.payrollRun.startDate).toLocaleDateString()} –{' '}
                     {p.payrollRun && new Date(p.payrollRun.endDate).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold">{p.payrollRun?.currency}</td>
-                  <td className="px-4 py-3 text-sm font-bold">{p.gross?.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-destructive">{p.paye?.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-emerald-600 dark:text-emerald-400">{p.netPay?.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm text-foreground/80">{p.payrollRun?.currency}</td>
+                  <td className="px-4 py-3 text-sm font-bold">{fmt(p.gross)}</td>
+                  <td className="px-4 py-3 text-sm text-red-500 font-medium">{fmt(p.paye)}</td>
+                  <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(p.netPay)}</td>
                   <td className="px-4 py-3">
                     <button
                       onClick={() => handlePdf(p.payrollRunId, p.id)}
