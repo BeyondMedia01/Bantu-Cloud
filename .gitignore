@@ -42,3 +42,4 @@ Thumbs.db
 backend/dev.db
 backend/generated/
 backend/prisma/sqlite/dev.db
+.env.desktop
