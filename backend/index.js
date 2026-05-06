@@ -68,6 +68,15 @@ const authLimiter = rateLimit({
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+// ─── Desktop Mode ─────────────────────────────────────────────────────────────
+const isDesktop = process.env.APP_MODE === 'desktop';
+if (isDesktop) {
+  // Sync middleware will be registered here in a future task
+  console.log('[desktop] Running in desktop mode with SQLite');
+}
+
 app.get('/', (_req, res) => {
   res.json({ message: 'Bantu Payroll API', version: '2.0.0' });
 });
@@ -270,4 +279,4 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-module.exports = app;
+module.exports = { app, isDesktop };
