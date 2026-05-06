@@ -4,6 +4,8 @@ use std::path::Path;
 use std::process::{Child, Command};
 use std::time::{Duration, Instant};
 
+const SIDECAR_PORT: u16 = 5005;
+
 /// Copies the pre-migrated template.db to db_path if db_path doesn't already exist.
 /// template_db is the path to resources/template.db bundled with the installer.
 pub fn ensure_database(template_db: &Path, db_path: &Path) -> Result<(), String> {
@@ -35,7 +37,7 @@ pub fn spawn_sidecar(resource_dir: &Path, db_path: &Path) -> Result<Child, Strin
     Command::new(&sidecar_path)
         .env("NODE_ENV", "production")
         .env("APP_MODE", "desktop")
-        .env("PORT", "5005")
+        .env("PORT", SIDECAR_PORT.to_string())
         .env("DATABASE_URL", &db_url)
         .spawn()
         .map_err(|e| format!("Failed to spawn sidecar at {:?}: {}", sidecar_path, e))
@@ -45,10 +47,11 @@ pub fn spawn_sidecar(resource_dir: &Path, db_path: &Path) -> Result<Child, Strin
 /// Runs on a dedicated OS thread (NOT using reqwest::blocking which panics in Tokio).
 /// timeout_ms: maximum milliseconds to wait before giving up.
 pub fn wait_for_sidecar(timeout_ms: u64) -> Result<(), String> {
-    let addr = "127.0.0.1:5005";
+    let addr = format!("127.0.0.1:{}", SIDECAR_PORT);
     let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+    std::thread::sleep(Duration::from_millis(300));
     loop {
-        if TcpStream::connect(addr).is_ok() {
+        if TcpStream::connect(addr.as_str()).is_ok() {
             return Ok(());
         }
         if Instant::now() >= deadline {

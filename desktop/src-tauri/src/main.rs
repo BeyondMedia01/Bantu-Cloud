@@ -23,26 +23,25 @@ fn main() {
 
             let child = sidecar::spawn_sidecar(&resource_dir, &db_path)?;
 
-            // Wait for sidecar on a dedicated OS thread (not blocking Tokio async runtime)
-            std::thread::spawn(|| {
+            app.manage(SidecarState(Mutex::new(Some(child))));
+
+            // Wait for sidecar and show window on a dedicated OS thread so setup returns immediately
+            let app_handle = app.handle().clone();
+            std::thread::spawn(move || {
                 if let Err(e) = sidecar::wait_for_sidecar(10_000) {
                     eprintln!("Sidecar wait failed: {e}");
                 }
-            }).join().map_err(|_| "Thread join failed")?;
-
-            app.manage(SidecarState(Mutex::new(Some(child))));
-
-            // Show the main window after sidecar is ready
-            if let Some(window) = app.get_webview_window("main") {
-                window.show().ok();
-            }
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    window.show().ok();
+                }
+            });
 
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri app")
         .run(|app, event| {
-            if let RunEvent::ExitRequested { .. } = event {
+            if let RunEvent::Exit = event {
                 if let Some(state) = app.try_state::<SidecarState>() {
                     if let Ok(mut guard) = state.0.lock() {
                         if let Some(mut child) = guard.take() {
