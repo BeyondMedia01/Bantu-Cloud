@@ -41,3 +41,4 @@ Thumbs.db
 # SQLite desktop offline
 backend/dev.db
 backend/generated/
+backend/prisma/sqlite/dev.db
