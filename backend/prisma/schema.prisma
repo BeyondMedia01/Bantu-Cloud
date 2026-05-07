@@ -1146,3 +1146,32 @@ model Job {
 
   @@index([status, runAt])
 }
+
+// ─── Sync Engine ──────────────────────────────────────────────────────────────
+
+model SyncQueue {
+  id          String   @id @default(cuid())
+  operation   String   // e.g. "CREATE_EMPLOYEE", "UPDATE_PAYSLIP"
+  payload     String   // JSON string of the operation's data
+  dependsOn   String?  // Optional cuid of another SyncQueue entry this depends on
+  attempts    Int      @default(0)
+  lastError   String?
+  createdAt   DateTime @default(now())
+  status      String   @default("pending") // "pending" | "syncing" | "failed" | "done"
+}
+
+model SyncLog {
+  id          String   @id @default(cuid())
+  operation   String
+  payload     String   // JSON string
+  status      String   // "success" | "failed"
+  error       String?
+  syncedAt    DateTime @default(now())
+  serverId    String?  // ID assigned by the server after successful sync
+}
+
+model SyncMeta {
+  id            String    @id @default("singleton")
+  lastSyncedAt  DateTime?
+  deviceId      String?   // hardware identifier used for license validation
+}
