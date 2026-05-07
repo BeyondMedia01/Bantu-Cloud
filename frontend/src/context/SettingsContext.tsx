@@ -42,8 +42,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  // Fetch preferences on load
+  // Fetch preferences on load (only when authenticated)
   useEffect(() => {
+    if (!sessionStorage.getItem('token')) {
+      setLoading(false);
+      return;
+    }
     const fetchPrefs = async () => {
       try {
         const res = await UserAPI.me();
