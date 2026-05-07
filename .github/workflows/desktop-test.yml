@@ -1,0 +1,34 @@
+name: Desktop Tests
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'desktop/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run backend tests
+        run: npx vitest run
+        working-directory: backend
+        env:
+          DATABASE_URL: file:./test.db
+          JWT_SECRET: test-jwt-secret
+          REFRESH_TOKEN_SECRET: test-refresh-secret
+          APP_MODE: ''
