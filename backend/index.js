@@ -73,8 +73,9 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 // ─── Desktop Mode ─────────────────────────────────────────────────────────────
 const isDesktop = process.env.APP_MODE === 'desktop';
 if (isDesktop) {
-  // Sync middleware will be registered here in a future task
   console.log('[desktop] Running in desktop mode with SQLite');
+  const { syncQueueMiddleware } = require('./sync_queue/syncQueueMiddleware');
+  app.use(syncQueueMiddleware);
 }
 
 app.get('/', (_req, res) => {
