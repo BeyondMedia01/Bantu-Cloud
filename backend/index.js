@@ -171,6 +171,11 @@ app.use('/api/leave-balances', require('./routes/leaveBalances'));
 app.use('/api/leave-encashments', require('./routes/leaveEncashments'));
 app.use('/api/loans', require('./routes/loans'));
 
+// Desktop license activation & renewal (web-server only)
+if (!isDesktop) {
+  app.use('/api/license', require('./routes/license'));
+}
+
 // License management (PLATFORM_ADMIN)
 app.use('/api/license', require('./routes/licenses'));
 
