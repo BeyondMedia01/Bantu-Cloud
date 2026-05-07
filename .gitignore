@@ -26,6 +26,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+# AI agent worktrees
+.claude/
+.codex/
+
 # Prisma
 /backend/prisma/migrations/
 /backend/prisma/dev.db
