@@ -2,6 +2,7 @@
 
 mod commands;
 mod sidecar;
+mod tray;
 
 use std::process::Child;
 use std::sync::Mutex;
@@ -30,6 +31,8 @@ fn main() {
             let child = sidecar::spawn_sidecar(&resource_dir, &db_path)?;
 
             app.manage(SidecarState(Mutex::new(Some(child))));
+
+            tray::setup_tray(app.handle())?;
 
             // Wait for sidecar and show window on a dedicated OS thread so setup returns immediately
             let app_handle = app.handle().clone();

@@ -10,6 +10,10 @@
     "beforeBuildCommand": "npm run build"
   },
   "app": {
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true
+    },
     "windows": [
       {
         "title": "Bantu",
