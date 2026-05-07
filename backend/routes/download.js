@@ -16,18 +16,17 @@ if (token) headers.Authorization = `Bearer ${token}`;
 
 async function getLatestRelease() {
   const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=5`,
+    `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=10`,
     { headers },
   );
   if (!res.ok) throw new Error(`GitHub API ${res.status}`);
   const releases = await res.json();
-  // Find the newest release with a desktop-v tag
   for (const r of releases) {
     if (r.tag_name && r.tag_name.startsWith('desktop-v') && !r.draft) {
       return r;
     }
   }
-  return releases.find(r => r.tag_name && r.tag_name.startsWith('desktop-v'));
+  return null;
 }
 
 // GET /api/desktop/download/:platform — redirect to the latest release asset
