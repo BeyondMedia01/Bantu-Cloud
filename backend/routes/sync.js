@@ -128,6 +128,17 @@ router.post('/retry/:id', async (req, res) => {
 router.post('/seed', async (req, res) => {
   const { employees = [], companies = [], payrollRuns = [], payslips = [] } = req.body;
 
+  const MAX_BATCH = 500;
+  if (employees.length > MAX_BATCH || companies.length > MAX_BATCH ||
+      payrollRuns.length > MAX_BATCH || payslips.length > MAX_BATCH) {
+    return res.status(400).json({ error: `Batch size exceeds maximum of ${MAX_BATCH} records per entity type` });
+  }
+
+  const allRecords = [...employees, ...companies, ...payrollRuns, ...payslips];
+  if (allRecords.some(r => !r.id)) {
+    return res.status(400).json({ error: 'All records must have an id field' });
+  }
+
   try {
     // Upsert all entities
     await Promise.all([

@@ -106,11 +106,6 @@ app.get('/api/seed-settings', async (req, res) => {
 
 
 
-// ─── Sync Routes (both modes — routes are non-overlapping)
-// Web server: POST / and GET /initial receive inbound data from desktop.
-// Desktop local backend: GET /dry-run and POST /execute expose preview/execute for the frontend.
-app.use('/api/sync', require('./routes/sync'));
-
 // ─── Public Routes (no auth required) ────────────────────────────────────────
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));
@@ -131,6 +126,11 @@ app.use('/api/biometric', deviceLimiter, require('./routes/biometric'));
 
 app.use(authenticateToken);
 app.use(companyContext);
+
+// Sync Routes (both modes — routes are non-overlapping)
+// Web server: POST / and GET /initial receive inbound data from desktop.
+// Desktop local backend: GET /dry-run and POST /execute expose preview/execute for the frontend.
+app.use('/api/sync', require('./routes/sync'));
 
 // User info
 app.use('/api/user', require('./routes/user'));

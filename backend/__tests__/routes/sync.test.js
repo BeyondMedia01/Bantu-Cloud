@@ -21,23 +21,19 @@ vi.mock('../../sync_queue/operations.js', () => ({
 import { app } from '../../index.js';
 
 describe('POST /api/sync', () => {
-  it('returns 400 if operation missing', async () => {
-    // We need APP_MODE != 'desktop' for this route to exist
+  it('returns 401 if unauthenticated', async () => {
+    // Sync routes are behind authenticateToken; unauthenticated requests must be rejected
     process.env.APP_MODE = '';
     const res = await request(app).post('/api/sync').send({ payload: {} });
-    // Route may not be mounted if isDesktop check ran at import time
-    // Just verify the server handles it
-    expect([400, 404]).toContain(res.status);
+    expect(res.status).toBe(401);
   });
 });
 
 describe('GET /api/sync/initial', () => {
-  it('returns paginated data structure', async () => {
+  it('returns 401 if unauthenticated', async () => {
+    // Sync routes are behind authenticateToken; unauthenticated requests must be rejected
     process.env.APP_MODE = '';
     const res = await request(app).get('/api/sync/initial');
-    expect([200, 404, 500]).toContain(res.status);
-    if (res.status === 200) {
-      expect(res.body).toHaveProperty('data');
-    }
+    expect(res.status).toBe(401);
   });
 });
