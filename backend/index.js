@@ -99,6 +99,9 @@ const deviceLimiter = rateLimit({
 });
 app.use('/api/biometric', deviceLimiter, require('./routes/biometric'));
 
+// Desktop download redirect (public — no auth needed)
+app.use('/api/desktop', require('./routes/download'));
+
 // ─── Protected Routes (auth + company context required) ──────────────────────
 
 app.use(authenticateToken);

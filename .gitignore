@@ -43,8 +43,7 @@ Thumbs.db
 .worktrees/
 
 # Desktop binaries (compiled by build-desktop.sh)
-desktop/src-tauri/binaries/backend
-desktop/src-tauri/binaries/backend.exe
+desktop/src-tauri/binaries/backend*
 
 # SQLite desktop offline
 backend/dev.db
