@@ -84,5 +84,4 @@ jobs:
           releaseName: 'Bantu Desktop ${{ github.ref_name }}'
           releaseDraft: true
           prerelease: false
-          uploadWorkflowArtifacts: true
           args: --target ${{ matrix.target }}
