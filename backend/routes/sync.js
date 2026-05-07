@@ -5,6 +5,7 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { executeOperation } = require('../sync_queue/operations.js');
+const { dryRun, sync: executeSync } = require('../services/syncService.js');
 
 // Only mount this router when APP_MODE !== 'desktop'
 // (index.js handles the conditional mounting)
@@ -57,6 +58,37 @@ router.get('/initial', async (req, res) => {
   } catch (err) {
     console.error('[Sync] Initial pull failed:', err.message);
     return res.status(500).json({ error: 'Failed to fetch initial data' });
+  }
+});
+
+/**
+ * GET /api/sync/dry-run — desktop only
+ * Returns the list of pending sync operations without executing them.
+ */
+router.get('/dry-run', async (_req, res) => {
+  try {
+    const items = await dryRun();
+    return res.json(items);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/sync/execute — desktop only
+ * Executes the pending sync operations against the remote server.
+ * Body: { serverUrl: string, authToken: string }
+ */
+router.post('/execute', async (req, res) => {
+  const { serverUrl, authToken } = req.body;
+  if (!serverUrl || !authToken) {
+    return res.status(400).json({ error: 'serverUrl and authToken are required' });
+  }
+  try {
+    const result = await executeSync(serverUrl, authToken);
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 

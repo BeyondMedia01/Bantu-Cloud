@@ -106,10 +106,10 @@ app.get('/api/seed-settings', async (req, res) => {
 
 
 
-// ─── Sync Routes (web-server only, no auth — desktop authenticates via its own mechanism) ──
-if (!isDesktop) {
-  app.use('/api/sync', require('./routes/sync'));
-}
+// ─── Sync Routes (both modes — routes are non-overlapping)
+// Web server: POST / and GET /initial receive inbound data from desktop.
+// Desktop local backend: GET /dry-run and POST /execute expose preview/execute for the frontend.
+app.use('/api/sync', require('./routes/sync'));
 
 // ─── Public Routes (no auth required) ────────────────────────────────────────
 
