@@ -14,7 +14,7 @@ import PayrollUsers from './PayrollUsers';
 import PayrollLogs from './PayrollLogs';
 
 interface SettingsProps {
-  activeCompanyId: string | null;
+  activeCompanyId?: string | null;
 }
 
 type SettingsSection = 'rates' | 'tax' | 'pay-codes' | 'ledger' | 'summaries' | 'nssa' | 'audit' | 'core' | 'exports' | 'globals' | 'users' | 'logs';

@@ -22,7 +22,6 @@ export function useInitialSeed() {
     try {
       let page = 1;
       const limit = 100;
-      let totalSeeded = 0;
       let hasMore = true;
 
       while (hasMore) {
@@ -54,8 +53,6 @@ export function useInitialSeed() {
             const err = await seedRes.json();
             throw new Error(err.error || 'Seeding failed');
           }
-
-          totalSeeded += batchSize;
         }
 
         // Update progress (cap at 95% until done)
@@ -68,7 +65,6 @@ export function useInitialSeed() {
         page++;
       }
 
-      void totalSeeded; // used for tracking but not returned
       setState({ status: 'done', progress: 100, error: null });
     } catch (err) {
       setState({

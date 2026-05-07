@@ -1,0 +1,68 @@
+function isValidTin(tin) {
+  if (!tin) return true;
+  const stripped = String(tin).trim();
+  return /^\d{10}$/.test(stripped) || /^[A-Z0-9]{10,15}$/i.test(stripped);
+}
+
+function pickEmployeeFields(body) {
+  return {
+    employeeCode:      body.employeeCode,
+    title:             body.title,
+    firstName:         body.firstName,
+    lastName:          body.lastName,
+    maidenName:        body.maidenName,
+    nationality:       body.nationality,
+    nationalId:        body.nationalId,
+    passportNumber:    body.passportNumber,
+    email:             body.email,
+    phone:             body.phone,
+    socialSecurityNum: body.socialSecurityNum,
+    dateOfBirth:       body.dateOfBirth ? new Date(body.dateOfBirth) : undefined,
+    gender:            body.gender || undefined,
+    maritalStatus:     body.maritalStatus || undefined,
+    homeAddress:       body.homeAddress,
+    postalAddress:     body.postalAddress,
+    nextOfKin:         body.nextOfKin,
+    nextOfKinName:     body.nextOfKinName,
+    nextOfKinContact:  body.nextOfKinContact,
+    occupation:        body.occupation,
+    position:          body.position,
+    employmentType:    body.employmentType || undefined,
+    startDate:         body.startDate ? new Date(body.startDate) : undefined,
+    branchId:          body.branchId || undefined,
+    departmentId:      body.departmentId || undefined,
+    costCenter:        body.costCenter,
+    gradeId:           body.gradeId || undefined,
+    leaveEntitlement:  body.leaveEntitlement !== undefined && body.leaveEntitlement !== '' ? parseFloat(body.leaveEntitlement) : undefined,
+    dischargeDate:     body.dischargeDate ? new Date(body.dischargeDate) : undefined,
+    dischargeReason:   body.dischargeReason,
+    paymentMethod:     body.paymentMethod || undefined,
+    paymentBasis:      body.paymentBasis || undefined,
+    rateSource:        body.rateSource || undefined,
+    baseRate:          body.baseRate !== undefined && body.baseRate !== '' ? parseFloat(body.baseRate) : undefined,
+    currency:          body.currency,
+    hoursPerPeriod:    body.hoursPerPeriod !== undefined && body.hoursPerPeriod !== '' ? parseFloat(body.hoursPerPeriod) : undefined,
+    daysPerPeriod:     body.daysPerPeriod !== undefined && body.daysPerPeriod !== '' ? parseFloat(body.daysPerPeriod) : undefined,
+    bankName:          body.bankName,
+    bankBranch:        body.bankBranch,
+    accountNumber:     body.accountNumber,
+    taxMethod:         body.taxMethod || undefined,
+    taxTable:          body.taxTable,
+    taxDirective:      body.taxDirective,
+    taxDirectivePerc:  body.taxDirectivePerc !== undefined && body.taxDirectivePerc !== '' ? parseFloat(body.taxDirectivePerc) : undefined,
+    taxDirectiveAmt:   body.taxDirectiveAmt !== undefined && body.taxDirectiveAmt !== '' ? parseFloat(body.taxDirectiveAmt) : undefined,
+    accumulativeSetting: body.accumulativeSetting,
+    taxCredits:        body.taxCredits !== undefined && body.taxCredits !== '' ? parseFloat(body.taxCredits) : undefined,
+    tin:               body.tin,
+    motorVehicleBenefit: body.motorVehicleBenefit !== undefined && body.motorVehicleBenefit !== '' ? parseFloat(body.motorVehicleBenefit) : undefined,
+    motorVehicleType:  body.motorVehicleType,
+    vehicleEngineCategory: body.vehicleEngineCategory || undefined,
+    grossingUp:        body.grossingUp !== undefined ? Boolean(body.grossingUp) : undefined,
+    leaveBalance:      body.annualLeaveAccrued !== undefined && body.annualLeaveAccrued !== '' ? parseFloat(body.annualLeaveAccrued) : undefined,
+    leaveTaken:        body.annualLeaveTaken !== undefined && body.annualLeaveTaken !== '' ? parseFloat(body.annualLeaveTaken) : undefined,
+    splitZigMode:      body.splitZigMode,
+    splitZigValue:     body.splitZigValue !== undefined && body.splitZigValue !== '' ? parseFloat(body.splitZigValue) : undefined,
+  };
+}
+
+module.exports = { pickEmployeeFields, isValidTin };

@@ -1,6 +1,6 @@
 # Agent Instructions
 
-> This file is mirrored across CLAUDE.md, AGENTS.md, and GEMINI.md so the same instructions load in any AI environment.
+> This file is named AGENTS.md (or agents.md). It provides instructions for AI agents working on this project. CLAUDE.md and GEMINI.md are not present — agents.md is the single source of truth.
 
 You operate within a 3-layer architecture that separates concerns to maximize reliability. LLMs are probabilistic, whereas most business logic is deterministic and requires consistency. This system fixes that mismatch.
 
@@ -61,6 +61,8 @@ Errors are learning opportunities. When something breaks:
 - `credentials.json`, `token.json` - Google OAuth credentials (required files, in `.gitignore`)
 
 **Key principle:** Local files are only for processing. Deliverables live in cloud services (Google Sheets, Slides, etc.) where the user can access them. Everything in `.tmp/` can be deleted and regenerated.
+
+**Note:** All execution scripts should have a corresponding directive in `directives/`. Currently `extract_employee_import.py`, `split_payroll.py`, and `split_reports.py` lack directives — add one when running these tools.
 
 ## Summary
 

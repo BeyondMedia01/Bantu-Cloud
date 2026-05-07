@@ -107,7 +107,9 @@ router.post('/zkteco', express.text({ type: '*/*', limit: '1mb' }), async (req, 
           },
         });
         saved++;
-      } catch { /* skip duplicate punches */ }
+      } catch (err) {
+        console.warn('Skipping duplicate ZKTeco punch:', r.deviceUserId, r.punchTime, err.message);
+      }
     }
 
     await prisma.biometricDevice.update({
@@ -160,7 +162,9 @@ router.post('/hikvision', express.text({ type: ['text/xml', 'application/xml', '
           },
         });
         saved++;
-      } catch { /* duplicate */ }
+      } catch (err) {
+        console.warn('Skipping duplicate Hikvision punch:', r.deviceUserId, r.punchTime, err.message);
+      }
     }
 
     await prisma.biometricDevice.update({
@@ -207,14 +211,16 @@ router.post('/import', express.json(), async (req, res) => {
           punchTime,
           punchType:    l.punchType || 'IN',
           source:       'IMPORT',
-          rawPayload:   l,
-        },
-      });
-      saved++;
-    } catch { /* duplicate */ }
-  }
+            rawPayload:   l,
+          },
+        });
+        saved++;
+      } catch (err) {
+        console.warn('Skipping duplicate import punch:', l.pin, l.punchTime, err.message);
+      }
+    }
 
-  res.json({ ok: true, saved });
+    res.json({ ok: true, saved });
 });
 
 module.exports = router;

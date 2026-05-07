@@ -1,13 +1,16 @@
 {
+  "$schema": "https://json.schemastore.org/vercel.json",
   "version": 2,
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "http://localhost:5005/api/$1"
+      "dest": "http://localhost:5005/api/$1",
+      "description": "Dev-only proxy — replace with production backend URL or remove when deploying"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "http://localhost:5005/uploads/$1"
+      "dest": "http://localhost:5005/uploads/$1",
+      "description": "Dev-only proxy — replace with production backend URL or remove when deploying"
     },
     {
       "handle": "filesystem"

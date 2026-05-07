@@ -96,8 +96,9 @@ const AdminLicenses = React.lazy(() => import('./pages/admin/Licenses'));
 const SystemSettings = React.lazy(() => import('./pages/admin/SystemSettings'));
 const AuditLogs = React.lazy(() => import('./pages/admin/AuditLogs'));
 
-// Profile
+// Profile & Settings
 const ProfileSettings = React.lazy(() => import('./pages/ProfileSettings'));
+const Settings = React.lazy(() => import('./pages/Settings'));
 
 // Employee self-service
 const EmployeeDashboard = React.lazy(() => import('./pages/employee/EmployeeDashboard'));
@@ -230,6 +231,7 @@ const App: React.FC = () => {
                   <Route path="/devices" element={<Devices />} />
 
                   <Route path="/profile" element={<ProfileSettings />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Route>
 
                 {/* Admin (PLATFORM_ADMIN only) */}

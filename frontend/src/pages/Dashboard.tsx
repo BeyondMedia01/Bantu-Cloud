@@ -5,7 +5,6 @@ import {
 } from 'recharts';
 import { Plus, ArrowUpRight, Clock, CheckCircle2, UserX, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '../context/ToastContext';
 import IntelligenceWidget from '../components/IntelligenceWidget';
 import MiniCalendar from '../components/dashboard/MiniCalendar';
 import RemindersCard from '../components/dashboard/RemindersCard';
@@ -25,7 +24,7 @@ const fmtDate = (d: string | undefined) =>
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { showToast: _showToast } = useToast();
+
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
 
   const {

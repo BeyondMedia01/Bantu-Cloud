@@ -1,3 +1,6 @@
+// NOTE: This route references prisma.payslipTransaction which does not exist
+// in the Prisma schema. It is NOT mounted in index.js. To activate, either
+// add the model to schema.prisma or remove the route if unused.
 const express = require('express');
 const prisma = require('../lib/prisma');
 const router = express.Router();
