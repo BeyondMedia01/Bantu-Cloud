@@ -92,4 +92,46 @@ router.post('/execute', async (req, res) => {
   }
 });
 
+// GET /api/sync/failed — returns failed items from SyncQueue
+router.get('/failed', async (req, res) => {
+  try {
+    const failed = await prisma.syncQueue.findMany({
+      where: { status: 'failed' },
+      orderBy: { createdAt: 'asc' },
+    });
+    return res.json(failed.map(item => ({
+      id: item.id,
+      operation: item.operation,
+      payload: JSON.parse(item.payload),
+      error: item.lastError,
+      attempts: item.attempts,
+    })));
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/sync/retry/:id — reset a failed item to pending so it will retry
+router.post('/retry/:id', async (req, res) => {
+  try {
+    await prisma.syncQueue.update({
+      where: { id: req.params.id },
+      data: { status: 'pending', lastError: null },
+    });
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/sync/dismiss/:id — remove a failed item (user chooses not to sync it)
+router.delete('/dismiss/:id', async (req, res) => {
+  try {
+    await prisma.syncQueue.delete({ where: { id: req.params.id } });
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
