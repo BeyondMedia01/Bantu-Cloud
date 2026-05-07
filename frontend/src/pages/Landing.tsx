@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, ArrowRight, Users, DollarSign, FileText, Shield } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Download, Users, DollarSign, FileText, Shield } from 'lucide-react';
+
+const RELEASES_URL = 'https://github.com/BeyondMedia01/Bantu-Cloud/releases';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const isMac = useMemo(() => typeof navigator !== 'undefined' && /mac|darwin/i.test(navigator.platform ?? ''), []);
 
   return (
     <div className="min-h-screen bg-background font-inter text-navy">
@@ -18,6 +21,9 @@ const Landing: React.FC = () => {
           <button onClick={() => navigate('/register')} className="bg-brand text-navy px-5 py-2.5 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
             Get Started
           </button>
+          <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground hover:text-navy transition-colors">
+            <Download size={14} /> {isMac ? 'Mac' : 'Windows'}
+          </a>
         </div>
       </nav>
 
@@ -42,6 +48,14 @@ const Landing: React.FC = () => {
           <button onClick={() => navigate('/login')} className="px-8 py-4 rounded-full font-bold border border-border hover:bg-muted transition-colors text-lg">
             Sign In
           </button>
+          <a
+            href={RELEASES_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-4 rounded-full font-bold border-2 border-accent-green/30 text-accent-green hover:bg-accent-green/5 transition-colors text-lg flex items-center gap-2"
+          >
+            <Download size={20} /> {isMac ? 'Download for macOS' : 'Download for Windows'}
+          </a>
         </div>
       </section>
 
@@ -101,6 +115,11 @@ const Landing: React.FC = () => {
       </section>
 
       <footer className="bg-primary border-t border-border py-8 px-6 text-center text-sm text-muted-foreground font-medium">
+        <div className="flex items-center justify-center gap-6 mb-2">
+          <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className="hover:text-navy transition-colors flex items-center gap-1.5">
+            <Download size={14} /> Desktop App
+          </a>
+        </div>
         © {new Date().getFullYear()} Bantu Payroll. Built for Zimbabwe.
       </footer>
     </div>
