@@ -2,12 +2,12 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Bantu",
   "version": "0.1.0",
-  "identifier": "com.bantu.app",
+  "identifier": "com.bantu.desktop",
   "build": {
     "frontendDist": "../frontend/dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeBuildCommand": ""
   },
   "app": {
     "trayIcon": {
