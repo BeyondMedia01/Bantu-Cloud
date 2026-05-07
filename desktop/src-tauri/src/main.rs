@@ -29,7 +29,7 @@ fn main() {
 
             sidecar::ensure_database(&template_db, &db_path)?;
 
-            match sidecar::spawn_sidecar(app, &db_path) {
+            match sidecar::spawn_sidecar(app.handle(), &db_path) {
                 Ok(child) => {
                     app.manage(SidecarState(Mutex::new(Some(child))));
                 }
