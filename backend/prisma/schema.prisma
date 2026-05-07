@@ -1175,3 +1175,19 @@ model SyncMeta {
   lastSyncedAt  DateTime?
   deviceId      String?   // hardware identifier used for license validation
 }
+
+// ─── Desktop Licensing ────────────────────────────────────────────────────────
+
+model DesktopLicense {
+  id            String    @id @default(cuid())
+  accountId     String    // References the Account that owns this license
+  deviceId      String    @unique // Hardware fingerprint (MAC address hash or similar)
+  activatedAt   DateTime  @default(now())
+  expiresAt     DateTime  // License expiry (1 year from activation)
+  revokedAt     DateTime? // Set when admin revokes the license
+  lastRenewedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([accountId])
+}
