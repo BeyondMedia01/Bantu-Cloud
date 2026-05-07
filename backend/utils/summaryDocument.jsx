@@ -1,9 +1,12 @@
 import React from 'react';
-import { createRequire } from 'module';
 import { Document, Page, View, Text, StyleSheet, renderToBuffer, Image } from '@react-pdf/renderer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const _require = createRequire(import.meta.url);
-const LOGO_PATH = _require.resolve('./logo.svg');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const LOGO_PATH = path.join(__dirname, 'logo.svg');
 
 const DARK_NAVY   = '#1a2e4a';
 const BANTU_GREEN = '#B2DB64';

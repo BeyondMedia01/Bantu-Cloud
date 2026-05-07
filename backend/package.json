@@ -7,7 +7,10 @@
   "pkg": {
     "scripts": "dist/ncc/index.js",
     "assets": [],
-    "targets": ["node18-macos-x64", "node18-win-x64"],
+    "targets": [
+      "node18-macos-x64",
+      "node18-win-x64"
+    ],
     "outputPath": "../desktop/src-tauri/binaries"
   },
   "scripts": {
@@ -45,6 +48,7 @@
     "pg": "^8.20.0",
     "prisma": "^6.12.0",
     "react": "^19.2.4",
+    "stripe": "^22.1.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
