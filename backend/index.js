@@ -13,6 +13,7 @@ const cron = require('node-cron');
 require('dotenv').config();
 
 const { authenticateToken } = require('./lib/auth');
+const { requirePermission } = require('./lib/permissions');
 const companyContext = require('./middleware/companyContext');
 
 const app = express();
@@ -82,30 +83,6 @@ app.get('/', (_req, res) => {
   res.json({ message: 'Bantu Payroll API', version: '2.0.0' });
 });
 
-app.get('/api/seed-tcs', async (req, res) => {
-  try {
-    const { autoSeedTransactionCodes } = require('./utils/transactionCodes');
-    await autoSeedTransactionCodes();
-    res.json({ message: 'Seeding complete' });
-  } catch (err) {
-    console.error('[seed-tcs]', err);
-    res.status(500).json({ message: 'Seeding failed' });
-  }
-});
-
-app.get('/api/seed-settings', async (req, res) => {
-  try {
-    const { autoSeedSystemSettings } = require('./utils/systemSettingsSeed');
-    await autoSeedSystemSettings();
-    res.json({ message: 'Settings seeding complete' });
-  } catch (err) {
-    console.error('[seed-settings]', err);
-    res.status(500).json({ message: 'Seeding failed' });
-  }
-});
-
-
-
 // ─── Public Routes (no auth required) ────────────────────────────────────────
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));
@@ -126,6 +103,28 @@ app.use('/api/biometric', deviceLimiter, require('./routes/biometric'));
 
 app.use(authenticateToken);
 app.use(companyContext);
+
+app.get('/api/seed-tcs', requirePermission('update_settings'), async (_req, res) => {
+  try {
+    const { autoSeedTransactionCodes } = require('./utils/transactionCodes');
+    await autoSeedTransactionCodes();
+    res.json({ message: 'Seeding complete' });
+  } catch (err) {
+    console.error('[seed-tcs]', err);
+    res.status(500).json({ message: 'Seeding failed' });
+  }
+});
+
+app.get('/api/seed-settings', requirePermission('update_settings'), async (_req, res) => {
+  try {
+    const { autoSeedSystemSettings } = require('./utils/systemSettingsSeed');
+    await autoSeedSystemSettings();
+    res.json({ message: 'Settings seeding complete' });
+  } catch (err) {
+    console.error('[seed-settings]', err);
+    res.status(500).json({ message: 'Seeding failed' });
+  }
+});
 
 // Sync Routes (both modes — routes are non-overlapping)
 // Web server: POST / and GET /initial receive inbound data from desktop.
@@ -217,8 +216,9 @@ app.use('/api/devices',    require('./routes/devices'));
 // Intelligence
 app.use('/api/intelligence', require('./routes/intelligence'));
 
-// Temporary PAYE debug — remove after use
-app.use('/api/debug-paye', require('./routes/debugPayroll'));
+if (process.env.ENABLE_DEBUG_PAYE === 'true') {
+  app.use('/api/debug-paye', requirePermission('view_reports'), require('./routes/debugPayroll'));
+}
 
 // Cron HTTP triggers (called by Render cron service or external scheduler)
 app.use('/api/cron', require('./routes/cron'));

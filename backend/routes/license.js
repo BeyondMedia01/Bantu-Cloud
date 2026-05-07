@@ -2,10 +2,8 @@
 
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { signLicenseToken, verifyLicenseToken, hashDeviceId } = require('../lib/licenseJwt.js');
-
-const prisma = new PrismaClient();
 
 // Auth middleware — assumes req.user is populated by existing auth middleware
 // The main app mounts auth middleware before this router

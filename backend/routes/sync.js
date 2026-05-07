@@ -2,20 +2,32 @@
 
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { executeOperation } = require('../sync_queue/operations.js');
 const { dryRun, sync: executeSync } = require('../services/syncService.js');
 
-// Only mount this router when APP_MODE !== 'desktop'
-// (index.js handles the conditional mounting)
+const isDesktopMode = () => process.env.APP_MODE === 'desktop';
+
+const desktopOnly = (_req, res, next) => {
+  if (!isDesktopMode()) {
+    return res.status(404).json({ error: 'Desktop sync route is not available in web-server mode' });
+  }
+  next();
+};
+
+const webOnly = (_req, res, next) => {
+  if (isDesktopMode()) {
+    return res.status(404).json({ error: 'Inbound sync route is not available in desktop mode' });
+  }
+  next();
+};
 
 /**
  * POST /api/sync
  * Receives a single named operation from the desktop client and applies it.
  * Body: { operation: string, payload: object }
  */
-router.post('/', async (req, res) => {
+router.post('/', webOnly, async (req, res) => {
   const { operation, payload } = req.body;
 
   if (!operation || !payload) {
@@ -37,7 +49,7 @@ router.post('/', async (req, res) => {
  * Query params: page (default 1), limit (default 100)
  * Returns all entities the desktop needs: employees, companies, payrollRuns, payslips
  */
-router.get('/initial', async (req, res) => {
+router.get('/initial', webOnly, async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(500, parseInt(req.query.limit) || 100);
   const skip = (page - 1) * limit;
@@ -65,7 +77,7 @@ router.get('/initial', async (req, res) => {
  * GET /api/sync/dry-run — desktop only
  * Returns the list of pending sync operations without executing them.
  */
-router.get('/dry-run', async (_req, res) => {
+router.get('/dry-run', desktopOnly, async (_req, res) => {
   try {
     const items = await dryRun();
     return res.json(items);
@@ -79,7 +91,7 @@ router.get('/dry-run', async (_req, res) => {
  * Executes the pending sync operations against the remote server.
  * Body: { serverUrl: string, authToken: string }
  */
-router.post('/execute', async (req, res) => {
+router.post('/execute', desktopOnly, async (req, res) => {
   const { serverUrl, authToken } = req.body;
   if (!serverUrl || !authToken) {
     return res.status(400).json({ error: 'serverUrl and authToken are required' });
@@ -93,7 +105,7 @@ router.post('/execute', async (req, res) => {
 });
 
 // GET /api/sync/failed — returns failed items from SyncQueue
-router.get('/failed', async (req, res) => {
+router.get('/failed', desktopOnly, async (_req, res) => {
   try {
     const failed = await prisma.syncQueue.findMany({
       where: { status: 'failed' },
@@ -112,7 +124,7 @@ router.get('/failed', async (req, res) => {
 });
 
 // POST /api/sync/retry/:id — reset a failed item to pending so it will retry
-router.post('/retry/:id', async (req, res) => {
+router.post('/retry/:id', desktopOnly, async (req, res) => {
   try {
     await prisma.syncQueue.update({
       where: { id: req.params.id },
@@ -125,7 +137,7 @@ router.post('/retry/:id', async (req, res) => {
 });
 
 // POST /api/sync/seed — receives batches of initial data and writes to local DB
-router.post('/seed', async (req, res) => {
+router.post('/seed', desktopOnly, async (req, res) => {
   const { employees = [], companies = [], payrollRuns = [], payslips = [] } = req.body;
 
   const MAX_BATCH = 500;
@@ -164,7 +176,7 @@ router.post('/seed', async (req, res) => {
 });
 
 // DELETE /api/sync/dismiss/:id — remove a failed item (user chooses not to sync it)
-router.delete('/dismiss/:id', async (req, res) => {
+router.delete('/dismiss/:id', desktopOnly, async (req, res) => {
   try {
     await prisma.syncQueue.delete({ where: { id: req.params.id } });
     return res.json({ success: true });

@@ -16,12 +16,12 @@ describe('StatCard', () => {
 
   it('applies green color for trendDirection=up', () => {
     render(<StatCard label="Test" value={10} trend="+3" trendDirection="up" />);
-    expect(screen.getByText('+3')).toHaveClass('text-green-600');
+    expect(screen.getByText('+3')).toHaveClass('text-emerald-600');
   });
 
   it('applies red color for trendDirection=down', () => {
     render(<StatCard label="Test" value={10} trend="-2" trendDirection="down" />);
-    expect(screen.getByText('-2')).toHaveClass('text-red-500');
+    expect(screen.getByText('-2')).toHaveClass('text-destructive');
   });
 
   it('applies neutral color by default', () => {

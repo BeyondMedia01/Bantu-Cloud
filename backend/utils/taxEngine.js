@@ -285,6 +285,11 @@ function calculateSplitSalaryPaye({
 }) {
   const xr = (exchangeRate && exchangeRate > 0) ? exchangeRate : 1;
   const consolidate = (u, z) => (u || 0) + (z || 0) / xr;
+  const hasValue = (value) => value !== undefined && value !== null;
+  const consolidatedNssaCeiling =
+    hasValue(usdParams.nssaCeiling) || hasValue(zigParams.nssaCeiling)
+      ? (usdParams.nssaCeiling || 0) + ((zigParams.nssaCeiling || 0) / xr)
+      : undefined;
 
   // consolidate all earnings/deductions into a single USD-denominated parameter set
   const consolidated = {
@@ -304,13 +309,15 @@ function calculateSplitSalaryPaye({
     nssaExcludedEarnings: consolidate(usdParams.nssaExcludedEarnings, zigParams.nssaExcludedEarnings),
     payeExcludedEarnings: consolidate(usdParams.payeExcludedEarnings, zigParams.payeExcludedEarnings),
     loanBenefit:         consolidate(usdParams.loanBenefit, zigParams.loanBenefit),
-    fdsAveragePAYEBasis: usdParams.fdsAveragePAYEBasis ? consolidate(usdParams.fdsAveragePAYEBasis, zigParams.fdsAveragePAYEBasis) : null,
+    fdsAveragePAYEBasis: hasValue(usdParams.fdsAveragePAYEBasis) || hasValue(zigParams.fdsAveragePAYEBasis)
+      ? consolidate(usdParams.fdsAveragePAYEBasis, zigParams.fdsAveragePAYEBasis)
+      : null,
     // Statutory thresholds remain in USD for the consolidated calculation.
     // NSSA ceiling: each currency stream has its own ceiling, so the consolidated
     // ceiling is the sum of both in USD (usdCeiling + zigCeiling/xr).
     bonusExemption:      usdParams.bonusExemption || 0,
     severanceExemption:  usdParams.severanceExemption || 0,
-    nssaCeiling:         (usdParams.nssaCeiling || 0) + ((zigParams.nssaCeiling || 0) / xr),
+    nssaCeiling:         consolidatedNssaCeiling,
     pensionCap:          usdParams.pensionCap,
   };
 
