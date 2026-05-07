@@ -124,6 +124,34 @@ router.post('/retry/:id', async (req, res) => {
   }
 });
 
+// POST /api/sync/seed — receives batches of initial data and writes to local DB
+router.post('/seed', async (req, res) => {
+  const { employees = [], companies = [], payrollRuns = [], payslips = [] } = req.body;
+
+  try {
+    // Upsert all entities
+    await Promise.all([
+      ...employees.map(e => prisma.employee.upsert({
+        where: { id: e.id }, create: e, update: e,
+      })),
+      ...companies.map(c => prisma.company.upsert({
+        where: { id: c.id }, create: c, update: c,
+      })),
+      ...payrollRuns.map(r => prisma.payrollRun.upsert({
+        where: { id: r.id }, create: r, update: r,
+      })),
+      ...payslips.map(p => prisma.payslip.upsert({
+        where: { id: p.id }, create: p, update: p,
+      })),
+    ]);
+
+    return res.json({ seeded: employees.length + companies.length + payrollRuns.length + payslips.length });
+  } catch (err) {
+    console.error('[Seed] Failed:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // DELETE /api/sync/dismiss/:id — remove a failed item (user chooses not to sync it)
 router.delete('/dismiss/:id', async (req, res) => {
   try {
