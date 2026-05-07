@@ -20,10 +20,7 @@ export type {
 } from '../types/domain';
 export type { PaginatedResponse, Branch, Department } from '../types/common';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL as string | undefined;
-if (!API_BASE_URL) {
-  throw new Error('[api] VITE_API_URL must be set at build time.');
-}
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:5005';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
