@@ -174,6 +174,7 @@ app.use('/api/loans', require('./routes/loans'));
 // Desktop license activation & renewal (web-server only)
 if (!isDesktop) {
   app.use('/api/license', require('./routes/license'));
+  app.use('/api/desktop', require('./routes/desktop'));
 }
 
 // License management (PLATFORM_ADMIN)

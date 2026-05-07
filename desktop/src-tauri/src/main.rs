@@ -18,6 +18,7 @@ fn main() {
             commands::clear_license_token,
         ])
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let resource_dir = app.path().resource_dir()
                 .map_err(|e| format!("No resource dir: {e}"))?;

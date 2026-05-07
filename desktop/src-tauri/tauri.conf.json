@@ -27,6 +27,13 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "endpoints": ["https://update.bantu.app/api/desktop/updates"],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IHBsYWNlaG9sZGVy"
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
