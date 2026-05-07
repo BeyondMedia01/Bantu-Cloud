@@ -66,7 +66,7 @@ const operations = {
  * @param {object} payload - Parsed operation payload
  * @param {object} prisma - Prisma client instance
  */
-export async function executeOperation(name, payload, prisma) {
+async function executeOperation(name, payload, prisma) {
   const handler = operations[name];
   if (!handler) {
     throw new Error(`Unknown sync operation: ${name}`);
@@ -77,8 +77,8 @@ export async function executeOperation(name, payload, prisma) {
 /**
  * Check if an operation name is registered.
  */
-export function isKnownOperation(name) {
+function isKnownOperation(name) {
   return name in operations;
 }
 
-export default operations;
+module.exports = { executeOperation, isKnownOperation, operations };

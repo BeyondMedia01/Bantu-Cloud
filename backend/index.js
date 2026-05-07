@@ -106,6 +106,11 @@ app.get('/api/seed-settings', async (req, res) => {
 
 
 
+// ─── Sync Routes (web-server only, no auth — desktop authenticates via its own mechanism) ──
+if (!isDesktop) {
+  app.use('/api/sync', require('./routes/sync'));
+}
+
 // ─── Public Routes (no auth required) ────────────────────────────────────────
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));

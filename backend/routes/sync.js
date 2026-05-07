@@ -1,0 +1,63 @@
+'use strict';
+
+const express = require('express');
+const router = express.Router();
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+const { executeOperation } = require('../sync_queue/operations.js');
+
+// Only mount this router when APP_MODE !== 'desktop'
+// (index.js handles the conditional mounting)
+
+/**
+ * POST /api/sync
+ * Receives a single named operation from the desktop client and applies it.
+ * Body: { operation: string, payload: object }
+ */
+router.post('/', async (req, res) => {
+  const { operation, payload } = req.body;
+
+  if (!operation || !payload) {
+    return res.status(400).json({ error: 'operation and payload are required' });
+  }
+
+  try {
+    const result = await executeOperation(operation, payload, prisma);
+    return res.status(200).json({ success: true, id: result?.id ?? null });
+  } catch (err) {
+    console.error('[Sync] Operation failed:', err.message);
+    return res.status(422).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/sync/initial
+ * Returns paginated initial data pull for new desktop clients.
+ * Query params: page (default 1), limit (default 100)
+ * Returns all entities the desktop needs: employees, companies, payrollRuns, payslips
+ */
+router.get('/initial', async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(500, parseInt(req.query.limit) || 100);
+  const skip = (page - 1) * limit;
+
+  try {
+    const [employees, companies, payrollRuns, payslips] = await Promise.all([
+      prisma.employee.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
+      prisma.company.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
+      prisma.payrollRun.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
+      prisma.payslip.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
+    ]);
+
+    return res.json({
+      page,
+      limit,
+      data: { employees, companies, payrollRuns, payslips },
+    });
+  } catch (err) {
+    console.error('[Sync] Initial pull failed:', err.message);
+    return res.status(500).json({ error: 'Failed to fetch initial data' });
+  }
+});
+
+module.exports = router;
