@@ -20,7 +20,9 @@ export type {
 } from '../types/domain';
 export type { PaginatedResponse, Branch, Department } from '../types/common';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:5005';
+const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+const DESKTOP_CLOUD_URL = 'https://bantu-cloud.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL as string || (IS_DESKTOP ? DESKTOP_CLOUD_URL : 'http://localhost:5005');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
