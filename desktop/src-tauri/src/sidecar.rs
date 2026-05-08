@@ -23,7 +23,7 @@ pub fn ensure_database(template_db: &Path, db_path: &Path) -> Result<(), String>
 
 /// Spawns the Express backend sidecar using Tauri's shell plugin (correct path resolution).
 pub fn spawn_sidecar(app: &AppHandle, db_path: &Path) -> Result<CommandChild, String> {
-    let db_url = format!("file:{}", db_path.display());
+    let db_url = format!("file:{}", db_path.to_string_lossy().replace('\\', "/"));
 
     let (_rx, child) = app
         .shell()

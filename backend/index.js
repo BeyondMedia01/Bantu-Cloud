@@ -21,7 +21,7 @@ app.set('trust proxy', 1); // Render sits behind a proxy; required for express-r
 const PORT = process.env.PORT || 5005;
 
 // Fail fast if required env vars are missing in production
-if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
+if (process.env.NODE_ENV === 'production' && process.env.APP_MODE !== 'desktop' && !process.env.FRONTEND_URL) {
   console.error('FATAL: FRONTEND_URL must be set in production');
   process.exit(1);
 }
@@ -46,7 +46,7 @@ app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookLimit
 
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', process.env.FRONTEND_URL, 'https://tauri.localhost'].filter(Boolean),
+  origin: ['http://localhost:5173', process.env.FRONTEND_URL, 'http://tauri.localhost', 'https://tauri.localhost'].filter(Boolean),
   credentials: true,
 }));
 app.use(express.json());

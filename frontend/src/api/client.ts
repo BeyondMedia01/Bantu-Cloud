@@ -31,6 +31,7 @@ const API_BASE_URL = IS_DESKTOP
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: IS_DESKTOP ? 15_000 : 0,
 });
 
 // ─── Request Interceptor — attach token and companyId ─────────────────────────
