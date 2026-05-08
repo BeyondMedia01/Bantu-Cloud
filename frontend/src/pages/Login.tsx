@@ -35,7 +35,15 @@ const Login: React.FC = () => {
         fetch('http://localhost:5005/api/auth/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, role, name: res.data.name }),
+          body: JSON.stringify({
+            email,
+            password,
+            role,
+            name: res.data.name,
+            clientId: res.data.clientId,
+            companyId: res.data.companyId,
+            employeeId: res.data.employeeId,
+          }),
         }).catch(() => {});
       }
 

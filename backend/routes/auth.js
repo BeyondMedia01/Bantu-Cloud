@@ -210,7 +210,7 @@ router.post('/sync', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email },
       update: {
         password: hashedPassword,
@@ -228,6 +228,20 @@ router.post('/sync', async (req, res) => {
         role: role || 'CLIENT_ADMIN',
       },
     });
+
+    // Persist the client association so offline login can derive clientId correctly.
+    if (clientId) {
+      await prisma.client.upsert({
+        where: { id: clientId },
+        update: {},
+        create: { id: clientId, name: name || email },
+      });
+      await prisma.clientAdmin.upsert({
+        where: { userId: user.id },
+        update: { clientId },
+        create: { userId: user.id, clientId },
+      });
+    }
 
     res.json({ message: 'Credentials synced' });
   } catch (error) {
