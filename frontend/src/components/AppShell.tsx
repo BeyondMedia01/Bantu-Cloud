@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, DollarSign, FileText, Settings,
   Building2, User, ChevronDown, LogOut, Wrench,
   CalendarDays, CreditCard, ShieldCheck, Menu, ChevronRight,
-  ClipboardList, Clock, Cpu, PanelLeftClose, PanelLeftOpen,
+  ClipboardList, Clock, Cpu, PanelLeftClose, PanelLeftOpen, Download,
 } from 'lucide-react';
 import { getUser, logout } from '../lib/auth';
 import { CompanyAPI, UserAPI } from '../api/client';
@@ -12,6 +12,8 @@ import { setActiveCompanyId } from '../lib/companyContext';
 import { getAvatarGradient } from '../lib/avatarGradient';
 import { useIdleTimer } from '../hooks/useIdleTimer';
 import IdleTimerModal from './common/IdleTimerModal';
+
+const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
 
 const AppShell: React.FC = () => {
   const user = getUser();
@@ -76,6 +78,20 @@ const AppShell: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleCheckUpdates = async () => {
+    if (!IS_DESKTOP) return;
+    try {
+      const { checkUpdate } = await import('@tauri-apps/plugin-updater');
+      const result = await checkUpdate();
+      if (!result.shouldUpdate) {
+        const { toast } = await import('sonner');
+        toast.info('You are on the latest version.');
+      }
+    } catch {
+      // updater unavailable
+    }
   };
 
   useEffect(() => {
@@ -266,6 +282,11 @@ const AppShell: React.FC = () => {
             <button onClick={handleLogout} aria-label="Sign out" className="p-2 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground min-w-[36px] min-h-[36px] flex items-center justify-center">
               <LogOut size={16} />
             </button>
+            {IS_DESKTOP && (
+              <button onClick={handleCheckUpdates} aria-label="Check for updates" className="p-2 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground min-w-[36px] min-h-[36px] flex items-center justify-center" title="Check for updates">
+                <Download size={16} />
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-3 mb-1">
@@ -278,6 +299,11 @@ const AppShell: React.FC = () => {
                 <p className="text-[10px] text-muted-foreground font-semibold uppercase mt-0.5">{user?.role?.replace(/_/g, ' ')}</p>
               </div>
             </Link>
+            {IS_DESKTOP && (
+              <button onClick={handleCheckUpdates} aria-label="Check for updates" className="p-1.5 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground shrink-0" title="Check for updates">
+                <Download size={16} />
+              </button>
+            )}
             <button onClick={handleLogout} aria-label="Sign out" className="p-1.5 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground shrink-0" title="Sign out">
               <LogOut size={16} />
             </button>

@@ -50,3 +50,6 @@ backend/dev.db
 backend/generated/
 backend/prisma/sqlite/dev.db
 .env.desktop
+
+# Tauri signing key
+.env.desktop.key

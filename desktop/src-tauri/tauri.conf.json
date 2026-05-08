@@ -29,9 +29,9 @@
   },
   "plugins": {
     "updater": {
-      "endpoints": ["https://update.bantu.app/api/desktop/updates"],
+      "endpoints": ["https://bantu-cloud.onrender.com/api/desktop/updates?target={{target}}&arch={{arch}}&current_version={{current_version}}"],
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IHBsYWNlaG9sZGVy"
+      "pubkey": "dHJ1c3RlZCBjb21tZW50OiBiYW50dS1kZXNrdG9wLXNpZ25pbmcta2V5CmNqSkl2SHVrbTNzT1QxcG43NDBrektUZzA5d1owNm85Z2R2bDhJckZNK0E9"
     }
   },
   "bundle": {
