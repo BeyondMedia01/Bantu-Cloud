@@ -24,7 +24,7 @@ export type { PaginatedResponse, Branch, Department } from '../types/common';
 const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
 const DESKTOP_CLOUD_URL = 'https://bantu-cloud.onrender.com/api';
 const DESKTOP_LOCAL_URL = 'http://localhost:5005';
-const API_BASE_URL = import.meta.env.VITE_API_URL as string || (IS_DESKTOP ? DESKTOP_CLOUD_URL : DESKTOP_LOCAL_URL);
+const API_BASE_URL = IS_DESKTOP ? DESKTOP_CLOUD_URL : (import.meta.env.VITE_API_URL as string || DESKTOP_LOCAL_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
