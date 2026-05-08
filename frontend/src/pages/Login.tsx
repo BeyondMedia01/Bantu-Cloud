@@ -4,6 +4,8 @@ import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { AuthAPI } from '../api/client';
 import { saveAuthData } from '../lib/auth';
 
+const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -28,6 +30,14 @@ const Login: React.FC = () => {
       const res = await AuthAPI.login({ email, password });
       const { token, companyId, role } = res.data;
       saveAuthData(token, companyId);
+
+      if (IS_DESKTOP) {
+        fetch('http://localhost:5005/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role, name: res.data.name }),
+        }).catch(() => {});
+      }
 
       if (role === 'PLATFORM_ADMIN') navigate('/admin');
       else if (role === 'EMPLOYEE') navigate('/employee');

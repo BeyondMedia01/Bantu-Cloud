@@ -193,4 +193,47 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// POST /api/auth/sync — Desktop-only: sync user credentials to local SQLite after successful cloud login.
+// This allows offline login via the sidecar when the cloud is unreachable.
+// Only accessible when APP_MODE=desktop (sidecar mode) to prevent abuse on the cloud server.
+router.post('/sync', async (req, res) => {
+  if (process.env.APP_MODE !== 'desktop') {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
+  const { email, password, name, role, firstName, lastName, clientId, companyId, employeeId } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'email and password are required' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await prisma.user.upsert({
+      where: { email },
+      update: {
+        password: hashedPassword,
+        name: name || undefined,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        role: role || undefined,
+      },
+      create: {
+        email,
+        password: hashedPassword,
+        name: name || email,
+        firstName: firstName || name || email,
+        lastName: lastName || '',
+        role: role || 'CLIENT_ADMIN',
+      },
+    });
+
+    res.json({ message: 'Credentials synced' });
+  } catch (error) {
+    console.error('Desktop sync error:', error);
+    res.status(500).json({ message: 'Failed to sync credentials' });
+  }
+});
+
 module.exports = router;
