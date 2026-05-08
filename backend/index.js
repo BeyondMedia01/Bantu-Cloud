@@ -46,7 +46,7 @@ app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookLimit
 
 app.use(helmet());
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:5173', 'https://tauri.localhost'].filter(Boolean),
+  origin: ['http://localhost:5173', process.env.FRONTEND_URL, 'https://tauri.localhost'].filter(Boolean),
   credentials: true,
 }));
 app.use(express.json());
