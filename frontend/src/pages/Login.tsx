@@ -14,11 +14,13 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
-
   React.useEffect(() => {
+    if (!IS_DESKTOP) return;
+    // On desktop, if no CLIENT_ADMIN exists yet, send the user to onboarding.
     import('../api/client').then(({ SetupAPI }) => {
-      SetupAPI.check().then(res => setIsInitialized(res.data.initialized));
+      SetupAPI.check()
+        .then(res => { if (!res.data.initialized) navigate('/onboarding'); })
+        .catch(() => {}); // sidecar may still be starting — stay on login
     });
   }, []);
 
@@ -127,19 +129,16 @@ const Login: React.FC = () => {
           </button>
 
           <div className="flex items-center justify-between text-sm mt-1">
-            <p className="font-medium text-muted-foreground">
-              Don't have an account?
-              <Link to="/register" className="ml-2 font-bold text-accent-green hover:underline">Register</Link>
-            </p>
-            <Link to="/forgot-password" className="font-bold text-muted-foreground hover:text-navy transition-colors">
+            {!IS_DESKTOP && (
+              <p className="font-medium text-muted-foreground">
+                Don't have an account?
+                <Link to="/register" className="ml-2 font-bold text-accent-green hover:underline">Register</Link>
+              </p>
+            )}
+            <Link to="/forgot-password" className="font-bold text-muted-foreground hover:text-navy transition-colors ml-auto">
               Forgot password?
             </Link>
           </div>
-          {isInitialized === false && (
-            <p className="text-center text-xs text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-500">
-              First time? <Link to="/setup" className="font-bold text-accent-green hover:underline">Platform Setup</Link>
-            </p>
-          )}
         </form>
       </div>
 

@@ -105,6 +105,11 @@ router.post('/login', async (req, res) => {
     // Successful login — clear any failure record
     loginFailures.delete(email);
 
+    // Desktop builds are CLIENT_ADMIN only — PLATFORM_ADMIN accounts are cloud-only
+    if (process.env.APP_MODE === 'desktop' && user.role === 'PLATFORM_ADMIN') {
+      return res.status(403).json({ message: 'Platform admin accounts cannot log in on the desktop app' });
+    }
+
     const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
     const companyId = user.employee?.companyId ?? null;
     const employeeId = user.employee?.id ?? null;

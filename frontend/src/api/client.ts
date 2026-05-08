@@ -101,9 +101,16 @@ export const AuthAPI = {
 };
 
 export const SetupAPI = {
-  check: () => api.get('/setup'),
+  check: () => api.get<{ initialized: boolean; mode: string }>('/setup'),
   init: (data: { name: string; email: string; password: string; clientName: string }) =>
     api.post('/setup', data),
+  desktopOnboard: (data: {
+    licenseToken: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }) => api.post<{ token: string; role: string; clientId: string; name: string }>('/setup/desktop', data),
 };
 
 export const LicenseValidateAPI = {

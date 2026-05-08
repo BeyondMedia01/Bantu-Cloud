@@ -14,6 +14,7 @@ import Landing from './pages/Landing';
 import LicenseExpired from './pages/LicenseExpired';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import DesktopOnboarding from './pages/DesktopOnboarding';
 
 // ─── Lazy-loaded pages ────────────────────────────────────────────────────────
 
@@ -170,6 +171,7 @@ const App: React.FC = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/setup" element={<Setup />} />
+                <Route path="/onboarding" element={<DesktopOnboarding />} />
                 <Route path="/license-expired" element={<LicenseExpired />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
