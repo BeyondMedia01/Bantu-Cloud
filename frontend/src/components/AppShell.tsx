@@ -73,11 +73,13 @@ const AppShell: React.FC = () => {
   }, []);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   useEffect(() => {
-    if (isIdle) {
-      logout();
-      navigate('/login');
-    }
+    if (isIdle) handleLogout();
   }, [isIdle, navigate]);
 
   const handleSelectCompany = (company: any) => {
