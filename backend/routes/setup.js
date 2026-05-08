@@ -47,7 +47,7 @@ router.post('/', setupLimiter, async (req, res) => {
       data: { name: clientName, isActive: true },
     });
 
-    const license = await issueLicense(client.id, 10, 120); // 10-year internal license, 10-employee cap
+    const license = await issueLicense(client.id, clientName, 10, 120); // 10-year, 10-employee internal license
 
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword, role: 'PLATFORM_ADMIN' },

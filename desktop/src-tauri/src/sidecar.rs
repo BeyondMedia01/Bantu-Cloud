@@ -9,6 +9,11 @@ use tauri_plugin_shell::process::CommandChild;
 
 const SIDECAR_PORT: u16 = 5005;
 
+// Public key embedded at compile time from keys/license_public.pem.
+// The private key never leaves the cloud server — only this public key ships
+// with the desktop app so it can verify tb_ license tokens fully offline.
+const CLIENT_LICENSE_PUBLIC_KEY: &str = include_str!("../keys/license_public.pem");
+
 /// Copies the pre-migrated template.db to db_path if db_path doesn't already exist.
 pub fn ensure_database(template_db: &Path, db_path: &Path) -> Result<(), String> {
     if db_path.exists() {
@@ -35,6 +40,7 @@ pub fn spawn_sidecar(app: &AppHandle, db_path: &Path) -> Result<CommandChild, St
         .env("DATABASE_URL", &db_url)
         .env("AUTH_SKIP_VERIFY", "true")
         .env("JWT_SECRET", "desktop-dummy-secret")
+        .env("CLIENT_LICENSE_PUBLIC_KEY", CLIENT_LICENSE_PUBLIC_KEY.trim())
         .spawn()
         .map_err(|e| format!("Failed to spawn sidecar: {e}"))?;
 

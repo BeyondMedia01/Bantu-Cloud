@@ -13,6 +13,9 @@ out/
 .env.local
 .env.*.local
 
+# License private key — never commit, keep on cloud server only
+desktop/src-tauri/keys/license_private.pem
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
