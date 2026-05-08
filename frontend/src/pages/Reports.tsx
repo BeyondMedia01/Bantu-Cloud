@@ -115,6 +115,45 @@ const Reports: React.FC = () => {
   const downloadDepartments = () =>
     download('departments', () => ReportsAPI.departments(), `Departments_Headcount.csv`);
 
+  const downloadPayeReport = () => {
+    if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
+    download('paye-report', () => ReportsAPI.payeReport({ runId: selectedRunId }), `PAYE_Report_${selectedRunId}.pdf`);
+  };
+
+  const downloadNssaReport = () => {
+    if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
+    download('nssa-report', () => ReportsAPI.nssaReport({ runId: selectedRunId }), `NSSA_Report_${selectedRunId}.pdf`);
+  };
+
+  const downloadTotalJournal = () => {
+    if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
+    download('total-journal', () => ReportsAPI.totalJournal({ runId: selectedRunId }), `Total_Journal_${selectedRunId}.pdf`);
+  };
+
+  const downloadDeptJournal = () => {
+    if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
+    download('dept-journal', () => ReportsAPI.departmentJournal({ runId: selectedRunId }), `Department_Journal_${selectedRunId}.pdf`);
+  };
+
+  const downloadMedicalAid = () => {
+    if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
+    download('medical-aid', () => ReportsAPI.medicalAidReport({ runId: selectedRunId }), `Medical_Aid_Report_${selectedRunId}.pdf`);
+  };
+
+  const downloadOvertime = () => {
+    if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
+    download('overtime', () => ReportsAPI.overtimeReport({ runId: selectedRunId }), `Overtime_Report_${selectedRunId}.pdf`);
+  };
+
+  const downloadSalaryAdvance = () =>
+    download('salary-advance', () => ReportsAPI.salaryAdvance(), `Salary_Advance_Report.pdf`);
+
+  const downloadLeaveProvision = () =>
+    download('leave-provision', () => ReportsAPI.leaveProvision(), `Leave_Provision_Report.pdf`);
+
+  const downloadEmployeeListing = () =>
+    download('employee-listing', () => ReportsAPI.employeeListing(), `Employee_Listing.pdf`);
+
   const downloadSummaryPdf = () => {
     if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
     download('summary-pdf', () => PayrollAPI.downloadSummaryPdf(selectedRunId), `Payroll_Summary_${selectedRunId}.pdf`);
@@ -305,6 +344,15 @@ const Reports: React.FC = () => {
                 { key: 'leave', icon: <BookOpen size={20} />, color: 'bg-amber-50 text-amber-600', label: 'Leave Report', sub: 'Leave balances & history', fn: downloadLeave },
                 { key: 'loans', icon: <BarChart2 size={20} />, color: 'bg-rose-50 text-rose-600', label: 'Loans Report', sub: 'Active & settled loans', fn: downloadLoans },
                 { key: 'departments', icon: <Users size={20} />, color: 'bg-teal-50 text-teal-600', label: 'Headcount Report', sub: 'Employees by dept.', fn: downloadDepartments },
+                { key: 'paye-report', icon: <FileText size={20} />, color: 'bg-blue-50 text-blue-600', label: 'PAYE Report', sub: 'PAYE breakdown for run', fn: downloadPayeReport },
+                { key: 'nssa-report', icon: <ShieldCheck size={20} />, color: 'bg-emerald-50 text-emerald-700', label: 'NSSA Report', sub: 'NSSA contributions for run', fn: downloadNssaReport },
+                { key: 'total-journal', icon: <BookOpen size={20} />, color: 'bg-slate-100 text-slate-600', label: 'Total Journal', sub: 'All journal entries for run', fn: downloadTotalJournal },
+                { key: 'dept-journal', icon: <FileSpreadsheet size={20} />, color: 'bg-cyan-50 text-cyan-700', label: 'Department Journal', sub: 'Journal grouped by dept.', fn: downloadDeptJournal },
+                { key: 'medical-aid', icon: <CreditCard size={20} />, color: 'bg-pink-50 text-pink-600', label: 'Medical Aid Report', sub: 'Medical deductions for run', fn: downloadMedicalAid },
+                { key: 'overtime', icon: <Clock size={20} />, color: 'bg-orange-50 text-orange-600', label: 'Overtime Report', sub: 'OT hours & amounts for run', fn: downloadOvertime },
+                { key: 'salary-advance', icon: <BarChart2 size={20} />, color: 'bg-yellow-50 text-yellow-600', label: 'Salary Advance', sub: 'Active salary advances', fn: downloadSalaryAdvance },
+                { key: 'leave-provision', icon: <TrendingUp size={20} />, color: 'bg-lime-50 text-lime-700', label: 'Leave Provision', sub: 'Leave liability as at today', fn: downloadLeaveProvision },
+                { key: 'employee-listing', icon: <Users size={20} />, color: 'bg-violet-50 text-violet-600', label: 'Employee Listing', sub: 'All active employees', fn: downloadEmployeeListing },
               ].map(({ key, icon, color, label, sub, fn }) => (
                 <button
                   key={key}

@@ -16,5 +16,6 @@ router.use('/', require('./reports/employees'));
 router.use('/', require('./reports/loans'));
 router.use('/', require('./reports/statutory'));
 router.use('/', require('./reports/payroll'));
+router.use('/', require('./reports/pdf-reports'));
 
 module.exports = router;

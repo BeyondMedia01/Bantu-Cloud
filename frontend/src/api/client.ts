@@ -521,6 +521,24 @@ export const ReportsAPI = {
     api.get('/reports/pension-export', { params, responseType: 'blob' }),
   itf16: (params: { year: string }) =>
     api.get('/reports/itf16', { params, responseType: 'blob' }),
+  payeReport: (params: { runId: string }) =>
+    api.get('/reports/pdf/paye-report', { params, responseType: 'blob' }),
+  nssaReport: (params: { runId: string }) =>
+    api.get('/reports/pdf/nssa-report', { params, responseType: 'blob' }),
+  totalJournal: (params: { runId: string }) =>
+    api.get('/reports/pdf/total-journal', { params, responseType: 'blob' }),
+  departmentJournal: (params: { runId: string }) =>
+    api.get('/reports/pdf/department-journal', { params, responseType: 'blob' }),
+  medicalAidReport: (params: { runId: string }) =>
+    api.get('/reports/pdf/medical-aid', { params, responseType: 'blob' }),
+  overtimeReport: (params: { runId: string }) =>
+    api.get('/reports/pdf/overtime', { params, responseType: 'blob' }),
+  salaryAdvance: () =>
+    api.get('/reports/pdf/salary-advance', { responseType: 'blob' }),
+  leaveProvision: () =>
+    api.get('/reports/pdf/leave-provision', { responseType: 'blob' }),
+  employeeListing: () =>
+    api.get('/reports/pdf/employee-listing', { responseType: 'blob' }),
 };
 
 export const DocumentsAPI = {
