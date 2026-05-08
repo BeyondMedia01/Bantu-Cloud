@@ -83,9 +83,9 @@ const AppShell: React.FC = () => {
   const handleCheckUpdates = async () => {
     if (!IS_DESKTOP) return;
     try {
-      const { checkUpdate } = await import('@tauri-apps/plugin-updater');
-      const result = await checkUpdate();
-      if (!result.shouldUpdate) {
+      const { check } = await import('@tauri-apps/plugin-updater');
+      const result = await check();
+      if (!result) {
         const { toast } = await import('sonner');
         toast.info('You are on the latest version.');
       }
