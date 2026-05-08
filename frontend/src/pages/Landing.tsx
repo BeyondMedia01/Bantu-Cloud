@@ -2,10 +2,10 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, ArrowRight, Download, Users, DollarSign, FileText, Shield } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 function downloadUrl(platform: string): string {
-  return `${API_BASE}/api/desktop/download/${platform}`;
+  return `${API_BASE.replace(/\/api$/, '')}/api/desktop/download/${platform}`;
 }
 
 const Landing: React.FC = () => {
