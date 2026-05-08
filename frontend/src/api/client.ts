@@ -23,7 +23,7 @@ export type { PaginatedResponse, Branch, Department } from '../types/common';
 
 const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
 const DESKTOP_CLOUD_URL = 'https://bantu-cloud.onrender.com/api';
-const DESKTOP_LOCAL_URL = 'http://localhost:5005';
+const DESKTOP_LOCAL_URL = 'http://localhost:5005/api';
 const API_BASE_URL = IS_DESKTOP ? DESKTOP_CLOUD_URL : (import.meta.env.VITE_API_URL as string || DESKTOP_LOCAL_URL);
 
 const api = axios.create({
@@ -65,15 +65,14 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    // Offline fallback: desktop app retries with local sidecar on network error
+    // Offline fallback: desktop app retries with the other endpoint on network error
     if (IS_DESKTOP && !error.response && error.config && !error.config._retry) {
-      const cloudUrl = DESKTOP_CLOUD_URL;
-      const currentBase = error.config.baseURL;
-      if (currentBase === cloudUrl) {
-        error.config._retry = true;
-        error.config.baseURL = DESKTOP_LOCAL_URL;
-        return api(error.config);
-      }
+      const otherUrl = error.config.baseURL === DESKTOP_CLOUD_URL
+        ? DESKTOP_LOCAL_URL
+        : DESKTOP_CLOUD_URL;
+      error.config._retry = true;
+      error.config.baseURL = otherUrl;
+      return api(error.config);
     }
 
     if (error.response?.status === 401) {
