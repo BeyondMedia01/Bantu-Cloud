@@ -2,15 +2,15 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const prisma = require('./prisma');
 
-const SECRET = process.env.JWT_SECRET;
-if (!SECRET) {
+const SKIP_VERIFY = process.env.AUTH_SKIP_VERIFY === 'true';
+const SECRET = SKIP_VERIFY ? 'desktop-dummy-secret' : process.env.JWT_SECRET;
+
+if (!SECRET && !SKIP_VERIFY) {
   console.error('FATAL: JWT_SECRET environment variable is not set. Refusing to start.');
   process.exit(1);
 }
 
 const signToken = async (payload) => {
-  // Generate session ID upfront so we can embed it in the JWT and create the
-  // session in a single DB round-trip (avoids the previous create + update pattern).
   const sessionId = crypto.randomUUID();
   const token = jwt.sign({ ...payload, sessionId }, SECRET, { expiresIn: '8h' });
 
@@ -26,8 +26,16 @@ const signToken = async (payload) => {
   return token;
 };
 
-const verifyToken = (token) =>
-  jwt.verify(token, SECRET);
+const verifyToken = (token) => {
+  if (SKIP_VERIFY) {
+    // Desktop mode: trust cloud-issued JWTs without verifying signature.
+    // The sidecar runs on the user's own machine, so this is acceptable.
+    const decoded = jwt.decode(token);
+    if (!decoded) throw new Error('Malformed token');
+    return decoded;
+  }
+  return jwt.verify(token, SECRET);
+};
 
 /**
  * Express middleware — verifies Bearer JWT and sets req.user.
@@ -40,13 +48,15 @@ const authenticateToken = async (req, res, next) => {
   try {
     const decoded = verifyToken(token);
 
-    // Verify session is still active in DB
-    const session = await prisma.session.findUnique({
-      where: { id: decoded.sessionId }
-    });
+    if (!SKIP_VERIFY) {
+      // Cloud mode: verify session is still active in DB
+      const session = await prisma.session.findUnique({
+        where: { id: decoded.sessionId }
+      });
 
-    if (!session || session.expiresAt < new Date()) {
-      return res.status(401).json({ message: 'Session expired or invalidated' });
+      if (!session || session.expiresAt < new Date()) {
+        return res.status(401).json({ message: 'Session expired or invalidated' });
+      }
     }
 
     req.user = decoded;

@@ -1,3 +1,5 @@
+const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+
 export interface AuthUser {
   userId: string;
   name: string;
@@ -27,7 +29,6 @@ export function getUser(): AuthUser | null {
   if (!token) return null;
   const user = parseJwt(token);
   if (!user) return null;
-  // Check expiry
   if (user.exp && user.exp * 1000 < Date.now()) {
     logout();
     return null;
@@ -47,6 +48,9 @@ export function logout(): void {
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('activeCompanyId');
   sessionStorage.removeItem('activeClientId');
+  if (IS_DESKTOP) {
+    import('@tauri-apps/api/core').then(m => m.invoke('clear_license_token')).catch(() => {});
+  }
 }
 
 export function saveAuthData(token: string, companyId?: string): void {
@@ -55,5 +59,23 @@ export function saveAuthData(token: string, companyId?: string): void {
     sessionStorage.setItem('activeCompanyId', companyId);
   } else {
     sessionStorage.removeItem('activeCompanyId');
+  }
+  // Persist token to file for offline use (desktop only)
+  if (IS_DESKTOP) {
+    import('@tauri-apps/api/core').then(m => m.invoke('store_license_token', { token })).catch(() => {});
+  }
+}
+
+// Load persisted token on startup (desktop only)
+export async function loadPersistedToken(): Promise<void> {
+  if (!IS_DESKTOP || sessionStorage.getItem('token')) return;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const token = await invoke<string | null>('get_license_token');
+    if (token) {
+      sessionStorage.setItem('token', token);
+    }
+  } catch {
+    // Tauri not available or command not found
   }
 }

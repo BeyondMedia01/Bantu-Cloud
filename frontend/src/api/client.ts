@@ -21,8 +21,9 @@ export type {
 export type { PaginatedResponse, Branch, Department } from '../types/common';
 
 const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
-const DESKTOP_CLOUD_URL = 'https://bantu-cloud.onrender.com';
-const API_BASE_URL = import.meta.env.VITE_API_URL as string || (IS_DESKTOP ? DESKTOP_CLOUD_URL : 'http://localhost:5005');
+const DESKTOP_CLOUD_URL = 'https://bantu-cloud.onrender.com/api';
+const DESKTOP_LOCAL_URL = 'http://localhost:5005';
+const API_BASE_URL = import.meta.env.VITE_API_URL as string || (IS_DESKTOP ? DESKTOP_CLOUD_URL : DESKTOP_LOCAL_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -56,14 +57,24 @@ api.interceptors.response.use(
       !Array.isArray(body) &&
       response.config.responseType !== 'blob' &&
       Object.prototype.hasOwnProperty.call(body, 'data') &&
-      // Leave paginated envelopes intact — callers already read .data.data / .data.total
       !Object.prototype.hasOwnProperty.call(body, 'total')
     ) {
       response.data = body.data;
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    // Offline fallback: desktop app retries with local sidecar on network error
+    if (IS_DESKTOP && !error.response && error.config && !error.config._retry) {
+      const cloudUrl = DESKTOP_CLOUD_URL;
+      const currentBase = error.config.baseURL;
+      if (currentBase === cloudUrl) {
+        error.config._retry = true;
+        error.config.baseURL = DESKTOP_LOCAL_URL;
+        return api(error.config);
+      }
+    }
+
     if (error.response?.status === 401) {
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('activeCompanyId');

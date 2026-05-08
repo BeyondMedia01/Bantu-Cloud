@@ -33,6 +33,8 @@ pub fn spawn_sidecar(app: &AppHandle, db_path: &Path) -> Result<CommandChild, St
         .env("APP_MODE", "desktop")
         .env("PORT", SIDECAR_PORT.to_string())
         .env("DATABASE_URL", &db_url)
+        .env("AUTH_SKIP_VERIFY", "true")
+        .env("JWT_SECRET", "desktop-dummy-secret")
         .spawn()
         .map_err(|e| format!("Failed to spawn sidecar: {e}"))?;
 
