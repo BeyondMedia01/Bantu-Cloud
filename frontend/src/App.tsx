@@ -158,7 +158,11 @@ const App: React.FC = () => {
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public */}
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={
+                  typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__
+                    ? <Navigate to="/login" replace />
+                    : <Landing />
+                } />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/setup" element={<Setup />} />
