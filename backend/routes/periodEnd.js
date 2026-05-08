@@ -45,12 +45,18 @@ router.post('/', requirePermission('approve_payroll'), async (req, res) => {
 
       // Mark any UNPAID loan repayments within the period as OVERDUE
       // (catches repayments not collected via salary deduction, e.g. cash-based loans)
+      // Scoped to clientId through Loan -> Employee to prevent cross-tenant corruption
       const { count: repaymentsMarked } = await tx.loanRepayment.updateMany({
         where: {
           status: 'UNPAID',
           dueDate: {
             gte: calendar.startDate,
             lte: calendar.endDate,
+          },
+          loan: {
+            employee: {
+              clientId: calendar.clientId,
+            },
           },
         },
         data: { status: 'OVERDUE' },

@@ -46,11 +46,10 @@ app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookLimit
 
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: [process.env.FRONTEND_URL || 'http://localhost:5173', 'tauri://localhost'].filter(Boolean),
   credentials: true,
 }));
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
@@ -106,6 +105,9 @@ app.use('/api/desktop', require('./routes/download'));
 
 app.use(authenticateToken);
 app.use(companyContext);
+
+// Protected file serving — only authenticated users can access uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/seed-tcs', requirePermission('update_settings'), async (_req, res) => {
   try {

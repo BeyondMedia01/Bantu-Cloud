@@ -354,8 +354,8 @@ model Employee {
   leaveTaken       Float          @default(0)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  client             Client              @relation(fields: [clientId], references: [id])
-  company            Company             @relation(fields: [companyId], references: [id])
+  client             Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  company            Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
   branch             Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
   department         Department?         @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -485,7 +485,7 @@ model PayrollRun {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   payrollCalendar   PayrollCalendar? @relation(fields: [payrollCalendarId], references: [id])
-  company           Company        @relation(fields: [companyId], references: [id])
+  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   transactions      PayrollTransaction[]
   payslips          Payslip[]
   payrollInputs     PayrollInput[]
@@ -506,7 +506,7 @@ model PayrollTransaction {
   currency          String          @default("USD")
   description       String?
   createdAt         DateTime        @default(now())
-  employee          Employee        @relation(fields: [employeeId], references: [id])
+  employee          Employee        @relation(fields: [employeeId], references: [id], onDelete: Restrict)
   payrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
   transactionCode   TransactionCode @relation(fields: [transactionCodeId], references: [id])
 
@@ -967,7 +967,7 @@ model LeaveRecord {
   approvedBy String?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
-  employee   Employee    @relation(fields: [employeeId], references: [id])
+  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
 }
@@ -985,7 +985,7 @@ model LeaveRequest {
   reviewNote String?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
-  employee   Employee    @relation(fields: [employeeId], references: [id])
+  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@index([status])
@@ -1006,7 +1006,7 @@ model Loan {
   notes            String?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
-  employee         Employee    @relation(fields: [employeeId], references: [id])
+  employee         Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   repayments       LoanRepayment[]
 
   @@index([employeeId])
@@ -1066,6 +1066,7 @@ model Subscription {
 
 model SystemSetting {
   id            String   @id @default(uuid())
+  clientId      String?  // null = global default; non-null = per-client override
   settingName   String
   settingValue  String
   dataType      DataType @default(TEXT)
@@ -1076,8 +1077,9 @@ model SystemSetting {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@unique([settingName, effectiveFrom])
+  @@unique([clientId, settingName, effectiveFrom])
   @@index([settingName, isActive])
+  @@index([clientId])
 }
 
 // ─── Currency Rates (RBZ daily USD/ZiG rates) ─────────────────────────────────
@@ -1096,6 +1098,7 @@ model CurrencyRate {
   updatedAt     DateTime @updatedAt
   company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  @@unique([companyId, fromCurrency, toCurrency, effectiveDate])
   @@index([companyId, effectiveDate])
 }
 

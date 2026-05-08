@@ -13,6 +13,8 @@ export function useIdleTimer({ timeout, warningThreshold }: IdleTimerOptions) {
   const timerRef = useRef<number | null>(null);
   const warningTimerRef = useRef<number | null>(null);
   const countdownIntervalRef = useRef<number | null>(null);
+  const isWarningRef = useRef(isWarning);
+  isWarningRef.current = isWarning;
 
   const resetTimer = useCallback(() => {
     // Clear all timers
@@ -51,9 +53,9 @@ export function useIdleTimer({ timeout, warningThreshold }: IdleTimerOptions) {
   useEffect(() => {
     const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
     
-    // Standard reset on any event
+    // Use ref to always read the current isWarning value without recreating the handler
     const activityHandler = () => {
-      if (!isWarning) {
+      if (!isWarningRef.current) {
         resetTimer();
       }
     };
@@ -74,7 +76,7 @@ export function useIdleTimer({ timeout, warningThreshold }: IdleTimerOptions) {
         window.removeEventListener(event, activityHandler);
       });
     };
-  }, [resetTimer, isWarning]);
+  }, [resetTimer]);
 
   return {
     isIdle,

@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getUser, getUserRole } from './lib/auth';
+import { getToken, getUser, getUserRole } from './lib/auth';
 
 // Layout (eagerly loaded — always needed)
 import AppShell from './components/AppShell';
@@ -114,9 +114,13 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
-  const user = getUser();
-  if (!user) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+  const token = getToken();
+  if (!token) return <Navigate to="/login" replace />;
+  // Role check is UX-only; backend enforces actual permissions
+  if (roles) {
+    const user = getUser();
+    if (!user || !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+  }
   return <>{children}</>;
 };
 
@@ -227,8 +231,6 @@ const App: React.FC = () => {
                   <Route path="/utilities/nssa" element={<NSSASettings />} />
                   <Route path="/utilities/payroll-calendar" element={<PayrollCalendar />} />
                   <Route path="/utilities/public-holidays" element={<PublicHolidays />} />
-                  <Route path="/utilities/backup" element={<BackupRestore />} />
-
                   <Route path="/shifts" element={<Shifts />} />
                   <Route path="/shifts/roster" element={<Roster />} />
                   <Route path="/attendance" element={<Attendance />} />
@@ -250,6 +252,7 @@ const App: React.FC = () => {
                   <Route path="/admin/licenses" element={<AdminLicenses />} />
                   <Route path="/admin/settings" element={<SystemSettings />} />
                   <Route path="/admin/logs" element={<AuditLogs />} />
+                  <Route path="/admin/backup" element={<BackupRestore />} />
                   <Route path="/profile" element={<ProfileSettings />} />
                 </Route>
 
@@ -266,12 +269,13 @@ const App: React.FC = () => {
                   <Route path="/profile" element={<ProfileSettings />} />
                 </Route>
 
-                {/* Default redirect based on role */}
+                {/* Default redirect — check token first to avoid parsing JWT for unauthenticated users */}
                 <Route path="*" element={
-                  role === 'PLATFORM_ADMIN' ? <Navigate to="/admin" replace />
-                    : role === 'CLIENT_ADMIN' ? <Navigate to="/dashboard" replace />
-                      : role === 'EMPLOYEE' ? <Navigate to="/employee" replace />
-                        : <Navigate to="/login" replace />
+                  !getToken() ? <Navigate to="/login" replace />
+                    : role === 'PLATFORM_ADMIN' ? <Navigate to="/admin" replace />
+                      : role === 'CLIENT_ADMIN' ? <Navigate to="/dashboard" replace />
+                        : role === 'EMPLOYEE' ? <Navigate to="/employee" replace />
+                          : <Navigate to="/login" replace />
                 } />
               </Routes>
             </Suspense>

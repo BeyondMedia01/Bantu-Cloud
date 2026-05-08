@@ -77,6 +77,9 @@ router.get('/:id', async (req, res) => {
       include: { _count: { select: { payrollRuns: true } } },
     });
     if (!calendar) return res.status(404).json({ message: 'Payroll calendar not found' });
+    if (req.clientId && calendar.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     res.json(calendar);
   } catch (error) {
     console.error(error);
@@ -117,11 +120,20 @@ router.put('/:id', requirePermission('manage_payroll'), async (req, res) => {
 // POST /api/payroll-calendar/:id/close
 router.post('/:id/close', requirePermission('approve_payroll'), async (req, res) => {
   try {
-    const calendar = await prisma.payrollCalendar.update({
+    const calendar = await prisma.payrollCalendar.findUnique({
+      where: { id: req.params.id },
+    });
+    if (!calendar) return res.status(404).json({ message: 'Payroll calendar not found' });
+    if (req.clientId && calendar.clientId !== req.clientId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    if (calendar.isClosed) return res.status(400).json({ message: 'Period is already closed' });
+
+    const updated = await prisma.payrollCalendar.update({
       where: { id: req.params.id },
       data: { isClosed: true },
     });
-    res.json(calendar);
+    res.json(updated);
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Payroll calendar not found' });
     console.error(error);

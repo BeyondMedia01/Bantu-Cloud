@@ -18,8 +18,6 @@ const STATUTORY_RATES = {
 };
 
 
-const DEFAULT_NSSA_CEILING = { USD: 700, ZiG: 20000 };
-
 /**
  * Normalise DB TaxBracket records into the internal band format.
  * DB records: { lowerBound, upperBound, rate, fixedAmount }
@@ -122,7 +120,10 @@ function calculatePaye({
     }
     const bands = (taxBrackets && taxBrackets.length > 0) ? normaliseBrackets(taxBrackets) : [];
   
-    const ceiling = nssaCeiling ?? DEFAULT_NSSA_CEILING[currency] ?? 700;
+    const ceiling = nssaCeiling ?? 700;
+    if (nssaCeiling === null || nssaCeiling === undefined) {
+      console.warn(`[taxEngine] No nssaCeiling provided for ${currency} — falling back to 700. Callers should pass nssaCeiling from SystemSettings.`);
+    }
   
     // Apply pension cap: ZIMRA allows pension deductions only up to a prescribed limit.
     const effectivePension = pensionCap !== null
@@ -324,17 +325,40 @@ function calculateSplitSalaryPaye({
   const totalResult = calculatePaye(consolidated);
 
   /**
-   * Determine the USD share based on Cash Earnings (base + overtime + bonus + severance)
-   * which form the basis for PAYE and NSSA.
+   * Compute separate apportionment ratios per category per ZIMRA guidance:
+   * - PAYE ratio: based on grossForTax per side (includes benefits, excludes exemptions)
+   * - NSSA ratio: based on capped nssaBasis per side
+   * - Cash / Net ratio: based on cash earnings per side
    */
   const cashUSD = (usdParams.baseSalary || 0) + (usdParams.overtimeAmount || 0) + (usdParams.bonus || 0) + (usdParams.severanceAmount || 0);
-  const totalCashUSD = consolidated.baseSalary + consolidated.overtimeAmount + consolidated.bonus + consolidated.severanceAmount;
-  
-  const usdRatio = totalCashUSD > 0 ? (cashUSD / totalCashUSD) : 1;
+  const cashZIG = (zigParams.baseSalary || 0) + (zigParams.overtimeAmount || 0) + (zigParams.bonus || 0) + (zigParams.severanceAmount || 0);
+  const totalCashUSD = cashUSD + cashZIG / xr;
 
-  // Apportionment helpers for tax amounts (PAYE, NSSA, etc.)
-  const apportionUSD = (val) => r2(val * usdRatio);
-  const apportionZIG = (val) => r2(val * (1 - usdRatio) * xr);
+  const grossForTaxUSD = cashUSD + (usdParams.taxableBenefits || 0) + (usdParams.motorVehicleBenefit || 0) + (usdParams.loanBenefit || 0)
+    - Math.min(usdParams.bonus || 0, usdParams.bonusExemption || 0) - Math.min(usdParams.severanceAmount || 0, usdParams.severanceExemption || 0)
+    - (usdParams.payeExcludedEarnings || 0);
+  const grossForTaxZIG = cashZIG + (zigParams.taxableBenefits || 0) + (zigParams.motorVehicleBenefit || 0) + (zigParams.loanBenefit || 0)
+    - Math.min(zigParams.bonus || 0, zigParams.bonusExemption || 0) - Math.min(zigParams.severanceAmount || 0, zigParams.severanceExemption || 0)
+    - (zigParams.payeExcludedEarnings || 0);
+  const totalGrossForTaxUSD = grossForTaxUSD + grossForTaxZIG / xr;
+
+  const usdNssaCeil = usdParams.nssaCeiling ?? 700;
+  const zigNssaCeil = zigParams.nssaCeiling ?? Math.round(700 * xr);
+  const nssaBasisUSD = Math.max(0, Math.min(cashUSD - (usdParams.nssaExcludedEarnings || 0), usdNssaCeil));
+  const nssaBasisZIG = Math.max(0, Math.min(cashZIG - (zigParams.nssaExcludedEarnings || 0), zigNssaCeil));
+  const totalNssaBasisUSD = nssaBasisUSD + nssaBasisZIG / xr;
+
+  const cashRatio  = totalCashUSD > 0 ? cashUSD / totalCashUSD : 1;
+  const payeRatio  = totalGrossForTaxUSD > 0 ? grossForTaxUSD / totalGrossForTaxUSD : 1;
+  const nssaRatio  = totalNssaBasisUSD > 0 ? nssaBasisUSD / totalNssaBasisUSD : 1;
+
+  // Apportionment helpers — each category uses the appropriate ratio
+  const apportionPaye = (val) => r2(val * payeRatio);
+  const apportionNssa = (val) => r2(val * nssaRatio);
+  const apportionCash = (val) => r2(val * cashRatio);
+  const apportionPayeZIG = (val) => r2(val * (1 - payeRatio) * xr);
+  const apportionNssaZIG = (val) => r2(val * (1 - nssaRatio) * xr);
+  const apportionCashZIG = (val) => r2(val * (1 - cashRatio) * xr);
 
   // Gross is computed directly from each currency's inputs to avoid float
   // drift from the USD→ZiG round-trip (e.g. 3000/xr*xr can yield 2999.99).
@@ -351,30 +375,32 @@ function calculateSplitSalaryPaye({
 
   return {
     totalResult,
-    usdRatio,
+    cashRatio,
+    payeRatio,
+    nssaRatio,
     usd: {
       gross:            grossUSD,
-      paye:             apportionUSD(totalResult.payeBeforeLevy),
-      aidsLevy:         apportionUSD(totalResult.aidsLevy),
-      nssaEmployee:     apportionUSD(totalResult.nssaEmployee),
-      nssaEmployer:     apportionUSD(totalResult.nssaEmployer),
-      pensionApplied:   apportionUSD(totalResult.pensionApplied),
-      netSalary:        apportionUSD(totalResult.netSalary),
-      totalPaye:        apportionUSD(totalResult.totalPaye),
-      exemptBonus:      apportionUSD(totalResult.exemptBonus),
-      medicalAidCredit: apportionUSD(totalResult.medicalAidCredit),
+      paye:             apportionPaye(totalResult.payeBeforeLevy),
+      aidsLevy:         apportionPaye(totalResult.aidsLevy),
+      nssaEmployee:     apportionNssa(totalResult.nssaEmployee),
+      nssaEmployer:     apportionNssa(totalResult.nssaEmployer),
+      pensionApplied:   apportionCash(totalResult.pensionApplied),
+      netSalary:        apportionCash(totalResult.netSalary),
+      totalPaye:        apportionPaye(totalResult.totalPaye),
+      exemptBonus:      apportionCash(totalResult.exemptBonus),
+      medicalAidCredit: apportionCash(totalResult.medicalAidCredit),
     },
     zig: {
       gross:            grossZIG,
-      paye:             apportionZIG(totalResult.payeBeforeLevy),
-      aidsLevy:         apportionZIG(totalResult.aidsLevy),
-      nssaEmployee:     apportionZIG(totalResult.nssaEmployee),
-      nssaEmployer:     apportionZIG(totalResult.nssaEmployer),
-      pensionApplied:   apportionZIG(totalResult.pensionApplied),
-      netSalary:        apportionZIG(totalResult.netSalary),
-      totalPaye:        apportionZIG(totalResult.totalPaye),
-      exemptBonus:      apportionZIG(totalResult.exemptBonus),
-      medicalAidCredit: apportionZIG(totalResult.medicalAidCredit),
+      paye:             apportionPayeZIG(totalResult.payeBeforeLevy),
+      aidsLevy:         apportionPayeZIG(totalResult.aidsLevy),
+      nssaEmployee:     apportionNssaZIG(totalResult.nssaEmployee),
+      nssaEmployer:     apportionNssaZIG(totalResult.nssaEmployer),
+      pensionApplied:   apportionCashZIG(totalResult.pensionApplied),
+      netSalary:        apportionCashZIG(totalResult.netSalary),
+      totalPaye:        apportionPayeZIG(totalResult.totalPaye),
+      exemptBonus:      apportionCashZIG(totalResult.exemptBonus),
+      medicalAidCredit: apportionCashZIG(totalResult.medicalAidCredit),
     }
   };
 }

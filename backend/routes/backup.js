@@ -105,6 +105,17 @@ router.post('/restore', requirePermission('manage_company'), async (req, res) =>
       }
     }
 
+    // Normalize companyId and clientId to prevent cross-tenant restore
+    for (const model of Object.keys(backupData.data)) {
+      const items = backupData.data[model];
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          if (item.companyId !== undefined) item.companyId = companyId;
+          if (item.clientId !== undefined) item.clientId = req.clientId;
+        }
+      }
+    }
+
     // Helper: batch upserts for a model in parallel chunks (reduces sequential round-trips)
     async function batchUpsert(tx, prismaModelName, items, chunkSize = 50) {
       if (!items || items.length === 0) return;

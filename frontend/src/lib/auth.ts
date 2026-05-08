@@ -1,5 +1,9 @@
 const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
 
+// In-memory token storage for web (XSS-safe). sessionStorage is only used on desktop
+// where there is no cross-site scripting risk.
+let _token: string | null = null;
+
 export interface AuthUser {
   userId: string;
   name: string;
@@ -21,7 +25,7 @@ function parseJwt(token: string): AuthUser | null {
 }
 
 export function getToken(): string | null {
-  return sessionStorage.getItem('token');
+  return _token;
 }
 
 export function getUser(): AuthUser | null {
@@ -45,6 +49,7 @@ export function getUserRole(): AuthUser['role'] | null {
 }
 
 export function logout(): void {
+  _token = null;
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('activeCompanyId');
   sessionStorage.removeItem('activeClientId');
@@ -54,25 +59,27 @@ export function logout(): void {
 }
 
 export function saveAuthData(token: string, companyId?: string): void {
-  sessionStorage.setItem('token', token);
+  _token = token;
   if (companyId) {
     sessionStorage.setItem('activeCompanyId', companyId);
   } else {
     sessionStorage.removeItem('activeCompanyId');
   }
-  // Persist token to file for offline use (desktop only)
+  // Persist token to file and sessionStorage for offline use (desktop only)
   if (IS_DESKTOP) {
+    sessionStorage.setItem('token', token);
     import('@tauri-apps/api/core').then(m => m.invoke('store_license_token', { token })).catch(() => {});
   }
 }
 
 // Load persisted token on startup (desktop only)
 export async function loadPersistedToken(): Promise<void> {
-  if (!IS_DESKTOP || sessionStorage.getItem('token')) return;
+  if (!IS_DESKTOP || _token) return;
   try {
     const { invoke } = await import('@tauri-apps/api/core');
     const token = await invoke<string | null>('get_license_token');
     if (token) {
+      _token = token;
       sessionStorage.setItem('token', token);
     }
   } catch {

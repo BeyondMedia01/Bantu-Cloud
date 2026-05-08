@@ -40,9 +40,11 @@ const AppShell: React.FC = () => {
     if (next) setCompanyDropdown(false);
   };
 
-  const loadCompanies = () => {
+  useEffect(() => {
+    let mounted = true;
     if (user?.role !== 'EMPLOYEE') {
       CompanyAPI.getAll().then((res) => {
+        if (!mounted) return;
         const list = res.data;
         setCompanies(list);
         const stored = sessionStorage.getItem('activeCompanyId');
@@ -56,9 +58,8 @@ const AppShell: React.FC = () => {
       }).catch(() => {
       });
     }
-  };
-
-  useEffect(loadCompanies, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { mounted = false; };
+  }, [user]);
 
   // Fetch live user name so the sidebar stays current after profile updates
   useEffect(() => {
@@ -72,14 +73,12 @@ const AppShell: React.FC = () => {
   }, []);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   useEffect(() => {
-    if (isIdle) handleLogout();
-  }, [isIdle]);
+    if (isIdle) {
+      logout();
+      navigate('/login');
+    }
+  }, [isIdle, navigate]);
 
   const handleSelectCompany = (company: any) => {
     setActiveCompany(company);

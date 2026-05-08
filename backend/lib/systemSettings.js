@@ -10,10 +10,17 @@ const _loadAll = async () => {
   const now = Date.now();
   if (_cache && now < _cacheExpiry) return _cache;
 
-  const rows = await prisma.systemSetting.findMany({
-    where: { isActive: true },
-    orderBy: { effectiveFrom: 'desc' },
-  });
+  let rows;
+  try {
+    rows = await prisma.systemSetting.findMany({
+      where: { isActive: true },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+  } catch (error) {
+    console.error('[systemSettings] Failed to load settings:', error.message);
+    if (_cache) return _cache;
+    return new Map();
+  }
 
   // Deduplicate: keep most-recent value per name
   const map = new Map();

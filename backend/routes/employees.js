@@ -296,7 +296,8 @@ router.get('/:id', async (req, res) => {
     if (req.companyId && employee.companyId !== req.companyId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    res.json({ data: employee });
+    const { tin, passportNumber, socialSecurityNum, ...safeEmployee } = employee;
+    res.json({ data: safeEmployee });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

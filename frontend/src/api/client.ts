@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { PaginatedResponse, Branch, Department } from '../types/common';
+import { getToken, logout } from '../lib/auth';
 import type {
   TaxBand, SubCompany, Grade, NecTable, NecGrade, TaxTable, TaxBracket,
   TransactionCode, TransactionRule, PayrollRun, Payslip, PayrollInput,
@@ -32,7 +33,7 @@ const api = axios.create({
 // ─── Request Interceptor — attach token and companyId ─────────────────────────
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token');
+  const token = getToken();
   const companyId = sessionStorage.getItem('activeCompanyId');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   if (companyId) config.headers['x-company-id'] = companyId;
@@ -76,9 +77,7 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('activeCompanyId');
-      sessionStorage.removeItem('activeClientId');
+      logout();
       if (!window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';
       }

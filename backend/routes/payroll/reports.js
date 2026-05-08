@@ -32,10 +32,13 @@ router.get('/:runId/reconcile', requirePermission('process_payroll'), async (req
     if (run.companyId !== req.companyId) return res.status(403).json({ message: 'Access denied' });
 
     const year = parseInt(req.query.year || new Date(run.startDate).getFullYear());
-    const yearStart = new Date(year, 0, 1);
-    const yearEnd = new Date(year, 11, 31, 23, 59, 59);
+    // Zimbabwe tax year runs April 1 – March 31.
+    // e.g. tax year 2024 = April 1, 2024 – March 31, 2025.
+    // The query param `year` refers to the calendar year the tax year starts in.
+    const yearStart = new Date(year, 3, 1);
+    const yearEnd = new Date(year + 1, 2, 31, 23, 59, 59);
 
-    // Fetch all COMPLETED payslips for this company in the given year
+    // Fetch all COMPLETED payslips for this company in the given tax year
     const payslips = await prisma.payslip.findMany({
       where: {
         payrollRun: {

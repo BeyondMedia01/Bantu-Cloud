@@ -51,9 +51,49 @@ router.get('/tax', requirePermission('export_reports'), async (req, res) => {
       where: {
         payrollRun: yearPeriodFilter(targetCompanyId, year || new Date().getFullYear()),
       },
-      include: {
-        employee: true,
-        payrollRun: { include: { company: true } },
+      select: {
+        id: true,
+        employeeId: true,
+        payrollRunId: true,
+        gross: true,
+        paye: true,
+        aidsLevy: true,
+        nssaEmployee: true,
+        netPay: true,
+        wcifEmployer: true,
+        sdfContribution: true,
+        necLevy: true,
+        basicSalaryApplied: true,
+        currency: true,
+        employee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            employeeCode: true,
+            tin: true,
+            nationalId: true,
+            passportNumber: true,
+          },
+        },
+        payrollRun: {
+          select: {
+            id: true,
+            startDate: true,
+            endDate: true,
+            currency: true,
+            dualCurrency: true,
+            company: {
+              select: {
+                id: true,
+                name: true,
+                taxId: true,
+                registrationNumber: true,
+                address: true,
+              },
+            },
+          },
+        },
       },
     });
 

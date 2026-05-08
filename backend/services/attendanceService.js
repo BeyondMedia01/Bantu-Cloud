@@ -14,6 +14,7 @@ const { processDailyLogs, toMidnight } = require('../lib/attendanceEngine');
  * @returns {{ processed: number }}
  */
 async function processAttendanceLogs({ companyId, start, end, employeeIds }) {
+  try {
   // Fetch all unprocessed logs in range
   const logs = await prisma.attendanceLog.findMany({
     where: {
@@ -114,6 +115,10 @@ async function processAttendanceLogs({ companyId, start, end, employeeIds }) {
   }
 
   return { processed: processedCount };
+  } catch (error) {
+    console.error('[attendanceService] processAttendanceLogs error:', error);
+    throw error;
+  }
 }
 
 module.exports = { processAttendanceLogs };
