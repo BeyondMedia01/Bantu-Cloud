@@ -15,7 +15,7 @@
     "outputPath": "../desktop/src-tauri/binaries"
   },
   "scripts": {
-    "start": "prisma migrate deploy && node index.js",
+    "start": "node scripts/migrate-with-retry.js && node index.js",
     "dev": "nodemon index.js",
     "worker": "node worker.js",
     "test": "vitest run",
