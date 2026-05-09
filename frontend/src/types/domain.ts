@@ -441,13 +441,13 @@ export interface ScreeningSummary {
 export type OnboardingStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
 export interface OnboardingTemplateTask {
-  id: string;
-  templateId: string;
+  id?: string;
+  templateId?: string;
   title: string;
   description?: string | null;
   assigneeRole?: string | null;
   dueDaysFromStart?: number | null;
-  order: number;
+  order?: number;
 }
 
 export interface OnboardingTemplate {
@@ -593,8 +593,8 @@ export interface PerformanceGoal {
 }
 
 export interface ReviewSkill {
-  id: string;
-  reviewId: string;
+  id?: string;
+  reviewId?: string;
   name: string;
   rating?: number | null;
   notes?: string | null;
@@ -656,13 +656,13 @@ export interface SuccessionCandidate {
 export type SurveyStatus = 'DRAFT' | 'ACTIVE' | 'CLOSED';
 
 export interface SurveyQuestion {
-  id: string;
-  surveyId: string;
+  id?: string;
+  surveyId?: string;
   text: string;
   type: string;
   options?: string | null;
-  required: boolean;
-  order: number;
+  required?: boolean;
+  order?: number;
 }
 
 export interface Survey {
