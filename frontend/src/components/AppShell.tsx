@@ -20,10 +20,10 @@ const AppShell: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Auto-logout after 60s idle (warning at 50s)
+  // Desktop gets a 30-minute idle window; web gets 60s.
   const { isIdle, isWarning, remainingTime, resetTimer } = useIdleTimer({
-    timeout: 60000,
-    warningThreshold: 50000
+    timeout: IS_DESKTOP ? 30 * 60 * 1000 : 60_000,
+    warningThreshold: IS_DESKTOP ? 29 * 60 * 1000 : 50_000,
   });
 
   const [companies, setCompanies] = useState<any[]>([]);
@@ -151,7 +151,7 @@ const AppShell: React.FC = () => {
         to={link.to}
         title={collapsed ? link.label : undefined}
         className={`flex items-center gap-3 rounded-xl text-sm font-bold transition-all
-          ${collapsed ? 'justify-center px-0 py-2.5 mx-1' : 'px-3 py-2.5'}
+          ${collapsed ? 'justify-center px-0 py-2.5 mx-2' : 'px-3 py-2.5'}
           ${active ? 'bg-brand text-navy shadow-sm' : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted hover:text-navy dark:hover:text-foreground'}`}
       >
         <span className="shrink-0">{link.icon}</span>
@@ -163,7 +163,7 @@ const AppShell: React.FC = () => {
   const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className={`flex items-center border-b border-border shrink-0 py-5
+      <div className={`flex items-center border-b border-border shrink-0 py-3.5
           ${collapsed && !mobile ? 'justify-center px-0' : 'gap-3 px-5'}`}>
         <Link to={homeLink} className={`flex items-center gap-3 min-w-0 ${collapsed && !mobile ? '' : 'flex-1'}`}>
           <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
@@ -313,8 +313,8 @@ const AppShell: React.FC = () => {
     </div>
   );
 
-  const sidebarW = collapsed ? 'w-14' : 'w-56';
-  const mainML = collapsed ? 'md:ml-14' : 'md:ml-56';
+  const sidebarW = collapsed ? 'w-16' : 'w-64';
+  const mainML = collapsed ? 'md:ml-16' : 'md:ml-64';
 
   return (
     <div className="min-h-screen bg-background font-inter font-medium text-navy flex">
@@ -332,7 +332,7 @@ const AppShell: React.FC = () => {
       )}
 
       {/* Mobile sidebar drawer */}
-      <aside className={`fixed top-0 left-0 h-screen w-56 max-w-[75vw] bg-primary border-r border-border z-50 flex flex-col transition-transform md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed top-0 left-0 h-screen w-64 max-w-[75vw] bg-primary border-r border-border z-50 flex flex-col transition-transform md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <SidebarContent mobile />
       </aside>
 

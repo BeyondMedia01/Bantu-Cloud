@@ -42,8 +42,8 @@ const DesktopOnboarding: React.FC = () => {
     setLoading(true);
     try {
       const res = await SetupAPI.desktopOnboard(form);
-      const { token, clientId } = res.data;
-      saveAuthData(token, clientId);
+      const { token } = res.data;
+      saveAuthData(token);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Setup failed. Check your license token and try again.');

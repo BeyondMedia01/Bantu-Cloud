@@ -110,6 +110,13 @@ const s = StyleSheet.create({
   deptTotalAmtZIG: { width: 60, textAlign: 'right', fontFamily: 'Helvetica-Bold',
                      color: BLUE_ZIG, fontSize: 8 },
 
+  // Department statutory summary row (PAYE / AIDS Levy / NSSA)
+  deptStatRow: { flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 3,
+                 backgroundColor: '#eef2f7', borderTopWidth: 0.3, borderColor: '#b0bbcc' },
+  deptStatItem: { flexDirection: 'row', alignItems: 'center', marginRight: 14 },
+  deptStatLabel: { fontSize: 6.5, color: TEXT_MUTED, marginRight: 3 },
+  deptStatAmt: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: DARK_NAVY },
+
   // Grand total
   grandTotal: { backgroundColor: DARK_NAVY, flexDirection: 'row', alignItems: 'center',
                 paddingHorizontal: 10, paddingVertical: 8, marginTop: 10 },
@@ -142,6 +149,7 @@ const SummaryDocument = ({ data }) => {
   const grandDeductionsMap = new Map();
   const grandEmployersMap = new Map();
   let grandNetUSD = 0, grandNetZIG = 0, grandHeadcount = 0;
+  let grandPayeUSD = 0, grandAidsLevyUSD = 0, grandNssaUSD = 0;
 
   for (const group of groups) {
     grandHeadcount += group.payslips.length;
@@ -177,6 +185,9 @@ const SummaryDocument = ({ data }) => {
       const totalDedUSD   = deductions.reduce((a, d) => a + (d.deduction ?? 0), 0);
       grandNetUSD += p.netPayUSD ?? p.netPay ?? (totalAllowUSD - totalDedUSD);
       grandNetZIG += pIsDual ? (p.netPayZIG ?? 0) : 0;
+      grandPayeUSD     += p.paye ?? 0;
+      grandAidsLevyUSD += p.aidsLevy ?? 0;
+      grandNssaUSD     += p.nssaEmployee ?? 0;
     }
   }
 
@@ -212,6 +223,7 @@ const SummaryDocument = ({ data }) => {
           let groupNetUSD = 0, groupNetZIG = 0;
           let groupEarningsUSD = 0, groupEarningsZIG = 0;
           let groupDeductionsUSD = 0, groupDeductionsZIG = 0;
+          let groupPayeUSD = 0, groupAidsLevyUSD = 0, groupNssaUSD = 0;
           const groupHeadcount = group.payslips.length;
 
           return (
@@ -245,6 +257,9 @@ const SummaryDocument = ({ data }) => {
                 groupDeductionsZIG += totalDedZIG;
                 groupNetUSD        += netUSD;
                 groupNetZIG        += netZIG;
+                groupPayeUSD     += p.paye ?? 0;
+                groupAidsLevyUSD += p.aidsLevy ?? 0;
+                groupNssaUSD     += p.nssaEmployee ?? 0;
 
                 const deptName = emp.department?.name || p.employee?.costCenter || group.name || '';
 
@@ -373,15 +388,31 @@ const SummaryDocument = ({ data }) => {
               })}
 
               {/* Department total footer */}
-              <View style={s.deptTotalBar} wrap={false}>
-                <Text style={s.deptTotalFor}>TOTAL FOR: {(group.name || 'General').toUpperCase()}</Text>
-                <Text style={s.deptTotalEmps}>EMPLOYEES: {groupHeadcount}</Text>
-                <View style={s.deptTotalSpacer} />
-                <Text style={s.deptTotalNetLabel}>NET PAY:</Text>
-                <Text style={s.deptTotalAmt}>{ccy} {fmt(groupNetUSD)}</Text>
-                {isDual && groupNetZIG > 0 && (
-                  <Text style={s.deptTotalAmtZIG}>ZiG {fmt(groupNetZIG)}</Text>
-                )}
+              <View wrap={false}>
+                <View style={s.deptTotalBar}>
+                  <Text style={s.deptTotalFor}>TOTAL FOR: {(group.name || 'General').toUpperCase()}</Text>
+                  <Text style={s.deptTotalEmps}>EMPLOYEES: {groupHeadcount}</Text>
+                  <View style={s.deptTotalSpacer} />
+                  <Text style={s.deptTotalNetLabel}>NET PAY:</Text>
+                  <Text style={s.deptTotalAmt}>{ccy} {fmt(groupNetUSD)}</Text>
+                  {isDual && groupNetZIG > 0 && (
+                    <Text style={s.deptTotalAmtZIG}>ZiG {fmt(groupNetZIG)}</Text>
+                  )}
+                </View>
+                <View style={s.deptStatRow}>
+                  <View style={s.deptStatItem}>
+                    <Text style={s.deptStatLabel}>PAYE:</Text>
+                    <Text style={s.deptStatAmt}>{ccy} {fmt(groupPayeUSD)}</Text>
+                  </View>
+                  <View style={s.deptStatItem}>
+                    <Text style={s.deptStatLabel}>AIDS LEVY:</Text>
+                    <Text style={s.deptStatAmt}>{ccy} {fmt(groupAidsLevyUSD)}</Text>
+                  </View>
+                  <View style={s.deptStatItem}>
+                    <Text style={s.deptStatLabel}>NSSA EMP:</Text>
+                    <Text style={s.deptStatAmt}>{ccy} {fmt(groupNssaUSD)}</Text>
+                  </View>
+                </View>
               </View>
             </View>
           );
@@ -473,11 +504,28 @@ const SummaryDocument = ({ data }) => {
           </View>
         </View>
 
+        {/* Grand statutory totals bar */}
+        <View style={[s.deptTotalBar, { backgroundColor: '#1e3a5f', marginTop: 6 }]} wrap={false}>
+          <Text style={[s.deptTotalFor, { color: 'white', marginRight: 16 }]}>STATUTORY TOTALS</Text>
+          <View style={[s.deptStatItem, { marginRight: 18 }]}>
+            <Text style={[s.deptStatLabel, { color: 'rgba(255,255,255,0.7)' }]}>PAYE:</Text>
+            <Text style={[s.deptStatAmt, { color: 'white' }]}>{ccy} {fmt(grandPayeUSD)}</Text>
+          </View>
+          <View style={[s.deptStatItem, { marginRight: 18 }]}>
+            <Text style={[s.deptStatLabel, { color: 'rgba(255,255,255,0.7)' }]}>AIDS LEVY:</Text>
+            <Text style={[s.deptStatAmt, { color: 'white' }]}>{ccy} {fmt(grandAidsLevyUSD)}</Text>
+          </View>
+          <View style={s.deptStatItem}>
+            <Text style={[s.deptStatLabel, { color: 'rgba(255,255,255,0.7)' }]}>NSSA EMP:</Text>
+            <Text style={[s.deptStatAmt, { color: 'white' }]}>{ccy} {fmt(grandNssaUSD)}</Text>
+          </View>
+          <View style={{ flex: 1 }} />
+          <Text style={[s.deptTotalNetLabel, { color: 'rgba(255,255,255,0.7)' }]}>TOTAL EMP:</Text>
+          <Text style={[s.deptTotalAmt, { color: 'white' }]}>{grandHeadcount}</Text>
+        </View>
+
         {/* Total employees + end of report */}
         <View style={{ alignItems: 'center', paddingTop: 14, paddingBottom: 6 }} wrap={false}>
-          <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 9, color: DARK_NAVY }}>
-            TOTAL EMPLOYEES: {grandHeadcount}
-          </Text>
           <Text style={{ fontSize: 8, color: TEXT_MUTED, marginTop: 6 }}>END OF REPORT...</Text>
         </View>
 
