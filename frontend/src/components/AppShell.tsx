@@ -110,8 +110,7 @@ const AppShell: React.FC = () => {
 
   const isAdmin = user?.role === 'PLATFORM_ADMIN';
   const isEmployee = user?.role === 'EMPLOYEE';
-  const isCompanyUser = user?.role === 'COMPANY_USER';
-  const { can, isClientAdmin } = usePermissions();
+  const { can } = usePermissions();
 
   // Preserve sidebar scroll position across route changes.
   // SidebarContent is defined inside AppShell so React remounts it on every

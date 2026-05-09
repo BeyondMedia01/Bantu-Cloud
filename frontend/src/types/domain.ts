@@ -435,37 +435,6 @@ export interface ScreeningSummary {
   shortlisted: number;
 }
 
-// ─── Recruitment (ATS) ─────────────────────────────────────────────────────────
-
-export interface CandidateSkill {
-  id: string;
-  applicationId: string;
-  name: string;
-  level?: string | null;
-}
-
-export interface CandidateExperience {
-  id: string;
-  applicationId: string;
-  title: string;
-  company?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
-  current?: boolean;
-  durationMonths?: number | null;
-  description?: string | null;
-}
-
-export interface CandidateEducation {
-  id: string;
-  applicationId: string;
-  institution: string;
-  degree?: string | null;
-  field?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
-  gpa?: string | null;
-}
 
 // ─── Onboarding ────────────────────────────────────────────────────────────────
 

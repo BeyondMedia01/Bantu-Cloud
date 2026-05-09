@@ -1,17 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
   UserPlus, Plus, Send, X, Users, Briefcase, Upload, FileText,
-  Brain, CheckCircle2, AlertCircle, Star, Download, Eye,
+  Brain, Star,
 } from 'lucide-react';
 import { RecruitmentAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { getActiveCompanyId } from '../lib/companyContext';
 import SkeletonTable from '../components/common/SkeletonTable';
 import type {
   JobPosting, JobApplication, JobStatus, ApplicationStatus,
-  CandidateSkill, CandidateExperience, CandidateEducation,
-  ScreenResult, ScreeningSummary,
+  ScreeningSummary,
 } from '../types/domain';
 
 const POSTING_STATUS_OPTS: JobStatus[] = ['DRAFT', 'PUBLISHED', 'CLOSED', 'FILLED'];
@@ -37,7 +35,6 @@ const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day
 const Recruitment: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const companyId = getActiveCompanyId();
 
   const [postings, setPostings] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -329,7 +326,7 @@ const Recruitment: React.FC = () => {
     if (!shortlistData[postingId]) loadShortlist(postingId);
   };
 
-  const canManage = can('manage_employees');
+  const canManage = can('RECRUITMENT');
 
   return (
     <div className="p-6">
@@ -360,7 +357,7 @@ const Recruitment: React.FC = () => {
         ))}
       </div>
 
-      {loading ? <SkeletonTable rows={5} cols={5} /> : (
+      {loading ? <SkeletonTable headers={['Title', 'Department', 'Status', 'Applications', 'Actions']} rows={5} /> : (
         <div className="space-y-3">
           {postings.length === 0 && (
             <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
@@ -462,7 +459,7 @@ const Recruitment: React.FC = () => {
                       <h4 className="text-sm font-semibold text-green-800 mb-3 flex items-center gap-1.5">
                         <Star size={16} /> Shortlisted Candidates
                       </h4>
-                      {shortlistLoading === p.id ? <SkeletonTable rows={3} cols={4} /> : (
+                      {shortlistLoading === p.id ? <SkeletonTable headers={['Candidate', 'Score', 'Status', 'Actions']} rows={3} /> : (
                         !shortlistData[p.id] || shortlistData[p.id].length === 0 ? (
                           <p className="text-sm text-slate-500 text-center py-4">No candidates shortlisted yet. Run AI screening first.</p>
                         ) : (
@@ -549,7 +546,7 @@ const Recruitment: React.FC = () => {
                         </button>
                       )}
                     </div>
-                    {appLoading === p.id ? <SkeletonTable rows={3} cols={4} /> : (
+                    {appLoading === p.id ? <SkeletonTable headers={['Candidate', 'Email', 'Status', 'Actions']} rows={3} /> : (
                       (!applications[p.id] || applications[p.id].length === 0) ? (
                         <p className="text-sm text-slate-400 text-center py-4">No applications yet</p>
                       ) : (
@@ -620,7 +617,7 @@ const Recruitment: React.FC = () => {
                                   {canManage && !a.resumeUrl && (
                                     <div>
                                       <input type="file" accept=".pdf,.docx,.doc,.txt"
-                                        ref={el => fileInputRefs.current[a.id] = el}
+                                        ref={el => { fileInputRefs.current[a.id] = el; }}
                                         className="hidden"
                                         onChange={e => {
                                           const file = e.target.files?.[0];

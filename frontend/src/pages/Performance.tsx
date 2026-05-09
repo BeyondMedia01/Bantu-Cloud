@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart3, Plus, X, Target, FileText, CheckCircle2, Circle, Search, Star } from 'lucide-react';
+import { BarChart3, Plus, X, Target, FileText, Star } from 'lucide-react';
 import { PerformanceAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -18,14 +18,13 @@ const REVIEW_STATUS_COLORS: Record<string, string> = {
   ACKNOWLEDGED: 'bg-blue-50 text-blue-700 border-blue-200',
   COMPLETED: 'bg-green-50 text-green-700 border-green-200',
 };
-const GOAL_OPTS: GoalStatus[] = ['NOT_STARTED', 'IN_PROGRESS', 'ACHIEVED', 'CANCELLED'];
-const REVIEW_OPTS: ReviewStatus[] = ['DRAFT', 'SUBMITTED', 'ACKNOWLEDGED', 'COMPLETED'];
+
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const Performance: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const canManage = can('manage_employees');
+  const canManage = can('PERFORMANCE');
 
   const [tab, setTab] = useState<'goals' | 'reviews'>('goals');
   const [goals, setGoals] = useState<PerformanceGoal[]>([]);
@@ -209,7 +208,7 @@ const Performance: React.FC = () => {
             ))}
           </div>
 
-          {loading ? <SkeletonTable rows={5} cols={5} /> : (
+          {loading ? <SkeletonTable headers={['Employee', 'Title', 'Status', 'Progress', 'Actions']} rows={5} /> : (
             <div className="space-y-2">
               {goals.length === 0 && (
                 <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
@@ -247,7 +246,7 @@ const Performance: React.FC = () => {
                       <span className="text-xs font-medium text-slate-600 w-10 text-right">{g.progress || 0}%</span>
                       {canManage && (
                         <select className="text-xs border border-slate-200 rounded px-1.5 py-1 bg-white"
-                          value="" onChange={e => { if (!e.target.value) return; const [p, s] = e.target.value.split('|'); handleGoalProgress(g.id, parseInt(p), s || undefined); }}
+                          value="" onChange={e => { if (!e.target.value) return; const [p, s] = e.target.value.split('|'); handleGoalProgress(g.id, parseInt(p), s as GoalStatus | undefined); }}
                         >
                           <option value="">Progress...</option>
                           <option value="0|NOT_STARTED">Not Started</option>
@@ -277,7 +276,7 @@ const Performance: React.FC = () => {
             ))}
           </div>
 
-          {loading ? <SkeletonTable rows={5} cols={5} /> : (
+          {loading ? <SkeletonTable headers={['Employee', 'Title', 'Status', 'Progress', 'Actions']} rows={5} /> : (
             <div className="space-y-2">
               {reviews.length === 0 && (
                 <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">

@@ -8,6 +8,16 @@ import type {
   Loan, LoanRepayment, Shift, RosterEntry, AttendanceLog, AttendanceSummary,
   Device, SystemSetting, PayrollLog, PayrollUser, NSSAContribution,
   SalaryStructure,
+  Expense, ExpenseCategory,
+  JobPosting, JobApplication, CandidateSkill, CandidateExperience, CandidateEducation,
+  ScreenResult, ScreeningSummary,
+  Onboarding, OnboardingTask, OnboardingTemplate, OnboardingTemplateTask,
+  Asset, AssetCategory,
+  TrainingCourse, TrainingEnrollment, TrainingCertificate,
+  PerformanceGoal, PerformanceReview,
+  SuccessionPlan, SuccessionCandidate,
+  Survey, SurveyResults,
+  AnalyticsOverview, WorkforceData, AnalyticsRecruitment, AnalyticsTraining, AnalyticsPerformance,
 } from '../types/domain';
 
 // Re-export domain types so pages can import from '../api/client'
@@ -18,6 +28,16 @@ export type {
   Loan, LoanRepayment, Shift, RosterEntry, AttendanceLog, AttendanceSummary,
   Device, SystemSetting, PayrollLog, PayrollUser, NSSAContribution,
   SalaryStructure, EmployeeDocument,
+  Expense, ExpenseCategory,
+  JobPosting, JobApplication, CandidateSkill, CandidateExperience, CandidateEducation,
+  ScreenResult, ScreeningSummary,
+  Onboarding, OnboardingTask, OnboardingTemplate, OnboardingTemplateTask,
+  Asset, AssetCategory,
+  TrainingCourse, TrainingEnrollment, TrainingCertificate,
+  PerformanceGoal, PerformanceReview,
+  SuccessionPlan, SuccessionCandidate,
+  Survey, SurveyResults,
+  AnalyticsOverview, WorkforceData, AnalyticsRecruitment, AnalyticsTraining, AnalyticsPerformance,
 } from '../types/domain';
 export type { PaginatedResponse, Branch, Department } from '../types/common';
 

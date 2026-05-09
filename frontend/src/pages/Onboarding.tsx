@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ClipboardList, Plus, X, CheckCircle2, Circle, Users, Calendar, UserCheck } from 'lucide-react';
+import { ClipboardList, Plus, X, CheckCircle2, Circle, Users, Calendar } from 'lucide-react';
 import { OnboardingAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { getActiveCompanyId } from '../lib/companyContext';
 import SkeletonTable from '../components/common/SkeletonTable';
 import type { Onboarding as OnboardingType, OnboardingTemplate, OnboardingTask } from '../types/domain';
 
@@ -19,7 +18,7 @@ const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day
 const Onboarding: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const canManage = can('manage_employees');
+  const canManage = can('ONBOARDING');
 
   const [records, setRecords] = useState<OnboardingType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +114,7 @@ const Onboarding: React.FC = () => {
       await OnboardingAPI.updateTask(recordId, task.id, { completed: !task.completed });
       if (expandedId) {
         const res = await OnboardingAPI.getById(expandedId);
-        setRecords(prev => prev.map(r => r.id === expandedId ? { ...r, ...res.data.data, completedTasks: res.data.data.tasks?.filter(t => t.completed).length || 0 } : r));
+        setRecords(prev => prev.map(r => r.id === expandedId ? { ...r, ...res.data.data, completedTasks: res.data.data.tasks?.filter((t: any) => t.completed).length || 0 } : r));
       }
       loadRecords();
     } catch (err: any) {
@@ -199,7 +198,7 @@ const Onboarding: React.FC = () => {
         ))}
       </div>
 
-      {loading ? <SkeletonTable rows={5} cols={5} /> : (
+      {loading ? <SkeletonTable headers={['Employee', 'Status', 'Template', 'Start Date', 'Actions']} rows={5} /> : (
         <div className="space-y-3">
           {records.length === 0 && (
             <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
@@ -348,7 +347,7 @@ const Onboarding: React.FC = () => {
               </div>
             </div>
             <div className="p-5">
-              {templatesLoading ? <SkeletonTable rows={3} cols={3} /> : (
+              {templatesLoading ? <SkeletonTable headers={['Name', 'Tasks', 'Actions']} rows={3} /> : (
                 templates.length === 0 ? (
                   <p className="text-sm text-slate-400 text-center py-4">No templates yet</p>
                 ) : (

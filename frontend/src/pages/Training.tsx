@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GraduationCap, Plus, X, Users, Award, CheckCircle2, Circle, Search } from 'lucide-react';
+import { GraduationCap, Plus, X, Users, Award } from 'lucide-react';
 import { TrainingAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -26,7 +26,7 @@ const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day
 const Training: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const canManage = can('manage_employees');
+  const canManage = can('TRAINING');
 
   const [courses, setCourses] = useState<TrainingCourse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,7 +185,7 @@ const Training: React.FC = () => {
         ))}
       </div>
 
-      {loading ? <SkeletonTable rows={5} cols={5} /> : (
+      {loading ? <SkeletonTable headers={['Title', 'Provider', 'Status', 'Enrolled', 'Actions']} rows={5} /> : (
         <div className="space-y-3">
           {courses.length === 0 && (
             <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
@@ -240,7 +240,7 @@ const Training: React.FC = () => {
                     {/* Enrollments */}
                     <div>
                       <h4 className="text-sm font-medium text-slate-700 mb-2">Enrollments ({enrollments[c.id]?.length || 0})</h4>
-                      {sectionLoading === 'enr-' + c.id ? <SkeletonTable rows={3} cols={3} /> : (
+                      {sectionLoading === 'enr-' + c.id ? <SkeletonTable headers={['Employee', 'Status', 'Actions']} rows={3} /> : (
                         !enrollments[c.id] || enrollments[c.id].length === 0 ? (
                           <p className="text-xs text-slate-400 text-center py-3">No enrollments yet</p>
                         ) : (

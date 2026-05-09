@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Plus, X, Search, UserCheck, RotateCcw, Monitor, Smartphone, Tool, HardDrive, BookOpen } from 'lucide-react';
+import { Package, Plus, X, Search, UserCheck, RotateCcw } from 'lucide-react';
 import { AssetAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { getActiveCompanyId } from '../lib/companyContext';
 import SkeletonTable from '../components/common/SkeletonTable';
 import type { Asset, AssetCategory, AssetStatus } from '../types/domain';
 
@@ -15,12 +14,11 @@ const STATUS_COLORS: Record<string, string> = {
   LOST: 'bg-red-50 text-red-600 border-red-200',
 };
 const STATUS_OPTS: AssetStatus[] = ['AVAILABLE', 'ASSIGNED', 'MAINTENANCE', 'RETIRED', 'LOST'];
-const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const Assets: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const canManage = can('manage_employees');
+  const canManage = can('ASSETS');
 
   const [assets, setAssets] = useState<Asset[]>([]);
   const [categories, setCategories] = useState<AssetCategory[]>([]);
@@ -180,7 +178,7 @@ const Assets: React.FC = () => {
         <span className="text-sm text-slate-500">{filtered.length} assets</span>
       </div>
 
-      {loading ? <SkeletonTable rows={6} cols={6} /> : (
+      {loading ? <SkeletonTable headers={['Name', 'Category', 'Status', 'Assigned To', 'Serial', 'Actions']} rows={6} /> : (
         <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
           {filtered.length === 0 ? (
             <div className="p-8 text-center text-slate-500">

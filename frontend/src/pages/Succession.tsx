@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, X, UserCheck, Star, TrendingUp } from 'lucide-react';
+import { Users, Plus, X, Star, TrendingUp } from 'lucide-react';
 import { SuccessionAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
 import SkeletonTable from '../components/common/SkeletonTable';
-import type { SuccessionPlan, SuccessionCandidate } from '../types/domain';
+import type { SuccessionPlan } from '../types/domain';
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: 'bg-green-50 text-green-700 border-green-200',
@@ -23,12 +23,12 @@ const RISK_COLORS: Record<string, string> = { HIGH: 'text-red-600', MEDIUM: 'tex
 const Succession: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const canManage = can('manage_employees');
+  const canManage = can('SUCCESSION');
 
   const [plans, setPlans] = useState<SuccessionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState('');
+  const [, setActionLoading] = useState('');
 
   // Create plan
   const [showCreate, setShowCreate] = useState(false);
@@ -108,7 +108,7 @@ const Succession: React.FC = () => {
         )}
       </div>
 
-      {loading ? <SkeletonTable rows={5} cols={4} /> : (
+      {loading ? <SkeletonTable headers={['Position', 'Department', 'Status', 'Actions']} rows={5} /> : (
         <div className="space-y-3">
           {plans.length === 0 && (
             <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ClipboardCheck, Plus, X, BarChart3, Eye, Send, CheckCircle2 } from 'lucide-react';
+import { ClipboardCheck, Plus, X, BarChart3, Send } from 'lucide-react';
 import { SurveyAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
 import SkeletonTable from '../components/common/SkeletonTable';
-import type { Survey, SurveyQuestion, SurveyResult } from '../types/domain';
+import type { Survey, SurveyResult } from '../types/domain';
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: 'bg-slate-100 text-slate-600 border-slate-200',
@@ -16,7 +16,7 @@ const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day
 const Surveys: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const canManage = can('manage_employees');
+  const canManage = can('SURVEYS');
 
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +67,7 @@ const Surveys: React.FC = () => {
       const res = await SurveyAPI.getById(id);
       setEditId(id);
       setEditTitle(res.data.data.title);
-      setEditQuestions(res.data.data.questions?.map(q => ({ text: q.text, type: q.type, required: q.required })) || []);
+      setEditQuestions(res.data.data.questions?.map((q: any) => ({ text: q.text, type: q.type, required: q.required })) || []);
     } catch { showToast('Failed to load survey', 'error'); }
   };
 
@@ -113,7 +113,7 @@ const Surveys: React.FC = () => {
         )}
       </div>
 
-      {loading ? <SkeletonTable rows={5} cols={4} /> : (
+      {loading ? <SkeletonTable headers={['Title', 'Status', 'Questions', 'Actions']} rows={5} /> : (
         <div className="space-y-3">
           {surveys.length === 0 && (
             <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
@@ -259,7 +259,7 @@ const Surveys: React.FC = () => {
             </div>
             <div className="p-5">
               <p className="text-sm text-slate-500 mb-4">Total responses: <strong>{resultsData.totalResponses}</strong></p>
-              {resultsLoading ? <SkeletonTable rows={5} cols={2} /> : (
+              {resultsLoading ? <SkeletonTable headers={['Question', 'Results']} rows={5} /> : (
                 <div className="space-y-6">
                   {resultsData.results.map(r => (
                     <div key={r.questionId} className="border border-slate-200 rounded-lg p-4">

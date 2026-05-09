@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Receipt, Plus, CheckCircle2, XCircle, Loader, ExternalLink } from 'lucide-react';
 import { ExpenseAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { getActiveCompanyId } from '../lib/companyContext';
 import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
 import type { Expense, ExpenseCategory } from '../types/domain';
@@ -27,7 +26,6 @@ const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day
 const Expenses: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
-  const companyId = getActiveCompanyId();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
@@ -47,7 +45,6 @@ const Expenses: React.FC = () => {
   const [formReceipt, setFormReceipt] = useState('');
   const [formNotes, setFormNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [employees, setEmployees] = useState<any[]>([]);
 
   const load = async () => {
     try {
