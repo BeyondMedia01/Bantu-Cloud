@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard, Users, DollarSign, FileText, Settings,
@@ -112,6 +112,18 @@ const AppShell: React.FC = () => {
   const isEmployee = user?.role === 'EMPLOYEE';
   const isCompanyUser = user?.role === 'COMPANY_USER';
   const { can, isClientAdmin } = usePermissions();
+
+  // Preserve sidebar scroll position across route changes.
+  // SidebarContent is defined inside AppShell so React remounts it on every
+  // render (new function reference = new component type). We save the scroll
+  // position on scroll and restore it with useLayoutEffect (before paint).
+  const navScrollRef = useRef<HTMLElement>(null);
+  const savedScrollPos = useRef(0);
+  useLayoutEffect(() => {
+    if (navScrollRef.current) {
+      navScrollRef.current.scrollTop = savedScrollPos.current;
+    }
+  });
 
   // Module nav groups — each maps to a section of the app
   const moduleNavMap = {
@@ -310,7 +322,11 @@ const AppShell: React.FC = () => {
       )}
 
       {/* Nav links */}
-      <nav className="flex-1 overflow-y-auto py-3 flex flex-col gap-0.5 px-2">
+      <nav
+        ref={!mobile ? navScrollRef : undefined}
+        onScroll={!mobile ? (e) => { savedScrollPos.current = e.currentTarget.scrollTop; } : undefined}
+        className="flex-1 overflow-y-auto py-3 flex flex-col gap-0.5 px-2"
+      >
         {navLinks.map((link) => <NavLink key={link.to} link={link} />)}
 
         {adminSectionLinks.length > 0 && (
