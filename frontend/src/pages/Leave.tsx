@@ -7,6 +7,7 @@ import SkeletonTable from '../components/common/SkeletonTable';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import { usePermissions } from '../hooks/usePermissions';
 
 const STATUS_COLORS: Record<string, string> = {
   APPROVED: 'bg-emerald-50 text-emerald-700',
@@ -33,6 +34,7 @@ const Leave: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
+  const { can } = usePermissions();
   const [records, setRecords] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,12 +119,14 @@ const Leave: React.FC = () => {
           <h1 className="text-2xl font-bold text-navy">Leave Management</h1>
           <p className="text-muted-foreground font-medium text-sm">Track and manage employee leave records</p>
         </div>
-        <button
-          onClick={() => navigate('/leave/new')}
-          className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
-        >
-          <Plus size={18} /> Add Leave
-        </button>
+        {can('TIME_LEAVE', 'EDIT') && (
+          <button
+            onClick={() => navigate('/leave/new')}
+            className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
+          >
+            <Plus size={18} /> Add Leave
+          </button>
+        )}
       </header>
 
       {/* Sub-navigation tabs */}
@@ -281,20 +285,24 @@ const Leave: React.FC = () => {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => navigate(`/leave/${item.id}/edit`)}
-                          className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
-                          aria-label="Edit leave record"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item)}
-                          className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
-                          aria-label="Delete leave record"
-                        >
-                          <Trash size={16} />
-                        </button>
+                        {can('TIME_LEAVE', 'EDIT') && (
+                          <button
+                            onClick={() => navigate(`/leave/${item.id}/edit`)}
+                            className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
+                            aria-label="Edit leave record"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
+                        {can('TIME_LEAVE', 'DELETE') && (
+                          <button
+                            onClick={() => handleDelete(item)}
+                            className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
+                            aria-label="Delete leave record"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

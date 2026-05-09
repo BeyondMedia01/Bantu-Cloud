@@ -1,8 +1,10 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const router = express.Router();
 const { authenticateToken } = require('../lib/auth');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
+
+const router = express.Router();
+router.use(requireModule('COMPLIANCE'));
 
 // All tax band routes require authentication
 router.use(authenticateToken);

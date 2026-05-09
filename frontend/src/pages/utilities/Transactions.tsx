@@ -7,6 +7,7 @@ import {
 import { TransactionCodeAPI } from '../../api/client';
 import { Dropdown } from '@/components/ui/dropdown';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import { usePermissions } from '../../hooks/usePermissions';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -779,6 +780,7 @@ const TarmsAuditPanel: React.FC<TarmsAuditPanelProps> = ({ onClose }) => {
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
+  const { can } = usePermissions();
   const [codes, setCodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
@@ -861,12 +863,14 @@ const Transactions: React.FC = () => {
           >
             <ShieldCheck size={15} /> TaRMS Audit
           </button>
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90"
-          >
-            <Plus size={16} /> Create Code
-          </button>
+          {can('PAYROLL', 'EDIT') && (
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90"
+            >
+              <Plus size={16} /> Create Code
+            </button>
+          )}
         </div>
       </div>
 
@@ -971,22 +975,26 @@ const Transactions: React.FC = () => {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); openEdit(c); }}
-                                className="p-1.5 text-muted-foreground hover:text-navy hover:bg-muted rounded-lg"
-                                title="Edit"
-                                aria-label="Edit transaction code"
-                              >
-                                <Edit size={14} />
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}
-                                className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg"
-                                title="Delete"
-                                aria-label="Delete transaction code"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              {can('PAYROLL', 'EDIT') && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openEdit(c); }}
+                                  className="p-1.5 text-muted-foreground hover:text-navy hover:bg-muted rounded-lg"
+                                  title="Edit"
+                                  aria-label="Edit transaction code"
+                                >
+                                  <Edit size={14} />
+                                </button>
+                              )}
+                              {can('PAYROLL', 'DELETE') && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}
+                                  className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg"
+                                  title="Delete"
+                                  aria-label="Delete transaction code"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
                               {expanded === c.id ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
                             </div>
                           </td>
@@ -1051,9 +1059,11 @@ const Transactions: React.FC = () => {
             <div className="text-center py-16 bg-primary rounded-2xl border border-border">
               <p className="font-bold text-muted-foreground mb-1">No transaction codes yet</p>
               <p className="text-sm text-muted-foreground mb-5">Create codes to define earnings, deductions, and benefits</p>
-              <button onClick={openCreate} className="inline-flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90">
-                <Plus size={15} /> Create First Code
-              </button>
+              {can('PAYROLL', 'EDIT') && (
+                <button onClick={openCreate} className="inline-flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm shadow hover:opacity-90">
+                  <Plus size={15} /> Create First Code
+                </button>
+              )}
             </div>
           )}
         </div>

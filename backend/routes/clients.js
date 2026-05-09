@@ -76,6 +76,26 @@ router.put('/:id', adminOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/clients/:id/modules — set enabled modules for a client
+router.patch('/:id/modules', adminOnly, async (req, res) => {
+  const { modules } = req.body;
+  if (!Array.isArray(modules)) {
+    return res.status(400).json({ message: 'modules must be an array of AppModule values' });
+  }
+  try {
+    const client = await prisma.client.update({
+      where: { id: req.params.id },
+      data: { enabledModules: modules },
+      select: { id: true, name: true, enabledModules: true },
+    });
+    res.json(client);
+  } catch (error) {
+    if (error.code === 'P2025') return res.status(404).json({ message: 'Client not found' });
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // DELETE /api/clients/:id
 router.delete('/:id', adminOnly, async (req, res) => {
   try {

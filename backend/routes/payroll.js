@@ -1,6 +1,6 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const { calculatePaye } = require('../utils/taxEngine');
 const { generatePayrollSummaryPDF, generatePayslipSummaryPDF, generatePayslipSummaryBuffer } = require('../utils/pdfService');
 const { audit } = require('../lib/audit');
@@ -10,6 +10,7 @@ const { getYtdStartDate } = require('../utils/ytdCalculator');
 const { payslipToBuffer, buildPayslipLineItems } = require('../utils/payslipFormatter');
 
 const router = express.Router();
+router.use(requireModule('PAYROLL'));
 
 
 // --- Sub-Routers ---

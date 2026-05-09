@@ -5,6 +5,7 @@ import {
   Building2, User, ChevronDown, LogOut, Wrench,
   CalendarDays, CreditCard, ShieldCheck, Menu, ChevronRight,
   ClipboardList, Clock, Cpu, PanelLeftClose, PanelLeftOpen, Download,
+  UserCog, Scale, UserPlus, TrendingUp, Receipt, BookOpen, BarChart2,
 } from 'lucide-react';
 import { getUser, logout } from '../lib/auth';
 import { CompanyAPI, UserAPI } from '../api/client';
@@ -12,6 +13,7 @@ import { setActiveCompanyId } from '../lib/companyContext';
 import { getAvatarGradient } from '../lib/avatarGradient';
 import { useIdleTimer } from '../hooks/useIdleTimer';
 import IdleTimerModal from './common/IdleTimerModal';
+import { usePermissions } from '../hooks/usePermissions';
 
 const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
 
@@ -108,6 +110,82 @@ const AppShell: React.FC = () => {
 
   const isAdmin = user?.role === 'PLATFORM_ADMIN';
   const isEmployee = user?.role === 'EMPLOYEE';
+  const isCompanyUser = user?.role === 'COMPANY_USER';
+  const { can, isClientAdmin } = usePermissions();
+
+  // Module nav groups — each maps to a section of the app
+  const moduleNavMap = {
+    PEOPLE: [
+      { to: '/employees', label: 'Employees', icon: <Users size={18} /> },
+      { to: '/grades', label: 'Grades', icon: <ClipboardList size={18} /> },
+      { to: '/client-admin/structure', label: 'Company Structure', icon: <Building2 size={18} /> },
+    ],
+    TIME_LEAVE: [
+      { to: '/leave', label: 'Leave', icon: <CalendarDays size={18} /> },
+      { to: '/shifts', label: 'Shifts & Roster', icon: <Clock size={18} /> },
+      { to: '/attendance', label: 'Attendance', icon: <Cpu size={18} /> },
+    ],
+    PAYROLL: [
+      { to: '/payroll', label: 'Payroll', icon: <DollarSign size={18} /> },
+      { to: '/payslip-input', label: 'Payslip Input', icon: <ClipboardList size={18} /> },
+      { to: '/loans', label: 'Loans', icon: <CreditCard size={18} /> },
+    ],
+    COMPLIANCE: [
+      { to: '/utilities/statutory-rates', label: 'Statutory Rates', icon: <Scale size={18} /> },
+      { to: '/utilities/nec-tables', label: 'NEC Tables', icon: <FileText size={18} /> },
+      { to: '/utilities/nssa', label: 'NSSA', icon: <ShieldCheck size={18} /> },
+    ],
+    REPORTS: [
+      { to: '/reports', label: 'Reports', icon: <FileText size={18} /> },
+    ],
+    SETTINGS: [
+      { to: '/utilities', label: 'Utilities', icon: <Wrench size={18} /> },
+      { to: '/client-admin/settings', label: 'Settings', icon: <Settings size={18} /> },
+    ],
+    RECRUITMENT: [
+      { to: '/recruitment', label: 'Recruitment', icon: <UserPlus size={18} /> },
+    ],
+    PERFORMANCE: [
+      { to: '/performance', label: 'Performance', icon: <TrendingUp size={18} /> },
+    ],
+    EXPENSES: [
+      { to: '/expenses', label: 'Expenses', icon: <Receipt size={18} /> },
+    ],
+    ONBOARDING: [
+      { to: '/onboarding', label: 'Onboarding', icon: <ClipboardList size={18} /> },
+    ],
+    TRAINING: [
+      { to: '/training', label: 'Training', icon: <BookOpen size={18} /> },
+    ],
+    ASSETS: [
+      { to: '/assets', label: 'Assets', icon: <ShieldCheck size={18} /> },
+    ],
+    SUCCESSION: [
+      { to: '/succession', label: 'Succession', icon: <TrendingUp size={18} /> },
+    ],
+    SURVEYS: [
+      { to: '/surveys', label: 'Surveys', icon: <ClipboardList size={18} /> },
+    ],
+    ANALYTICS: [
+      { to: '/analytics', label: 'Analytics', icon: <BarChart2 size={18} /> },
+    ],
+  } as const;
+
+  type ModuleKey = keyof typeof moduleNavMap;
+
+  // Build nav based on role
+  const buildModuleNav = () => {
+    const allModules: ModuleKey[] = ['PEOPLE', 'TIME_LEAVE', 'PAYROLL', 'COMPLIANCE', 'REPORTS', 'SETTINGS', 'RECRUITMENT', 'PERFORMANCE', 'EXPENSES', 'ONBOARDING', 'TRAINING', 'ASSETS', 'SUCCESSION', 'SURVEYS', 'ANALYTICS'];
+    const links: { to: string; label: string; icon: React.ReactNode; section?: string }[] = [
+      { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+    ];
+    for (const mod of allModules) {
+      if (can(mod)) {
+        links.push(...moduleNavMap[mod]);
+      }
+    }
+    return links;
+  };
 
   const navLinks = isAdmin ? [
     { to: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
@@ -120,23 +198,13 @@ const AppShell: React.FC = () => {
     { to: '/employee/payslips', label: 'Payslips', icon: <FileText size={18} /> },
     { to: '/employee/leave', label: 'Leave', icon: <CalendarDays size={18} /> },
     { to: '/employee/profile', label: 'Profile', icon: <User size={18} /> },
-  ] : [
-    { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { to: '/employees', label: 'Employees', icon: <Users size={18} /> },
-    { to: '/payroll', label: 'Payroll', icon: <DollarSign size={18} /> },
-    { to: '/payslip-input', label: 'Payslip Input', icon: <ClipboardList size={18} /> },
-    { to: '/leave', label: 'Leave', icon: <CalendarDays size={18} /> },
-    { to: '/loans', label: 'Loans', icon: <CreditCard size={18} /> },
-    { to: '/reports', label: 'Reports', icon: <FileText size={18} /> },
-    { to: '/shifts', label: 'Shifts & Roster', icon: <Clock size={18} /> },
-    { to: '/attendance', label: 'Attendance', icon: <Cpu size={18} /> },
-    { to: '/utilities', label: 'Utilities', icon: <Wrench size={18} /> },
-    { to: '/client-admin/structure', label: 'Company Structure', icon: <Building2 size={18} /> },
-  ];
+  ] : buildModuleNav();
 
-  const adminSectionLinks = (!isAdmin && !isEmployee) ? [
+  // CLIENT_ADMIN gets team management links; COMPANY_USER does not
+  const adminSectionLinks = user?.role === 'CLIENT_ADMIN' ? [
     { to: '/companies', label: 'Companies', icon: <Building2 size={18} /> },
-    { to: '/client-admin/settings', label: 'Settings', icon: <Settings size={18} /> },
+    { to: '/client-admin/roles', label: 'Roles', icon: <ShieldCheck size={18} /> },
+    { to: '/client-admin/users', label: 'Team Members', icon: <UserCog size={18} /> },
   ] : [];
 
   const homeLink = isAdmin ? '/admin' : isEmployee ? '/employee' : '/dashboard';

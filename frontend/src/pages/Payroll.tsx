@@ -7,10 +7,12 @@ import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
 import { RUN_STATUS_CLASS } from '../lib/payrollStatusColors';
+import { usePermissions } from '../hooks/usePermissions';
 
 const Payroll: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { can } = usePermissions();
   const [runs, setRuns] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -106,12 +108,14 @@ const Payroll: React.FC = () => {
           <h1 className="text-2xl font-bold text-navy">Payroll</h1>
           <p className="text-muted-foreground font-medium text-sm">{total} payroll runs</p>
         </div>
-        <button
-          onClick={() => navigate('/payroll/new')}
-          className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
-        >
-          <Plus size={14} /> New Payroll Run
-        </button>
+        {can('PAYROLL', 'RUN') && (
+          <button
+            onClick={() => navigate('/payroll/new')}
+            className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
+          >
+            <Plus size={14} /> New Payroll Run
+          </button>
+        )}
       </header>
 
       {actionError && (
@@ -125,9 +129,11 @@ const Payroll: React.FC = () => {
           <FileText size={40} className="mx-auto mb-3 text-slate-200" />
           <p className="font-bold text-muted-foreground mb-2">No payroll runs yet</p>
           <p className="text-sm text-muted-foreground mb-6">Create your first payroll run to get started</p>
-          <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-1.5">
-            <Plus size={14} /> Create Payroll Run
-          </button>
+          {can('PAYROLL', 'RUN') && (
+            <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-1.5">
+              <Plus size={14} /> Create Payroll Run
+            </button>
+          )}
         </div>
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -212,7 +218,7 @@ const Payroll: React.FC = () => {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      {run.status === 'DRAFT' && (
+                      {can('PAYROLL', 'RUN') && run.status === 'DRAFT' && (
                         <button
                           onClick={(e) => handleAction(e, 'submit', run.id)}
                           disabled={actionLoading === run.id + 'submit'}
@@ -222,7 +228,7 @@ const Payroll: React.FC = () => {
                           <SendHorizonal size={12} /> Submit
                         </button>
                       )}
-                      {run.status === 'PENDING_APPROVAL' && (
+                      {can('PAYROLL', 'APPROVE') && run.status === 'PENDING_APPROVAL' && (
                         <button
                           onClick={(e) => handleAction(e, 'approve', run.id)}
                           disabled={actionLoading === run.id + 'approve'}
@@ -232,7 +238,7 @@ const Payroll: React.FC = () => {
                           <Check size={12} /> Approve
                         </button>
                       )}
-                      {(run.status === 'DRAFT' || run.status === 'APPROVED' || run.status === 'ERROR') && (
+                      {can('PAYROLL', 'RUN') && (run.status === 'DRAFT' || run.status === 'APPROVED' || run.status === 'ERROR') && (
                         <button
                           onClick={(e) => handleAction(e, 'process', run.id)}
                           disabled={actionLoading === run.id + 'process'}
@@ -242,7 +248,7 @@ const Payroll: React.FC = () => {
                           <Play size={12} /> Process
                         </button>
                       )}
-                      {run.status === 'COMPLETED' && !run.payrollCalendar?.isClosed && (
+                      {can('PAYROLL', 'RUN') && run.status === 'COMPLETED' && !run.payrollCalendar?.isClosed && (
                         <button
                           onClick={(e) => handleAction(e, 'process', run.id)}
                           disabled={actionLoading === run.id + 'process'}
@@ -260,38 +266,44 @@ const Payroll: React.FC = () => {
                         >
                           <FileText size={12} /> Summary
                         </button>
-                        <button
-                          onClick={(e) => handleExport(e, 'zimra', run.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-purple-50 text-purple-700 rounded-full hover:bg-purple-100"
-                          title="Download ZIMRA PAYE P2 CSV"
-                        >
-                          <Download size={11} /> ZIMRA
-                        </button>
-                        <button
-                          onClick={(e) => handleExport(e, 'nssa', run.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-orange-50 text-orange-700 rounded-full hover:bg-orange-100"
-                          title="Download NSSA Contribution CSV"
-                        >
-                          <Download size={11} /> NSSA
-                        </button>
-                        <Dropdown
-                          stopPropagation
-                          align="right"
-                          trigger={(isOpen) => (
-                            <button
-                              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100"
-                              title="Download Bank Payment File"
-                            >
-                              <Banknote size={12} /> Bank <ChevronDown size={10} className={isOpen ? 'rotate-180' : ''} />
-                            </button>
-                          )}
-                          sections={[{
-                            items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
-                              label: fmt,
-                              onClick: () => handleBankExport(fmt, run.id),
-                            })),
-                          }]}
-                        />
+                        {can('PAYROLL', 'EXPORT') && (
+                          <button
+                            onClick={(e) => handleExport(e, 'zimra', run.id)}
+                            className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-purple-50 text-purple-700 rounded-full hover:bg-purple-100"
+                            title="Download ZIMRA PAYE P2 CSV"
+                          >
+                            <Download size={11} /> ZIMRA
+                          </button>
+                        )}
+                        {can('PAYROLL', 'EXPORT') && (
+                          <button
+                            onClick={(e) => handleExport(e, 'nssa', run.id)}
+                            className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-orange-50 text-orange-700 rounded-full hover:bg-orange-100"
+                            title="Download NSSA Contribution CSV"
+                          >
+                            <Download size={11} /> NSSA
+                          </button>
+                        )}
+                        {can('PAYROLL', 'EXPORT') && (
+                          <Dropdown
+                            stopPropagation
+                            align="right"
+                            trigger={(isOpen) => (
+                              <button
+                                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100"
+                                title="Download Bank Payment File"
+                              >
+                                <Banknote size={12} /> Bank <ChevronDown size={10} className={isOpen ? 'rotate-180' : ''} />
+                              </button>
+                            )}
+                            sections={[{
+                              items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
+                                label: fmt,
+                                onClick: () => handleBankExport(fmt, run.id),
+                              })),
+                            }]}
+                          />
+                        )}
                       </>)}
                       <ChevronRight size={16} className="text-muted-foreground ml-1" />
                     </div>

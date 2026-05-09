@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { LoanAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import { usePermissions } from '../hooks/usePermissions';
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const fmtAmt = (n: number | undefined) => n != null ? Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -19,6 +20,7 @@ const statusColor: Record<string, string> = {
 const Loans: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { can } = usePermissions();
   const [loans, setLoans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
@@ -41,12 +43,14 @@ const Loans: React.FC = () => {
           <h1 className="text-2xl font-bold">Loans</h1>
           <p className="text-muted-foreground text-sm font-medium">Track employee loans and repayment schedules</p>
         </div>
-        <button
-          onClick={() => navigate('/loans/new')}
-          className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90"
-        >
-          <Plus size={16} /> New Loan
-        </button>
+        {can('PEOPLE', 'EDIT') && (
+          <button
+            onClick={() => navigate('/loans/new')}
+            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90"
+          >
+            <Plus size={16} /> New Loan
+          </button>
+        )}
       </div>
 
       {/* Filter */}

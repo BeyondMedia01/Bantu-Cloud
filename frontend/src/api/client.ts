@@ -191,6 +191,7 @@ export const ClientAPI = {
   create: (data: Partial<Client>) => api.post<Client>('/clients', data),
   update: (id: string, data: Partial<Client>) => api.put<Client>(`/clients/${id}`, data),
   delete: (id: string) => api.delete(`/clients/${id}`),
+  updateModules: (id: string, modules: string[]) => api.patch(`/clients/${id}/modules`, { modules }),
 };
 
 // ─── Org Structure ────────────────────────────────────────────────────────────
@@ -460,6 +461,20 @@ export const LoanAPI = {
   getRepayments: (id: string) => api.get<LoanRepayment[]>(`/loans/${id}/repayments`),
   markRepaymentPaid: (repaymentId: string) =>
     api.patch(`/loans/repayments/${repaymentId}`),
+};
+
+// ─── Expenses ─────────────────────────────────────────────────────────────────
+
+export const ExpenseAPI = {
+  getAll: (params?: Record<string, string>) => api.get<{ data: Expense[] }>('/expenses', { params }),
+  getCategories: () => api.get<{ data: ExpenseCategory[] }>('/expenses/categories'),
+  getById: (id: string) => api.get<{ data: Expense }>(`/expenses/${id}`),
+  create: (data: Partial<Expense>) => api.post<Expense>('/expenses', data),
+  update: (id: string, data: Partial<Expense>) => api.put<{ data: Expense }>(`/expenses/${id}`, data),
+  delete: (id: string) => api.delete(`/expenses/${id}`),
+  approve: (id: string) => api.put<{ data: Expense }>(`/expenses/${id}/approve`),
+  reject: (id: string, reason?: string) => api.put<{ data: Expense }>(`/expenses/${id}/reject`, { reason }),
+  process: (id: string, payrollRunId?: string) => api.post<{ data: Expense }>(`/expenses/${id}/process`, { payrollRunId }),
 };
 
 // ─── License Management ───────────────────────────────────────────────────────
@@ -768,6 +783,224 @@ export const TaxBandAPI = {
   create: (data: Partial<TaxBand>) => api.post<TaxBand>('/tax-bands', data),
   update: (id: string, data: Partial<TaxBand>) => api.put<TaxBand>(`/tax-bands/${id}`, data),
   delete: (id: string) => api.delete(`/tax-bands/${id}`),
+};
+
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+export const RoleAPI = {
+  getAll: (companyId: string) => api.get<any[]>('/roles', { params: { companyId } }),
+  create: (data: { companyId: string; name: string; description?: string; permissions: { module: string; actions: string[] }[] }) =>
+    api.post<any>('/roles', data),
+  update: (id: string, data: { name?: string; description?: string; permissions?: { module: string; actions: string[] }[] }) =>
+    api.put<any>(`/roles/${id}`, data),
+  delete: (id: string) => api.delete(`/roles/${id}`),
+  getUsers: (companyId: string) => api.get<any[]>('/roles/users', { params: { companyId } }),
+  assignRoles: (data: { userId: string; companyId: string; roleIds: string[] }) =>
+    api.post('/roles/assign', data),
+};
+
+export const InviteAPI = {
+  send: (data: { companyId: string; email: string; roleIds: string[] }) =>
+    api.post<any>('/invites', data),
+  list: (companyId: string) => api.get<any[]>('/invites', { params: { companyId } }),
+  cancel: (id: string) => api.delete(`/invites/${id}`),
+  validate: (token: string) => api.get<{ email: string; companyName: string; companyId: string }>(`/invites/validate/${token}`),
+  accept: (data: { token: string; firstName: string; lastName: string; password: string }) =>
+    api.post<{ token: string; role: string; companyId: string }>('/invites/accept', data),
+};
+
+// ─── Recruitment ──────────────────────────────────────────────────────────────
+
+export const RecruitmentAPI = {
+  getPostings: (params?: Record<string, string>) =>
+    api.get<{ data: JobPosting[] }>('/recruitment/postings', { params }),
+  getPosting: (id: string) =>
+    api.get<{ data: JobPosting }>(`/recruitment/postings/${id}`),
+  createPosting: (data: Partial<JobPosting>) =>
+    api.post<JobPosting>('/recruitment/postings', data),
+  updatePosting: (id: string, data: Partial<JobPosting>) =>
+    api.put<{ data: JobPosting }>(`/recruitment/postings/${id}`, data),
+  deletePosting: (id: string) =>
+    api.delete(`/recruitment/postings/${id}`),
+  getApplications: (params?: Record<string, string>) =>
+    api.get<{ data: JobApplication[] }>('/recruitment/applications', { params }),
+  createApplication: (data: Partial<JobApplication>) =>
+    api.post<JobApplication>('/recruitment/applications', data),
+  updateApplicationStatus: (id: string, status: string, notes?: string) =>
+    api.put<{ data: JobApplication }>(`/recruitment/applications/${id}/status`, { status, notes }),
+  // ATS: Resume
+  uploadResume: (id: string, file: File) => {
+    const form = new FormData();
+    form.append('resume', file);
+    return api.post<{ data: { resumeUrl: string } }>(`/recruitment/applications/${id}/resume`, form);
+  },
+  parseResume: (id: string) =>
+    api.post<{ data: { skills: CandidateSkill[]; experiences: CandidateExperience[]; educations: CandidateEducation[]; totalYears: number } }>(`/recruitment/applications/${id}/parse`),
+  // ATS: Screening
+  screenPosting: (id: string, threshold?: number) =>
+    api.post<{ data: { results: ScreenResult[]; total: number; shortlisted: number; threshold: number } }>(`/recruitment/postings/${id}/screen`, { threshold }),
+  getShortlist: (id: string) =>
+    api.get<{ data: JobApplication[] }>(`/recruitment/postings/${id}/shortlist`),
+  toggleShortlist: (id: string, shortlisted: boolean) =>
+    api.put<{ data: JobApplication }>(`/recruitment/applications/${id}/shortlist`, { shortlisted }),
+  updateScreeningNotes: (id: string, screeningNotes: string) =>
+    api.put(`/recruitment/applications/${id}/screening-notes`, { screeningNotes }),
+  getScreeningSummary: (id: string) =>
+    api.get<{ data: ScreeningSummary }>(`/recruitment/postings/${id}/screening-summary`),
+};
+
+// ─── Onboarding ───────────────────────────────────────────────────────────────
+
+export const OnboardingAPI = {
+  getAll: (params?: Record<string, string>) =>
+    api.get<{ data: Onboarding[] }>('/onboarding', { params }),
+  getById: (id: string) =>
+    api.get<{ data: Onboarding }>(`/onboarding/${id}`),
+  create: (data: { employeeId: string; templateId?: string; startDate: string; buddyId?: string; notes?: string }) =>
+    api.post<{ data: Onboarding }>('/onboarding', data),
+  update: (id: string, data: { buddyId?: string; notes?: string; status?: string }) =>
+    api.put<{ data: Onboarding }>(`/onboarding/${id}`, data),
+  updateTask: (id: string, taskId: string, data: { title?: string; completed?: boolean; assigneeId?: string; dueDate?: string; notes?: string; description?: string }) =>
+    api.put<{ data: OnboardingTask }>(`/onboarding/${id}/tasks/${taskId}`, data),
+  getTemplates: () =>
+    api.get<{ data: OnboardingTemplate[] }>('/onboarding/templates'),
+  createTemplate: (data: { name: string; description?: string; tasks?: Omit<OnboardingTemplateTask, 'id' | 'templateId' | 'createdAt'>[] }) =>
+    api.post<{ data: OnboardingTemplate }>('/onboarding/templates', data),
+  updateTemplate: (id: string, data: { name?: string; description?: string; tasks?: OnboardingTemplateTask[] }) =>
+    api.put<{ data: OnboardingTemplate }>(`/onboarding/templates/${id}`, data),
+  deleteTemplate: (id: string) =>
+    api.delete(`/onboarding/templates/${id}`),
+  getEmployees: () =>
+    api.get<{ data: { id: string; firstName: string; lastName: string; employeeCode: string }[] }>('/onboarding/employees/list'),
+};
+
+// ─── Assets ───────────────────────────────────────────────────────────────────
+
+export const AssetAPI = {
+  getAll: (params?: Record<string, string>) =>
+    api.get<{ data: Asset[] }>('/assets', { params }),
+  getById: (id: string) =>
+    api.get<{ data: Asset }>(`/assets/${id}`),
+  create: (data: Partial<Asset>) =>
+    api.post<{ data: Asset }>('/assets', data),
+  update: (id: string, data: Partial<Asset>) =>
+    api.put<{ data: Asset }>(`/assets/${id}`, data),
+  delete: (id: string) =>
+    api.delete(`/assets/${id}`),
+  assign: (id: string, employeeId: string) =>
+    api.post<{ data: Asset }>(`/assets/${id}/assign`, { employeeId }),
+  return: (id: string) =>
+    api.post<{ data: Asset }>(`/assets/${id}/return`),
+  getCategories: () =>
+    api.get<{ data: AssetCategory[] }>('/assets/categories'),
+  createCategory: (data: { name: string; description?: string }) =>
+    api.post<{ data: AssetCategory }>('/assets/categories', data),
+  deleteCategory: (id: string) =>
+    api.delete(`/assets/categories/${id}`),
+  getEmployees: () =>
+    api.get<{ data: { id: string; firstName: string; lastName: string; employeeCode: string; department?: { name: string } }[] }>('/assets/employees/list'),
+};
+
+// ─── Training ─────────────────────────────────────────────────────────────────
+
+export const TrainingAPI = {
+  getCourses: (params?: Record<string, string>) =>
+    api.get<{ data: TrainingCourse[] }>('/training/courses', { params }),
+  createCourse: (data: Partial<TrainingCourse>) =>
+    api.post<{ data: TrainingCourse }>('/training/courses', data),
+  updateCourse: (id: string, data: Partial<TrainingCourse>) =>
+    api.put<{ data: TrainingCourse }>(`/training/courses/${id}`, data),
+  deleteCourse: (id: string) =>
+    api.delete(`/training/courses/${id}`),
+  getEnrollments: (courseId: string) =>
+    api.get<{ data: TrainingEnrollment[] }>(`/training/courses/${courseId}/enrollments`),
+  enrollEmployees: (courseId: string, employeeIds: string[]) =>
+    api.post<{ data: TrainingEnrollment[] }>(`/training/courses/${courseId}/enroll`, { employeeIds }),
+  updateEnrollment: (id: string, data: { status?: string; score?: number; notes?: string }) =>
+    api.put<{ data: TrainingEnrollment }>(`/training/enrollments/${id}`, data),
+  getCertificates: (courseId: string) =>
+    api.get<{ data: TrainingCertificate[] }>(`/training/courses/${courseId}/certificates`),
+  issueCertificate: (courseId: string, data: { employeeId: string; expiryDate?: string; certificateNo?: string; certificateUrl?: string }) =>
+    api.post<{ data: TrainingCertificate }>(`/training/courses/${courseId}/certificate`, data),
+  getEmployees: () =>
+    api.get<{ data: { id: string; firstName: string; lastName: string; employeeCode: string }[] }>('/training/employees/list'),
+};
+
+// ─── Performance ──────────────────────────────────────────────────────────────
+
+export const PerformanceAPI = {
+  getGoals: (params?: Record<string, string>) =>
+    api.get<{ data: PerformanceGoal[] }>('/performance/goals', { params }),
+  createGoal: (data: Partial<PerformanceGoal>) =>
+    api.post<{ data: PerformanceGoal }>('/performance/goals', data),
+  updateGoal: (id: string, data: Partial<PerformanceGoal>) =>
+    api.put<{ data: PerformanceGoal }>(`/performance/goals/${id}`, data),
+  deleteGoal: (id: string) =>
+    api.delete(`/performance/goals/${id}`),
+  getReviews: (params?: Record<string, string>) =>
+    api.get<{ data: PerformanceReview[] }>('/performance/reviews', { params }),
+  getReview: (id: string) =>
+    api.get<{ data: PerformanceReview }>(`/performance/reviews/${id}`),
+  createReview: (data: { employeeId: string; reviewerId: string; period: string }) =>
+    api.post<{ data: PerformanceReview }>('/performance/reviews', data),
+  updateReview: (id: string, data: Partial<PerformanceReview> & { skills?: { name: string; rating?: number; notes?: string }[] }) =>
+    api.put<{ data: PerformanceReview }>(`/performance/reviews/${id}`, data),
+  deleteReview: (id: string) =>
+    api.delete(`/performance/reviews/${id}`),
+  getEmployees: () =>
+    api.get<{ data: { id: string; firstName: string; lastName: string; employeeCode: string }[] }>('/performance/employees/list'),
+  getReviewers: () =>
+    api.get<{ data: { id: string; name: string; email: string }[] }>('/performance/reviewers/list'),
+};
+
+// ─── Succession ───────────────────────────────────────────────────────────────
+
+export const SuccessionAPI = {
+  getPlans: (params?: Record<string, string>) =>
+    api.get<{ data: SuccessionPlan[] }>('/succession/plans', { params }),
+  createPlan: (data: Partial<SuccessionPlan>) =>
+    api.post<{ data: SuccessionPlan }>('/succession/plans', data),
+  updatePlan: (id: string, data: Partial<SuccessionPlan>) =>
+    api.put<{ data: SuccessionPlan }>(`/succession/plans/${id}`, data),
+  deletePlan: (id: string) =>
+    api.delete(`/succession/plans/${id}`),
+  addCandidate: (planId: string, data: { employeeId: string; readiness?: string; rating?: number; notes?: string; strengths?: string; areasForGrowth?: string }) =>
+    api.post<{ data: SuccessionCandidate }>(`/succession/plans/${planId}/candidates`, data),
+  updateCandidate: (id: string, data: Partial<SuccessionCandidate>) =>
+    api.put<{ data: SuccessionCandidate }>(`/succession/candidates/${id}`, data),
+  deleteCandidate: (id: string) =>
+    api.delete(`/succession/candidates/${id}`),
+  getEmployees: () =>
+    api.get<{ data: { id: string; firstName: string; lastName: string; employeeCode: string }[] }>('/succession/employees/list'),
+};
+
+// ─── Surveys ──────────────────────────────────────────────────────────────────
+
+export const SurveyAPI = {
+  getAll: (params?: Record<string, string>) =>
+    api.get<{ data: Survey[] }>('/surveys', { params }),
+  getById: (id: string) =>
+    api.get<{ data: Survey }>(`/surveys/${id}`),
+  create: (data: { title: string; description?: string; anonymous?: boolean; dueDate?: string }) =>
+    api.post<{ data: Survey }>('/surveys', data),
+  update: (id: string, data: Partial<Survey> & { questions?: { text: string; type: string; options?: string; required?: boolean; order?: number }[] }) =>
+    api.put<{ data: Survey }>(`/surveys/${id}`, data),
+  delete: (id: string) =>
+    api.delete(`/surveys/${id}`),
+  respond: (id: string, data: { employeeId?: string; answers: { questionId: string; value: string }[] }) =>
+    api.post<{ data: { id: string } }>(`/surveys/${id}/respond`, data),
+  getResults: (id: string) =>
+    api.get<{ data: SurveyResults }>(`/surveys/${id}/results`),
+};
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export const AnalyticsAPI = {
+  getOverview: () => api.get<{ data: AnalyticsOverview }>('/analytics/overview'),
+  getWorkforce: () => api.get<{ data: WorkforceData }>('/analytics/workforce'),
+  getRecruitment: () => api.get<{ data: AnalyticsRecruitment }>('/analytics/recruitment'),
+  getTraining: () => api.get<{ data: AnalyticsTraining }>('/analytics/training'),
+  getPerformance: () => api.get<{ data: AnalyticsPerformance }>('/analytics/performance'),
 };
 
 export default api;

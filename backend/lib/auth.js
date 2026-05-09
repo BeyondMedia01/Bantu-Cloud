@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const prisma = require('./prisma');
+const { resolvePermissions } = require('./permissions.js');
 
 const SKIP_VERIFY = process.env.AUTH_SKIP_VERIFY === 'true';
 const SECRET = SKIP_VERIFY ? 'desktop-dummy-secret' : process.env.JWT_SECRET;
@@ -12,6 +13,16 @@ if (!SECRET && !SKIP_VERIFY) {
 
 const signToken = async (payload) => {
   const sessionId = crypto.randomUUID();
+
+  // Resolve permissions for COMPANY_USER so the frontend JWT decode
+  // has access to them (the backend re-resolves on each request).
+  if (payload.role === 'COMPANY_USER' && payload.companyId) {
+    payload.permissions = await resolvePermissions(payload.userId, payload.companyId);
+    payload.isClientAdmin = false;
+  } else {
+    payload.isClientAdmin = payload.role === 'CLIENT_ADMIN' || payload.role === 'PLATFORM_ADMIN';
+  }
+
   const token = jwt.sign({ ...payload, sessionId }, SECRET, { expiresIn: '8h' });
 
   await prisma.session.create({
@@ -58,6 +69,14 @@ const authenticateToken = async (req, res, next) => {
         return res.status(401).json({ message: 'Session expired or invalidated' });
       }
     }
+
+    // Attach dynamic permissions for COMPANY_USER role
+    if (decoded.role === 'COMPANY_USER' && decoded.companyId) {
+      decoded.permissions = await resolvePermissions(decoded.userId, decoded.companyId)
+    }
+
+    // CLIENT_ADMIN and PLATFORM_ADMIN bypass all module checks
+    decoded.isClientAdmin = decoded.role === 'CLIENT_ADMIN' || decoded.role === 'PLATFORM_ADMIN'
 
     req.user = decoded;
     next();

@@ -1,12 +1,13 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const multer = require('multer');
 const { parseTaxCSV, parseTaxPDF, parseTaxExcel } = require('../lib/taxTableParser');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
+router.use(requireModule('COMPLIANCE'));
 
 // GET /api/tax-tables
 // Pass ?includeBrackets=true to embed brackets in each table (avoids a second round-trip)

@@ -1,6 +1,6 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const { 
   generateP16PDF, 
   generateP2PDF, 
@@ -10,6 +10,7 @@ const {
 
 
 const router = express.Router();
+router.use(requireModule('REPORTS'));
 
 // --- Report Domains ---
 router.use('/', require('./reports/employees'));

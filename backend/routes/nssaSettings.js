@@ -1,8 +1,10 @@
 const express = require('express');
-const router = express.Router();
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const { audit } = require('../lib/audit');
+
+const router = express.Router();
+router.use(requireModule('COMPLIANCE'));
 
 // NSSA setting keys stored in SystemSetting
 const NSSA_KEYS = {

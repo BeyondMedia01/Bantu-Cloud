@@ -1,7 +1,8 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const router = express.Router();
+router.use(requireModule('COMPLIANCE'));
 
 /**
  * GET /api/nssa-contributions

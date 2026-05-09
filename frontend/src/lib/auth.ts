@@ -4,14 +4,22 @@ const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTE
 // where there is no cross-site scripting risk.
 let _token: string | null = null;
 
+export type AppModule = 'PEOPLE' | 'TIME_LEAVE' | 'PAYROLL' | 'COMPLIANCE' | 'REPORTS' | 'SETTINGS' | 'RECRUITMENT' | 'PERFORMANCE' | 'EXPENSES' | 'ONBOARDING' | 'TRAINING' | 'ASSETS' | 'SUCCESSION' | 'SURVEYS' | 'ANALYTICS';
+export type ModuleAction = 'VIEW' | 'EDIT' | 'DELETE' | 'APPROVE' | 'EXPORT' | 'RUN' | 'CONFIGURE';
+export type ModulePermissions = Partial<Record<AppModule, ModuleAction[]>>;
+
 export interface AuthUser {
   userId: string;
   name: string;
+  firstName?: string;
   email: string;
-  role: 'PLATFORM_ADMIN' | 'CLIENT_ADMIN' | 'EMPLOYEE';
+  role: 'PLATFORM_ADMIN' | 'CLIENT_ADMIN' | 'COMPANY_USER' | 'EMPLOYEE';
   clientId?: string;
   companyId?: string;
   employeeId?: string;
+  isClientAdmin?: boolean;
+  permissions?: ModulePermissions;
+  enabledModules?: AppModule[] | null;
   exp?: number;
 }
 

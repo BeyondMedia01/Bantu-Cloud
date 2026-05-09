@@ -60,6 +60,18 @@ const companyContext = async (req, res, next) => {
       return next();
     }
 
+    if (role === 'COMPANY_USER') {
+      const clientIdFromToken = req.user.clientId;
+      if (!clientIdFromToken) return res.status(403).json({ message: 'Access denied' });
+      const company = await prisma.company.findUnique({ where: { id: companyId }, select: { clientId: true } });
+      if (!company || company.clientId !== clientIdFromToken) {
+        return res.status(403).json({ message: 'Access denied: company does not belong to your client' });
+      }
+      req.companyId = companyId;
+      req.clientId = clientIdFromToken;
+      return next();
+    }
+
     if (role === 'EMPLOYEE') {
       const tokenCompanyId = req.user.companyId;
       if (tokenCompanyId && tokenCompanyId !== companyId) {

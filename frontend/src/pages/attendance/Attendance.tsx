@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Clock, RefreshCw, Edit2, CheckSquare, Download, Plus, AlertTriangle, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { AttendanceAPI, EmployeeAPI } from '../../api/client';
+import { usePermissions } from '../../hooks/usePermissions';
 
 type Tab = 'records' | 'logs';
 
@@ -154,6 +155,7 @@ const ManualEntryModal: React.FC<{
 };
 
 const Attendance: React.FC = () => {
+  const { can } = usePermissions();
   const [tab, setTab] = useState<Tab>('records');
   const [records, setRecords] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
@@ -250,19 +252,25 @@ const Attendance: React.FC = () => {
           <p className="text-muted-foreground font-medium text-sm">Raw biometric logs and processed daily records</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setShowManual(true)}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full font-bold text-sm text-foreground/80 hover:bg-muted">
-            <Plus size={14} /> Manual Entry
-          </button>
-          <button onClick={handleProcess} disabled={processing}
-            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
-            <RefreshCw size={14} className={processing ? 'animate-spin' : ''} />
-            {processing ? 'Processing…' : 'Process Logs'}
-          </button>
-          <button onClick={handleGenerateInputs}
-            className="flex items-center gap-1.5 px-4 py-2 bg-navy text-white rounded-full font-bold text-sm hover:opacity-90">
-            <Download size={14} /> → Payroll
-          </button>
+          {can('TIME_LEAVE', 'EDIT') && (
+            <button onClick={() => setShowManual(true)}
+              className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full font-bold text-sm text-foreground/80 hover:bg-muted">
+              <Plus size={14} /> Manual Entry
+            </button>
+          )}
+          {can('TIME_LEAVE', 'RUN') && (
+            <button onClick={handleProcess} disabled={processing}
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
+              <RefreshCw size={14} className={processing ? 'animate-spin' : ''} />
+              {processing ? 'Processing…' : 'Process Logs'}
+            </button>
+          )}
+          {can('TIME_LEAVE', 'RUN') && (
+            <button onClick={handleGenerateInputs}
+              className="flex items-center gap-1.5 px-4 py-2 bg-navy text-white rounded-full font-bold text-sm hover:opacity-90">
+              <Download size={14} /> → Payroll
+            </button>
+          )}
         </div>
       </div>
 

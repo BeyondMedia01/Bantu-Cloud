@@ -1,8 +1,9 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 
 const router = express.Router();
+router.use(requireModule('PEOPLE'));
 
 // GET /api/departments?companyId=&branchId=
 router.get('/', async (req, res) => {

@@ -1,8 +1,9 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 
 const router = express.Router();
+router.use(requireModule('TIME_LEAVE'));
 
 // ─── GET /api/roster/calendar ─────────────────────────────────────────────────
 // Must be declared BEFORE /:id to prevent "calendar" being treated as an id.

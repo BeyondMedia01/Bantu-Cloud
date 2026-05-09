@@ -13,7 +13,124 @@ datasource db {
 enum UserRole {
   PLATFORM_ADMIN
   CLIENT_ADMIN
+  COMPANY_USER
   EMPLOYEE
+}
+
+enum AppModule {
+  PEOPLE
+  TIME_LEAVE
+  PAYROLL
+  COMPLIANCE
+  REPORTS
+  SETTINGS
+  RECRUITMENT
+  PERFORMANCE
+  EXPENSES
+  ONBOARDING
+  TRAINING
+  ASSETS
+  SUCCESSION
+  SURVEYS
+  ANALYTICS
+}
+
+enum ModuleAction {
+  VIEW
+  EDIT
+  DELETE
+  APPROVE
+  EXPORT
+  RUN
+  CONFIGURE
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AssetStatus {
+  AVAILABLE
+  ASSIGNED
+  MAINTENANCE
+  RETIRED
+  LOST
+}
+
+enum TrainingStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  IN_PROGRESS
+  COMPLETED
+  PASSED
+  FAILED
+  CANCELLED
+}
+
+enum ReviewStatus {
+  DRAFT
+  SUBMITTED
+  ACKNOWLEDGED
+  COMPLETED
+}
+
+enum GoalStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  ACHIEVED
+  CANCELLED
+}
+
+enum SuccessionStatus {
+  ACTIVE
+  FILLED
+  CANCELLED
+}
+
+enum SurveyStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  FILLED
+}
+
+enum ApplicationStatus {
+  NEW
+  SCREENING
+  INTERVIEWING
+  OFFERED
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
 }
 
 enum Gender {
@@ -160,6 +277,9 @@ model User {
   clientAdmin         ClientAdmin?
   employee            Employee?
   sessions            Session[]
+  companyRoles        UserCompanyRole[]
+  approvedExpenses    Expense[]
+  performanceReviews  PerformanceReview[]
 }
 
 model Session {
@@ -188,6 +308,7 @@ model Client {
   payrollCalendars PayrollCalendar[]
   taxTables       TaxTable[]
   transactionCodes TransactionCode[]
+  enabledModules  AppModule[]
   license         LicenseToken?
   subscription    Subscription?
   grades          Grade[]
@@ -203,6 +324,75 @@ model ClientAdmin {
   client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
+}
+
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+// A role is defined per company and carries a set of module permissions
+model Role {
+  id          String                @id @default(uuid())
+  companyId   String
+  name        String                // e.g. "HR Manager", "Payroll Officer"
+  description String?
+  isActive    Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  company     Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  permissions RoleModulePermission[]
+  userRoles   UserCompanyRole[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+// Which actions a role can perform within a module
+model RoleModulePermission {
+  id          String         @id @default(uuid())
+  roleId      String
+  module      AppModule
+  actions     ModuleAction[] // e.g. [VIEW, EDIT, APPROVE]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  role        Role           @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, module])
+  @@index([roleId])
+}
+
+// A user can hold multiple roles within a company
+model UserCompanyRole {
+  id        String   @id @default(uuid())
+  userId    String
+  companyId String
+  roleId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId, roleId])
+  @@index([userId, companyId])
+  @@index([companyId])
+}
+
+// Email invites sent by Client Admin to onboard users with pre-assigned roles
+model Invite {
+  id          String       @id @default(uuid())
+  companyId   String
+  email       String
+  roleIds     String[]     // array of Role IDs to assign on accept
+  token       String       @unique @default(uuid())
+  status      InviteStatus @default(PENDING)
+  expiresAt   DateTime
+  invitedBy   String       // userId of the Client Admin who sent the invite
+  acceptedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([email])
+  @@index([token])
 }
 
 // ─── Org Structure ────────────────────────────────────────────────────────────
@@ -238,6 +428,19 @@ model Company {
   attendanceLogs     AttendanceLog[]
   attendanceRecords  AttendanceRecord[]
   currencyRates      CurrencyRate[]
+  roles              Role[]
+  userCompanyRoles   UserCompanyRole[]
+  invites            Invite[]
+  expenseCategories  ExpenseCategory[]
+  expenses           Expense[]
+  jobPostings        JobPosting[]
+  onboardingTemplates OnboardingTemplate[]
+  onboardings        Onboarding[]
+  assetCategories    AssetCategory[]
+  assets             Asset[]
+  trainingCourses    TrainingCourse[]
+  performanceGoals   PerformanceGoal[]
+  performanceReviews PerformanceReview[]
 }
 
 model SubCompany {
@@ -377,6 +580,13 @@ model Employee {
   attendanceLogs       AttendanceLog[]
   attendanceRecords    AttendanceRecord[]
   documents            EmployeeDocument[]
+  expenses             Expense[]
+  onboardings          Onboarding[]
+  assignedAssets       Asset[]
+  trainingEnrollments  TrainingEnrollment[]
+  trainingCertificates TrainingCertificate[]
+  performanceGoals     PerformanceGoal[]
+  performanceReviews   PerformanceReview[]
 
   @@unique([clientId, employeeCode])
   @@index([companyId])
@@ -491,6 +701,7 @@ model PayrollRun {
   payslips          Payslip[]
   payrollInputs     PayrollInput[]
   loanRepayments    LoanRepayment[]
+  expenses          Expense[]
 
   @@index([companyId])
   @@index([companyId, status])
@@ -1194,4 +1405,379 @@ model DesktopLicense {
   updatedAt     DateTime  @updatedAt
 
   @@index([accountId])
+}
+
+// ─── Expenses ──────────────────────────────────────────────────────────────────
+
+model ExpenseCategory {
+  id          String    @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model Expense {
+  id            String        @id @default(uuid())
+  companyId     String
+  employeeId    String
+  categoryId    String
+  amount        Float
+  currency      String        @default("USD")
+  description   String
+  receiptUrl    String?
+  status        ExpenseStatus @default(PENDING)
+  notes         String?
+  approvedById  String?
+  approvedAt    DateTime?
+  paidInPayroll Boolean       @default(false)
+  payrollRunId  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee    Employee         @relation(fields: [employeeId], references: [id])
+  category    ExpenseCategory  @relation(fields: [categoryId], references: [id])
+  approvedBy  User?            @relation(fields: [approvedById], references: [id])
+  payrollRun  PayrollRun?      @relation(fields: [payrollRunId], references: [id])
+
+  @@index([companyId])
+  @@index([employeeId])
+  @@index([status])
+  @@index([companyId, status])
+}
+
+// ─── Training ─────────────────────────────────────────────────────────────────
+
+model TrainingCourse {
+  id           String            @id @default(uuid())
+  companyId    String
+  title        String
+  description  String?
+  provider     String?
+  duration     String?
+  type         String?
+  cost         Float?
+  currency     String            @default("USD")
+  maxAttendees Int?
+  startDate    DateTime?
+  endDate      DateTime?
+  status       TrainingStatus    @default(DRAFT)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  enrollments  TrainingEnrollment[]
+  certificates TrainingCertificate[]
+
+  @@index([companyId])
+  @@index([companyId, status])
+}
+
+model TrainingEnrollment {
+  id          String           @id @default(uuid())
+  courseId    String
+  employeeId  String
+  status      EnrollmentStatus @default(ENROLLED)
+  enrolledAt  DateTime         @default(now())
+  completedAt DateTime?
+  score       Float?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  course      TrainingCourse   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  employee    Employee         @relation(fields: [employeeId], references: [id])
+
+  @@index([courseId])
+  @@index([employeeId])
+}
+
+model TrainingCertificate {
+  id             String         @id @default(uuid())
+  courseId       String
+  employeeId     String
+  issuedAt       DateTime       @default(now())
+  expiryDate     DateTime?
+  certificateUrl String?
+  certificateNo  String?
+  createdAt      DateTime       @default(now())
+  course         TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  employee       Employee       @relation(fields: [employeeId], references: [id])
+
+  @@index([courseId])
+  @@index([employeeId])
+}
+
+// ─── Performance ──────────────────────────────────────────────────────────────
+
+model PerformanceGoal {
+  id          String     @id @default(uuid())
+  companyId   String
+  employeeId  String
+  title       String
+  description String?
+  category    String?
+  startDate   DateTime?
+  targetDate  DateTime?
+  status      GoalStatus @default(NOT_STARTED)
+  progress    Int?       @default(0)
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee    Employee   @relation(fields: [employeeId], references: [id])
+
+  @@index([companyId])
+  @@index([employeeId])
+  @@index([companyId, status])
+}
+
+model PerformanceReview {
+  id                  String       @id @default(uuid())
+  companyId           String
+  employeeId          String
+  reviewerId          String
+  period              String
+  rating              Int?
+  summary             String?
+  achievements        String?
+  areasForImprovement String?
+  employeeComments    String?
+  status              ReviewStatus @default(DRAFT)
+  submittedAt         DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  company             Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee            Employee     @relation(fields: [employeeId], references: [id])
+  reviewer            User         @relation(fields: [reviewerId], references: [id])
+  skills              ReviewSkill[]
+
+  @@index([companyId])
+  @@index([employeeId])
+  @@index([reviewerId])
+  @@index([companyId, status])
+}
+
+model ReviewSkill {
+  id        String            @id @default(uuid())
+  reviewId  String
+  name      String
+  rating    Int?
+  notes     String?
+  createdAt DateTime          @default(now())
+  review    PerformanceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+}
+
+// ─── Recruitment ──────────────────────────────────────────────────────────────
+
+model JobPosting {
+  id            String            @id @default(uuid())
+  companyId     String
+  title         String
+  department    String?
+  location      String?
+  type          String?
+  description   String
+  requirements  String?
+  salaryRange   String?
+  status        JobStatus         @default(DRAFT)
+  postedAt      DateTime?
+  closesAt      DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  company       Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  applications  JobApplication[]
+
+  @@index([companyId])
+  @@index([companyId, status])
+}
+
+model JobApplication {
+  id              String            @id @default(uuid())
+  jobPostingId    String
+  candidateName   String
+  candidateEmail  String
+  candidatePhone  String?
+  resumeUrl       String?
+  resumeText      String?
+  coverLetter     String?
+  source          String?
+  status          ApplicationStatus @default(NEW)
+  matchScore      Float?
+  shortlisted     Boolean           @default(false)
+  shortlistedAt   DateTime?
+  screeningNotes  String?
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  jobPosting      JobPosting        @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  skills          CandidateSkill[]
+  experiences     CandidateExperience[]
+  educations      CandidateEducation[]
+
+  @@index([jobPostingId])
+  @@index([status])
+  @@index([shortlisted])
+  @@index([jobPostingId, status])
+}
+
+model CandidateSkill {
+  id            String        @id @default(uuid())
+  applicationId String
+  name          String
+  level         String?
+  createdAt     DateTime      @default(now())
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+model CandidateExperience {
+  id            String        @id @default(uuid())
+  applicationId String
+  title         String
+  company       String?
+  startDate     DateTime?
+  endDate       DateTime?
+  current       Boolean       @default(false)
+  durationMonths Int?
+  description   String?
+  createdAt     DateTime      @default(now())
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+model CandidateEducation {
+  id            String        @id @default(uuid())
+  applicationId String
+  institution   String
+  degree        String?
+  field         String?
+  startDate     DateTime?
+  endDate       DateTime?
+  gpa           String?
+  createdAt     DateTime      @default(now())
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+// ─── Onboarding ───────────────────────────────────────────────────────────────
+
+model OnboardingTemplate {
+  id          String                    @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  company     Company                   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tasks       OnboardingTemplateTask[]
+  onboardings Onboarding[]
+
+  @@index([companyId])
+}
+
+model OnboardingTemplateTask {
+  id              String            @id @default(uuid())
+  templateId      String
+  title           String
+  description     String?
+  assigneeRole    String?
+  dueDaysFromStart Int?
+  order           Int               @default(0)
+  createdAt       DateTime          @default(now())
+  template        OnboardingTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+}
+
+model Onboarding {
+  id          String           @id @default(uuid())
+  companyId   String
+  employeeId  String
+  templateId  String?
+  startDate   DateTime
+  status      OnboardingStatus @default(NOT_STARTED)
+  buddyId     String?
+  notes       String?
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee    Employee         @relation(fields: [employeeId], references: [id])
+  template    OnboardingTemplate? @relation(fields: [templateId], references: [id])
+  tasks       OnboardingTask[]
+
+  @@index([companyId])
+  @@index([employeeId])
+  @@index([status])
+}
+
+model OnboardingTask {
+  id            String     @id @default(uuid())
+  onboardingId  String
+  title         String
+  description   String?
+  assigneeId    String?
+  dueDate       DateTime?
+  completed     Boolean    @default(false)
+  completedAt   DateTime?
+  completedById String?
+  notes         String?
+  order         Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  onboarding    Onboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
+
+  @@index([onboardingId])
+}
+
+// ─── Assets ───────────────────────────────────────────────────────────────────
+
+model AssetCategory {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  assets      Asset[]
+
+  @@index([companyId])
+}
+
+model Asset {
+  id            String       @id @default(uuid())
+  companyId     String
+  categoryId    String
+  name          String
+  serialNumber  String?
+  model         String?
+  purchaseDate  DateTime?
+  purchasePrice Float?
+  currency      String       @default("USD")
+  status        AssetStatus  @default(AVAILABLE)
+  assignedToId  String?
+  assignedAt    DateTime?
+  condition     String?
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category      AssetCategory @relation(fields: [categoryId], references: [id])
+  assignedTo    Employee?    @relation(fields: [assignedToId], references: [id])
+
+  @@index([companyId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([companyId, status])
 }

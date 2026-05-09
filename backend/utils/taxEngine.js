@@ -377,6 +377,7 @@ function calculateSplitSalaryPaye({
     totalResult,
     cashRatio,
     payeRatio,
+    usdRatio: payeRatio,  // alias: primary USD apportionment ratio (PAYE basis)
     nssaRatio,
     usd: {
       gross:            grossUSD,

@@ -87,6 +87,9 @@ app.get('/', (_req, res) => {
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/setup', authLimiter, require('./routes/setup'));
 app.use('/api/license/validate', authLimiter, require('./routes/licenseValidate'));
+// Invite validation + accept are public (no auth — user doesn't have an account yet)
+app.use('/api/invites/validate', require('./routes/publicInvites'));
+app.use('/api/invites/accept', require('./routes/publicInvites'));
 // Biometric device webhooks — devices authenticate via serial + webhookKey inside the handler.
 // A dedicated rate limiter prevents brute-force / flooding attacks against the endpoint.
 const deviceLimiter = rateLimit({
@@ -141,6 +144,10 @@ app.use('/api/user', require('./routes/user'));
 
 // Dashboard
 app.use('/api/dashboard', require('./routes/dashboard'));
+
+// RBAC — roles and invites
+app.use('/api/roles', require('./routes/roles'));
+app.use('/api/invites', require('./routes/invites'));
 
 // Platform & org structure
 app.use('/api/clients', require('./routes/clients'));
@@ -198,6 +205,21 @@ app.use('/api/bank-files', require('./routes/bankFiles'));
 
 // Subscriptions
 app.use('/api/subscription', require('./routes/subscriptions'));
+
+// Tier 2 — Recruitment, Performance, Expenses
+app.use('/api/recruitment', require('./routes/recruitment'));
+app.use('/api/performance', require('./routes/performance'));
+app.use('/api/expenses', require('./routes/expenses'));
+
+// Tier 3 — Onboarding, Training, Assets
+app.use('/api/onboarding', require('./routes/onboarding'));
+app.use('/api/training', require('./routes/training'));
+app.use('/api/assets', require('./routes/assets'));
+
+// Tier 4 — Succession, Surveys, Analytics
+app.use('/api/succession', require('./routes/succession'));
+app.use('/api/surveys', require('./routes/surveys'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // Utilities
 app.use('/api/backup', require('./routes/backup'));

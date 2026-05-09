@@ -3,9 +3,11 @@
 // add the model to schema.prisma or remove the route if unused.
 const express = require('express');
 const prisma = require('../lib/prisma');
-const router = express.Router();
 const { authenticateToken } = require('../lib/auth');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
+
+const router = express.Router();
+router.use(requireModule('REPORTS'));
 
 // All audit log routes require authentication
 router.use(authenticateToken);

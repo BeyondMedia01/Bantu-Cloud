@@ -49,7 +49,9 @@ router.post('/register', async (req, res) => {
       },
     });
 
-    const token = await signToken({ userId: user.id, role: user.role, clientId: license.clientId });
+    const freshClient = await prisma.client.findUnique({ where: { id: license.clientId }, select: { enabledModules: true } });
+    const enabledModules = freshClient?.enabledModules ?? null;
+    const token = await signToken({ userId: user.id, role: user.role, clientId: license.clientId, enabledModules });
     res.status(201).json({ token, role: user.role, clientId: license.clientId });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -114,8 +116,13 @@ router.post('/login', async (req, res) => {
     const companyId = user.employee?.companyId ?? null;
     const employeeId = user.employee?.id ?? null;
 
-    const token = await signToken({ userId: user.id, role: user.role, clientId, companyId, employeeId });
-    // Point #12: Null-guard for user.name
+    let enabledModules = null;
+    if (clientId) {
+      const client = await prisma.client.findUnique({ where: { id: clientId }, select: { enabledModules: true } });
+      enabledModules = client?.enabledModules ?? null;
+    }
+
+    const token = await signToken({ userId: user.id, role: user.role, clientId, companyId, employeeId, enabledModules });
     res.json({ token, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User' });
   } catch (error) {
     console.error('Login error details:', {

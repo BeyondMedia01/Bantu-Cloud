@@ -6,6 +6,7 @@ import { ReportsAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 import { StatusBadge } from '../common/StatusBadge';
 import { getAvatarGradient } from '@/lib/avatarGradient';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -15,6 +16,7 @@ interface EmployeeTableProps {
 const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { can } = usePermissions();
 
   const handleDownloadIT7 = async (employee: Employee) => {
     try {
@@ -95,22 +97,26 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) =>
                       >
                         <FileText size={16} aria-hidden="true" />
                       </button>
-                      <button
-                        onClick={() => navigate(`/employees/${emp.id}/edit`)}
-                        className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
-                        aria-label={`Edit ${emp.firstName} ${emp.lastName}`}
-                        title="Edit"
-                      >
-                        <Edit size={16} aria-hidden="true" />
-                      </button>
-                      <button
-                        onClick={() => onDelete(emp.id, `${emp.firstName} ${emp.lastName}`)}
-                        className="p-2 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
-                        aria-label={`Delete ${emp.firstName} ${emp.lastName}`}
-                        title="Delete"
-                      >
-                        <Trash size={16} aria-hidden="true" />
-                      </button>
+                      {can('PEOPLE', 'EDIT') && (
+                        <button
+                          onClick={() => navigate(`/employees/${emp.id}/edit`)}
+                          className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
+                          aria-label={`Edit ${emp.firstName} ${emp.lastName}`}
+                          title="Edit"
+                        >
+                          <Edit size={16} aria-hidden="true" />
+                        </button>
+                      )}
+                      {can('PEOPLE', 'DELETE') && (
+                        <button
+                          onClick={() => onDelete(emp.id, `${emp.firstName} ${emp.lastName}`)}
+                          className="p-2 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
+                          aria-label={`Delete ${emp.firstName} ${emp.lastName}`}
+                          title="Delete"
+                        >
+                          <Trash size={16} aria-hidden="true" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

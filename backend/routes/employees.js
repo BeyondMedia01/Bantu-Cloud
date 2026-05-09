@@ -1,6 +1,6 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const { checkEmployeeCap } = require('../lib/license');
 const { audit } = require('../lib/audit');
 const { validate } = require('../lib/validate');
@@ -23,6 +23,7 @@ const EMPLOYEE_CREATE_SCHEMA = {
 };
 
 const router = express.Router();
+router.use(requireModule('PEOPLE'));
 
 // ─── Sub-routers ──────────────────────────────────────────────────────────────
 router.use('/import', importRouter);

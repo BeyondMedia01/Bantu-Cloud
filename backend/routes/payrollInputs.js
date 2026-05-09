@@ -3,11 +3,12 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const { parse: parseCSV } = require('csv-parse/sync');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const router = express.Router();
+router.use(requireModule('PAYROLL'));
 
 const pick = (body) => ({
   // Support both explicit employeeUSD/ZiG fields (from grid) and a generic `amount` + `currency`

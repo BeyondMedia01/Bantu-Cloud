@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Clock, Users } from 'lucide-react';
 import { ShiftAPI } from '../../api/client';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const BLANK = {
   name: '', code: '', startTime: '08:00', endTime: '17:00',
@@ -110,6 +111,7 @@ const ShiftForm: React.FC<{
 };
 
 const Shifts: React.FC = () => {
+  const { can } = usePermissions();
   const [shifts, setShifts] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -158,7 +160,7 @@ const Shifts: React.FC = () => {
             Define work schedules, break times, and overtime thresholds
           </p>
         </div>
-        {!showForm && !editing && (
+        {can('TIME_LEAVE', 'EDIT') && !showForm && !editing && (
           <button onClick={() => { setShowForm(true); setError(''); }}
             className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm">
             <Plus size={15} /> New Shift
@@ -223,14 +225,18 @@ const Shifts: React.FC = () => {
                   </div>
 
                   <div className="flex gap-2 mt-3">
-                    <button onClick={() => { setEditing(s); setShowForm(false); setError(''); }}
-                      className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-navy px-3 py-1.5 rounded-lg hover:bg-muted border border-border">
-                      <Edit2 size={12} /> Edit
-                    </button>
-                    <button onClick={() => handleDelete(s.id)}
-                      className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 border border-border">
-                      <Trash2 size={12} /> Delete
-                    </button>
+                    {can('TIME_LEAVE', 'EDIT') && (
+                      <button onClick={() => { setEditing(s); setShowForm(false); setError(''); }}
+                        className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-navy px-3 py-1.5 rounded-lg hover:bg-muted border border-border">
+                        <Edit2 size={12} /> Edit
+                      </button>
+                    )}
+                    {can('TIME_LEAVE', 'DELETE') && (
+                      <button onClick={() => handleDelete(s.id)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 border border-border">
+                        <Trash2 size={12} /> Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

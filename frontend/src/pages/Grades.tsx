@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Check, Layers } from 'lucide-react';
 import { GradeAPI } from '../api/client';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface Grade {
   id: string;
@@ -15,6 +16,7 @@ interface Grade {
 const emptyForm = () => ({ name: '', description: '', minSalary: '', maxSalary: '' });
 
 const Grades: React.FC = () => {
+  const { can } = usePermissions();
   const [grades, setGrades]         = useState<Grade[]>([]);
   const [loading, setLoading]       = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -116,7 +118,7 @@ const Grades: React.FC = () => {
             Define grade bands used for NEC / graded pay structures
           </p>
         </div>
-        {!showCreate && (
+        {can('PEOPLE', 'EDIT') && !showCreate && (
           <button
             onClick={() => { setShowCreate(true); setEditId(null); setForm(emptyForm()); }}
             className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm"
@@ -259,18 +261,22 @@ const Grades: React.FC = () => {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2 justify-end">
-                      <button
-                        onClick={() => startEdit(g)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-navy hover:bg-muted transition-colors"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(g)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {can('PEOPLE', 'EDIT') && (
+                        <button
+                          onClick={() => startEdit(g)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-navy hover:bg-muted transition-colors"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                      )}
+                      {can('PEOPLE', 'DELETE') && (
+                        <button
+                          onClick={() => setConfirmDelete(g)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

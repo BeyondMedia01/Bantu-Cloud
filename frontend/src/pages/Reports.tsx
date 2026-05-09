@@ -4,6 +4,7 @@ import { Dropdown } from '@/components/ui/dropdown';
 import api, { ReportsAPI, IntelligenceAPI, PayrollAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
+import { usePermissions } from '../hooks/usePermissions';
 
 const MONTHS = [
   { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
@@ -25,6 +26,8 @@ const Reports: React.FC = () => {
   const [selectedRunId, setSelectedRunId] = useState<string>('');
   const [downloading, setDownloading] = useState<string | null>(null);
   const { showToast } = useToast();
+  const { can } = usePermissions();
+  const canExport = can('REPORTS', 'EXPORT');
   const [cashflow, setCashflow] = useState<any>(null);
   const [loadingCashflow, setLoadingCashflow] = useState(false);
 
@@ -164,7 +167,7 @@ const Reports: React.FC = () => {
     return download(`pension-${provider}`, () => ReportsAPI.pensionExport({ month: monthStr, type: provider }), `Pension_Export_${provider}_${selectedMonth}_${selectedYear}.csv`);
   };
 
-  const disabled = !companyId;
+  const disabled = !companyId || !canExport;
   const isDownloading = (type: string) => downloading === type;
 
   return (

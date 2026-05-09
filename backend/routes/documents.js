@@ -1,10 +1,13 @@
 const express = require('express');
-const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const prisma = require('../lib/prisma');
 const { authenticateToken, requirePermission } = require('../middleware/auth');
+const { requireModule } = require('../lib/permissions');
+
+const router = express.Router();
+router.use(requireModule('PEOPLE'));
 
 // Configure multer for local storage
 const storage = multer.diskStorage({

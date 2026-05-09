@@ -316,6 +316,449 @@ export interface Loan {
   updatedAt: string;
 }
 
+// ─── Expenses ──────────────────────────────────────────────────────────────────
+
+export interface ExpenseCategory {
+  id: string;
+  companyId: string;
+  name: string;
+  description?: string | null;
+}
+
+export interface Expense {
+  id: string;
+  employeeId: string;
+  categoryId: string;
+  amount: number;
+  currency: string;
+  description: string;
+  receiptUrl?: string | null;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID';
+  notes?: string | null;
+  paidInPayroll: boolean;
+  payrollRunId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+  category?: { name: string } | null;
+  approvedBy?: { name: string } | null;
+}
+
+// ─── Recruitment ───────────────────────────────────────────────────────────────
+
+export type JobStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'FILLED';
+export type ApplicationStatus = 'NEW' | 'SCREENING' | 'INTERVIEWING' | 'OFFERED' | 'HIRED' | 'REJECTED' | 'WITHDRAWN';
+
+export interface JobPosting {
+  id: string;
+  companyId: string;
+  title: string;
+  department?: string | null;
+  location?: string | null;
+  type?: string | null;
+  description: string;
+  requirements?: string | null;
+  salaryRange?: string | null;
+  status: JobStatus;
+  postedAt?: string | null;
+  closesAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { applications: number };
+  applications?: Pick<JobApplication, 'id' | 'candidateName' | 'candidateEmail' | 'status' | 'createdAt'>[];
+}
+
+export interface CandidateSkill {
+  id: string;
+  applicationId: string;
+  name: string;
+  level?: string | null;
+}
+
+export interface CandidateExperience {
+  id: string;
+  applicationId: string;
+  title: string;
+  company?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  current?: boolean;
+  durationMonths?: number | null;
+  description?: string | null;
+}
+
+export interface CandidateEducation {
+  id: string;
+  applicationId: string;
+  institution: string;
+  degree?: string | null;
+  field?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  gpa?: string | null;
+}
+
+export interface JobApplication {
+  id: string;
+  jobPostingId: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidatePhone?: string | null;
+  resumeUrl?: string | null;
+  resumeText?: string | null;
+  coverLetter?: string | null;
+  source?: string | null;
+  status: ApplicationStatus;
+  matchScore?: number | null;
+  shortlisted?: boolean;
+  shortlistedAt?: string | null;
+  screeningNotes?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  jobPosting?: { title: string; department?: string | null };
+  skills?: CandidateSkill[];
+  experiences?: CandidateExperience[];
+  educations?: CandidateEducation[];
+}
+
+export interface ScreenResult {
+  applicationId: string;
+  candidateName: string;
+  score: number;
+  shortlisted: boolean;
+}
+
+export interface ScreeningSummary {
+  total: number;
+  screened: number;
+  shortlisted: number;
+}
+
+// ─── Recruitment (ATS) ─────────────────────────────────────────────────────────
+
+export interface CandidateSkill {
+  id: string;
+  applicationId: string;
+  name: string;
+  level?: string | null;
+}
+
+export interface CandidateExperience {
+  id: string;
+  applicationId: string;
+  title: string;
+  company?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  current?: boolean;
+  durationMonths?: number | null;
+  description?: string | null;
+}
+
+export interface CandidateEducation {
+  id: string;
+  applicationId: string;
+  institution: string;
+  degree?: string | null;
+  field?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  gpa?: string | null;
+}
+
+// ─── Onboarding ────────────────────────────────────────────────────────────────
+
+export type OnboardingStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+
+export interface OnboardingTemplateTask {
+  id: string;
+  templateId: string;
+  title: string;
+  description?: string | null;
+  assigneeRole?: string | null;
+  dueDaysFromStart?: number | null;
+  order: number;
+}
+
+export interface OnboardingTemplate {
+  id: string;
+  companyId: string;
+  name: string;
+  description?: string | null;
+  createdAt: string;
+  tasks?: OnboardingTemplateTask[];
+  _count?: { onboardings: number };
+}
+
+export interface OnboardingTask {
+  id: string;
+  onboardingId: string;
+  title: string;
+  description?: string | null;
+  assigneeId?: string | null;
+  dueDate?: string | null;
+  completed: boolean;
+  completedAt?: string | null;
+  notes?: string | null;
+  order: number;
+}
+
+export interface Onboarding {
+  id: string;
+  companyId: string;
+  employeeId: string;
+  templateId?: string | null;
+  startDate: string;
+  status: OnboardingStatus;
+  buddyId?: string | null;
+  notes?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+  template?: { name: string } | null;
+  tasks?: OnboardingTask[];
+  _count?: { tasks: number };
+  completedTasks?: number;
+}
+
+// ─── Assets ────────────────────────────────────────────────────────────────────
+
+export type AssetStatus = 'AVAILABLE' | 'ASSIGNED' | 'MAINTENANCE' | 'RETIRED' | 'LOST';
+
+export interface AssetCategory {
+  id: string;
+  companyId: string;
+  name: string;
+  description?: string | null;
+  _count?: { assets: number };
+}
+
+export interface Asset {
+  id: string;
+  companyId: string;
+  categoryId: string;
+  name: string;
+  serialNumber?: string | null;
+  model?: string | null;
+  purchaseDate?: string | null;
+  purchasePrice?: number | null;
+  currency: string;
+  status: AssetStatus;
+  assignedToId?: string | null;
+  assignedAt?: string | null;
+  condition?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  category?: { name: string } | null;
+  assignedTo?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+}
+
+// ─── Training ─────────────────────────────────────────────────────────────────
+
+export type TrainingStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+export type EnrollmentStatus = 'ENROLLED' | 'IN_PROGRESS' | 'COMPLETED' | 'PASSED' | 'FAILED' | 'CANCELLED';
+
+export interface TrainingCourse {
+  id: string;
+  companyId: string;
+  title: string;
+  description?: string | null;
+  provider?: string | null;
+  duration?: string | null;
+  type?: string | null;
+  cost?: number | null;
+  currency: string;
+  maxAttendees?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  status: TrainingStatus;
+  createdAt: string;
+  _count?: { enrollments: number; certificates: number };
+  enrollments?: TrainingEnrollment[];
+  certificates?: TrainingCertificate[];
+}
+
+export interface TrainingEnrollment {
+  id: string;
+  courseId: string;
+  employeeId: string;
+  status: EnrollmentStatus;
+  enrolledAt: string;
+  completedAt?: string | null;
+  score?: number | null;
+  notes?: string | null;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+}
+
+export interface TrainingCertificate {
+  id: string;
+  courseId: string;
+  employeeId: string;
+  issuedAt: string;
+  expiryDate?: string | null;
+  certificateUrl?: string | null;
+  certificateNo?: string | null;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+}
+
+// ─── Performance ──────────────────────────────────────────────────────────────
+
+export type GoalStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'ACHIEVED' | 'CANCELLED';
+export type ReviewStatus = 'DRAFT' | 'SUBMITTED' | 'ACKNOWLEDGED' | 'COMPLETED';
+
+export interface PerformanceGoal {
+  id: string;
+  companyId: string;
+  employeeId: string;
+  title: string;
+  description?: string | null;
+  category?: string | null;
+  startDate?: string | null;
+  targetDate?: string | null;
+  status: GoalStatus;
+  progress?: number | null;
+  notes?: string | null;
+  createdAt: string;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+}
+
+export interface ReviewSkill {
+  id: string;
+  reviewId: string;
+  name: string;
+  rating?: number | null;
+  notes?: string | null;
+}
+
+export interface PerformanceReview {
+  id: string;
+  companyId: string;
+  employeeId: string;
+  reviewerId: string;
+  period: string;
+  rating?: number | null;
+  summary?: string | null;
+  achievements?: string | null;
+  areasForImprovement?: string | null;
+  employeeComments?: string | null;
+  status: ReviewStatus;
+  submittedAt?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+  reviewer?: { name?: string; email?: string } | null;
+  skills?: ReviewSkill[];
+}
+
+// ─── Succession ───────────────────────────────────────────────────────────────
+
+export type SuccessionStatus = 'ACTIVE' | 'FILLED' | 'CANCELLED';
+export const READINESS_OPTIONS = ['READY_NOW', 'READY_1_2_YEARS', 'READY_3_5_YEARS', 'LONG_TERM'];
+
+export interface SuccessionPlan {
+  id: string;
+  companyId: string;
+  positionTitle: string;
+  department?: string | null;
+  description?: string | null;
+  status: SuccessionStatus;
+  riskLevel?: string | null;
+  createdAt: string;
+  _count?: { candidates: number };
+  candidates?: SuccessionCandidate[];
+}
+
+export interface SuccessionCandidate {
+  id: string;
+  planId: string;
+  employeeId: string;
+  readiness?: string | null;
+  rating?: number | null;
+  notes?: string | null;
+  strengths?: string | null;
+  areasForGrowth?: string | null;
+  order: number;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+}
+
+// ─── Surveys ──────────────────────────────────────────────────────────────────
+
+export type SurveyStatus = 'DRAFT' | 'ACTIVE' | 'CLOSED';
+
+export interface SurveyQuestion {
+  id: string;
+  surveyId: string;
+  text: string;
+  type: string;
+  options?: string | null;
+  required: boolean;
+  order: number;
+}
+
+export interface Survey {
+  id: string;
+  companyId: string;
+  title: string;
+  description?: string | null;
+  status: SurveyStatus;
+  anonymous: boolean;
+  dueDate?: string | null;
+  createdAt: string;
+  _count?: { questions: number; responses: number };
+  questions?: SurveyQuestion[];
+}
+
+export interface SurveyResult {
+  questionId: string;
+  text: string;
+  type: string;
+  count?: number;
+  average?: number | null;
+  distribution?: { value: number; count: number }[];
+  yes?: number; no?: number; total?: number;
+  responses?: { value: string; count: number }[];
+}
+
+export interface SurveyResults {
+  totalResponses: number;
+  results: SurveyResult[];
+}
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export interface AnalyticsOverview {
+  employees: { total: number; active: number };
+  departments: number;
+  leave: { pending: number };
+  payroll: { totalProcessed: number };
+  recruitment: { openPostings: number; applications: number };
+  training: { activeCourses: number };
+  performance: { pendingReviews: number; achievedGoals: number };
+  assets: { total: number };
+}
+
+export interface WorkforceData {
+  departments: { name: string; count: number }[];
+  employmentTypes: { type: string; count: number }[];
+}
+
+export interface AnalyticsRecruitment {
+  postings: { title: string; status: string; applications: number }[];
+  applicationsByStatus: { status: string; count: number }[];
+}
+
+export interface AnalyticsTraining {
+  coursesByStatus: { status: string; count: number }[];
+  enrollmentsByStatus: { status: string; count: number }[];
+}
+
+export interface AnalyticsPerformance {
+  reviewsByStatus: { status: string; count: number }[];
+  goalsByStatus: { status: string; count: number }[];
+  averageRating: number | null;
+}
+
 // ─── Shifts & Roster ──────────────────────────────────────────────────────────
 
 export interface Shift {

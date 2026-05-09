@@ -1,7 +1,9 @@
 const express = require('express');
-const router = express.Router();
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
+
+const router = express.Router();
+router.use(requireModule('SETTINGS'));
 
 const { buildZimbabweHolidays } = require('../utils/holidays');
 

@@ -1,9 +1,11 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const { audit } = require('../lib/audit');
 
 const router = express.Router();
+router.use(requireModule('REPORTS'));
+router.use(requireModule('PAYROLL'));
 
 // ─── Supported formats ────────────────────────────────────────────────────────
 // cbz      — Commercial Bank of Zimbabwe bulk payment CSV

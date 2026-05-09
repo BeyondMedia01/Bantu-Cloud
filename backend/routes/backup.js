@@ -1,11 +1,12 @@
 const express = require('express');
 const zlib = require('zlib');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const { audit } = require('../lib/audit');
 const { ensureBucket, uploadBuffer, listObjects, getSignedUrl } = require('../lib/supabase');
 
 const router = express.Router();
+router.use(requireModule('SETTINGS'));
 const BACKUP_BUCKET = process.env.BACKUP_BUCKET || 'backups';
 
 async function generateBackupData(companyId, clientId) {

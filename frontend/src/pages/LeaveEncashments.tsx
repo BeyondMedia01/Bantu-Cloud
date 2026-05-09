@@ -5,6 +5,7 @@ import { LeaveEncashmentAPI, EmployeeAPI, LeaveBalanceAPI } from '../api/client'
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import { usePermissions } from '../hooks/usePermissions';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
 const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ');
@@ -18,6 +19,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 const LeaveEncashments: React.FC = () => {
   const { showToast } = useToast();
+  const { can } = usePermissions();
   const [encashments, setEncashments] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
@@ -191,12 +193,14 @@ const LeaveEncashments: React.FC = () => {
           <h1 className="text-2xl font-bold text-navy">Leave Encashments</h1>
           <p className="text-muted-foreground text-sm font-medium">Convert unused leave days into taxable earnings</p>
         </div>
-        <button
-          onClick={() => { setShowForm(true); setError(''); }}
-          className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
-        >
-          <Banknote size={18} /> New Encashment
-        </button>
+        {can('TIME_LEAVE', 'EDIT') && (
+          <button
+            onClick={() => { setShowForm(true); setError(''); }}
+            className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
+          >
+            <Banknote size={18} /> New Encashment
+          </button>
+        )}
       </header>
 
       {error && <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600"><AlertCircle size={16} />{error}</div>}
@@ -307,7 +311,7 @@ const LeaveEncashments: React.FC = () => {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5">
-                        {enc.status === 'PENDING' && (<>
+                        {can('TIME_LEAVE', 'APPROVE') && enc.status === 'PENDING' && (<>
                           <button
                             onClick={() => handleApprove(enc.id)}
                             disabled={!!actionLoading}
@@ -325,7 +329,7 @@ const LeaveEncashments: React.FC = () => {
                             Reject
                           </button>
                         </>)}
-                        {enc.status === 'APPROVED' && (
+                        {can('TIME_LEAVE', 'RUN') && enc.status === 'APPROVED' && (
                           <button
                             onClick={() => setProcessTarget({ id: enc.id })}
                             disabled={!!actionLoading}

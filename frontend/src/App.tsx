@@ -15,6 +15,7 @@ import LicenseExpired from './pages/LicenseExpired';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import DesktopOnboarding from './pages/DesktopOnboarding';
+import AcceptInvite from './pages/AcceptInvite';
 
 // ─── Lazy-loaded pages ────────────────────────────────────────────────────────
 
@@ -97,9 +98,28 @@ const AdminLicenses = React.lazy(() => import('./pages/admin/Licenses'));
 const SystemSettings = React.lazy(() => import('./pages/admin/SystemSettings'));
 const AuditLogs = React.lazy(() => import('./pages/admin/AuditLogs'));
 
+// Tier 2 — Recruitment, Performance, Expenses
+const Recruitment = React.lazy(() => import('./pages/Recruitment'));
+const Performance = React.lazy(() => import('./pages/Performance'));
+const Expenses = React.lazy(() => import('./pages/Expenses'));
+
+// Tier 3 — Onboarding, Training, Assets
+const Onboarding = React.lazy(() => import('./pages/Onboarding'));
+const Training = React.lazy(() => import('./pages/Training'));
+const Assets = React.lazy(() => import('./pages/Assets'));
+
+// Tier 4 — Succession, Surveys, Analytics
+const Succession = React.lazy(() => import('./pages/Succession'));
+const Surveys = React.lazy(() => import('./pages/Surveys'));
+const Analytics = React.lazy(() => import('./pages/Analytics'));
+
 // Profile & Settings
 const ProfileSettings = React.lazy(() => import('./pages/ProfileSettings'));
 const Settings = React.lazy(() => import('./pages/Settings'));
+
+// Client Admin — RBAC
+const RoleBuilder = React.lazy(() => import('./pages/client-admin/RoleBuilder'));
+const UserManagement = React.lazy(() => import('./pages/client-admin/UserManagement'));
 
 // Employee self-service
 const EmployeeDashboard = React.lazy(() => import('./pages/employee/EmployeeDashboard'));
@@ -111,13 +131,12 @@ const EmployeeLeave = React.lazy(() => import('./pages/employee/Leave'));
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  roles?: Array<'PLATFORM_ADMIN' | 'CLIENT_ADMIN' | 'EMPLOYEE'>;
+  roles?: Array<'PLATFORM_ADMIN' | 'CLIENT_ADMIN' | 'COMPANY_USER' | 'EMPLOYEE'>;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
   const token = getToken();
   if (!token) return <Navigate to="/login" replace />;
-  // Role check is UX-only; backend enforces actual permissions
   if (roles) {
     const user = getUser();
     if (!user || !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
@@ -175,10 +194,11 @@ const App: React.FC = () => {
                 <Route path="/license-expired" element={<LicenseExpired />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/accept-invite" element={<AcceptInvite />} />
 
-                {/* Protected — CLIENT_ADMIN + PLATFORM_ADMIN */}
+                {/* Protected — CLIENT_ADMIN + PLATFORM_ADMIN + COMPANY_USER */}
                 <Route element={
-                  <ProtectedRoute roles={['CLIENT_ADMIN', 'PLATFORM_ADMIN']}>
+                  <ProtectedRoute roles={['CLIENT_ADMIN', 'PLATFORM_ADMIN', 'COMPANY_USER']}>
                     <AppShell />
                   </ProtectedRoute>
                 }>
@@ -211,6 +231,8 @@ const App: React.FC = () => {
                   <Route path="/companies/new" element={<CompanyNew />} />
                   <Route path="/client-admin/structure" element={<ClientAdminStructure />} />
                   <Route path="/client-admin/settings" element={<ClientSettings />} />
+                  <Route path="/client-admin/roles" element={<RoleBuilder />} />
+                  <Route path="/client-admin/users" element={<UserManagement />} />
 
                   <Route path="/grades" element={<Grades />} />
                   <Route path="/currency-rates" element={<CurrencyRates />} />
@@ -237,6 +259,16 @@ const App: React.FC = () => {
                   <Route path="/shifts/roster" element={<Roster />} />
                   <Route path="/attendance" element={<Attendance />} />
                   <Route path="/devices" element={<Devices />} />
+
+                  <Route path="/recruitment" element={<Recruitment />} />
+                  <Route path="/performance" element={<Performance />} />
+                  <Route path="/expenses" element={<Expenses />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/training" element={<Training />} />
+                  <Route path="/assets" element={<Assets />} />
+                  <Route path="/succession" element={<Succession />} />
+                  <Route path="/surveys" element={<Surveys />} />
+                  <Route path="/analytics" element={<Analytics />} />
 
                   <Route path="/profile" element={<ProfileSettings />} />
                   <Route path="/settings" element={<Settings />} />
@@ -276,8 +308,9 @@ const App: React.FC = () => {
                   !getToken() ? <Navigate to="/login" replace />
                     : role === 'PLATFORM_ADMIN' ? <Navigate to="/admin" replace />
                       : role === 'CLIENT_ADMIN' ? <Navigate to="/dashboard" replace />
-                        : role === 'EMPLOYEE' ? <Navigate to="/employee" replace />
-                          : <Navigate to="/login" replace />
+                        : role === 'COMPANY_USER' ? <Navigate to="/dashboard" replace />
+                          : role === 'EMPLOYEE' ? <Navigate to="/employee" replace />
+                            : <Navigate to="/login" replace />
                 } />
               </Routes>
             </Suspense>

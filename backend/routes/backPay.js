@@ -1,10 +1,11 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission } = require('../lib/permissions');
+const { requirePermission, requireModule } = require('../lib/permissions');
 const { audit } = require('../lib/audit');
 const { calculateBackPay, getAffectedRuns, buildRateMap } = require('../services/backPayService');
 
 const router = express.Router();
+router.use(requireModule('PAYROLL'));
 
 // ─── POST /api/backpay — preview ─────────────────────────────────────────────
 /**
