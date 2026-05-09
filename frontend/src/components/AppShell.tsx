@@ -5,7 +5,7 @@ import {
   Building2, User, ChevronDown, LogOut, Wrench,
   CalendarDays, CreditCard, ShieldCheck, Menu, ChevronRight,
   ClipboardList, Clock, Cpu, PanelLeftClose, PanelLeftOpen, Download,
-  UserCog, Scale, UserPlus, TrendingUp, Receipt, BookOpen, BarChart2,
+  UserCog, UserPlus, TrendingUp, Receipt, BookOpen, BarChart2,
 } from 'lucide-react';
 import { getUser, logout } from '../lib/auth';
 import { CompanyAPI, UserAPI } from '../api/client';
@@ -141,11 +141,7 @@ const AppShell: React.FC = () => {
       { to: '/payslip-input', label: 'Payslip Input', icon: <ClipboardList size={18} /> },
       { to: '/loans', label: 'Loans', icon: <CreditCard size={18} /> },
     ],
-    COMPLIANCE: [
-      { to: '/utilities/statutory-rates', label: 'Statutory Rates', icon: <Scale size={18} /> },
-      { to: '/utilities/nec-tables', label: 'NEC Tables', icon: <FileText size={18} /> },
-      { to: '/utilities/nssa', label: 'NSSA', icon: <ShieldCheck size={18} /> },
-    ],
+    COMPLIANCE: [],
     REPORTS: [
       { to: '/reports', label: 'Reports', icon: <FileText size={18} /> },
     ],
