@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Loader, Banknote, CheckCircle2, XCircle, Zap, Clock, AlertCircle, ChevronDown } from 'lucide-react';
+import SkeletonTable from '../components/common/SkeletonTable';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveEncashmentAPI, EmployeeAPI, LeaveBalanceAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -271,13 +273,14 @@ const LeaveEncashments: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-accent-green" /></div>
+        <SkeletonTable headers={['Employee', 'Type', 'Days', 'Rate/Day', 'Total Amount', 'Status', 'Actions']} />
       ) : encashments.length === 0 ? (
-        <div className="text-center py-16 bg-primary rounded-2xl border border-border">
-          <Banknote size={36} className="mx-auto mb-3 text-slate-200" />
-          <p className="font-bold text-muted-foreground">No encashment requests yet</p>
-          <p className="text-sm text-muted-foreground mt-1">Submit a request above to convert unused leave days into earnings.</p>
-        </div>
+        <EmptyState
+          variant="no-data"
+          icon={Banknote}
+          title="No encashment requests yet"
+          description="Submit a request above to convert unused leave days into earnings."
+        />
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto scroll-x-shadow">
@@ -291,7 +294,7 @@ const LeaveEncashments: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {encashments.map((enc: any) => (
-                  <tr key={enc.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={enc.id} className="hover:bg-muted/70 transition-colors">
                     <td className="px-5 py-4">
                       <p className="text-sm font-bold">{enc.employee?.firstName} {enc.employee?.lastName}</p>
                       <p className="text-xs text-muted-foreground">{enc.employee?.employeeCode}</p>

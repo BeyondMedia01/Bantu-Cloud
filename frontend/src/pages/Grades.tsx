@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Check, Layers } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import SkeletonTable from '../components/common/SkeletonTable';
 import { GradeAPI } from '../api/client';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { usePermissions } from '../hooks/usePermissions';
@@ -109,11 +111,11 @@ const Grades: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Salary Grades</h1>
+          <h1 className="text-2xl font-bold text-navy">Salary Grades</h1>
           <p className="text-muted-foreground font-medium text-sm">
             Define grade bands used for NEC / graded pay structures
           </p>
@@ -132,7 +134,7 @@ const Grades: React.FC = () => {
       {showCreate && (
         <form
           onSubmit={handleSave}
-          className="bg-primary border border-border rounded-2xl p-6 shadow-sm mb-6"
+          className="bg-primary border border-border rounded-2xl p-6 shadow-sm"
         >
           <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">
             {editId ? 'Edit Grade' : 'New Grade'}
@@ -146,7 +148,7 @@ const Grades: React.FC = () => {
                 value={form.name}
                 onChange={field('name')}
                 placeholder="e.g. Grade A, Band 3, NEC Grade 7"
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
+                className="w-full px-4 py-2.5 border border-border rounded-2xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                 required
               />
             </div>
@@ -157,7 +159,7 @@ const Grades: React.FC = () => {
                 value={form.description}
                 onChange={field('description')}
                 placeholder="Optional description or category"
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
+                className="w-full px-4 py-2.5 border border-border rounded-2xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
               />
             </div>
             <div>
@@ -171,7 +173,7 @@ const Grades: React.FC = () => {
                   value={form.minSalary}
                   onChange={field('minSalary')}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
+                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-2xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                 />
               </div>
             </div>
@@ -186,7 +188,7 @@ const Grades: React.FC = () => {
                   value={form.maxSalary}
                   onChange={field('maxSalary')}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
+                  className="w-full pl-8 pr-4 py-2.5 border border-border rounded-2xl text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green/30 focus-visible:border-accent-green"
                 />
               </div>
             </div>
@@ -217,49 +219,46 @@ const Grades: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="text-center py-16 text-muted-foreground text-sm font-medium">Loading…</div>
+        <SkeletonTable headers={['Grade', 'Description', 'Min Salary', 'Max Salary', 'Employees', '']} />
       ) : grades.length === 0 ? (
-        <div className="bg-primary border border-border rounded-2xl p-12 text-center shadow-sm">
-          <Layers size={36} className="mx-auto mb-3 text-slate-200" />
-          <p className="text-muted-foreground font-medium text-sm">No grades defined yet.</p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="mt-4 text-accent-green text-sm font-bold hover:underline"
-          >
-            Create your first grade →
-          </button>
-        </div>
+        <EmptyState
+          variant="no-data"
+          icon={Layers}
+          title="No grades defined yet"
+          description="Create grade bands used for NEC / graded pay structures."
+          action={{ label: 'Create First Grade', onClick: () => setShowCreate(true) }}
+        />
       ) : (
         <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted">
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Grade</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Description</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Min Salary</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Max Salary</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Employees</th>
-                <th className="px-5 py-3" />
+                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Grade</th>
+                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
+                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Min Salary</th>
+                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Max Salary</th>
+                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Employees</th>
+                <th className="px-5 py-4" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {grades.map((g) => (
-                <tr key={g.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-5 py-3 font-bold text-navy">{g.name}</td>
-                  <td className="px-5 py-3 text-muted-foreground font-medium">{g.description ?? '—'}</td>
-                  <td className="px-5 py-3 font-medium">
+                <tr key={g.id} className="hover:bg-muted/70 transition-colors">
+                  <td className="px-5 py-4 font-bold text-navy">{g.name}</td>
+                  <td className="px-5 py-4 text-muted-foreground font-medium">{g.description ?? '—'}</td>
+                  <td className="px-5 py-4 font-medium">
                     {g.minSalary != null ? `$${g.minSalary.toLocaleString()}` : '—'}
                   </td>
-                  <td className="px-5 py-3 font-medium">
+                  <td className="px-5 py-4 font-medium">
                     {g.maxSalary != null ? `$${g.maxSalary.toLocaleString()}` : '—'}
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-4">
                     <span className="text-xs font-black text-muted-foreground bg-muted px-2 py-1 rounded-full">
                       {g._count?.employees ?? '—'}
                     </span>
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-4">
                     <div className="flex items-center gap-2 justify-end">
                       {can('PEOPLE', 'EDIT') && (
                         <button

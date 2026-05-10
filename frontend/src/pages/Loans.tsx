@@ -37,10 +37,10 @@ const Loans: React.FC = () => {
     : loans;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col gap-6">
+      <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Loans</h1>
+          <h1 className="text-2xl font-bold text-navy">Loans</h1>
           <p className="text-muted-foreground text-sm font-medium">Track employee loans and repayment schedules</p>
         </div>
         {can('PEOPLE', 'EDIT') && (
@@ -51,10 +51,10 @@ const Loans: React.FC = () => {
             <Plus size={16} /> New Loan
           </button>
         )}
-      </div>
+      </header>
 
       {/* Filter */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2">
         {['', 'ACTIVE', 'PAID_OFF', 'DEFAULTED'].map((s) => (
           <button
             key={s}
@@ -90,28 +90,28 @@ const Loans: React.FC = () => {
             <thead>
               <tr className="border-b border-border bg-muted">
                 {['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', ''].map((h) => (
-                  <th key={h} scope="col" className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((loan: any) => (
-                <tr key={loan.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
-                  <td className="px-4 py-3">
+                <tr key={loan.id} className="hover:bg-muted/70 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
+                  <td className="px-5 py-4">
                     <p className="font-bold text-sm">{loan.employee?.firstName} {loan.employee?.lastName}</p>
                     <p className="text-xs text-muted-foreground">{loan.employee?.employeeCode}</p>
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold">{fmtAmt(loan.amount)}</td>
-                  <td className="px-4 py-3 text-sm">{loan.interestRate}%</td>
-                  <td className="px-4 py-3 text-sm">{loan.termMonths}mo</td>
-                  <td className="px-4 py-3 text-sm font-medium">{fmtAmt(loan.monthlyInstalment)}</td>
-                  <td className="px-4 py-3 text-sm">{fmtDate(loan.startDate)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4 text-sm font-bold">{fmtAmt(loan.amount)}</td>
+                  <td className="px-5 py-4 text-sm">{loan.interestRate}%</td>
+                  <td className="px-5 py-4 text-sm">{loan.termMonths}mo</td>
+                  <td className="px-5 py-4 text-sm font-medium">{fmtAmt(loan.monthlyInstalment)}</td>
+                  <td className="px-5 py-4 text-sm">{fmtDate(loan.startDate)}</td>
+                  <td className="px-5 py-4">
                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[loan.status] || 'bg-muted text-foreground/80'}`}>
                       {loan.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-5 py-4 text-muted-foreground">
                     <ChevronRight size={16} />
                   </td>
                 </tr>

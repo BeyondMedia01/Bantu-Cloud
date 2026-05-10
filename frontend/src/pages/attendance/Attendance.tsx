@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Clock, RefreshCw, Edit2, CheckSquare, Download, Plus, AlertTriangle, ChevronDown } from 'lucide-react';
+import SkeletonTable from '../../components/common/SkeletonTable';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import { Dropdown } from '@/components/ui/dropdown';
 import { AttendanceAPI, EmployeeAPI } from '../../api/client';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -24,18 +26,18 @@ interface AttendanceFormData {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PRESENT:   'bg-emerald-100 text-emerald-700',
-  ABSENT:    'bg-red-100 text-red-700',
-  HALF_DAY:  'bg-amber-100 text-amber-700',
-  HOLIDAY:   'bg-blue-100 text-blue-700',
-  LEAVE:     'bg-purple-100 text-purple-700',
+  PRESENT:   'bg-emerald-50 text-emerald-700',
+  ABSENT:    'bg-red-50 text-red-700',
+  HALF_DAY:  'bg-amber-50 text-amber-700',
+  HOLIDAY:   'bg-blue-50 text-blue-700',
+  LEAVE:     'bg-purple-50 text-purple-700',
 };
 
 const PUNCH_COLORS: Record<string, string> = {
-  IN:        'bg-emerald-100 text-emerald-700',
+  IN:        'bg-emerald-50 text-emerald-700',
   OUT:       'bg-muted text-foreground/80',
-  BREAK_IN:  'bg-blue-100 text-blue-700',
-  BREAK_OUT: 'bg-amber-100 text-amber-700',
+  BREAK_IN:  'bg-blue-50 text-blue-700',
+  BREAK_OUT: 'bg-amber-50 text-amber-700',
 };
 
 function fmtTime(iso: string) {
@@ -163,6 +165,8 @@ const Attendance: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const [showProcessConfirm, setShowProcessConfirm] = useState(false);
+  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [filters, setFilters] = useState({
@@ -209,7 +213,6 @@ const Attendance: React.FC = () => {
   };
 
   const handleProcess = async () => {
-    if (!confirm('Process raw punch logs into attendance records for the selected date range? Existing manual overrides will be preserved.')) return;
     setProcessing(true); setError('');
     try {
       const res = await AttendanceAPI.process({ startDate: filters.startDate, endDate: filters.endDate });
@@ -227,7 +230,6 @@ const Attendance: React.FC = () => {
   };
 
   const handleGenerateInputs = async () => {
-    if (!confirm('Convert processed attendance records into payroll inputs? This will add records to PayrollInputs for the selected period.')) return;
     setError('');
     try {
       const res = await AttendanceAPI.generateInputs({ startDate: filters.startDate, endDate: filters.endDate, period: 'MONTHLY' });
@@ -245,10 +247,28 @@ const Attendance: React.FC = () => {
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="flex flex-col gap-6">
+      {showProcessConfirm && (
+        <ConfirmModal
+          title="Process Punch Logs"
+          message="Process raw punch logs into attendance records for the selected date range? Existing manual overrides will be preserved."
+          confirmLabel="Process"
+          onConfirm={() => { setShowProcessConfirm(false); handleProcess(); }}
+          onCancel={() => setShowProcessConfirm(false)}
+        />
+      )}
+      {showGenerateConfirm && (
+        <ConfirmModal
+          title="Generate Payroll Inputs"
+          message="Convert processed attendance records into payroll inputs? This will add records to PayrollInputs for the selected period."
+          confirmLabel="Generate"
+          onConfirm={() => { setShowGenerateConfirm(false); handleGenerateInputs(); }}
+          onCancel={() => setShowGenerateConfirm(false)}
+        />
+      )}
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Attendance</h1>
+          <h1 className="text-2xl font-bold text-navy">Attendance</h1>
           <p className="text-muted-foreground font-medium text-sm">Raw biometric logs and processed daily records</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -259,32 +279,32 @@ const Attendance: React.FC = () => {
             </button>
           )}
           {can('TIME_LEAVE', 'RUN') && (
-            <button onClick={handleProcess} disabled={processing}
+            <button onClick={() => setShowProcessConfirm(true)} disabled={processing}
               className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60">
               <RefreshCw size={14} className={processing ? 'animate-spin' : ''} />
               {processing ? 'Processing…' : 'Process Logs'}
             </button>
           )}
           {can('TIME_LEAVE', 'RUN') && (
-            <button onClick={handleGenerateInputs}
+            <button onClick={() => setShowGenerateConfirm(true)}
               className="flex items-center gap-1.5 px-4 py-2 bg-navy text-white rounded-full font-bold text-sm hover:opacity-90">
               <Download size={14} /> → Payroll
             </button>
           )}
         </div>
-      </div>
+      </header>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium mb-4 flex items-center gap-2">
+        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium flex items-center gap-2">
           <AlertTriangle size={14} />{error}
         </div>
       )}
       {successMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium mb-4">{successMsg}</div>
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">{successMsg}</div>
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
+      <div className="flex flex-wrap gap-3">
         <input type="date" value={filters.startDate} onChange={setFilter('startDate')}
           className="px-3 py-2 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30" />
         <input type="date" value={filters.endDate} onChange={setFilter('endDate')}
@@ -304,7 +324,7 @@ const Attendance: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-muted rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-muted rounded-xl p-1 w-fit">
         {(['records', 'logs'] as Tab[]).map((t) => (
           <button key={t} onClick={() => { setTab(t); setPage(1); }}
             className={`px-5 py-1.5 rounded-lg font-bold text-sm transition-colors ${
@@ -317,14 +337,14 @@ const Attendance: React.FC = () => {
 
       <div className="bg-primary border border-border rounded-2xl overflow-hidden shadow-sm">
         {loading ? (
-          <div className="text-center py-16 text-muted-foreground text-sm">Loading…</div>
+          <SkeletonTable headers={tab === 'records' ? ['Employee', 'Date', 'Status', 'In', 'Out', 'Break', 'Normal', 'OT ×1.0', 'OT ×1.5', 'OT ×2.0', ''] : ['Employee', 'Punch Time', 'Type', 'Device PIN', 'Source', 'Processed']} />
         ) : tab === 'records' ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted border-b border-border">
                 <tr>
                   {['Employee', 'Date', 'Status', 'In', 'Out', 'Break', 'Normal', 'OT ×1.0', 'OT ×1.5', 'OT ×2.0', ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-muted-foreground">{h}</th>
+                    <th key={h} className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -336,27 +356,27 @@ const Attendance: React.FC = () => {
                     </td>
                   </tr>
                 ) : records.map((r) => (
-                  <tr key={r.id} className="hover:bg-muted">
-                    <td className="px-4 py-3">
+                  <tr key={r.id} className="hover:bg-muted/70">
+                    <td className="px-5 py-4">
                       <div className="font-bold text-sm text-navy">{r.employee?.firstName} {r.employee?.lastName}</div>
                       <div className="text-[10px] text-muted-foreground">{r.employee?.employeeCode}</div>
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-foreground/80">{fmtDate(r.date)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">{fmtDate(r.date)}</td>
+                    <td className="px-5 py-4">
                       <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${STATUS_COLORS[r.status] || 'bg-muted text-muted-foreground'}`}>
                         {r.status?.replace('_', ' ')}
                       </span>
                       {r.isManualOverride && <span className="ml-1 text-[10px] text-amber-500 font-bold">✎</span>}
                       {r.isPublicHoliday && <span className="ml-1 text-[10px] text-blue-500 font-bold">PH</span>}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-foreground/80">{fmtTime(r.clockIn)}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-foreground/80">{fmtTime(r.clockOut)}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">{r.breakMinutes ?? 0}m</td>
-                    <td className="px-4 py-3 text-sm font-bold text-emerald-700">{fmtMins(r.normalMinutes ?? 0)}</td>
-                    <td className="px-4 py-3 text-sm font-bold text-blue-700">{fmtMins(r.ot0Minutes ?? 0)}</td>
-                    <td className="px-4 py-3 text-sm font-bold text-amber-700">{fmtMins(r.ot1Minutes ?? 0)}</td>
-                    <td className="px-4 py-3 text-sm font-bold text-red-700">{fmtMins(r.ot2Minutes ?? 0)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">{fmtTime(r.clockIn)}</td>
+                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">{fmtTime(r.clockOut)}</td>
+                    <td className="px-5 py-4 text-sm font-medium text-muted-foreground">{r.breakMinutes ?? 0}m</td>
+                    <td className="px-5 py-4 text-sm font-bold text-emerald-700">{fmtMins(r.normalMinutes ?? 0)}</td>
+                    <td className="px-5 py-4 text-sm font-bold text-blue-700">{fmtMins(r.ot0Minutes ?? 0)}</td>
+                    <td className="px-5 py-4 text-sm font-bold text-amber-700">{fmtMins(r.ot1Minutes ?? 0)}</td>
+                    <td className="px-5 py-4 text-sm font-bold text-red-700">{fmtMins(r.ot2Minutes ?? 0)}</td>
+                    <td className="px-5 py-4">
                       <button className="text-muted-foreground hover:text-navy p-1 rounded-lg hover:bg-muted">
                         <Edit2 size={13} />
                       </button>
@@ -372,7 +392,7 @@ const Attendance: React.FC = () => {
               <thead className="bg-muted border-b border-border">
                 <tr>
                   {['Employee', 'Punch Time', 'Type', 'Device PIN', 'Source', 'Processed'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-muted-foreground">{h}</th>
+                    <th key={h} className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -385,22 +405,22 @@ const Attendance: React.FC = () => {
                   </tr>
                 ) : logs.map((l) => (
                   <tr key={l.id} className="hover:bg-muted">
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <div className="font-bold text-sm text-navy">{l.employee?.firstName} {l.employee?.lastName}</div>
                       <div className="text-[10px] text-muted-foreground">{l.employee?.employeeCode}</div>
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-foreground/80">
+                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">
                       <div>{fmtDate(l.punchTime)}</div>
                       <div className="text-xs text-muted-foreground">{fmtTime(l.punchTime)}</div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${PUNCH_COLORS[l.punchType] || 'bg-muted text-muted-foreground'}`}>
                         {l.punchType?.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs font-mono text-muted-foreground">{l.deviceUserId}</td>
-                    <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{l.source}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 text-xs font-mono text-muted-foreground">{l.deviceUserId}</td>
+                    <td className="px-5 py-4 text-xs font-semibold text-muted-foreground">{l.source}</td>
+                    <td className="px-5 py-4">
                       {l.processed
                         ? <CheckSquare size={13} className="text-emerald-500" />
                         : <Clock size={13} className="text-amber-400" />

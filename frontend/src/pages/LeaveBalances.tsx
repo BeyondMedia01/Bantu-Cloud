@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Loader, ChevronsRight, CalendarCheck, AlertCircle, ChevronDown } from 'lucide-react';
+import { ChevronsRight, CalendarCheck, AlertCircle, ChevronDown } from 'lucide-react';
+import SkeletonTable from '../components/common/SkeletonTable';
 import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveBalanceAPI, EmployeeAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -142,7 +143,7 @@ const LeaveBalances: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48"><Loader size={24} className="animate-spin text-muted-foreground" /></div>
+        <SkeletonTable headers={['Type', 'Opening', 'Accrued', 'Taken', 'Encashed', 'Forfeited', 'Balance', '']} />
       ) : Object.keys(grouped).length === 0 ? (
         <div className="text-center py-16 bg-primary rounded-2xl border border-border">
           <CalendarCheck size={36} className="mx-auto mb-3 text-slate-200" />
@@ -169,25 +170,25 @@ const LeaveBalances: React.FC = () => {
                     <thead>
                       <tr className="border-b border-border">
                         {['Type', 'Opening', 'Accrued', 'Taken', 'Encashed', 'Forfeited', 'Balance', ''].map((h) => (
-                          <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                          <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {rows.map((b: any) => (
-                        <tr key={b.id} className="hover:bg-muted/30">
-                          <td className="px-4 py-3 text-sm font-medium">{fmtType(b.leaveType)}</td>
-                          <td className="px-4 py-3 text-sm">{b.openingBalance.toFixed(1)}</td>
-                          <td className="px-4 py-3 text-sm text-emerald-700 font-medium">+{b.accrued.toFixed(1)}</td>
-                          <td className="px-4 py-3 text-sm text-red-600">−{b.taken.toFixed(1)}</td>
-                          <td className="px-4 py-3 text-sm text-orange-600">−{b.encashed.toFixed(1)}</td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground">−{b.forfeited.toFixed(1)}</td>
-                          <td className="px-4 py-3">
+                        <tr key={b.id} className="hover:bg-muted/70">
+                          <td className="px-5 py-4 text-sm font-medium">{fmtType(b.leaveType)}</td>
+                          <td className="px-5 py-4 text-sm">{b.openingBalance.toFixed(1)}</td>
+                          <td className="px-5 py-4 text-sm text-emerald-700 font-medium">+{b.accrued.toFixed(1)}</td>
+                          <td className="px-5 py-4 text-sm text-red-600">−{b.taken.toFixed(1)}</td>
+                          <td className="px-5 py-4 text-sm text-orange-600">−{b.encashed.toFixed(1)}</td>
+                          <td className="px-5 py-4 text-sm text-muted-foreground">−{b.forfeited.toFixed(1)}</td>
+                          <td className="px-5 py-4">
                             <span className={`font-bold text-sm ${b.balance <= 0 ? 'text-red-600' : b.balance < 5 ? 'text-amber-600' : 'text-emerald-700'}`}>
                               {b.balance.toFixed(1)} days
                             </span>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-5 py-4">
                             {showAdjust === b.id ? (
                               <div className="flex items-center gap-2">
                                 <input
