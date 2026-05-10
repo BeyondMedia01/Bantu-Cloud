@@ -128,7 +128,7 @@ const Grades: React.FC = () => {
             <Plus size={15} /> New Grade
           </button>
         )}
-      </div>
+      </header>
 
       {/* Create / Edit form */}
       {showCreate && (
