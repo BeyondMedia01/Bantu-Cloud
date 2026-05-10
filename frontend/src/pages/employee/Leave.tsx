@@ -114,7 +114,7 @@ const EmployeeLeave: React.FC = () => {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">My Leave</h1>
+          <h1 className="text-2xl font-bold text-navy">My Leave</h1>
           <p className="text-muted-foreground text-sm font-medium">Balances, history, and requests</p>
         </div>
         <div className="flex gap-2">

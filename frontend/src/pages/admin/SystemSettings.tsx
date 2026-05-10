@@ -47,17 +47,17 @@ const SystemSettings: React.FC = () => {
   );
 
   return (
-    <div className="max-w-3xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">System Settings</h1>
+    <div className="max-w-3xl flex flex-col gap-6">
+      <header>
+        <h1 className="text-2xl font-bold text-navy">System Settings</h1>
         <p className="text-muted-foreground text-sm font-medium">Platform-wide configuration</p>
-      </div>
+      </header>
 
-      {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>}
-      {saved && <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">Settings saved successfully</div>}
+      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>}
+      {saved && <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">Settings saved successfully</div>}
 
-      <form onSubmit={handleSave}>
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden mb-4">
+      <form onSubmit={handleSave} className="flex flex-col gap-4">
+        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

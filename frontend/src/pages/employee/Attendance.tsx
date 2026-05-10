@@ -102,7 +102,7 @@ const EmployeeAttendance: React.FC = () => {
       {/* Table */}
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
         {loading ? (
-          <SkeletonTable cols={6} rows={8} />
+          <SkeletonTable headers={['Date', 'Status', 'Shift', 'Clock In', 'Clock Out', 'Hours Worked']} rows={8} />
         ) : filtered.length === 0 ? (
           <EmptyState
             variant="no-data"

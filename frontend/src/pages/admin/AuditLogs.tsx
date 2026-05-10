@@ -1,19 +1,19 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import SkeletonTable from '../../components/common/SkeletonTable';
 import { AdminAPI, type AuditLog } from '../../api/client';
 
 const ACTION_COLORS: Record<string, string> = {
-  EMPLOYEE_CREATED:   'bg-emerald-100 text-emerald-700',
-  EMPLOYEE_UPDATED:   'bg-blue-100 text-blue-700',
-  EMPLOYEE_DELETED:   'bg-red-100 text-red-700',
-  PAYROLL_CREATED:    'bg-violet-100 text-violet-700',
-  PAYROLL_COMPLETED:  'bg-emerald-100 text-emerald-700',
-  LEAVE_CREATED:      'bg-amber-100 text-amber-700',
-  LEAVE_APPROVED:     'bg-emerald-100 text-emerald-700',
-  LEAVE_REJECTED:     'bg-red-100 text-red-700',
-  LOAN_CREATED:       'bg-teal-100 text-teal-700',
-  LOAN_UPDATED:       'bg-blue-100 text-blue-700',
+  EMPLOYEE_CREATED:   'bg-emerald-50 text-emerald-700',
+  EMPLOYEE_UPDATED:   'bg-blue-50 text-blue-700',
+  EMPLOYEE_DELETED:   'bg-red-50 text-red-700',
+  PAYROLL_CREATED:    'bg-purple-50 text-purple-700',
+  PAYROLL_COMPLETED:  'bg-emerald-50 text-emerald-700',
+  LEAVE_CREATED:      'bg-amber-50 text-amber-700',
+  LEAVE_APPROVED:     'bg-emerald-50 text-emerald-700',
+  LEAVE_REJECTED:     'bg-red-50 text-red-700',
+  LOAN_CREATED:       'bg-teal-50 text-teal-700',
+  LOAN_UPDATED:       'bg-blue-50 text-blue-700',
 };
 
 function actionColor(action: string): string {
@@ -23,8 +23,6 @@ function actionColor(action: string): string {
 const LIMIT = 50;
 
 const AuditLogs: React.FC = () => {
-  const navigate = useNavigate();
-
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -68,14 +66,10 @@ const AuditLogs: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate('/admin')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">Audit Logs</h1>
+    <div className="flex flex-col gap-6">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">Audit Logs</h1>
           <p className="text-muted-foreground font-medium text-sm">All platform actions across users and resources</p>
         </div>
         <button
@@ -84,10 +78,10 @@ const AuditLogs: React.FC = () => {
         >
           <RefreshCw size={15} /> Refresh
         </button>
-      </div>
+      </header>
 
       {/* Filters */}
-      <div className="bg-primary border border-border rounded-2xl p-5 mb-6 shadow-sm">
+      <div className="bg-primary border border-border rounded-2xl p-5 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <input
             type="text"
@@ -151,25 +145,22 @@ const AuditLogs: React.FC = () => {
       {/* Table */}
       <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground text-sm font-medium">Loading…</div>
+          <SkeletonTable headers={['Timestamp', 'Action', 'Resource', 'User', 'Details', 'IP']} />
         ) : logs.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-sm font-medium">No audit logs found.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Timestamp</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Action</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Resource</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">User</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Details</th>
-                  <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">IP</th>
+              <thead className="bg-muted border-b border-border">
+                <tr>
+                  {['Timestamp', 'Action', 'Resource', 'User', 'Details', 'IP'].map((h) => (
+                    <th key={h} className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={log.id} className="hover:bg-muted/70 transition-colors">
                     <td className="px-5 py-3 text-muted-foreground font-medium whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleString(undefined, {
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',

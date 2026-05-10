@@ -67,14 +67,14 @@ const EmployeeProfile: React.FC = () => {
   );
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">My Profile</h1>
+    <div className="max-w-2xl flex flex-col gap-6">
+      <header>
+        <h1 className="text-2xl font-bold text-navy">My Profile</h1>
         <p className="text-muted-foreground text-sm font-medium">View your employment details and update contact information</p>
-      </div>
+      </header>
 
       {/* Read-only info */}
-      <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm mb-6">
+      <div className="bg-primary rounded-2xl border border-border p-6 shadow-sm">
         <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">Employment Details</h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
           {[
@@ -97,8 +97,8 @@ const EmployeeProfile: React.FC = () => {
       </div>
 
       {/* Editable info */}
-      {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>}
-      {saved && <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">Changes saved successfully</div>}
+      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>}
+      {saved && <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">Changes saved successfully</div>}
 
       <form onSubmit={handleSave} className="bg-primary rounded-2xl border border-border p-6 shadow-sm flex flex-col gap-4">
         <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Contact & Banking</h3>

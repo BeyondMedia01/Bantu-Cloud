@@ -75,7 +75,7 @@ const EmployeeDocuments: React.FC = () => {
 
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
         {loading ? (
-          <SkeletonTable cols={4} rows={5} />
+          <SkeletonTable headers={['Document Name', 'Type', 'Date Uploaded', 'Download']} rows={5} />
         ) : filtered.length === 0 ? (
           <EmptyState
             variant="no-data"

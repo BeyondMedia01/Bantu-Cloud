@@ -65,7 +65,7 @@ const AdminUsers: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-6">
       {deleteTarget && (
         <ConfirmModal
           title="Delete User"
@@ -75,18 +75,18 @@ const AdminUsers: React.FC = () => {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
-      <div className="flex items-center justify-between mb-6">
+      <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Users</h1>
+          <h1 className="text-2xl font-bold text-navy">Users</h1>
           <p className="text-muted-foreground text-sm font-medium">Manage platform users</p>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90">
           <Plus size={16} /> Add User
         </button>
-      </div>
+      </header>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mb-6 bg-primary rounded-2xl border border-border p-6 shadow-sm flex flex-col gap-4">
+        <form onSubmit={handleCreate} className="bg-primary rounded-2xl border border-border p-6 shadow-sm flex flex-col gap-4">
           <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">New User</h3>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="grid grid-cols-2 gap-4">

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Loader } from 'lucide-react';
+import { FileText, Download } from 'lucide-react';
+import SkeletonTable from '../../components/common/SkeletonTable';
+import { EmptyState } from '../../components/ui/empty-state';
 import { EmployeeSelfAPI, PayrollAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 
@@ -17,7 +19,7 @@ const EmployeePayslips: React.FC = () => {
       const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `payslip.pdf`;
+      a.download = 'payslip.pdf';
       a.click();
       window.URL.revokeObjectURL(url);
     } catch {
@@ -33,56 +35,58 @@ const EmployeePayslips: React.FC = () => {
   }, []);
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">My Payslips</h1>
+    <div className="flex flex-col gap-6">
+      <header>
+        <h1 className="text-2xl font-bold text-navy">My Payslips</h1>
         <p className="text-muted-foreground text-sm font-medium">View and download your payslips</p>
-      </div>
+      </header>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-48 text-muted-foreground"><Loader size={24} className="animate-spin" /></div>
-      ) : payslips.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground bg-primary rounded-2xl border border-border">
-          <FileText size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="font-medium">No payslips yet</p>
-        </div>
-      ) : (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-border bg-muted">
+      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+        {loading ? (
+          <SkeletonTable headers={['Period', 'Currency', 'Gross', 'PAYE', 'Net Pay', 'Download']} />
+        ) : payslips.length === 0 ? (
+          <EmptyState
+            variant="no-data"
+            icon={FileText}
+            title="No payslips yet"
+            description="Your payslips will appear here once payroll has been processed."
+          />
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-muted border-b border-border">
+              <tr>
                 {['Period', 'Currency', 'Gross', 'PAYE', 'Net Pay', 'Download'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {payslips.map((p: any) => (
-                <tr key={p.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 text-sm font-medium">
-                    {p.payrollRun && new Date(p.payrollRun.startDate).toLocaleDateString()} –{' '}
-                    {p.payrollRun && new Date(p.payrollRun.endDate).toLocaleDateString()}
+                <tr key={p.id} className="hover:bg-muted/70 transition-colors">
+                  <td className="px-5 py-4 font-medium text-navy">
+                    {p.payrollRun && new Date(p.payrollRun.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {' – '}
+                    {p.payrollRun && new Date(p.payrollRun.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
-                  <td className="px-4 py-3 text-sm text-foreground/80">{p.payrollRun?.currency}</td>
-                  <td className="px-4 py-3 text-sm font-bold">{fmt(p.gross)}</td>
-                  <td className="px-4 py-3 text-sm text-red-500 font-medium">{fmt(p.paye)}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(p.netPay)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4 text-muted-foreground">{p.payrollRun?.currency}</td>
+                  <td className="px-5 py-4 font-bold text-navy">{fmt(p.gross)}</td>
+                  <td className="px-5 py-4 font-medium text-red-500">{fmt(p.paye)}</td>
+                  <td className="px-5 py-4 font-bold text-emerald-600">{fmt(p.netPay)}</td>
+                  <td className="px-5 py-4">
                     <button
                       onClick={() => handlePdf(p.payrollRunId, p.id)}
-                      className="flex items-center gap-1 text-xs font-bold text-accent-green hover:underline"
+                      className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
+                      title="Download PDF"
                     >
-                      <FileText size={14} /> PDF
+                      <Download size={15} />
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
