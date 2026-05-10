@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Receipt, Plus, CheckCircle2, XCircle, Loader, ExternalLink } from 'lucide-react';
+import { Receipt, Plus, X, CheckCircle2, XCircle, ExternalLink, ChevronDown } from 'lucide-react';
 import { ExpenseAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { EmptyState } from '@/components/ui/empty-state';
 import SkeletonTable from '../components/common/SkeletonTable';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Dropdown } from '@/components/ui/dropdown';
 import type { Expense, ExpenseCategory } from '../types/domain';
 
 const STATUS_OPTIONS = ['', 'PENDING', 'APPROVED', 'REJECTED', 'PAID'] as const;
 const STATUS_LABELS: Record<string, string> = { '': 'All', PENDING: 'Pending', APPROVED: 'Approved', REJECTED: 'Rejected', PAID: 'Paid' };
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
-  APPROVED: 'bg-teal-50 text-teal-700 border-teal-200',
-  REJECTED: 'bg-red-50 text-red-600 border-red-200',
-  PAID: 'bg-blue-50 text-blue-700 border-blue-200',
+  PENDING: 'bg-amber-50 text-amber-700',
+  APPROVED: 'bg-emerald-50 text-emerald-700',
+  REJECTED: 'bg-red-50 text-red-700',
+  PAID: 'bg-blue-50 text-blue-700',
 };
 const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', ZWL: 'ZWL$', ZAR: 'R' };
 
@@ -27,12 +28,14 @@ const Expenses: React.FC = () => {
   const { showToast } = useToast();
   const { can } = usePermissions();
 
+  const [tab, setTab] = useState<'expenses' | 'categories'>('expenses');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [actionLoading, setActionLoading] = useState('');
   const [showNew, setShowNew] = useState(false);
+  const [showNewCat, setShowNewCat] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<Expense | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -46,7 +49,12 @@ const Expenses: React.FC = () => {
   const [formNotes, setFormNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // New category form (placeholder — API endpoint may not exist)
+  const [catName, setCatName] = useState('');
+  const [catDesc, setCatDesc] = useState('');
+
   const load = async () => {
+    setLoading(true);
     try {
       const [expRes, catRes] = await Promise.all([
         ExpenseAPI.getAll({ ...(filter && { status: filter }) }),
@@ -61,7 +69,22 @@ const Expenses: React.FC = () => {
     }
   };
 
-  useEffect(() => { load(); }, [filter]);
+  const loadCategories = async () => {
+    setLoading(true);
+    try {
+      const res = await ExpenseAPI.getCategories();
+      setCategories(res.data.data);
+    } catch {
+      showToast('Failed to load categories', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (tab === 'expenses') load();
+    else loadCategories();
+  }, [tab, filter]);
 
   const handleApprove = async (id: string) => {
     setActionLoading('approve-' + id);
@@ -117,195 +140,279 @@ const Expenses: React.FC = () => {
     }
   };
 
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    showToast('Category management not available via this interface', 'error');
+  };
+
   const resetForm = () => {
     setFormEmployee(''); setFormCategory(''); setFormAmount('');
     setFormCurrency('USD'); setFormDesc(''); setFormReceipt(''); setFormNotes('');
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Receipt size={28} className="text-navy" />
-          <h1 className="text-2xl font-semibold text-navy">Expenses</h1>
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">Expenses</h1>
+          <p className="text-muted-foreground font-medium text-sm">Manage and approve employee expense claims</p>
         </div>
-        {can('EXPENSES', 'EDIT') && (
-          <button onClick={() => setShowNew(true)}
-            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full text-sm font-bold shadow hover:opacity-90">
-            <Plus size={16} /> New Expense
+        {can('EXPENSES', 'EDIT') && tab === 'expenses' && (
+          <button onClick={() => setShowNew(true)} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+            <Plus size={18} /> New Expense
           </button>
         )}
-      </div>
-
-      <div className="flex gap-2 mb-6">
-        {STATUS_OPTIONS.map((s) => (
-          <button key={s} onClick={() => setFilter(s)}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
-              filter === s ? 'bg-brand text-navy border-navy' : 'border-border text-muted-foreground hover:bg-muted'
-            }`}>
-            {STATUS_LABELS[s]}
+        {can('EXPENSES', 'EDIT') && tab === 'categories' && (
+          <button onClick={() => setShowNewCat(true)} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+            <Plus size={18} /> New Category
           </button>
-        ))}
+        )}
+      </header>
+
+      {/* Sub-navigation tabs */}
+      <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
+        {[{ key: 'expenses', label: 'Expenses' }, { key: 'categories', label: 'Categories' }].map(t => {
+          const active = tab === t.key;
+          return (
+            <button key={t.key} onClick={() => setTab(t.key as 'expenses' | 'categories')}
+              className={`px-4 py-2.5 text-sm font-bold transition-colors border-b-2 -mb-px ${active ? 'border-navy text-navy' : 'border-transparent text-muted-foreground hover:text-navy'}`}>
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      {loading ? (
-        <SkeletonTable headers={['Employee', 'Category', 'Amount', 'Description', 'Status', 'Date', 'Actions']} />
-      ) : expenses.length === 0 ? (
-        <EmptyState variant="no-data" icon={Receipt} title="No expenses found"
-          description={filter ? `No expenses with status "${STATUS_LABELS[filter]}".` : 'No expenses have been submitted yet.'}
-          action={can('EXPENSES', 'EDIT') ? { label: 'New Expense', onClick: () => setShowNew(true) } : undefined} />
-      ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="px-4 py-3">Employee</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {expenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-800">
-                    {exp.employee?.firstName} {exp.employee?.lastName}
-                    {exp.employee?.employeeCode && <span className="text-xs text-slate-400 ml-1">({exp.employee.employeeCode})</span>}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{exp.category?.name}</td>
-                  <td className="px-4 py-3 font-medium text-slate-800">{fmtCurrency(exp.amount, exp.currency)}</td>
-                  <td className="px-4 py-3 text-slate-600 max-w-[200px] truncate">{exp.description}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${STATUS_COLORS[exp.status]}`}>
-                      {STATUS_LABELS[exp.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-500 text-xs">{fmtDate(exp.createdAt)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      {exp.receiptUrl && (
-                        <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer"
-                          className="p-1.5 text-slate-400 hover:text-navy rounded-lg hover:bg-slate-100 transition-colors"
-                          title="View receipt">
-                          <ExternalLink size={14} />
-                        </a>
-                      )}
-                      {can('EXPENSES', 'APPROVE') && exp.status === 'PENDING' && (
-                        <>
-                          <button onClick={() => handleApprove(exp.id)} disabled={!!actionLoading}
-                            className="text-xs font-bold px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full hover:bg-teal-100 disabled:opacity-60 flex items-center gap-1">
-                            {actionLoading === 'approve-' + exp.id ? <Loader size={10} className="animate-spin" /> : <CheckCircle2 size={11} />}
-                            Approve
-                          </button>
-                          <button onClick={() => setRejectTarget(exp)}
-                            className="text-xs font-bold px-2.5 py-1 bg-red-50 text-red-600 rounded-full hover:bg-red-100 flex items-center gap-1">
-                            <XCircle size={11} /> Reject
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+      {/* Expenses tab */}
+      {tab === 'expenses' && (
+        <>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Filters</p>
+              {filter && <button onClick={() => setFilter('')} className="text-xs font-bold text-muted-foreground hover:text-red-500 px-3 py-1.5 rounded-full border border-border hover:border-red-200 hover:bg-red-50 transition-colors">× Clear filters</button>}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              <Dropdown
+                trigger={(isOpen) => (
+                  <button className="w-full bg-primary border border-border rounded-2xl px-4 py-3 text-sm font-medium shadow-sm flex items-center justify-between hover:border-accent-green transition-colors">
+                    <span className="truncate">{STATUS_LABELS[filter] || 'All'}</span>
+                    <ChevronDown size={14} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
+                sections={[{ items: STATUS_OPTIONS.map(s => ({ label: STATUS_LABELS[s], onClick: () => setFilter(s) })) }]}
+              />
+            </div>
+          </div>
+
+          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+            {loading ? <SkeletonTable headers={["", "", "", "", "", "", ""]} rows={6} /> : expenses.length === 0 ? (
+              <EmptyState variant="no-data" icon={Receipt} title="No expenses found"
+                description={filter ? `No expenses with status "${STATUS_LABELS[filter]}".` : 'No expenses have been submitted yet.'}
+                action={can('EXPENSES', 'EDIT') ? { label: 'New Expense', onClick: () => setShowNew(true) } : undefined} />
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-muted border-b border-border">
+                  <tr>
+                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Amount</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Date</th>
+                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {expenses.map((exp) => (
+                    <tr key={exp.id} className="hover:bg-muted/70 transition-colors">
+                      <td className="px-5 py-4 font-medium text-navy">
+                        {exp.employee?.firstName} {exp.employee?.lastName}
+                        {exp.employee?.employeeCode && <span className="text-xs text-muted-foreground ml-1">({exp.employee.employeeCode})</span>}
+                      </td>
+                      <td className="px-5 py-4 text-muted-foreground">{exp.category?.name}</td>
+                      <td className="px-5 py-4 font-medium text-navy">{fmtCurrency(exp.amount, exp.currency)}</td>
+                      <td className="px-5 py-4 text-muted-foreground max-w-[200px] truncate">{exp.description}</td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[exp.status]}`}>
+                          {STATUS_LABELS[exp.status]}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-muted-foreground">{fmtDate(exp.createdAt)}</td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {exp.receiptUrl && (
+                            <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer"
+                              className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="View receipt">
+                              <ExternalLink size={15} />
+                            </a>
+                          )}
+                          {can('EXPENSES', 'APPROVE') && exp.status === 'PENDING' && (
+                            <>
+                              <button onClick={() => handleApprove(exp.id)} disabled={!!actionLoading}
+                                className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-emerald-600 transition-colors" title="Approve">
+                                <CheckCircle2 size={15} />
+                              </button>
+                              <button onClick={() => setRejectTarget(exp)}
+                                className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-red-500 transition-colors" title="Reject">
+                                <XCircle size={15} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Categories tab */}
+      {tab === 'categories' && (
+        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          {loading ? <SkeletonTable headers={["", "", ""]} rows={6} /> : categories.length === 0 ? (
+            <EmptyState variant="no-data" icon={Receipt} title="No categories" description="Create expense categories to organise claims."
+              action={can('EXPENSES', 'EDIT') ? { label: 'New Category', onClick: () => setShowNewCat(true) } : undefined} />
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-muted border-b border-border">
+                <tr>
+                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</th>
+                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {categories.map(c => (
+                  <tr key={c.id} className="hover:bg-muted/70 transition-colors">
+                    <td className="px-5 py-4 font-medium text-navy">{c.name}</td>
+                    <td className="px-5 py-4 text-muted-foreground">{c.description || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
+      {/* New Expense modal */}
       {showNew && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog">
-          <div className="absolute inset-0 bg-black/40" onClick={() => { setShowNew(false); resetForm(); }} />
-          <div className="relative bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="font-bold text-navy text-lg">New Expense</h2>
-            <form onSubmit={handleCreate} className="flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Employee *</label>
-                <input type="text" value={formEmployee} onChange={(e) => setFormEmployee(e.target.value)}
-                  placeholder="Employee ID" required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Category *</label>
-                <select value={formCategory} onChange={(e) => setFormCategory(e.target.value)} required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-bold text-navy">New Expense</h2>
+              <button onClick={() => { setShowNew(false); resetForm(); }} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreate} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee ID *</span>
+                <input value={formEmployee} onChange={e => setFormEmployee(e.target.value)} required placeholder="Employee ID"
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Category *</span>
+                <select value={formCategory} onChange={e => setFormCategory(e.target.value)} required
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green">
                   <option value="">Select category</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-              </div>
+              </label>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Amount *</label>
-                  <input type="number" step="0.01" min="0.01" value={formAmount} onChange={(e) => setFormAmount(e.target.value)}
-                    placeholder="0.00" required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Currency</label>
-                  <select value={formCurrency} onChange={(e) => setFormCurrency(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20">
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Amount *</span>
+                  <input type="number" step="0.01" min="0.01" value={formAmount} onChange={e => setFormAmount(e.target.value)} required placeholder="0.00"
+                    className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Currency</span>
+                  <select value={formCurrency} onChange={e => setFormCurrency(e.target.value)}
+                    className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green">
                     <option value="USD">USD ($)</option>
                     <option value="ZWL">ZWL (ZWL$)</option>
                     <option value="ZAR">ZAR (R)</option>
                   </select>
-                </div>
+                </label>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Description *</label>
-                <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)}
-                  placeholder="What is this expense for?" required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Receipt URL</label>
-                <input type="url" value={formReceipt} onChange={(e) => setFormReceipt(e.target.value)}
-                  placeholder="https://..." 
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Notes</label>
-                <textarea value={formNotes} onChange={(e) => setFormNotes(e.target.value)} rows={2}
-                  placeholder="Optional notes"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => { setShowNew(false); resetForm(); }}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" disabled={submitting}
-                  className="px-4 py-2 text-sm font-bold text-navy bg-brand rounded-lg hover:opacity-90 transition-all disabled:opacity-60 flex items-center gap-1.5">
-                  {submitting && <Loader size={14} className="animate-spin" />}
-                  {submitting ? 'Creating...' : 'Create Expense'}
-                </button>
-              </div>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description *</span>
+                <input value={formDesc} onChange={e => setFormDesc(e.target.value)} required placeholder="What is this expense for?"
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Receipt URL</span>
+                <input type="url" value={formReceipt} onChange={e => setFormReceipt(e.target.value)} placeholder="https://..."
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Notes</span>
+                <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} rows={2} placeholder="Optional notes"
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+              </label>
             </form>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+              <button onClick={() => { setShowNew(false); resetForm(); }} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
+              <button onClick={handleCreate as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+                <Plus size={16} /> {submitting ? 'Creating...' : 'Create Expense'}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {rejectTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog">
-          <div className="absolute inset-0 bg-black/40" onClick={() => { setRejectTarget(null); setRejectReason(''); }} />
-          <div className="relative bg-card rounded-2xl shadow-xl border border-border w-full max-w-sm p-6 flex flex-col gap-4">
-            <h2 className="font-bold text-navy">Reject Expense</h2>
-            <p className="text-sm text-muted-foreground">
-              {rejectTarget.employee?.firstName} {rejectTarget.employee?.lastName} &mdash; {fmtCurrency(rejectTarget.amount, rejectTarget.currency)} for {rejectTarget.description}
-            </p>
-            <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Reason for rejection (optional)"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => { setRejectTarget(null); setRejectReason(''); }}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors">
-                Cancel
+      {/* New Category modal */}
+      {showNewCat && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-bold text-navy">New Category</h2>
+              <button onClick={() => setShowNewCat(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateCategory} className="p-6 flex flex-col gap-4">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Name *</span>
+                <input value={catName} onChange={e => setCatName(e.target.value)} required placeholder="e.g. Travel"
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</span>
+                <textarea value={catDesc} onChange={e => setCatDesc(e.target.value)} rows={2}
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+              </label>
+            </form>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+              <button onClick={() => setShowNewCat(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
+              <button onClick={handleCreateCategory as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+                <Plus size={16} /> {submitting ? 'Creating...' : 'Create'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject modal */}
+      {rejectTarget && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-sm flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-bold text-navy">Reject Expense</h2>
+              <button onClick={() => { setRejectTarget(null); setRejectReason(''); }} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">
+                {rejectTarget.employee?.firstName} {rejectTarget.employee?.lastName} &mdash; {fmtCurrency(rejectTarget.amount, rejectTarget.currency)} for {rejectTarget.description}
+              </p>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reason (optional)</span>
+                <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Reason for rejection"
+                  className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
+              </label>
+            </div>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+              <button onClick={() => { setRejectTarget(null); setRejectReason(''); }} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
               <button onClick={handleReject} disabled={!!actionLoading}
-                className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all disabled:opacity-60 flex items-center gap-1.5">
-                {actionLoading === 'reject-' + rejectTarget.id && <Loader size={14} className="animate-spin" />}
-                Reject
+                className="bg-red-600 text-white px-4 py-2 rounded-full font-bold shadow hover:bg-red-700 flex items-center gap-1.5">
+                <XCircle size={16} /> {actionLoading ? 'Rejecting...' : 'Reject'}
               </button>
             </div>
           </div>

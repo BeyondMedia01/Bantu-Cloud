@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-  BarChart3, Users, Briefcase, GraduationCap, Target,
-  DollarSign, CalendarCheck, Package, TrendingUp, Loader,
+  Users, Briefcase, GraduationCap, Target,
+  DollarSign, CalendarCheck, Package, TrendingUp,
 } from 'lucide-react';
 import { AnalyticsAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import SkeletonTable from '../components/common/SkeletonTable';
 import type { AnalyticsOverview, WorkforceData, AnalyticsRecruitment, AnalyticsTraining, AnalyticsPerformance } from '../types/domain';
 
 const Analytics: React.FC = () => {
@@ -33,39 +34,17 @@ const Analytics: React.FC = () => {
     })();
   }, []);
 
-  if (loading) return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <BarChart3 size={28} className="text-navy" />
-        <h1 className="text-2xl font-semibold text-navy">Analytics</h1>
-      </div>
-      <div className="flex items-center justify-center py-20"><Loader size={32} className="animate-spin text-slate-300" /></div>
-    </div>
-  );
-
-  const StatCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) => (
-    <div className="bg-white rounded-lg border border-slate-200 p-4">
-      <div className="flex items-center gap-3">
-        <div className={`p-2.5 rounded-lg ${color}`}><Icon size={20} className="text-white" /></div>
-        <div>
-          <p className="text-2xl font-bold text-slate-900">{value}</p>
-          <p className="text-xs text-slate-500">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-
   const SimpleBar = ({ data, color }: { data: { label: string; value: number }[]; color: string }) => {
     const max = Math.max(...data.map(d => d.value), 1);
     return (
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {data.map((d, i) => (
           <div key={i} className="flex items-center gap-3">
-            <span className="text-xs text-slate-600 w-24 truncate text-right">{d.label}</span>
-            <div className="flex-1 bg-slate-100 rounded-full h-5 overflow-hidden">
+            <span className="text-xs text-muted-foreground w-24 truncate text-right">{d.label}</span>
+            <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
               <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${(d.value / max) * 100}%` }} />
             </div>
-            <span className="text-xs font-medium text-slate-600 w-8 text-right">{d.value}</span>
+            <span className="text-xs font-bold text-muted-foreground w-8 text-right">{d.value}</span>
           </div>
         ))}
       </div>
@@ -73,85 +52,124 @@ const Analytics: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <BarChart3 size={28} className="text-navy" />
-        <h1 className="text-2xl font-semibold text-navy">Analytics</h1>
-      </div>
-
-      {/* Overview cards */}
-      {overview && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={Users} label="Active Employees" value={overview.employees.active} color="bg-blue-600" />
-          <StatCard icon={Briefcase} label="Open Positions" value={overview.recruitment.openPostings} color="bg-green-600" />
-          <StatCard icon={GraduationCap} label="Active Courses" value={overview.training.activeCourses} color="bg-purple-600" />
-          <StatCard icon={Target} label="Achieved Goals" value={overview.performance.achievedGoals} color="bg-amber-600" />
-          <StatCard icon={DollarSign} label="Payroll Processed" value={`$${(overview.payroll.totalProcessed / 1000).toFixed(0)}k`} color="bg-emerald-600" />
-          <StatCard icon={CalendarCheck} label="Pending Leave" value={overview.leave.pending} color="bg-orange-600" />
-          <StatCard icon={Package} label="Total Assets" value={overview.assets.total} color="bg-indigo-600" />
-          <StatCard icon={TrendingUp} label="Total Employees" value={overview.employees.total} color="bg-slate-700" />
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">Analytics</h1>
+          <p className="text-muted-foreground font-medium text-sm">Workforce insights and key metrics</p>
         </div>
-      )}
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Workforce */}
-        {workforce && (
-          <div className="bg-white rounded-lg border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2"><Users size={16} /> Workforce by Department</h3>
-            <SimpleBar data={workforce.departments.map(d => ({ label: d.name, value: d.count }))} color="bg-blue-500" />
-          </div>
-        )}
-
-        {/* Recruitment */}
-        {recruitment && (
-          <div className="bg-white rounded-lg border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2"><Briefcase size={16} /> Applications by Status</h3>
-            <SimpleBar data={recruitment.applicationsByStatus.map(a => ({ label: a.status, value: a.count }))} color="bg-green-500" />
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Training */}
-        {training && (
-          <div className="bg-white rounded-lg border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2"><GraduationCap size={16} /> Training</h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <h4 className="text-xs font-medium text-slate-500 mb-2">Courses by Status</h4>
-                <SimpleBar data={training.coursesByStatus.map(c => ({ label: c.status, value: c.count }))} color="bg-purple-500" />
+      {loading ? (
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-primary rounded-2xl border border-border shadow-sm p-6 animate-pulse">
+                <div className="h-8 bg-muted rounded-lg mb-2 w-16" />
+                <div className="h-3 bg-muted rounded-lg w-24" />
               </div>
-              <div>
-                <h4 className="text-xs font-medium text-slate-500 mb-2">Enrollments by Status</h4>
-                <SimpleBar data={training.enrollmentsByStatus.map(e => ({ label: e.status, value: e.count }))} color="bg-indigo-500" />
-              </div>
+            ))}
+          </div>
+          <SkeletonTable headers={["", ""]} rows={4} />
+        </div>
+      ) : (
+        <>
+          {/* Overview stat cards */}
+          {overview && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { icon: Users, label: 'Active Employees', value: overview.employees.active },
+                { icon: Briefcase, label: 'Open Positions', value: overview.recruitment.openPostings },
+                { icon: GraduationCap, label: 'Active Courses', value: overview.training.activeCourses },
+                { icon: Target, label: 'Achieved Goals', value: overview.performance.achievedGoals },
+                { icon: DollarSign, label: 'Payroll Processed', value: `$${(overview.payroll.totalProcessed / 1000).toFixed(0)}k` },
+                { icon: CalendarCheck, label: 'Pending Leave', value: overview.leave.pending },
+                { icon: Package, label: 'Total Assets', value: overview.assets.total },
+                { icon: TrendingUp, label: 'Total Employees', value: overview.employees.total },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="bg-primary rounded-2xl border border-border shadow-sm p-6">
+                  <div className="flex items-center gap-3 mb-1">
+                    <Icon size={18} className="text-muted-foreground shrink-0" />
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">{label}</p>
+                  </div>
+                  <p className="text-2xl font-bold text-navy">{value}</p>
+                </div>
+              ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Performance */}
-        {performance && (
-          <div className="bg-white rounded-lg border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2"><Target size={16} /> Performance</h3>
-            {performance.averageRating !== null && (
-              <div className="text-center mb-4">
-                <p className="text-3xl font-bold text-navy">{performance.averageRating}</p>
-                <p className="text-xs text-slate-500">Average Review Rating</p>
+          {/* Charts row 1 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {workforce && (
+              <div className="bg-primary rounded-2xl border border-border shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Users size={16} className="text-muted-foreground" />
+                  <h3 className="text-sm font-bold text-navy">Workforce by Department</h3>
+                </div>
+                <SimpleBar data={workforce.departments.map(d => ({ label: d.name, value: d.count }))} color="bg-blue-500" />
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-xs font-medium text-slate-500 mb-2">Reviews</h4>
-                <SimpleBar data={performance.reviewsByStatus.map(r => ({ label: r.status, value: r.count }))} color="bg-amber-500" />
+
+            {recruitment && (
+              <div className="bg-primary rounded-2xl border border-border shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Briefcase size={16} className="text-muted-foreground" />
+                  <h3 className="text-sm font-bold text-navy">Applications by Status</h3>
+                </div>
+                <SimpleBar data={recruitment.applicationsByStatus.map(a => ({ label: a.status, value: a.count }))} color="bg-emerald-500" />
               </div>
-              <div>
-                <h4 className="text-xs font-medium text-slate-500 mb-2">Goals</h4>
-                <SimpleBar data={performance.goalsByStatus.map(g => ({ label: g.status.replace('_', ' '), value: g.count }))} color="bg-green-500" />
-              </div>
-            </div>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Charts row 2 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {training && (
+              <div className="bg-primary rounded-2xl border border-border shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <GraduationCap size={16} className="text-muted-foreground" />
+                  <h3 className="text-sm font-bold text-navy">Training Overview</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Courses by Status</p>
+                    <SimpleBar data={training.coursesByStatus.map(c => ({ label: c.status, value: c.count }))} color="bg-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Enrollments</p>
+                    <SimpleBar data={training.enrollmentsByStatus.map(e => ({ label: e.status, value: e.count }))} color="bg-indigo-500" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {performance && (
+              <div className="bg-primary rounded-2xl border border-border shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target size={16} className="text-muted-foreground" />
+                  <h3 className="text-sm font-bold text-navy">Performance Overview</h3>
+                </div>
+                {performance.averageRating !== null && (
+                  <div className="bg-muted rounded-2xl p-4 text-center mb-4">
+                    <p className="text-2xl font-bold text-navy">{performance.averageRating}</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Avg Review Rating</p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Reviews</p>
+                    <SimpleBar data={performance.reviewsByStatus.map(r => ({ label: r.status, value: r.count }))} color="bg-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Goals</p>
+                    <SimpleBar data={performance.goalsByStatus.map(g => ({ label: g.status.replace('_', ' '), value: g.count }))} color="bg-emerald-500" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
