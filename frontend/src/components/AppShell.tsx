@@ -329,8 +329,8 @@ const AppShell: React.FC = () => {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={`flex items-center border-b border-border shrink-0 py-3.5
-          ${collapsed && !mobile ? 'justify-center px-0' : 'gap-3 px-5'}`}>
-        <Link to={homeLink} className={`flex items-center gap-3 min-w-0 ${collapsed && !mobile ? '' : 'flex-1'}`}>
+          ${collapsed && !mobile ? 'justify-center px-2' : 'gap-3 px-4'}`}>
+        <Link to={homeLink} className="flex items-center gap-3 min-w-0 flex-1">
           <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
           {(!collapsed || mobile) && <span className="text-lg font-bold tracking-tight">Bantu</span>}
         </Link>
@@ -341,6 +341,15 @@ const AppShell: React.FC = () => {
             className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors shrink-0"
           >
             <PanelLeftClose size={18} />
+          </button>
+        )}
+        {!mobile && (
+          <button
+            onClick={toggleCollapsed}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-navy transition-colors shrink-0"
+          >
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </button>
         )}
       </div>
@@ -438,22 +447,6 @@ const AppShell: React.FC = () => {
           </>
         )}
       </nav>
-
-      {/* Collapse toggle (desktop only) */}
-      {!mobile && (
-        <div className={`px-2 py-2 border-t border-border shrink-0 ${collapsed ? 'flex justify-center' : ''}`}>
-          <button
-            onClick={toggleCollapsed}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-muted-foreground hover:bg-muted hover:text-navy transition-colors text-xs font-bold w-full"
-          >
-            {collapsed
-              ? <PanelLeftOpen size={16} />
-              : <><PanelLeftClose size={16} /><span>Collapse</span></>
-            }
-          </button>
-        </div>
-      )}
 
       {/* User / logout */}
       <div className="px-3 py-3 border-t border-border shrink-0">
