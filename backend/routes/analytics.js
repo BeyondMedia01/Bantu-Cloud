@@ -1,9 +1,9 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requireModule } = require('../lib/permissions');
+
 
 const router = express.Router();
-router.use(requireModule('ANALYTICS'));
+
 
 router.get('/overview', async (req, res) => {
   const companyFilter = req.companyId ? { companyId: req.companyId } : {};

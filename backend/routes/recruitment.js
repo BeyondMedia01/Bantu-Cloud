@@ -3,12 +3,12 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const prisma = require('../lib/prisma');
-const { requirePermission, requireModule } = require('../lib/permissions');
+const { requirePermission } = require('../lib/permissions');
 const { audit } = require('../lib/audit');
 const { parseResume, scoreCandidate } = require('../lib/resumeParser');
 
 const router = express.Router();
-router.use(requireModule('RECRUITMENT'));
+
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'resumes');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
