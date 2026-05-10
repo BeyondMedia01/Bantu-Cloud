@@ -328,29 +328,40 @@ const AppShell: React.FC = () => {
   const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className={`flex items-center border-b border-border shrink-0 py-3.5
-          ${collapsed && !mobile ? 'justify-center px-2' : 'gap-3 px-4'}`}>
-        <Link to={homeLink} className="flex items-center gap-3 min-w-0 flex-1">
-          <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
-          {(!collapsed || mobile) && <span className="text-lg font-bold tracking-tight">Bantu</span>}
-        </Link>
-        {mobile && (
-          <button
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close navigation menu"
-            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors shrink-0"
-          >
-            <PanelLeftClose size={18} />
-          </button>
-        )}
-        {!mobile && (
+      <div className="flex items-center border-b border-border shrink-0 py-3.5 px-4 gap-3">
+        {/* Collapsed desktop: just the expand button centered */}
+        {collapsed && !mobile ? (
           <button
             onClick={toggleCollapsed}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-navy transition-colors shrink-0"
+            title="Expand sidebar"
+            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-navy transition-colors mx-auto"
           >
-            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            <PanelLeftOpen size={18} />
           </button>
+        ) : (
+          <>
+            <Link to={homeLink} className="flex items-center gap-3 min-w-0 flex-1">
+              <img src="/logo.svg" alt="Bantu" className="w-9 h-9 shrink-0" />
+              <span className="text-lg font-bold tracking-tight">Bantu</span>
+            </Link>
+            {mobile ? (
+              <button
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Close navigation menu"
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors shrink-0"
+              >
+                <PanelLeftClose size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={toggleCollapsed}
+                title="Collapse sidebar"
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-navy transition-colors shrink-0"
+              >
+                <PanelLeftClose size={18} />
+              </button>
+            )}
+          </>
         )}
       </div>
 
