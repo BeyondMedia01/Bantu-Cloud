@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, CalendarDays, User, Clock, FolderOpen } from 'lucide-react';
+import { FileText, CalendarDays, Clock, FolderOpen } from 'lucide-react';
 import { EmployeeSelfAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 import { getAvatarGradient } from '@/lib/avatarGradient';
