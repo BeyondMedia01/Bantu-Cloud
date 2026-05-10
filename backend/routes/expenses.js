@@ -1,13 +1,11 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { requirePermission, requireModule } = require('../lib/permissions');
 const { audit } = require('../lib/audit');
 
 const router = express.Router();
-router.use(requireModule('EXPENSES'));
 
 // GET /api/expenses
-router.get('/', requirePermission('view_loans'), async (req, res) => {
+router.get('/', async (req, res) => {
   const { employeeId, status, categoryId } = req.query;
   try {
     const where = {
@@ -48,7 +46,7 @@ router.get('/categories', async (req, res) => {
 });
 
 // POST /api/expenses
-router.post('/', requirePermission('manage_loans'), async (req, res) => {
+router.post('/', async (req, res) => {
   const { employeeId, categoryId, amount, currency, description, receiptUrl, notes } = req.body;
   if (!employeeId || !categoryId || !amount || !description) {
     return res.status(400).json({ message: 'employeeId, categoryId, amount, and description are required' });
@@ -117,7 +115,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // PUT /api/expenses/:id
-router.put('/:id', requirePermission('manage_loans'), async (req, res) => {
+router.put('/:id', async (req, res) => {
   const { amount, currency, description, receiptUrl, notes } = req.body;
   try {
     const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });
@@ -150,7 +148,7 @@ router.put('/:id', requirePermission('manage_loans'), async (req, res) => {
 });
 
 // DELETE /api/expenses/:id
-router.delete('/:id', requirePermission('manage_loans'), async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ message: 'Expense not found' });
@@ -168,7 +166,7 @@ router.delete('/:id', requirePermission('manage_loans'), async (req, res) => {
 });
 
 // PUT /api/expenses/:id/approve
-router.put('/:id/approve', requirePermission('approve_loans'), async (req, res) => {
+router.put('/:id/approve', async (req, res) => {
   try {
     const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ message: 'Expense not found' });
@@ -194,7 +192,7 @@ router.put('/:id/approve', requirePermission('approve_loans'), async (req, res) 
 });
 
 // PUT /api/expenses/:id/reject
-router.put('/:id/reject', requirePermission('approve_loans'), async (req, res) => {
+router.put('/:id/reject', async (req, res) => {
   const { reason } = req.body;
   try {
     const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });
@@ -221,7 +219,7 @@ router.put('/:id/reject', requirePermission('approve_loans'), async (req, res) =
 });
 
 // POST /api/expenses/:id/process — mark as paid in payroll
-router.post('/:id/process', requirePermission('manage_loans'), async (req, res) => {
+router.post('/:id/process', async (req, res) => {
   const { payrollRunId } = req.body;
   try {
     const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });

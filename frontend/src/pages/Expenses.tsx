@@ -60,8 +60,8 @@ const Expenses: React.FC = () => {
         ExpenseAPI.getAll({ ...(filter && { status: filter }) }),
         ExpenseAPI.getCategories(),
       ]);
-      setExpenses(expRes.data.data);
-      setCategories(catRes.data.data);
+      setExpenses(expRes.data.data ?? []);
+      setCategories(catRes.data.data ?? []);
     } catch {
       showToast('Failed to load expenses', 'error');
     } finally {
