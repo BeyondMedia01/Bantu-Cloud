@@ -6,6 +6,7 @@ import {
   CalendarDays, CreditCard, ShieldCheck, Menu, ChevronRight,
   ClipboardList, Clock, Cpu, PanelLeftClose, PanelLeftOpen, Download,
   UserCog, UserPlus, TrendingUp, Receipt, BookOpen, BarChart2,
+  Package,
 } from 'lucide-react';
 import { getUser, logout } from '../lib/auth';
 import { CompanyAPI, UserAPI } from '../api/client';
@@ -17,12 +18,27 @@ import { usePermissions } from '../hooks/usePermissions';
 
 const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
 
+// ── Nav structure ─────────────────────────────────────────────────────────────
+
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  module?: string;
+}
+
+interface NavGroup {
+  key: string;
+  label: string;
+  icon: React.ReactNode;
+  items: NavItem[];
+}
+
 const AppShell: React.FC = () => {
   const user = getUser();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Desktop gets a 30-minute idle window; web gets 60s.
   const { isIdle, isWarning, remainingTime, resetTimer } = useIdleTimer({
     timeout: IS_DESKTOP ? 30 * 60 * 1000 : 60_000,
     warningThreshold: IS_DESKTOP ? 29 * 60 * 1000 : 50_000,
@@ -36,12 +52,23 @@ const AppShell: React.FC = () => {
   const [collapsed, setCollapsed] = useState(() =>
     localStorage.getItem('sidebarCollapsed') === 'true'
   );
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('sidebarGroups') || '{}'); } catch { return {}; }
+  });
 
   const toggleCollapsed = () => {
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem('sidebarCollapsed', String(next));
     if (next) setCompanyDropdown(false);
+  };
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('sidebarGroups', JSON.stringify(next));
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -59,28 +86,22 @@ const AppShell: React.FC = () => {
         } else {
           setActiveCompany(null);
         }
-      }).catch(() => {
-      });
+      }).catch(() => {});
     }
     return () => { mounted = false; };
   }, [user]);
 
-  // Fetch live user name so the sidebar stays current after profile updates
   useEffect(() => {
     UserAPI.me().then((res) => {
       const d = res.data as any;
-      // Prefer dedicated firstName, fall back to first word of full name
       const first = d.firstName || d.name?.split(' ')[0] || null;
       setLiveUserName(first);
-    }).catch(() => {
-    });
+    }).catch(() => {});
   }, []);
+
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const handleLogout = () => { logout(); navigate('/login'); };
 
   const handleCheckUpdates = async () => {
     if (!IS_DESKTOP) return;
@@ -91,14 +112,10 @@ const AppShell: React.FC = () => {
         const { toast } = await import('sonner');
         toast.info('You are on the latest version.');
       }
-    } catch {
-      // updater unavailable
-    }
+    } catch {}
   };
 
-  useEffect(() => {
-    if (isIdle) handleLogout();
-  }, [isIdle, navigate]);
+  useEffect(() => { if (isIdle) handleLogout(); }, [isIdle, navigate]);
 
   const handleSelectCompany = (company: any) => {
     setActiveCompany(company);
@@ -112,102 +129,117 @@ const AppShell: React.FC = () => {
   const isEmployee = user?.role === 'EMPLOYEE';
   const { can } = usePermissions();
 
-  // Preserve sidebar scroll position across route changes.
-  // SidebarContent is defined inside AppShell so React remounts it on every
-  // render (new function reference = new component type). We save the scroll
-  // position on scroll and restore it with useLayoutEffect (before paint).
   const navScrollRef = useRef<HTMLElement>(null);
   const savedScrollPos = useRef(0);
   useLayoutEffect(() => {
-    if (navScrollRef.current) {
-      navScrollRef.current.scrollTop = savedScrollPos.current;
-    }
+    if (navScrollRef.current) navScrollRef.current.scrollTop = savedScrollPos.current;
   });
 
-  // Module nav groups — each maps to a section of the app
-  const moduleNavMap = {
-    PEOPLE: [
-      { to: '/employees', label: 'Employees', icon: <Users size={18} /> },
-      { to: '/grades', label: 'Grades', icon: <ClipboardList size={18} /> },
-      { to: '/client-admin/structure', label: 'Company Structure', icon: <Building2 size={18} /> },
-    ],
-    TIME_LEAVE: [
-      { to: '/leave', label: 'Leave', icon: <CalendarDays size={18} /> },
-      { to: '/shifts', label: 'Shifts & Roster', icon: <Clock size={18} /> },
-      { to: '/attendance', label: 'Attendance', icon: <Cpu size={18} /> },
-    ],
-    PAYROLL: [
-      { to: '/payroll', label: 'Payroll', icon: <DollarSign size={18} /> },
-      { to: '/payslip-input', label: 'Payslip Input', icon: <ClipboardList size={18} /> },
-      { to: '/loans', label: 'Loans', icon: <CreditCard size={18} /> },
-    ],
-    COMPLIANCE: [],
-    REPORTS: [
-      { to: '/reports', label: 'Reports', icon: <FileText size={18} /> },
-    ],
-    SETTINGS: [
-      { to: '/utilities', label: 'Utilities', icon: <Wrench size={18} /> },
-      { to: '/client-admin/settings', label: 'Settings', icon: <Settings size={18} /> },
-    ],
-    RECRUITMENT: [
-      { to: '/recruitment', label: 'Recruitment', icon: <UserPlus size={18} /> },
-    ],
-    PERFORMANCE: [
-      { to: '/performance', label: 'Performance', icon: <TrendingUp size={18} /> },
-    ],
-    EXPENSES: [
-      { to: '/expenses', label: 'Expenses', icon: <Receipt size={18} /> },
-    ],
-    ONBOARDING: [
-      { to: '/onboarding', label: 'Onboarding', icon: <ClipboardList size={18} /> },
-    ],
-    TRAINING: [
-      { to: '/training', label: 'Training', icon: <BookOpen size={18} /> },
-    ],
-    ASSETS: [
-      { to: '/assets', label: 'Assets', icon: <ShieldCheck size={18} /> },
-    ],
-    SUCCESSION: [
-      { to: '/succession', label: 'Succession', icon: <TrendingUp size={18} /> },
-    ],
-    SURVEYS: [
-      { to: '/surveys', label: 'Surveys', icon: <ClipboardList size={18} /> },
-    ],
-    ANALYTICS: [
-      { to: '/analytics', label: 'Analytics', icon: <BarChart2 size={18} /> },
-    ],
-  } as const;
+  // ── Group definitions ──────────────────────────────────────────────────────
 
-  type ModuleKey = keyof typeof moduleNavMap;
+  const allGroups: NavGroup[] = [
+    {
+      key: 'people',
+      label: 'People',
+      icon: <Users size={18} />,
+      items: [
+        { to: '/employees', label: 'Employees', icon: <Users size={16} />, module: 'PEOPLE' },
+        { to: '/grades', label: 'Grades', icon: <ClipboardList size={16} />, module: 'PEOPLE' },
+        { to: '/client-admin/structure', label: 'Company Structure', icon: <Building2 size={16} />, module: 'PEOPLE' },
+        { to: '/recruitment', label: 'Recruitment', icon: <UserPlus size={16} />, module: 'RECRUITMENT' },
+        { to: '/onboarding', label: 'Onboarding', icon: <ClipboardList size={16} />, module: 'ONBOARDING' },
+        { to: '/succession', label: 'Succession', icon: <TrendingUp size={16} />, module: 'SUCCESSION' },
+      ],
+    },
+    {
+      key: 'time',
+      label: 'Time & Leave',
+      icon: <CalendarDays size={18} />,
+      items: [
+        { to: '/leave', label: 'Leave', icon: <CalendarDays size={16} />, module: 'TIME_LEAVE' },
+        { to: '/shifts', label: 'Shifts & Roster', icon: <Clock size={16} />, module: 'TIME_LEAVE' },
+        { to: '/attendance', label: 'Attendance', icon: <Cpu size={16} />, module: 'TIME_LEAVE' },
+      ],
+    },
+    {
+      key: 'payroll',
+      label: 'Payroll & Finance',
+      icon: <DollarSign size={18} />,
+      items: [
+        { to: '/payroll', label: 'Payroll', icon: <DollarSign size={16} />, module: 'PAYROLL' },
+        { to: '/payslip-input', label: 'Payslip Input', icon: <ClipboardList size={16} />, module: 'PAYROLL' },
+        { to: '/loans', label: 'Loans', icon: <CreditCard size={16} />, module: 'PAYROLL' },
+        { to: '/expenses', label: 'Expenses', icon: <Receipt size={16} />, module: 'EXPENSES' },
+        { to: '/assets', label: 'Assets', icon: <Package size={16} />, module: 'ASSETS' },
+      ],
+    },
+    {
+      key: 'performance',
+      label: 'Performance',
+      icon: <TrendingUp size={18} />,
+      items: [
+        { to: '/performance', label: 'Performance', icon: <TrendingUp size={16} />, module: 'PERFORMANCE' },
+        { to: '/training', label: 'Training', icon: <BookOpen size={16} />, module: 'TRAINING' },
+        { to: '/surveys', label: 'Surveys', icon: <ClipboardList size={16} />, module: 'SURVEYS' },
+      ],
+    },
+    {
+      key: 'insights',
+      label: 'Insights',
+      icon: <BarChart2 size={18} />,
+      items: [
+        { to: '/reports', label: 'Reports', icon: <FileText size={16} />, module: 'REPORTS' },
+        { to: '/analytics', label: 'Analytics', icon: <BarChart2 size={16} />, module: 'ANALYTICS' },
+      ],
+    },
+    {
+      key: 'settings',
+      label: 'Settings',
+      icon: <Settings size={18} />,
+      items: [
+        { to: '/utilities', label: 'Utilities', icon: <Wrench size={16} /> },
+        { to: '/client-admin/settings', label: 'Settings', icon: <Settings size={16} /> },
+      ],
+    },
+  ];
 
-  // Build nav based on role
-  const buildModuleNav = () => {
-    const allModules: ModuleKey[] = ['PEOPLE', 'TIME_LEAVE', 'PAYROLL', 'COMPLIANCE', 'REPORTS', 'SETTINGS', 'RECRUITMENT', 'PERFORMANCE', 'EXPENSES', 'ONBOARDING', 'TRAINING', 'ASSETS', 'SUCCESSION', 'SURVEYS', 'ANALYTICS'];
-    const links: { to: string; label: string; icon: React.ReactNode; section?: string }[] = [
-      { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    ];
-    for (const mod of allModules) {
-      if (can(mod)) {
-        links.push(...moduleNavMap[mod]);
-      }
+  // Filter items the user has access to, then remove empty groups
+  const visibleGroups = allGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item => !item.module || can(item.module as any)),
+  })).filter(group => group.items.length > 0);
+
+  // Auto-expand the group containing the active route (on route change)
+  useEffect(() => {
+    const activeGroup = visibleGroups.find(g =>
+      g.items.some(item => location.pathname === item.to || location.pathname.startsWith(item.to + '/'))
+    );
+    if (activeGroup && !openGroups[activeGroup.key]) {
+      setOpenGroups(prev => {
+        const next = { ...prev, [activeGroup.key]: true };
+        localStorage.setItem('sidebarGroups', JSON.stringify(next));
+        return next;
+      });
     }
-    return links;
-  };
+  }, [location.pathname]);
 
-  const navLinks = isAdmin ? [
+  // ── Simple nav links (admin / employee) ────────────────────────────────────
+
+  const adminLinks = [
     { to: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
     { to: '/admin/users', label: 'Users', icon: <Users size={18} /> },
     { to: '/admin/clients', label: 'Clients', icon: <Building2 size={18} /> },
     { to: '/admin/licenses', label: 'Licenses', icon: <ShieldCheck size={18} /> },
     { to: '/admin/settings', label: 'Settings', icon: <Settings size={18} /> },
-  ] : isEmployee ? [
+  ];
+
+  const employeeLinks = [
     { to: '/employee', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
     { to: '/employee/payslips', label: 'Payslips', icon: <FileText size={18} /> },
     { to: '/employee/leave', label: 'Leave', icon: <CalendarDays size={18} /> },
     { to: '/employee/profile', label: 'Profile', icon: <User size={18} /> },
-  ] : buildModuleNav();
+  ];
 
-  // CLIENT_ADMIN gets team management links; COMPANY_USER does not
   const adminSectionLinks = user?.role === 'CLIENT_ADMIN' ? [
     { to: '/companies', label: 'Companies', icon: <Building2 size={18} /> },
     { to: '/client-admin/roles', label: 'Roles', icon: <ShieldCheck size={18} /> },
@@ -216,24 +248,80 @@ const AppShell: React.FC = () => {
 
   const homeLink = isAdmin ? '/admin' : isEmployee ? '/employee' : '/dashboard';
 
-  const NavLink = ({ link }: { link: typeof navLinks[0] }) => {
+  // ── Link components ────────────────────────────────────────────────────────
+
+  const FlatLink = ({ link, small = false }: { link: { to: string; label: string; icon: React.ReactNode }; small?: boolean }) => {
     const active = location.pathname === link.to ||
       (link.to !== '/dashboard' && link.to !== '/admin' && link.to !== '/employee' &&
         location.pathname.startsWith(link.to));
     return (
       <Link
-        key={link.to}
         to={link.to}
         title={collapsed ? link.label : undefined}
         className={`flex items-center gap-3 rounded-xl text-sm font-bold transition-all
-          ${collapsed ? 'justify-center px-0 py-2.5 mx-2' : 'px-3 py-2.5'}
-          ${active ? 'bg-brand text-navy shadow-sm' : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted hover:text-navy dark:hover:text-foreground'}`}
+          ${collapsed ? 'justify-center px-0 py-2.5 mx-2' : small ? 'pl-9 pr-3 py-2' : 'px-3 py-2.5'}
+          ${active
+            ? 'bg-brand text-navy shadow-sm'
+            : 'text-muted-foreground hover:bg-muted hover:text-navy'
+          }`}
       >
         <span className="shrink-0">{link.icon}</span>
         {!collapsed && <span>{link.label}</span>}
       </Link>
     );
   };
+
+  const GroupSection = ({ group }: { group: NavGroup }) => {
+    const isOpen = !!openGroups[group.key];
+    const hasActive = group.items.some(item =>
+      location.pathname === item.to || location.pathname.startsWith(item.to + '/')
+    );
+
+    if (collapsed) {
+      // In collapsed mode: show group icon, clicking navigates to first item + expands sidebar
+      const firstItem = group.items[0];
+      return (
+        <button
+          title={group.label}
+          onClick={() => {
+            setCollapsed(false);
+            localStorage.setItem('sidebarCollapsed', 'false');
+            navigate(firstItem.to);
+          }}
+          className={`flex justify-center items-center mx-2 py-2.5 rounded-xl transition-all
+            ${hasActive ? 'bg-brand text-navy shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-navy'}`}
+        >
+          {group.icon}
+        </button>
+      );
+    }
+
+    return (
+      <div>
+        <button
+          onClick={() => toggleGroup(group.key)}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition-all
+            ${hasActive && !isOpen ? 'text-navy' : 'text-muted-foreground hover:text-navy hover:bg-muted'}`}
+        >
+          <div className="flex items-center gap-3">
+            <span className={`shrink-0 ${hasActive ? 'text-brand' : ''}`}>{group.icon}</span>
+            <span>{group.label}</span>
+          </div>
+          <ChevronDown size={14} className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {isOpen && (
+          <div className="mt-0.5 flex flex-col gap-0.5">
+            {group.items.map(item => (
+              <FlatLink key={item.to} link={item} small />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── Sidebar content ────────────────────────────────────────────────────────
 
   const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
@@ -255,7 +343,7 @@ const AppShell: React.FC = () => {
         )}
       </div>
 
-      {/* Company switcher — hidden when collapsed */}
+      {/* Company switcher */}
       {!isEmployee && !isAdmin && (!collapsed || mobile) && (
         <div className="px-3 py-3 border-b border-border">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1 mb-1.5">Active Company</p>
@@ -263,15 +351,14 @@ const AppShell: React.FC = () => {
             onClick={() => setCompanyDropdown(!companyDropdown)}
             aria-haspopup="listbox"
             aria-expanded={companyDropdown}
-            aria-label={`Active company: ${activeCompany?.name || 'No company'}. Click to switch.`}
-            className="w-full flex items-center gap-2 px-3 py-2.5 bg-muted dark:bg-muted/40 border border-border rounded-xl hover:bg-muted dark:hover:bg-slate-700 transition-colors text-sm font-semibold"
+            className="w-full flex items-center gap-2 px-3 py-2.5 bg-muted border border-border rounded-xl hover:bg-muted transition-colors text-sm font-semibold"
           >
-            <Building2 size={14} className="text-brand shrink-0" aria-hidden="true" />
+            <Building2 size={14} className="text-brand shrink-0" />
             <span className="truncate flex-1 text-left">{activeCompany?.name || 'No company'}</span>
-            <ChevronDown size={13} className={`text-muted-foreground shrink-0 transition-transform ${companyDropdown ? 'rotate-180' : ''}`} aria-hidden="true" />
+            <ChevronDown size={13} className={`text-muted-foreground shrink-0 transition-transform ${companyDropdown ? 'rotate-180' : ''}`} />
           </button>
           {companyDropdown && (
-            <div className="mt-1 bg-white dark:bg-slate-800 border border-border rounded-xl shadow-lg z-10 overflow-hidden">
+            <div className="mt-1 bg-primary border border-border rounded-xl shadow-lg z-10 overflow-hidden">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 pt-2 pb-1">Switch Company</p>
               {companies.length === 0 ? (
                 <div className="px-3 py-3 text-center">
@@ -283,7 +370,7 @@ const AppShell: React.FC = () => {
                     <button
                       key={c.id}
                       onClick={() => handleSelectCompany(c)}
-                      className={`w-full text-left px-3 py-2 text-sm font-semibold transition-colors flex items-center gap-2 ${c.id === activeCompany?.id ? 'text-navy bg-brand/20' : 'hover:bg-muted dark:hover:bg-slate-700'}`}
+                      className={`w-full text-left px-3 py-2 text-sm font-semibold transition-colors flex items-center gap-2 ${c.id === activeCompany?.id ? 'text-navy bg-brand/20' : 'hover:bg-muted'}`}
                     >
                       {c.id === activeCompany?.id && <ChevronRight size={12} className="shrink-0" />}
                       <span className={c.id === activeCompany?.id ? '' : 'pl-4'}>{c.name}</span>
@@ -303,34 +390,49 @@ const AppShell: React.FC = () => {
         </div>
       )}
 
-      {/* Company icon when collapsed (tooltip shows name) */}
+      {/* Company icon when collapsed */}
       {!isEmployee && !isAdmin && collapsed && !mobile && (
         <div className="py-3 border-b border-border flex justify-center">
           <button
             onClick={() => { setCollapsed(false); localStorage.setItem('sidebarCollapsed', 'false'); }}
             title={activeCompany?.name || 'No company'}
-            className="p-2 rounded-xl hover:bg-muted dark:hover:bg-slate-700 transition-colors"
+            className="p-2 rounded-xl hover:bg-muted transition-colors"
           >
             <Building2 size={18} className="text-brand" />
           </button>
         </div>
       )}
 
-      {/* Nav links */}
+      {/* Nav */}
       <nav
         ref={!mobile ? navScrollRef : undefined}
         onScroll={!mobile ? (e) => { savedScrollPos.current = e.currentTarget.scrollTop; } : undefined}
         className="flex-1 overflow-y-auto py-3 flex flex-col gap-0.5 px-2"
       >
-        {navLinks.map((link) => <NavLink key={link.to} link={link} />)}
+        {/* Platform admin & employee — flat links */}
+        {(isAdmin || isEmployee) && (isAdmin ? adminLinks : employeeLinks).map(link => (
+          <FlatLink key={link.to} link={link} />
+        ))}
 
+        {/* Company users — dashboard + grouped modules */}
+        {!isAdmin && !isEmployee && (
+          <>
+            <FlatLink link={{ to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> }} />
+
+            {visibleGroups.map(group => (
+              <GroupSection key={group.key} group={group} />
+            ))}
+          </>
+        )}
+
+        {/* Administration section (CLIENT_ADMIN only) */}
         {adminSectionLinks.length > 0 && (
           <>
             {!collapsed && (
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 pt-4 pb-1">Administration</p>
             )}
             {collapsed && <div className="border-t border-border mx-2 my-2" />}
-            {adminSectionLinks.map((link) => <NavLink key={link.to} link={link} />)}
+            {adminSectionLinks.map(link => <FlatLink key={link.to} link={link} />)}
           </>
         )}
       </nav>
@@ -341,7 +443,7 @@ const AppShell: React.FC = () => {
           <button
             onClick={toggleCollapsed}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-muted-foreground hover:bg-muted dark:hover:bg-slate-700 hover:text-navy dark:hover:text-slate-100 transition-colors text-xs font-bold w-full"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-muted-foreground hover:bg-muted hover:text-navy transition-colors text-xs font-bold w-full"
           >
             {collapsed
               ? <PanelLeftOpen size={16} />
@@ -352,24 +454,24 @@ const AppShell: React.FC = () => {
       )}
 
       {/* User / logout */}
-      <div className={`px-3 py-3 border-t border-border shrink-0 ${collapsed && !mobile ? '' : ''}`}>
+      <div className="px-3 py-3 border-t border-border shrink-0">
         {collapsed && !mobile ? (
           <div className="flex flex-col items-center gap-2">
             <Link to="/profile" title={user?.name || 'Profile'} className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase transition-opacity hover:opacity-80" style={getAvatarGradient(liveUserName || user?.name)}>
               {(liveUserName || user?.name || '?')[0]}
             </Link>
-            <button onClick={handleLogout} aria-label="Sign out" className="p-2 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground min-w-[36px] min-h-[36px] flex items-center justify-center">
+            <button onClick={handleLogout} aria-label="Sign out" className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground min-w-[36px] min-h-[36px] flex items-center justify-center">
               <LogOut size={16} />
             </button>
             {IS_DESKTOP && (
-              <button onClick={handleCheckUpdates} aria-label="Check for updates" className="p-2 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground min-w-[36px] min-h-[36px] flex items-center justify-center" title="Check for updates">
+              <button onClick={handleCheckUpdates} aria-label="Check for updates" title="Check for updates" className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground min-w-[36px] min-h-[36px] flex items-center justify-center">
                 <Download size={16} />
               </button>
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-3 mb-1">
-            <Link to="/profile" className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-xl hover:bg-muted dark:hover:bg-slate-700 transition-colors">
+          <div className="flex items-center gap-3">
+            <Link to="/profile" className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-xl hover:bg-muted transition-colors">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase shrink-0" style={getAvatarGradient(liveUserName || user?.name)}>
                 {(liveUserName || user?.name || '?')[0]}
               </div>
@@ -379,11 +481,11 @@ const AppShell: React.FC = () => {
               </div>
             </Link>
             {IS_DESKTOP && (
-              <button onClick={handleCheckUpdates} aria-label="Check for updates" className="p-1.5 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground shrink-0" title="Check for updates">
+              <button onClick={handleCheckUpdates} aria-label="Check for updates" title="Check for updates" className="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground shrink-0">
                 <Download size={16} />
               </button>
             )}
-            <button onClick={handleLogout} aria-label="Sign out" className="p-1.5 hover:bg-muted dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground shrink-0" title="Sign out">
+            <button onClick={handleLogout} aria-label="Sign out" title="Sign out" className="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground shrink-0">
               <LogOut size={16} />
             </button>
           </div>
@@ -404,10 +506,7 @@ const AppShell: React.FC = () => {
 
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Mobile sidebar drawer */}
@@ -417,7 +516,7 @@ const AppShell: React.FC = () => {
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-primary border-b border-border z-30 flex items-center justify-between px-4">
-        <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-2 hover:bg-muted dark:hover:bg-slate-700 rounded-xl">
+        <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-2 hover:bg-muted rounded-xl">
           <Menu size={20} />
         </button>
         <Link to={homeLink} className="flex items-center gap-2">
@@ -434,7 +533,6 @@ const AppShell: React.FC = () => {
         </div>
       </main>
 
-      {/* Security Idle Timer Warning */}
       {isWarning && (
         <IdleTimerModal
           remainingTime={remainingTime}
