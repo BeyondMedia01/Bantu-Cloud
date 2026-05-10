@@ -158,7 +158,7 @@ const Companies: React.FC = () => {
                 Cancel
               </button>
               <button type="submit"
-                className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm"
+                className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm">
                 Save Company Entity
               </button>
             </div>
