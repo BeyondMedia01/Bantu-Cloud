@@ -126,6 +126,8 @@ const EmployeeDashboard = React.lazy(() => import('./pages/employee/EmployeeDash
 const EmployeePayslips = React.lazy(() => import('./pages/employee/Payslips'));
 const EmployeeProfile = React.lazy(() => import('./pages/employee/Profile'));
 const EmployeeLeave = React.lazy(() => import('./pages/employee/Leave'));
+const EmployeeAttendance = React.lazy(() => import('./pages/employee/Attendance'));
+const EmployeeDocuments = React.lazy(() => import('./pages/employee/Documents'));
 
 // ─── ProtectedRoute ───────────────────────────────────────────────────────────
 
@@ -300,6 +302,8 @@ const App: React.FC = () => {
                   <Route path="/employee/payslips" element={<EmployeePayslips />} />
                   <Route path="/employee/profile" element={<EmployeeProfile />} />
                   <Route path="/employee/leave" element={<EmployeeLeave />} />
+                  <Route path="/employee/attendance" element={<EmployeeAttendance />} />
+                  <Route path="/employee/documents" element={<EmployeeDocuments />} />
                   <Route path="/profile" element={<ProfileSettings />} />
                 </Route>
 

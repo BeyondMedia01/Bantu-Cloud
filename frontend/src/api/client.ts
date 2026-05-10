@@ -301,6 +301,8 @@ export const EmployeeSelfAPI = {
   updateProfile: (data: any) => api.put('/employee/profile', data),
   getPayslips: () => api.get('/employee/payslips'),
   getLeave: () => api.get('/employee/leave'),
+  getAttendance: (params?: Record<string, string>) => api.get('/employee/attendance', { params }),
+  getDocuments: () => api.get('/employee/documents'),
 };
 
 // ─── Payroll ──────────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ import {
   CalendarDays, CreditCard, ShieldCheck, Menu, ChevronRight,
   ClipboardList, Clock, Cpu, PanelLeftClose, PanelLeftOpen, Download,
   UserCog, UserPlus, TrendingUp, Receipt, BookOpen, BarChart2,
-  Package,
+  Package, FolderOpen,
 } from 'lucide-react';
 import { getUser, logout } from '../lib/auth';
 import { CompanyAPI, UserAPI } from '../api/client';
@@ -234,10 +234,12 @@ const AppShell: React.FC = () => {
   ];
 
   const employeeLinks = [
-    { to: '/employee', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { to: '/employee/payslips', label: 'Payslips', icon: <FileText size={18} /> },
-    { to: '/employee/leave', label: 'Leave', icon: <CalendarDays size={18} /> },
-    { to: '/employee/profile', label: 'Profile', icon: <User size={18} /> },
+    { to: '/employee',             label: 'Dashboard',  icon: <LayoutDashboard size={18} /> },
+    { to: '/employee/payslips',    label: 'Payslips',   icon: <FileText size={18} /> },
+    { to: '/employee/leave',       label: 'Leave',      icon: <CalendarDays size={18} /> },
+    { to: '/employee/attendance',  label: 'Attendance', icon: <Clock size={18} /> },
+    { to: '/employee/documents',   label: 'Documents',  icon: <FolderOpen size={18} /> },
+    { to: '/employee/profile',     label: 'Profile',    icon: <User size={18} /> },
   ];
 
   const adminSectionLinks = user?.role === 'CLIENT_ADMIN' ? [

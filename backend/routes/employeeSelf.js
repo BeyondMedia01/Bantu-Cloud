@@ -96,4 +96,51 @@ router.get('/leave', requireRole('EMPLOYEE'), async (req, res) => {
   }
 });
 
+// GET /api/employee/attendance — own attendance records
+router.get('/attendance', requireRole('EMPLOYEE'), async (req, res) => {
+  try {
+    const emp = await prisma.employee.findUnique({ where: { userId: req.user.userId } });
+    if (!emp) return res.status(404).json({ message: 'Employee record not found' });
+    const { from, to } = req.query;
+    const where = { employeeId: emp.id };
+    if (from || to) {
+      where.date = {};
+      if (from) where.date.gte = new Date(from);
+      if (to)   where.date.lte = new Date(to);
+    }
+    const records = await prisma.attendanceRecord.findMany({
+      where,
+      orderBy: { date: 'desc' },
+      take: 90,
+      select: {
+        id: true, date: true, clockIn: true, clockOut: true,
+        totalMinutes: true, normalMinutes: true, ot1Minutes: true, ot2Minutes: true,
+        status: true, isPublicHoliday: true, notes: true,
+        shift: { select: { name: true } },
+      },
+    });
+    res.json(records);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET /api/employee/documents — documents shared with this employee
+router.get('/documents', requireRole('EMPLOYEE'), async (req, res) => {
+  try {
+    const emp = await prisma.employee.findUnique({ where: { userId: req.user.userId } });
+    if (!emp) return res.status(404).json({ message: 'Employee record not found' });
+    const docs = await prisma.document.findMany({
+      where: { employeeId: emp.id },
+      orderBy: { uploadedAt: 'desc' },
+      select: { id: true, name: true, type: true, url: true, uploadedAt: true },
+    });
+    res.json(docs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 module.exports = router;

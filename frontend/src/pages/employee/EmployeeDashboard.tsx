@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, CalendarDays, User } from 'lucide-react';
+import { FileText, CalendarDays, User, Clock, FolderOpen } from 'lucide-react';
 import { EmployeeSelfAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 import { getAvatarGradient } from '@/lib/avatarGradient';
@@ -81,27 +81,28 @@ const EmployeeDashboard: React.FC = () => {
             {profile?.firstName?.[0]}{profile?.lastName?.[0]}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Welcome, {profile?.firstName}</h1>
+            <h1 className="text-2xl font-bold text-navy">Welcome, {profile?.firstName}</h1>
             <p className="text-muted-foreground font-medium">{profile?.position} · {profile?.company?.name || ''}</p>
           </div>
         </div>
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Recent Payslips', value: payslips.length, icon: <FileText size={18} />, path: '/employee/payslips' },
-          { label: 'Leave Records', value: leave.length, icon: <CalendarDays size={18} />, path: '/employee/leave' },
-          { label: 'My Profile', value: '→', icon: <User size={18} />, path: '/employee/profile' },
+          { label: 'Payslips',       value: payslips.length, icon: <FileText size={18} />,    path: '/employee/payslips' },
+          { label: 'Leave Records',  value: leave.length,    icon: <CalendarDays size={18} />, path: '/employee/leave' },
+          { label: 'Attendance',     value: '→',             icon: <Clock size={18} />,        path: '/employee/attendance' },
+          { label: 'Documents',      value: '→',             icon: <FolderOpen size={18} />,   path: '/employee/documents' },
         ].map((s) => (
           <button
             key={s.path}
             onClick={() => navigate(s.path)}
             className="bg-primary border border-border rounded-2xl p-5 shadow-sm hover:border-accent-green transition-all text-left flex items-center gap-4"
           >
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-accent-green">{s.icon}</div>
+            <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center text-brand">{s.icon}</div>
             <div>
-              <p className="text-xl font-bold">{s.value}</p>
+              <p className="text-xl font-bold text-navy">{s.value}</p>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{s.label}</p>
             </div>
           </button>
