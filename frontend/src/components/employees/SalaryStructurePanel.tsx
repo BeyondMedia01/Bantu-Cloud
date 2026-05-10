@@ -122,7 +122,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
           <button
             type="button"
             onClick={() => { setShowForm(true); setError(''); }}
-            className="flex items-center gap-2 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 shadow"
+            className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 shadow"
           >
             <Plus size={14} /> Add Component
           </button>
@@ -223,14 +223,14 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 bg-brand text-navy px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 disabled:opacity-60"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 shadow disabled:opacity-60"
             >
               <Check size={14} /> {saving ? 'Saving…' : 'Save'}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setError(''); setForm({ ...BLANK_FORM }); }}
-              className="flex items-center gap-2 px-4 py-2 border border-border rounded-full font-bold text-sm text-muted-foreground hover:bg-muted"
+              className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full font-bold text-sm text-muted-foreground hover:bg-muted"
             >
               <X size={14} /> Cancel
             </button>

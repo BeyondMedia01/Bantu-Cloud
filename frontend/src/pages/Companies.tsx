@@ -126,7 +126,7 @@ const Companies: React.FC = () => {
         </div>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="bg-brand text-navy px-4 py-2 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+          className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5 text-sm"
         >
           <Plus size={20} /> Add New Entity
         </button>
@@ -154,11 +154,11 @@ const Companies: React.FC = () => {
             </div>
             <div className="md:col-span-2 flex items-center justify-end gap-3 mt-2">
               <button type="button" onClick={() => setIsAdding(false)}
-                className="px-6 py-3 rounded-[9999px] font-bold text-muted-foreground hover:bg-muted transition-colors">
+                className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm">
                 Cancel
               </button>
               <button type="submit"
-                className="bg-brand text-navy px-8 py-3 rounded-[9999px] font-bold shadow-lg hover:opacity-90 transition-opacity">
+                className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm"
                 Save Company Entity
               </button>
             </div>
@@ -220,11 +220,11 @@ const Companies: React.FC = () => {
 
                   <div className="flex gap-2 mt-1">
                     <button onClick={() => handleUpdate(company.id)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-brand text-navy py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">
+                      className="flex-1 flex items-center justify-center gap-1.5 bg-brand text-navy py-2 rounded-full font-bold text-sm hover:opacity-90 shadow">
                       <Check size={15} /> Save Changes
                     </button>
                     <button onClick={() => setEditingId(null)}
-                      className="px-4 py-2.5 rounded-xl font-bold text-sm text-muted-foreground hover:bg-muted transition-colors">
+                      className="px-4 py-2 rounded-full border border-border font-bold text-sm text-muted-foreground hover:bg-muted">
                       Cancel
                     </button>
                   </div>

@@ -198,7 +198,7 @@ const LeaveEncashments: React.FC = () => {
         {can('TIME_LEAVE', 'EDIT') && (
           <button
             onClick={() => { setShowForm(true); setError(''); }}
-            className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
+            className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5 text-sm"
           >
             <Banknote size={18} /> New Encashment
           </button>
@@ -258,12 +258,12 @@ const LeaveEncashments: React.FC = () => {
             </div>
             <div className="sm:col-span-2 flex gap-3 pt-2">
               <button type="submit" disabled={saving}
-                className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 flex items-center gap-1.5">
+                className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 flex items-center gap-1.5 text-sm">
                 {saving && <Loader size={14} className="animate-spin" />}
                 {saving ? 'Submitting…' : 'Submit Encashment'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
-                className="px-4 py-2 rounded-full font-bold border border-border hover:bg-muted">
+                className="px-4 py-2 rounded-full border border-border font-bold text-muted-foreground hover:bg-muted text-sm">
                 Cancel
               </button>
             </div>

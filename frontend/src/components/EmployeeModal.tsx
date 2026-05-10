@@ -131,11 +131,11 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ onClose, onSave, initialD
 
           <div className="flex justify-end gap-3 pt-6 border-t border-border mt-2">
             <button type="button" onClick={onClose}
-              className="px-6 py-2.5 rounded-xl border border-border text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              className="px-4 py-2 rounded-full border border-border text-sm font-bold text-muted-foreground hover:bg-muted">
               Cancel
             </button>
             <button type="submit"
-              className="px-8 py-2.5 rounded-xl bg-brand text-navy text-sm font-bold shadow-lg hover:opacity-90 transition-all">
+              className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 text-sm"
               Save Employee
             </button>
           </div>

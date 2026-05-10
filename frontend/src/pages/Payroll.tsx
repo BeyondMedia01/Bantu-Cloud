@@ -111,7 +111,7 @@ const Payroll: React.FC = () => {
         {can('PAYROLL', 'RUN') && (
           <button
             onClick={() => navigate('/payroll/new')}
-            className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5"
+            className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5 text-sm"
           >
             <Plus size={14} /> New Payroll Run
           </button>
@@ -130,7 +130,7 @@ const Payroll: React.FC = () => {
           <p className="font-bold text-muted-foreground mb-2">No payroll runs yet</p>
           <p className="text-sm text-muted-foreground mb-6">Create your first payroll run to get started</p>
           {can('PAYROLL', 'RUN') && (
-            <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 inline-flex items-center gap-1.5">
+            <button onClick={() => navigate('/payroll/new')} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5 text-sm">
               <Plus size={14} /> Create Payroll Run
             </button>
           )}
