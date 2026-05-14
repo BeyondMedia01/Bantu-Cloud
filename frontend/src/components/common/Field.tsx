@@ -19,7 +19,7 @@ export const Field: React.FC<FieldProps> = ({ label, required, className, childr
   });
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <label htmlFor={id} className="text-xs font-bold text-foreground/60 uppercase tracking-wider">
+      <label htmlFor={id} className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
         {label}
         {required && <span className="text-red-400 ml-1">*</span>}
       </label>
