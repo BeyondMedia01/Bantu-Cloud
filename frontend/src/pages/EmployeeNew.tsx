@@ -162,8 +162,8 @@ const EmployeeNew: React.FC = () => {
     try {
       await EmployeeAPI.create({
         ...values,
-        dateOfBirth: values.dateOfBirth.toISOString(),
-        startDate: values.startDate.toISOString(),
+        dateOfBirth: values.dateOfBirth?.toISOString(),
+        startDate: values.startDate?.toISOString(),
         dischargeDate: values.dischargeDate?.toISOString(),
         companyId: companyId ?? undefined,
         bankAccounts: values.paymentMethod === 'BANK' ? values.bankAccounts : [],
