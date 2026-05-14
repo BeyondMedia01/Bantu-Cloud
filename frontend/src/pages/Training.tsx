@@ -356,10 +356,10 @@ const Training: React.FC = () => {
 
       {/* Create Course modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-course" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Course</h2>
+              <h2 id="modal-title-course" className="text-lg font-bold text-navy">New Course</h2>
               <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -433,10 +433,10 @@ const Training: React.FC = () => {
 
       {/* Enroll modal */}
       {showEnroll && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowEnroll(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-enroll" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowEnroll(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Enroll Employees</h2>
+              <h2 id="modal-title-enroll" className="text-lg font-bold text-navy">Enroll Employees</h2>
               <button onClick={() => setShowEnroll(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <div className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -473,10 +473,10 @@ const Training: React.FC = () => {
 
       {/* Certificate modal */}
       {showCert && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCert(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-cert" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCert(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Issue Certificate</h2>
+              <h2 id="modal-title-cert" className="text-lg font-bold text-navy">Issue Certificate</h2>
               <button onClick={() => setShowCert(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleIssueCert} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">

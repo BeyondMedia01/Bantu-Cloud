@@ -175,10 +175,10 @@ const Succession: React.FC = () => {
 
       {/* Create Plan modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-succession" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Succession Plan</h2>
+              <h2 id="modal-title-succession" className="text-lg font-bold text-navy">New Succession Plan</h2>
               <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="p-6 flex flex-col gap-4">
@@ -221,11 +221,11 @@ const Succession: React.FC = () => {
 
       {/* Detail / candidates modal */}
       {detailPlan && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setDetailPlan(null); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-detail" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setDetailPlan(null); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
-                <h2 className="text-lg font-bold text-navy">{detailPlan.positionTitle}</h2>
+                <h2 id="modal-title-detail" className="text-lg font-bold text-navy">{detailPlan.positionTitle}</h2>
                 <p className="text-xs text-muted-foreground">{detailPlan.department || 'No department'} · {detailPlan._count?.candidates ?? 0} candidates</p>
               </div>
               <button onClick={() => setDetailPlan(null)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
@@ -273,10 +273,10 @@ const Succession: React.FC = () => {
 
       {/* Add Candidate modal */}
       {showCandidate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCandidate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-candidate" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCandidate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Add Candidate</h2>
+              <h2 id="modal-title-candidate" className="text-lg font-bold text-navy">Add Candidate</h2>
               <button onClick={() => setShowCandidate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleAddCandidate} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">

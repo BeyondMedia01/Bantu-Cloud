@@ -291,10 +291,10 @@ const Onboarding: React.FC = () => {
 
       {/* Start Onboarding modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-onboarding" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Start Onboarding</h2>
+              <h2 id="modal-title-onboarding" className="text-lg font-bold text-navy">Start Onboarding</h2>
               <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -345,11 +345,11 @@ const Onboarding: React.FC = () => {
 
       {/* Detail / tasks modal */}
       {detailRecord && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setDetailRecord(null); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-detail" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setDetailRecord(null); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
-                <h2 className="text-lg font-bold text-navy">{detailRecord.employee?.firstName} {detailRecord.employee?.lastName}</h2>
+                <h2 id="modal-title-detail" className="text-lg font-bold text-navy">{detailRecord.employee?.firstName} {detailRecord.employee?.lastName}</h2>
                 <p className="text-xs text-muted-foreground">Onboarding checklist</p>
               </div>
               <button onClick={() => setDetailRecord(null)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
@@ -388,10 +388,10 @@ const Onboarding: React.FC = () => {
 
       {/* Create Template modal */}
       {showCreateTemplate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreateTemplate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-template" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreateTemplate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Template</h2>
+              <h2 id="modal-title-template" className="text-lg font-bold text-navy">New Template</h2>
               <button onClick={() => setShowCreateTemplate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateTemplate} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">

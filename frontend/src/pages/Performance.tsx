@@ -369,10 +369,10 @@ const Performance: React.FC = () => {
 
       {/* Create Goal modal */}
       {showGoal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowGoal(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-goal" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowGoal(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Goal</h2>
+              <h2 id="modal-title-goal" className="text-lg font-bold text-navy">New Goal</h2>
               <button onClick={() => setShowGoal(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateGoal} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -426,10 +426,10 @@ const Performance: React.FC = () => {
 
       {/* Create Review modal */}
       {showReview && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowReview(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-review" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowReview(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Review</h2>
+              <h2 id="modal-title-review" className="text-lg font-bold text-navy">New Review</h2>
               <button onClick={() => setShowReview(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateReview} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -476,10 +476,10 @@ const Performance: React.FC = () => {
 
       {/* Edit Review modal */}
       {editReviewId && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setEditReviewId(null); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-edit-review" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setEditReviewId(null); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Edit Review</h2>
+              <h2 id="modal-title-edit-review" className="text-lg font-bold text-navy">Edit Review</h2>
               <button onClick={() => setEditReviewId(null)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <div className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">

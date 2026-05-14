@@ -290,10 +290,10 @@ const Surveys: React.FC = () => {
 
       {/* Create Survey modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-survey" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Survey</h2>
+              <h2 id="modal-title-survey" className="text-lg font-bold text-navy">New Survey</h2>
               <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="p-6 flex flex-col gap-4">
@@ -331,10 +331,10 @@ const Surveys: React.FC = () => {
 
       {/* Edit Questions modal */}
       {editId && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setEditId(null); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-edit-survey" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setEditId(null); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Edit: {editTitle}</h2>
+              <h2 id="modal-title-edit-survey" className="text-lg font-bold text-navy">Edit: {editTitle}</h2>
               <button onClick={() => setEditId(null)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <div className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">

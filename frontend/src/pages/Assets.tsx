@@ -341,10 +341,10 @@ const Assets: React.FC = () => {
 
       {/* Create Asset modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-asset" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Asset</h2>
+              <h2 id="modal-title-asset" className="text-lg font-bold text-navy">New Asset</h2>
               <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -415,10 +415,10 @@ const Assets: React.FC = () => {
 
       {/* Create Category modal */}
       {showCreateCat && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreateCat(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-category" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreateCat(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Category</h2>
+              <h2 id="modal-title-category" className="text-lg font-bold text-navy">New Category</h2>
               <button onClick={() => setShowCreateCat(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateCategory} className="p-6 flex flex-col gap-4">
@@ -445,10 +445,10 @@ const Assets: React.FC = () => {
 
       {/* Assign modal */}
       {assignTarget && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setAssignTarget(null); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-assign" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setAssignTarget(null); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Assign: {assignTarget.name}</h2>
+              <h2 id="modal-title-assign" className="text-lg font-bold text-navy">Assign: {assignTarget.name}</h2>
               <button onClick={() => setAssignTarget(null)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <div className="p-6 flex flex-col gap-4">

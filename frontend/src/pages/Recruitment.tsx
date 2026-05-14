@@ -507,10 +507,10 @@ const Recruitment: React.FC = () => {
 
       {/* Create posting modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCreate(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-posting" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCreate(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">New Job Posting</h2>
+              <h2 id="modal-title-posting" className="text-lg font-bold text-navy">New Job Posting</h2>
               <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -577,10 +577,10 @@ const Recruitment: React.FC = () => {
 
       {/* Add application modal */}
       {showAddApp && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowAddApp(false); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-application" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowAddApp(false); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Add Application</h2>
+              <h2 id="modal-title-application" className="text-lg font-bold text-navy">Add Application</h2>
               <button onClick={() => setShowAddApp(false)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <form onSubmit={handleAddApplication} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
@@ -633,10 +633,10 @@ const Recruitment: React.FC = () => {
 
       {/* Status change modal */}
       {statusChangeTarget && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setStatusChangeTarget(null); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-status" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setStatusChangeTarget(null); }} tabIndex={-1}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-bold text-navy">Change Status to {statusChangeTarget.toStatus}</h2>
+              <h2 id="modal-title-status" className="text-lg font-bold text-navy">Change Status to {statusChangeTarget.toStatus}</h2>
               <button onClick={() => setStatusChangeTarget(null)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
             </div>
             <div className="p-6 flex flex-col gap-4">
