@@ -29,12 +29,12 @@ jobs:
       - name: Upload secrets
         working-directory: backend-v2
         run: |
-          echo "${{ secrets.DATABASE_URL }}"       | npx wrangler secret put DATABASE_URL
-          echo "${{ secrets.JWT_SECRET }}"          | npx wrangler secret put JWT_SECRET
-          echo "${{ secrets.RESEND_API_KEY }}"      | npx wrangler secret put RESEND_API_KEY
-          echo "${{ secrets.R2_ACCOUNT_ID }}"       | npx wrangler secret put R2_ACCOUNT_ID
-          echo "${{ secrets.R2_ACCESS_KEY_ID }}"    | npx wrangler secret put R2_ACCESS_KEY_ID
-          echo "${{ secrets.R2_SECRET_ACCESS_KEY }}" | npx wrangler secret put R2_SECRET_ACCESS_KEY
-          echo "${{ secrets.FRONTEND_URL }}"        | npx wrangler secret put FRONTEND_URL
+          printf '%s' "${{ secrets.DATABASE_URL }}"        | npx wrangler secret put DATABASE_URL
+          printf '%s' "${{ secrets.JWT_SECRET }}"           | npx wrangler secret put JWT_SECRET
+          printf '%s' "${{ secrets.RESEND_API_KEY }}"       | npx wrangler secret put RESEND_API_KEY
+          printf '%s' "${{ secrets.R2_ACCOUNT_ID }}"        | npx wrangler secret put R2_ACCOUNT_ID
+          printf '%s' "${{ secrets.R2_ACCESS_KEY_ID }}"     | npx wrangler secret put R2_ACCESS_KEY_ID
+          printf '%s' "${{ secrets.R2_SECRET_ACCESS_KEY }}"  | npx wrangler secret put R2_SECRET_ACCESS_KEY
+          printf '%s' "${{ secrets.FRONTEND_URL }}"         | npx wrangler secret put FRONTEND_URL
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
