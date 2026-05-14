@@ -22,19 +22,19 @@ jobs:
 
       - name: Deploy to Cloudflare Workers
         working-directory: backend-v2
-        run: npx wrangler deploy
+        run: npx wrangler@4.90.0 deploy --config wrangler.toml
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Upload secrets
         working-directory: backend-v2
         run: |
-          printf '%s' "${{ secrets.DATABASE_URL }}"        | npx wrangler secret put DATABASE_URL
-          printf '%s' "${{ secrets.JWT_SECRET }}"           | npx wrangler secret put JWT_SECRET
-          printf '%s' "${{ secrets.RESEND_API_KEY }}"       | npx wrangler secret put RESEND_API_KEY
-          printf '%s' "${{ secrets.R2_ACCOUNT_ID }}"        | npx wrangler secret put R2_ACCOUNT_ID
-          printf '%s' "${{ secrets.R2_ACCESS_KEY_ID }}"     | npx wrangler secret put R2_ACCESS_KEY_ID
-          printf '%s' "${{ secrets.R2_SECRET_ACCESS_KEY }}"  | npx wrangler secret put R2_SECRET_ACCESS_KEY
-          printf '%s' "${{ secrets.FRONTEND_URL }}"         | npx wrangler secret put FRONTEND_URL
+          printf '%s' "${{ secrets.DATABASE_URL }}"         | npx wrangler@4.90.0 secret put DATABASE_URL
+          printf '%s' "${{ secrets.JWT_SECRET }}"            | npx wrangler@4.90.0 secret put JWT_SECRET
+          printf '%s' "${{ secrets.RESEND_API_KEY }}"        | npx wrangler@4.90.0 secret put RESEND_API_KEY
+          printf '%s' "${{ secrets.R2_ACCOUNT_ID }}"         | npx wrangler@4.90.0 secret put R2_ACCOUNT_ID
+          printf '%s' "${{ secrets.R2_ACCESS_KEY_ID }}"      | npx wrangler@4.90.0 secret put R2_ACCESS_KEY_ID
+          printf '%s' "${{ secrets.R2_SECRET_ACCESS_KEY }}"  | npx wrangler@4.90.0 secret put R2_SECRET_ACCESS_KEY
+          printf '%s' "${{ secrets.FRONTEND_URL }}"          | npx wrangler@4.90.0 secret put FRONTEND_URL
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
