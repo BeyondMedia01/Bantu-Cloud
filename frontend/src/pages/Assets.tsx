@@ -8,14 +8,7 @@ import ConfirmModal from '../components/common/ConfirmModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Dropdown } from '@/components/ui/dropdown';
 import type { Asset, AssetCategory, AssetStatus } from '../types/domain';
-
-const STATUS_COLORS: Record<string, string> = {
-  AVAILABLE: 'bg-emerald-50 text-emerald-700',
-  ASSIGNED: 'bg-blue-50 text-blue-700',
-  MAINTENANCE: 'bg-amber-50 text-amber-700',
-  RETIRED: 'bg-muted text-muted-foreground',
-  LOST: 'bg-red-50 text-red-700',
-};
+import { StatusBadge } from '@/components/common/StatusBadge';
 const STATUS_OPTS: AssetStatus[] = ['AVAILABLE', 'ASSIGNED', 'MAINTENANCE', 'RETIRED', 'LOST'];
 
 const Assets: React.FC = () => {
@@ -282,9 +275,7 @@ const Assets: React.FC = () => {
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">{a.category?.name || '—'}</td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[a.status]}`}>
-                          {a.status}
-                        </span>
+                        <StatusBadge status={a.status} />
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">
                         {a.assignedTo ? `${a.assignedTo.firstName} ${a.assignedTo.lastName}` : '—'}

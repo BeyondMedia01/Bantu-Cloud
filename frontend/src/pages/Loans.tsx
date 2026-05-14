@@ -6,16 +6,11 @@ import SkeletonTable from '../components/common/SkeletonTable';
 import { LoanAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const fmtAmt = (n: number | undefined) => n != null ? Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
 
-const statusColor: Record<string, string> = {
-  ACTIVE: 'bg-blue-50 text-blue-700',
-  PAID_OFF: 'bg-emerald-50 text-emerald-700',
-  DEFAULTED: 'bg-red-50 text-red-700',
-  CANCELLED: 'bg-muted text-foreground/80',
-};
 
 const Loans: React.FC = () => {
   const navigate = useNavigate();
@@ -107,9 +102,7 @@ const Loans: React.FC = () => {
                   <td className="px-5 py-4 text-sm font-medium">{fmtAmt(loan.monthlyInstalment)}</td>
                   <td className="px-5 py-4 text-sm">{fmtDate(loan.startDate)}</td>
                   <td className="px-5 py-4">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${statusColor[loan.status] || 'bg-muted text-foreground/80'}`}>
-                      {loan.status}
-                    </span>
+                    <StatusBadge status={loan.status} />
                   </td>
                   <td className="px-5 py-4 text-muted-foreground">
                     <ChevronRight size={16} />

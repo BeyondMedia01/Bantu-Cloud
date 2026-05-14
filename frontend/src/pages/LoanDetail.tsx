@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, Loader } from 'lucide-react';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { LoanAPI } from '../api/client';
 
 const LoanDetail: React.FC = () => {
@@ -113,14 +114,7 @@ const LoanDetail: React.FC = () => {
                 <td className="px-4 py-3 text-sm">{new Date(r.dueDate).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-sm font-bold">{r.amount?.toFixed(2)}</td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${
-                    r.status === 'PAID' ? 'bg-emerald-50 text-emerald-700' :
-                    r.status === 'DUE' ? 'bg-amber-50 text-amber-700' :
-                    'bg-muted text-foreground/80'
-                  }`}>
-                    {r.status === 'PAID' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                    {r.status}
-                  </span>
+                  <StatusBadge status={r.status} />
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">
                   {r.paidDate ? new Date(r.paidDate).toLocaleDateString() : '—'}

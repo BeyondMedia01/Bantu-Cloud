@@ -8,16 +8,11 @@ import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { usePermissions } from '../hooks/usePermissions';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
 const fmtType = (t: string) => t.charAt(0) + t.slice(1).toLowerCase().replace(/_/g, ' ');
 
-const STATUS_STYLE: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700',
-  APPROVED: 'bg-teal-50 text-teal-700',
-  PROCESSED: 'bg-emerald-50 text-emerald-700',
-  REJECTED: 'bg-red-50 text-red-700',
-};
 
 const LeaveEncashments: React.FC = () => {
   const { showToast } = useToast();
@@ -304,13 +299,7 @@ const LeaveEncashments: React.FC = () => {
                     <td className="px-5 py-4 text-sm">{enc.currency} {Number(enc.ratePerDay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td className="px-5 py-4 text-sm font-bold">{enc.currency} {Number(enc.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_STYLE[enc.status] || 'bg-muted text-foreground/80'}`}>
-                        {enc.status === 'PENDING' && <Clock size={11} />}
-                        {enc.status === 'APPROVED' && <CheckCircle2 size={11} />}
-                        {enc.status === 'PROCESSED' && <Zap size={11} />}
-                        {enc.status === 'REJECTED' && <XCircle size={11} />}
-                        {enc.status}
-                      </span>
+                      <StatusBadge status={enc.status} />
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5">

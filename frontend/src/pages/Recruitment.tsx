@@ -10,28 +10,14 @@ import SkeletonTable from '../components/common/SkeletonTable';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Dropdown } from '@/components/ui/dropdown';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import type {
   JobPosting, JobApplication, JobStatus, ApplicationStatus,
   ScreeningSummary,
 } from '../types/domain';
 
 const POSTING_STATUS_OPTS: JobStatus[] = ['DRAFT', 'PUBLISHED', 'CLOSED', 'FILLED'];
-const POSTING_STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-muted text-muted-foreground',
-  PUBLISHED: 'bg-emerald-50 text-emerald-700',
-  CLOSED: 'bg-red-50 text-red-700',
-  FILLED: 'bg-blue-50 text-blue-700',
-};
 const APP_STATUS_OPTS: ApplicationStatus[] = ['NEW', 'SCREENING', 'INTERVIEWING', 'OFFERED', 'HIRED', 'REJECTED', 'WITHDRAWN'];
-const APP_STATUS_COLORS: Record<string, string> = {
-  NEW: 'bg-blue-50 text-blue-700',
-  SCREENING: 'bg-amber-50 text-amber-700',
-  INTERVIEWING: 'bg-purple-50 text-purple-700',
-  OFFERED: 'bg-emerald-50 text-emerald-700',
-  HIRED: 'bg-emerald-50 text-emerald-700',
-  REJECTED: 'bg-red-50 text-red-700',
-  WITHDRAWN: 'bg-muted text-muted-foreground',
-};
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
@@ -359,9 +345,7 @@ const Recruitment: React.FC = () => {
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">{p.department || '—'}</td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${POSTING_STATUS_COLORS[p.status]}`}>
-                          {p.status}
-                        </span>
+                        <StatusBadge status={p.status} />
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">{p._count?.applications ?? 0}</td>
                       <td className="px-5 py-4 text-muted-foreground">{p.closesAt ? fmtDate(p.closesAt) : '—'}</td>
@@ -449,9 +433,7 @@ const Recruitment: React.FC = () => {
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">{(a as any).jobPosting?.title || '—'}</td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${APP_STATUS_COLORS[a.status]}`}>
-                          {a.status}
-                        </span>
+                        <StatusBadge status={a.status} />
                         {a.shortlisted && (
                           <span className="ml-1.5 inline-flex items-center gap-0.5 text-amber-600 text-[11px] font-bold">
                             <Star size={11} className="fill-amber-400" /> Shortlisted

@@ -8,19 +8,7 @@ import ConfirmModal from '../components/common/ConfirmModal';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
-
-const STATUS_COLORS: Record<string, string> = {
-  APPROVED: 'bg-emerald-50 text-emerald-700',
-  REJECTED: 'bg-red-50 text-red-700',
-  PENDING:  'bg-amber-50 text-amber-700',
-  CANCELLED: 'bg-muted text-muted-foreground',
-};
-
-const STATUS_ICONS: Record<string, React.ReactNode> = {
-  APPROVED: <CheckCircle2 size={12} />,
-  REJECTED: <XCircle size={12} />,
-  PENDING:  <Clock size={12} />,
-};
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
@@ -279,9 +267,7 @@ const Leave: React.FC = () => {
                       <span className="text-sm font-bold">{item.totalDays ?? item.days ?? '—'}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[item.status] || 'bg-muted text-foreground/80'}`}>
-                        {STATUS_ICONS[item.status]} {item.status}
-                      </span>
+                      <StatusBadge status={item.status} />
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1">

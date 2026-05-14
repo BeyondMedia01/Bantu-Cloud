@@ -7,7 +7,7 @@ import {
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { Dropdown } from '../components/ui/dropdown';
-import { RUN_STATUS_CLASS } from '../lib/payrollStatusColors';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const fmt = (n: number | null | undefined) =>
   n != null ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -210,9 +210,7 @@ const PayrollSummary: React.FC = () => {
                 {' – '}
                 {new Date(run.endDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${RUN_STATUS_CLASS[run.status] || 'bg-muted text-foreground/80'}`}>
-                {run.status}
-              </span>
+              <StatusBadge status={run.status} />
               {isDual ? (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">
                   USD + ZiG &nbsp;·&nbsp; 1 USD = {Number(xr).toFixed(4)} ZiG

@@ -7,13 +7,7 @@ import SkeletonTable from '../components/common/SkeletonTable';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Dropdown } from '@/components/ui/dropdown';
 import type { Onboarding as OnboardingType, OnboardingTemplate, OnboardingTask } from '../types/domain';
-
-const STATUS_COLORS: Record<string, string> = {
-  NOT_STARTED: 'bg-muted text-muted-foreground',
-  IN_PROGRESS: 'bg-blue-50 text-blue-700',
-  COMPLETED: 'bg-emerald-50 text-emerald-700',
-  CANCELLED: 'bg-red-50 text-red-700',
-};
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
@@ -245,9 +239,7 @@ const Onboarding: React.FC = () => {
                         {r.employee?.employeeCode && <p className="text-xs text-muted-foreground">#{r.employee.employeeCode}</p>}
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[r.status]}`}>
-                          {r.status?.replace('_', ' ')}
-                        </span>
+                        <StatusBadge status={r.status} />
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">{r.template?.name || '—'}</td>
                       <td className="px-5 py-4 text-muted-foreground">{fmtDate(r.startDate)}</td>

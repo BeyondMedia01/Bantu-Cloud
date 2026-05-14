@@ -6,8 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
-import { RUN_STATUS_CLASS } from '../lib/payrollStatusColors';
 import { usePermissions } from '../hooks/usePermissions';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const Payroll: React.FC = () => {
   const navigate = useNavigate();
@@ -212,9 +212,7 @@ const Payroll: React.FC = () => {
                       : (run.employeeCount ?? run._count?.payslips ?? '—')}
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${RUN_STATUS_CLASS[run.status] || 'bg-muted text-foreground/80'}`}>
-                      {run.status}
-                    </span>
+                    <StatusBadge status={run.status} />
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">

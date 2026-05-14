@@ -6,12 +6,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { EmptyState } from '@/components/ui/empty-state';
 import type { SuccessionPlan } from '../types/domain';
-
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: 'bg-emerald-50 text-emerald-700',
-  FILLED: 'bg-blue-50 text-blue-700',
-  CANCELLED: 'bg-muted text-muted-foreground',
-};
+import { StatusBadge } from '@/components/common/StatusBadge';
 const READINESS_LABELS: Record<string, string> = {
   READY_NOW: 'Ready Now', READY_1_2_YEARS: '1-2 Years', READY_3_5_YEARS: '3-5 Years', LONG_TERM: 'Long Term',
 };
@@ -148,9 +143,7 @@ const Succession: React.FC = () => {
                   <td className="px-5 py-4 font-medium text-navy">{p.positionTitle}</td>
                   <td className="px-5 py-4 text-muted-foreground">{p.department || '—'}</td>
                   <td className="px-5 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[p.status]}`}>
-                      {p.status}
-                    </span>
+                    <StatusBadge status={p.status} />
                   </td>
                   <td className="px-5 py-4">
                     {p.riskLevel && (

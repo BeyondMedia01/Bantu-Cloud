@@ -6,12 +6,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import SkeletonTable from '../components/common/SkeletonTable';
 import { EmptyState } from '@/components/ui/empty-state';
 import type { Survey, SurveyResult } from '../types/domain';
-
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-muted text-muted-foreground',
-  ACTIVE: 'bg-emerald-50 text-emerald-700',
-  CLOSED: 'bg-blue-50 text-blue-700',
-};
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
@@ -164,9 +159,7 @@ const Surveys: React.FC = () => {
                       {s.anonymous && <p className="text-xs text-muted-foreground">Anonymous</p>}
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[s.status]}`}>
-                        {s.status}
-                      </span>
+                      <StatusBadge status={s.status} />
                     </td>
                     <td className="px-5 py-4 text-muted-foreground">{s._count?.questions ?? 0}</td>
                     <td className="px-5 py-4 text-muted-foreground">{s._count?.responses ?? 0}</td>

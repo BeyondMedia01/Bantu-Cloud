@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { RUN_STATUS_CLASS } from '../lib/payrollStatusColors';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const fmtDate = (d: string | undefined) =>
   d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -170,9 +170,7 @@ const Dashboard: React.FC = () => {
               <CardContent className="pt-4">
                 <div className="flex justify-between items-start mb-2">
                   <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Current Run</p>
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${RUN_STATUS_CLASS[currentRun.status] ?? 'bg-muted text-foreground/80'}`}>
-                    {currentRun.status.replace('_', ' ')}
-                  </span>
+                  <StatusBadge status={currentRun.status} />
                 </div>
                 <p className="font-bold text-sm">{currentRun.name}</p>
                 <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
