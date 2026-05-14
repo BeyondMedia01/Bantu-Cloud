@@ -343,26 +343,26 @@ const Reports: React.FC = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
-                { key: 'summary-pdf', icon: <FileText size={20} />, color: 'bg-muted text-foreground/90', label: 'Payroll Summary PDF', sub: 'Full summary for selected run', fn: downloadSummaryPdf },
-                { key: 'eft', icon: <CreditCard size={20} />, color: 'bg-orange-50 text-orange-600', label: 'Bank EFT Export', sub: 'Bulk payment CSV', fn: downloadEft },
-                { key: 'payslips', icon: <FileText size={20} />, color: 'bg-purple-50 text-purple-600', label: 'Payslips Export', sub: 'CSV for selected run', fn: downloadPayslips },
-                { key: 'journals', icon: <FileSpreadsheet size={20} />, color: 'bg-indigo-50 text-indigo-600', label: 'Payroll Journals', sub: 'Transaction level export', fn: downloadJournals },
-                { key: 'leave', icon: <BookOpen size={20} />, color: 'bg-amber-50 text-amber-600', label: 'Leave Report', sub: 'Leave balances & history', fn: downloadLeave },
-                { key: 'loans', icon: <BarChart2 size={20} />, color: 'bg-rose-50 text-rose-600', label: 'Loans Report', sub: 'Active & settled loans', fn: downloadLoans },
-                { key: 'departments', icon: <Users size={20} />, color: 'bg-teal-50 text-teal-600', label: 'Headcount Report', sub: 'Employees by dept.', fn: downloadDepartments },
-                { key: 'paye-report', icon: <FileText size={20} />, color: 'bg-blue-50 text-blue-600', label: 'PAYE Report', sub: 'PAYE breakdown for run', fn: downloadPayeReport },
-                { key: 'nssa-report', icon: <ShieldCheck size={20} />, color: 'bg-emerald-50 text-emerald-700', label: 'NSSA Report', sub: 'NSSA contributions for run', fn: downloadNssaReport },
-                { key: 'total-journal', icon: <BookOpen size={20} />, color: 'bg-slate-100 text-slate-600', label: 'Total Journal', sub: 'All journal entries for run', fn: downloadTotalJournal },
-                { key: 'dept-journal', icon: <FileSpreadsheet size={20} />, color: 'bg-cyan-50 text-cyan-700', label: 'Department Journal', sub: 'Journal grouped by dept.', fn: downloadDeptJournal },
-                { key: 'medical-aid', icon: <CreditCard size={20} />, color: 'bg-pink-50 text-pink-600', label: 'Medical Aid Report', sub: 'Medical deductions for run', fn: downloadMedicalAid },
-                { key: 'overtime', icon: <Clock size={20} />, color: 'bg-orange-50 text-orange-600', label: 'Overtime Report', sub: 'OT hours & amounts for run', fn: downloadOvertime },
-                { key: 'salary-advance', icon: <BarChart2 size={20} />, color: 'bg-yellow-50 text-yellow-600', label: 'Salary Advance', sub: 'Active salary advances', fn: downloadSalaryAdvance },
-                { key: 'leave-provision', icon: <TrendingUp size={20} />, color: 'bg-lime-50 text-lime-700', label: 'Leave Provision', sub: 'Leave liability as at today', fn: downloadLeaveProvision },
-                { key: 'employee-listing', icon: <Users size={20} />, color: 'bg-violet-50 text-violet-600', label: 'Employee Listing', sub: 'All active employees', fn: downloadEmployeeListing },
-              ].map(({ key, icon, color, label, sub, fn }) => (
+                { key: 'summary-pdf', icon: <FileText size={20} />, color: 'bg-muted text-foreground/90', label: 'Payroll Summary PDF', sub: 'Full summary for selected run', fn: downloadSummaryPdf, runRequired: true },
+                { key: 'eft', icon: <CreditCard size={20} />, color: 'bg-orange-50 text-orange-600', label: 'Bank EFT Export', sub: 'Bulk payment CSV', fn: downloadEft, runRequired: true },
+                { key: 'payslips', icon: <FileText size={20} />, color: 'bg-purple-50 text-purple-600', label: 'Payslips Export', sub: 'CSV for selected run', fn: downloadPayslips, runRequired: true },
+                { key: 'journals', icon: <FileSpreadsheet size={20} />, color: 'bg-indigo-50 text-indigo-600', label: 'Payroll Journals', sub: 'Transaction level export', fn: downloadJournals, runRequired: true },
+                { key: 'leave', icon: <BookOpen size={20} />, color: 'bg-amber-50 text-amber-600', label: 'Leave Report', sub: 'Leave balances & history', fn: downloadLeave, runRequired: false },
+                { key: 'loans', icon: <BarChart2 size={20} />, color: 'bg-rose-50 text-rose-600', label: 'Loans Report', sub: 'Active & settled loans', fn: downloadLoans, runRequired: false },
+                { key: 'departments', icon: <Users size={20} />, color: 'bg-teal-50 text-teal-600', label: 'Headcount Report', sub: 'Employees by dept.', fn: downloadDepartments, runRequired: false },
+                { key: 'paye-report', icon: <FileText size={20} />, color: 'bg-blue-50 text-blue-600', label: 'PAYE Report', sub: 'PAYE breakdown for run', fn: downloadPayeReport, runRequired: true },
+                { key: 'nssa-report', icon: <ShieldCheck size={20} />, color: 'bg-emerald-50 text-emerald-700', label: 'NSSA Report', sub: 'NSSA contributions for run', fn: downloadNssaReport, runRequired: true },
+                { key: 'total-journal', icon: <BookOpen size={20} />, color: 'bg-slate-100 text-slate-600', label: 'Total Journal', sub: 'All journal entries for run', fn: downloadTotalJournal, runRequired: true },
+                { key: 'dept-journal', icon: <FileSpreadsheet size={20} />, color: 'bg-cyan-50 text-cyan-700', label: 'Department Journal', sub: 'Journal grouped by dept.', fn: downloadDeptJournal, runRequired: true },
+                { key: 'medical-aid', icon: <CreditCard size={20} />, color: 'bg-pink-50 text-pink-600', label: 'Medical Aid Report', sub: 'Medical deductions for run', fn: downloadMedicalAid, runRequired: true },
+                { key: 'overtime', icon: <Clock size={20} />, color: 'bg-orange-50 text-orange-600', label: 'Overtime Report', sub: 'OT hours & amounts for run', fn: downloadOvertime, runRequired: true },
+                { key: 'salary-advance', icon: <BarChart2 size={20} />, color: 'bg-yellow-50 text-yellow-600', label: 'Salary Advance', sub: 'Active salary advances', fn: downloadSalaryAdvance, runRequired: false },
+                { key: 'leave-provision', icon: <TrendingUp size={20} />, color: 'bg-lime-50 text-lime-700', label: 'Leave Provision', sub: 'Leave liability as at today', fn: downloadLeaveProvision, runRequired: false },
+                { key: 'employee-listing', icon: <Users size={20} />, color: 'bg-violet-50 text-violet-600', label: 'Employee Listing', sub: 'All active employees', fn: downloadEmployeeListing, runRequired: false },
+              ].map(({ key, icon, color, label, sub, fn, runRequired }) => (
                 <button
                   key={key}
-                  disabled={disabled || loadingRuns || isDownloading(key)}
+                  disabled={disabled || (runRequired && loadingRuns) || isDownloading(key)}
                   onClick={fn}
                   className="bg-primary rounded-2xl border border-border shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed"
                 >
