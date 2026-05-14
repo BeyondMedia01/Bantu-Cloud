@@ -87,10 +87,11 @@ const EmployeeEdit: React.FC = () => {
       // Personal
       employeeCode: '', title: '', firstName: '', lastName: '', maidenName: '',
       nationality: 'Zimbabwean', nationalId: '', passportNumber: '', email: '', phone: '',
-      gender: '', maritalStatus: '',
+      dateOfBirth: undefined, gender: '', maritalStatus: '',
       homeAddress: '', postalAddress: '',
       nextOfKinName: '', nextOfKinContact: '', socialSecurityNum: '', pensionNumber: '',
       // Work
+      startDate: undefined,
       occupation: '', position: '', departmentId: '', branchId: '',
       costCenter: '', grade: '', employmentType: 'PERMANENT',
       leaveEntitlement: undefined, dischargeReason: '',
@@ -783,6 +784,7 @@ const EmployeeEdit: React.FC = () => {
                       { label: 'Cash', onClick: () => field.onChange('CASH') },
                     ]}]} />
                   )} />
+                  {errors.paymentMethod && <p className="text-xs text-destructive mt-1">{errors.paymentMethod.message}</p>}
                 </FormItem>
 
                 <FormItem className="flex flex-col gap-1.5">
@@ -799,6 +801,7 @@ const EmployeeEdit: React.FC = () => {
                       { label: 'Hourly',  onClick: () => field.onChange('HOURLY') },
                     ]}]} />
                   )} />
+                  {errors.paymentBasis && <p className="text-xs text-destructive mt-1">{errors.paymentBasis.message}</p>}
                 </FormItem>
 
                 <FormItem className="flex flex-col gap-1.5">
@@ -814,6 +817,7 @@ const EmployeeEdit: React.FC = () => {
                       { label: 'NEC Grade', onClick: () => field.onChange('NEC_GRADE') },
                     ]}]} />
                   )} />
+                  {errors.rateSource && <p className="text-xs text-destructive mt-1">{errors.rateSource.message}</p>}
                 </FormItem>
 
                 {rateSource === 'NEC_GRADE' && (
@@ -854,6 +858,7 @@ const EmployeeEdit: React.FC = () => {
                       { label: 'ZiG', onClick: () => field.onChange('ZiG') },
                     ]}]} />
                   )} />
+                  {errors.currency && <p className="text-xs text-destructive mt-1">{errors.currency.message}</p>}
                 </FormItem>
 
                 <FormField control={control} name="hoursPerPeriod" render={({ field }) => (
@@ -1073,6 +1078,7 @@ const EmployeeEdit: React.FC = () => {
                       { label: 'FDS Forecasting', onClick: () => field.onChange('FDS_FORECASTING') },
                     ]}]} />
                   )} />
+                  {errors.taxMethod && <p className="text-xs text-destructive mt-1">{errors.taxMethod.message}</p>}
                   <p className="text-[10px] text-muted-foreground leading-snug">
                     {taxMethod === 'NON_FDS' && 'Standard PAYE — tax calculated monthly.'}
                     {taxMethod === 'FDS_AVERAGE' && 'Fixed-date scheme (YTD average).'}
@@ -1109,6 +1115,7 @@ const EmployeeEdit: React.FC = () => {
                       { label: 'Yes', onClick: () => field.onChange('YES') },
                     ]}]} />
                   )} />
+                  {errors.accumulativeSetting && <p className="text-xs text-destructive mt-1">{errors.accumulativeSetting.message}</p>}
                 </FormItem>
 
                 <FormField control={control} name="taxCredits" render={({ field }) => (

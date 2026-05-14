@@ -24,7 +24,7 @@ export const employeeSchema = z.object({
   passportNumber: z.string().optional(),
   email: z.string().email('Invalid email').or(z.literal('')).optional(),
   phone: z.string().optional(),
-  dateOfBirth: z.date(),
+  dateOfBirth: z.date().optional(),
   gender: z.string().min(1, 'Required'),
   maritalStatus: z.string().min(1, 'Required'),
   homeAddress: z.string().optional(),
@@ -34,7 +34,7 @@ export const employeeSchema = z.object({
   socialSecurityNum: z.string().optional(),
   pensionNumber: z.string().optional(),
   // Work
-  startDate: z.date(),
+  startDate: z.date().optional(),
   occupation: z.string().optional(),
   position: z.string().min(1, 'Required'),
   departmentId: z.string().optional(),
