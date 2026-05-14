@@ -278,8 +278,8 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : trend.length > 0 ? (() => {
                 const last = trend[trend.length - 1];
-                const hasZig = last.zigTotal > 0;
-                const hasUsd = last.usdTotal > 0;
+                const hasZig = (last.zigTotal ?? 0) > 0;
+                const hasUsd = (last.usdTotal ?? 0) > 0;
                 const bothCurrencies = hasZig && hasUsd;
                 return (
                   <>
@@ -288,21 +288,23 @@ const Dashboard: React.FC = () => {
                         <p className="text-3xl font-bold">{currencySymbol}{last.netPay.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground font-medium mt-0.5">Net pay · last run</p>
                       </div>
-                      <div className="pb-0.5">
-                        <p className="text-xl font-bold text-foreground/70">{currencySymbol}{last.ctc.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground font-medium mt-0.5">Total CTC</p>
-                      </div>
+                      {last.ctc != null && (
+                        <div className="pb-0.5">
+                          <p className="text-xl font-bold text-foreground/70">{currencySymbol}{last.ctc.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground font-medium mt-0.5">Total CTC</p>
+                        </div>
+                      )}
                     </div>
                     {(bothCurrencies || hasZig || hasUsd) && (
                       <div className="flex items-center gap-2 flex-wrap">
                         {hasUsd && (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-info-bg text-info border border-info-border text-xs font-bold">
-                            USD ${last.usdTotal.toLocaleString()}
+                            USD ${(last.usdTotal ?? 0).toLocaleString()}
                           </span>
                         )}
                         {hasZig && (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning-bg text-warning border border-warning-border text-xs font-bold">
-                            ZiG {last.zigTotal.toLocaleString()}
+                            ZiG {(last.zigTotal ?? 0).toLocaleString()}
                           </span>
                         )}
                         {bothCurrencies && (
