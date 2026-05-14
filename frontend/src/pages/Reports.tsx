@@ -31,17 +31,20 @@ const Reports: React.FC = () => {
   const canExport = can('REPORTS', 'EXPORT');
   const [cashflow, setCashflow] = useState<any>(null);
   const [loadingCashflow, setLoadingCashflow] = useState(false);
+  const [loadingRuns, setLoadingRuns] = useState(true);
 
   useEffect(() => {
     if (companyId) {
       // Fetch completed runs for EFT and other run-based reports
+      setLoadingRuns(true);
       http.get('/payroll', { params: { companyId, status: 'COMPLETED' } })
         .then(res => {
           const list = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
           setRuns(list);
           if (list.length > 0) setSelectedRunId(list[0].id);
         })
-        .catch(() => showToast('Failed to load payroll runs', 'error'));
+        .catch(() => showToast('Failed to load payroll runs', 'error'))
+        .finally(() => setLoadingRuns(false));
 
       setLoadingCashflow(true);
       IntelligenceAPI.getCashflow(companyId)
@@ -319,18 +322,22 @@ const Reports: React.FC = () => {
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Operational Reports</h3>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase">Target Run:</span>
-                <Dropdown
-                  trigger={(isOpen) => (
-                    <button type="button" className="flex items-center gap-1.5 bg-muted border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-green transition-colors max-w-[170px]">
-                      <span className="truncate">{runs.find((r: any) => r.id === selectedRunId) ? `${fmtDate(runs.find((r: any) => r.id === selectedRunId).startDate)} – ${fmtDate(runs.find((r: any) => r.id === selectedRunId).endDate)}` : 'Select Run...'}</span>
-                      <ChevronDown size={12} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                  )}
-                  sections={[{ items: [
-                    { label: 'Select Run...', onClick: () => setSelectedRunId('') },
-                    ...runs.map((r: any) => ({ label: `${fmtDate(r.startDate)} – ${fmtDate(r.endDate)}`, onClick: () => setSelectedRunId(r.id) })),
-                  ], emptyMessage: 'No runs available' }]}
-                />
+                {loadingRuns ? (
+                  <div className="h-7 bg-muted animate-pulse rounded-lg w-[170px]" />
+                ) : (
+                  <Dropdown
+                    trigger={(isOpen) => (
+                      <button type="button" className="flex items-center gap-1.5 bg-muted border border-border rounded-lg px-2 py-1 text-[11px] font-bold text-navy hover:border-accent-green transition-colors max-w-[170px]">
+                        <span className="truncate">{runs.find((r: any) => r.id === selectedRunId) ? `${fmtDate(runs.find((r: any) => r.id === selectedRunId).startDate)} – ${fmtDate(runs.find((r: any) => r.id === selectedRunId).endDate)}` : 'Select Run...'}</span>
+                        <ChevronDown size={12} className={`text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                    )}
+                    sections={[{ items: [
+                      { label: 'Select Run...', onClick: () => setSelectedRunId('') },
+                      ...runs.map((r: any) => ({ label: `${fmtDate(r.startDate)} – ${fmtDate(r.endDate)}`, onClick: () => setSelectedRunId(r.id) })),
+                    ], emptyMessage: 'No runs available' }]}
+                  />
+                )}
               </div>
             </div>
             
@@ -355,7 +362,7 @@ const Reports: React.FC = () => {
               ].map(({ key, icon, color, label, sub, fn }) => (
                 <button
                   key={key}
-                  disabled={disabled || isDownloading(key)}
+                  disabled={disabled || loadingRuns || isDownloading(key)}
                   onClick={fn}
                   className="bg-primary rounded-2xl border border-border shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed"
                 >
