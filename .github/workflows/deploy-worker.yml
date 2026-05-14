@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend-v2
-        run: npm ci
+        run: npm install
 
       - name: Deploy to Cloudflare Workers
         working-directory: backend-v2
