@@ -98,10 +98,15 @@ export function useDashboardData(): DashboardData {
 
   const hasCompany = !!getActiveCompanyId();
 
-  // Primary loading gate — skeleton shows until all three core queries resolve
+  // Show skeleton until we have data OR all retries are exhausted.
+  // isLoading is false during retries in TanStack Query v5 (status=error, fetchStatus=fetching),
+  // so we also check isFetching when data is absent to cover the retry window.
   const loading =
-    hasCompany &&
-    (summaryQuery.isLoading || remindersQuery.isLoading || trendQuery.isLoading);
+    hasCompany && (
+      (!summaryQuery.data   && (summaryQuery.isLoading   || summaryQuery.isFetching))   ||
+      (!remindersQuery.data && (remindersQuery.isLoading || remindersQuery.isFetching)) ||
+      (!trendQuery.data     && (trendQuery.isLoading     || trendQuery.isFetching))
+    );
 
   return {
     summary: summaryQuery.data,
