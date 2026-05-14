@@ -149,7 +149,7 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
 
       {/* Rates Table */}
       <div className="bg-primary rounded-2xl border border-border overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-x-shadow">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-muted border-b border-border">

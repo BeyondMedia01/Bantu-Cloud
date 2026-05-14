@@ -165,7 +165,7 @@ const LeaveBalances: React.FC = () => {
                     <p className="text-xs text-muted-foreground font-semibold">{emp?.employeeCode || '—'}</p>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto scroll-x-shadow">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-border">

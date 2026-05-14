@@ -373,7 +373,7 @@ const PayrollInputs: React.FC = () => {
         </div>
       ) : (
         <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted">

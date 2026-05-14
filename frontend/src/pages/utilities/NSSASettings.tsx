@@ -75,7 +75,7 @@ const NSSASettingsPage: React.FC = () => {
             <Info size={18} className="shrink-0 mt-0.5" />
             <div>
               <p className="font-bold mb-0.5">Zimbabwe NSSA (National Social Security Act, Chapter 17:04)</p>
-              <p className="font-medium">Standard rates: <strong>3.5% employee</strong> + <strong>3.5% employer</strong> on pensionable earnings, capped at <strong>USD 700/month</strong>. Update these values if NSSA revises its rates.</p>
+              <p className="font-medium">Current rates: <strong>{form.employeeRate}% employee</strong> + <strong>{form.employerRate}% employer</strong> on pensionable earnings, capped at <strong>USD {form.ceilingUSD}/month</strong> (ZiG {form.ceilingZIG}/month). Update these values if NSSA revises its rates.</p>
             </div>
           </div>
 

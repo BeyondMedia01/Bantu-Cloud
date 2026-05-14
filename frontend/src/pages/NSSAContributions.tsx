@@ -157,7 +157,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
               />
             </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-left font-sans">
             <thead>
               <tr className="border-b border-border bg-muted">

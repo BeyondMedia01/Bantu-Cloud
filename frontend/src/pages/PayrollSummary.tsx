@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Download, Users, TrendingUp, TrendingDown,
-  DollarSign, Banknote, ChevronDown, FileText, Eye,
+  DollarSign, Banknote, ChevronDown, FileText, Eye, X,
 } from 'lucide-react';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -104,10 +104,7 @@ const PayrollSummary: React.FC = () => {
       const res = await PayrollAPI.downloadPayslipSummaryPdf(runId);
       const contentType = res.headers?.['content-type'] || 'text/html';
       const url = URL.createObjectURL(new Blob([res.data], { type: contentType }));
-      // Backend returns HTML; open in new tab so user can print/save as PDF
-      const win = window.open(url, '_blank');
-      if (win) win.addEventListener('load', () => { setTimeout(() => URL.revokeObjectURL(url), 1000); });
-      else URL.revokeObjectURL(url);
+      setPreviewUrl(url);
     } catch { showToast('Failed to generate Detailed Summary', 'error'); }
     finally { setExporting(''); }
   };
@@ -158,7 +155,7 @@ const PayrollSummary: React.FC = () => {
         ))}
       </div>
       <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-muted">
@@ -364,7 +361,7 @@ const PayrollSummary: React.FC = () => {
               1 USD = {Number(xr).toFixed(4)} ZiG
             </span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scroll-x-shadow">
             <table className="w-full text-left min-w-[480px]">
               <thead>
                 <tr className="border-b border-border bg-muted">
@@ -411,7 +408,7 @@ const PayrollSummary: React.FC = () => {
           <div className="px-6 py-4 border-b border-border">
             <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Employee Breakdown</h2>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scroll-x-shadow">
             <table className="w-full text-left min-w-max">
               <thead>
                 <tr className="border-b border-border bg-muted">
@@ -507,19 +504,33 @@ const PayrollSummary: React.FC = () => {
           </div>
         </div>
       )}
-      {/* ── PDF preview overlay ── */}
+      {/* ── PDF preview modal ── */}
       {previewUrl && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex flex-col">
-          <div className="flex items-center justify-between px-4 py-2 bg-primary border-b border-border">
-            <span className="font-bold text-sm">Payroll Summary Preview</span>
-            <button
-              onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }}
-              className="px-3 py-1.5 text-sm font-bold border border-border rounded-lg hover:bg-muted transition-colors"
-            >
-              Close
-            </button>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }}
+        >
+          <div
+            className="relative bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ width: '90vw', maxWidth: 900, height: '90vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 bg-navy text-white shrink-0">
+              <span className="font-bold text-sm truncate">Payroll Summary Preview</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { const win = window.open(previewUrl, '_blank'); win?.addEventListener('load', () => win.print()); }}
+                  className="flex items-center gap-1.5 bg-white/10 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-white/20"
+                >
+                  <FileText size={13} /> Save as PDF
+                </button>
+                <button onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }} className="p-1.5 rounded-full hover:bg-white/10">
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            <iframe src={previewUrl} className="flex-1 w-full border-0" title="Payroll Summary PDF" />
           </div>
-          <iframe src={previewUrl} className="flex-1 w-full" title="Payroll Summary PDF" />
         </div>
       )}
     </div>

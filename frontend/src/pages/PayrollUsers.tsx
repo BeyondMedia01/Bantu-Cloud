@@ -127,7 +127,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
             </div>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-muted border-b border-border">

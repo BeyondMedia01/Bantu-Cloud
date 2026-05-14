@@ -85,7 +85,7 @@ const Loans: React.FC = () => {
         />
       ) : (
         <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-border bg-muted">

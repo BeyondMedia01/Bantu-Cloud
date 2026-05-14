@@ -306,7 +306,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scroll-x-shadow">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border bg-muted">

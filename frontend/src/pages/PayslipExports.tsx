@@ -115,7 +115,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
 
       {/* Export Ledger Table */}
       <div className="bg-primary rounded-3xl border border-border overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-x-shadow">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-muted border-b border-border">
