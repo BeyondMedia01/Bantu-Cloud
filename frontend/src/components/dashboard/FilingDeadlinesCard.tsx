@@ -88,9 +88,15 @@ function getUpcomingDeadlines(holidays: PublicHoliday[] = []): Deadline[] {
     });
   }
 
+  const seen = new Set<string>();
   return deadlines
     .filter((d) => d.dueDate >= today)
     .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
+    .filter((d) => {
+      if (seen.has(d.name)) return false;
+      seen.add(d.name);
+      return true;
+    })
     .slice(0, 8);
 }
 
