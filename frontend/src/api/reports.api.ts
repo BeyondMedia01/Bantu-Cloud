@@ -49,7 +49,7 @@ export const ReportsAPI = {
   departments: () => http.get('/reports/departments', { responseType: 'blob' }),
   journals: (params: Record<string, string>) => http.get('/reports/journals', { params, responseType: 'blob' }),
   summary: () => http.get<DashboardSummary>('/reports/summary'),
-  payrollTrend: () => http.get<{ name: string; netPay: number; grossPay: number; headcount: number }[]>('/reports/payroll-trend'),
+  payrollTrend: () => http.get<{ name: string; netPay: number; grossPay: number; ctc: number; headcount: number; usdTotal: number; zigTotal: number }[]>('/reports/payroll-trend'),
   it7: (employeeId: string, year: number) =>
     http.get(`/reports/it7/${employeeId}/${year}`, { responseType: 'blob' }),
   pensionExport: (params: { month: string; type: string; companyId?: string }) =>

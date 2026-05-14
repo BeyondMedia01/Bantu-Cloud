@@ -42,7 +42,7 @@ export function useDashboardReminders() {
 
 export function usePayrollTrend() {
   const companyId = getActiveCompanyId();
-  return useQuery<{ name: string; netPay: number; grossPay: number; headcount: number }[]>({
+  return useQuery<{ name: string; netPay: number; grossPay: number; ctc: number; headcount: number; usdTotal: number; zigTotal: number }[]>({
     queryKey: dashboardKeys.trend(companyId),
     queryFn: () => ReportsAPI.payrollTrend().then((r) => r.data),
     enabled: !!companyId,
@@ -81,7 +81,7 @@ export function useExchangeRate() {
 export interface DashboardData {
   summary: DashboardSummary | undefined;
   reminders: { birthdays: ReminderItem[]; anniversaries: ReminderItem[] };
-  trend: { name: string; netPay: number; grossPay: number; headcount: number }[];
+  trend: { name: string; netPay: number; grossPay: number; ctc: number; headcount: number; usdTotal: number; zigTotal: number }[];
   holidays: PublicHoliday[];
   exchangeRate: CurrencyRate | undefined;
   exchangeRateLoading: boolean;

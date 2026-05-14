@@ -267,30 +267,63 @@ const Dashboard: React.FC = () => {
       {/* Net Pay Trend */}
       <Card>
         <CardContent className="p-8 flex flex-col gap-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-muted-foreground font-bold text-sm uppercase tracking-wider mb-1">Net Pay Trend</p>
+          <div className="flex justify-between items-start gap-4">
+            <div className="flex flex-col gap-3 min-w-0">
+              <p className="text-muted-foreground font-bold text-sm uppercase tracking-wider">Net Pay Trend</p>
               {loading ? (
-                <div className="flex flex-col gap-2 mt-1">
+                <div className="flex flex-col gap-2">
                   <Skeleton className="h-8 w-36" />
                   <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-6 w-48" />
                 </div>
-              ) : (
+              ) : trend.length > 0 ? (() => {
+                const last = trend[trend.length - 1];
+                const hasZig = last.zigTotal > 0;
+                const hasUsd = last.usdTotal > 0;
+                const bothCurrencies = hasZig && hasUsd;
+                return (
+                  <>
+                    <div className="flex items-baseline gap-4 flex-wrap">
+                      <div>
+                        <p className="text-3xl font-bold">{currencySymbol}{last.netPay.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground font-medium mt-0.5">Net pay · last run</p>
+                      </div>
+                      <div className="pb-0.5">
+                        <p className="text-xl font-bold text-foreground/70">{currencySymbol}{last.ctc.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground font-medium mt-0.5">Total CTC</p>
+                      </div>
+                    </div>
+                    {(bothCurrencies || hasZig || hasUsd) && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {hasUsd && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-info-bg text-info border border-info-border text-xs font-bold">
+                            USD ${last.usdTotal.toLocaleString()}
+                          </span>
+                        )}
+                        {hasZig && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning-bg text-warning border border-warning-border text-xs font-bold">
+                            ZiG {last.zigTotal.toLocaleString()}
+                          </span>
+                        )}
+                        {bothCurrencies && (
+                          <span className="text-xs text-muted-foreground font-medium">Bank transfer split</span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })() : (
                 <>
                   <p className="text-3xl font-bold">
-                    {trend.length > 0
-                      ? `${currencySymbol}${trend[trend.length - 1].netPay.toLocaleString()}`
-                      : summary?.employeeCount != null ? `${summary.employeeCount} Employees` : '—'}
+                    {summary?.employeeCount != null ? `${summary.employeeCount} Employees` : '—'}
                   </p>
-                  <p className="text-xs text-muted-foreground font-medium mt-1">
-                    {trend.length > 0 ? `Last completed run · ${trendCurrency}` : 'No payroll runs yet'}
-                  </p>
+                  <p className="text-xs text-muted-foreground font-medium">No payroll runs yet</p>
                 </>
               )}
             </div>
             <button
               onClick={() => navigate('/payroll/new')}
-              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-opacity"
+              className="flex items-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-opacity shrink-0"
             >
               <Plus size={14} /> Run Payroll
             </button>
@@ -322,9 +355,10 @@ const Dashboard: React.FC = () => {
                     contentStyle={{ borderRadius: '12px', border: 'none', fontSize: 12 }}
                     formatter={(value, name) => [
                       `${currencySymbol}${Number(value).toLocaleString()}`,
-                      name === 'netPay' ? 'Net Pay' : 'Gross Pay',
+                      name === 'netPay' ? 'Net Pay' : name === 'ctc' ? 'Total CTC' : 'Gross Pay',
                     ]}
                   />
+                  <Area type="monotone" dataKey="ctc" stroke="var(--color-navy)" strokeWidth={1} strokeDasharray="4 2" fillOpacity={0} />
                   <Area type="monotone" dataKey="grossPay" stroke="var(--border)" strokeWidth={2} fillOpacity={1} fill="url(#colorGross)" />
                   <Area type="monotone" dataKey="netPay" stroke="var(--color-brand)" strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" />
                 </AreaChart>

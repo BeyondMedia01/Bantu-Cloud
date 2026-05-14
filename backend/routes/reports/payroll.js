@@ -153,18 +153,43 @@ router.get('/payroll-trend', requirePermission('view_reports'), async (req, res)
       orderBy: { runDate: 'asc' },
       take: -6, // last 6
       include: {
-        payslips: { select: { netPay: true } },
+        payslips: {
+          select: {
+            netPay: true, gross: true,
+            nssaEmployer: true, necEmployer: true, wcifEmployer: true,
+            sdfContribution: true, zimdefEmployer: true,
+            netPayUSD: true, netPayZIG: true,
+          },
+        },
       },
     });
 
     const data = runs.map((run) => {
-      const totalNet = run.payslips.reduce((sum, p) => sum + (p.netPay || 0), 0);
-      const totalGross = run.payslips.reduce((sum, p) => sum + (p.gross || 0), 0);
+      const totalNet   = run.payslips.reduce((s, p) => s + (p.netPay || 0), 0);
+      const totalGross = run.payslips.reduce((s, p) => s + (p.gross  || 0), 0);
+      const employerCosts = run.payslips.reduce((s, p) =>
+        s + (p.nssaEmployer || 0) + (p.necEmployer || 0) + (p.wcifEmployer || 0)
+          + (p.sdfContribution || 0) + (p.zimdefEmployer || 0), 0);
+
+      const hasSplit = run.payslips.some(p => p.netPayUSD != null || p.netPayZIG != null);
+      let usdTotal = 0, zigTotal = 0;
+      if (hasSplit) {
+        usdTotal = run.payslips.reduce((s, p) => s + (p.netPayUSD || 0), 0);
+        zigTotal = run.payslips.reduce((s, p) => s + (p.netPayZIG || 0), 0);
+      } else if (run.currency === 'ZiG') {
+        zigTotal = totalNet;
+      } else {
+        usdTotal = totalNet;
+      }
+
       return {
         name: new Date(run.runDate).toLocaleDateString(undefined, { month: 'short', year: '2-digit' }),
-        netPay: Math.round(totalNet),
+        netPay:   Math.round(totalNet),
         grossPay: Math.round(totalGross),
+        ctc:      Math.round(totalGross + employerCosts),
         headcount: run.payslips.length,
+        usdTotal: Math.round(usdTotal),
+        zigTotal: Math.round(zigTotal),
       };
     });
 
