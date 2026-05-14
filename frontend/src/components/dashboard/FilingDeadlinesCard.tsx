@@ -127,30 +127,37 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
         <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Filing Deadlines</h3>
       </div>
 
-      <div className="flex flex-col divide-y divide-border flex-1">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 auto-rows-fr">
         {deadlines.map((d, i) => {
           const days = daysUntil(d.dueDate);
           const urgent = days <= 7;
           const soon = days <= 14;
           const isFinance = d.tag === 'FINANCE';
+          const borderColor = isFinance
+            ? 'border-border opacity-60'
+            : urgent ? 'border-red-200 bg-red-50/40'
+            : soon ? 'border-amber-200 bg-amber-50/30'
+            : 'border-border';
           const daysColor = urgent && !isFinance ? 'text-red-600' : soon && !isFinance ? 'text-amber-600' : 'text-muted-foreground';
 
           return (
-            <div key={i} className={`flex items-center gap-3 py-3 first:pt-0 last:pb-0 ${isFinance ? 'opacity-60' : ''}`}>
-              <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${TAG_COLORS[d.tag]}`}>
-                {d.tag}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-navy truncate">{d.name}</p>
-                <p className="text-[10px] text-muted-foreground font-medium leading-tight">{d.description}</p>
+            <div key={i} className={`rounded-xl border p-3 flex flex-col gap-2 h-full ${borderColor}`}>
+              <div className="flex items-center justify-between gap-1">
+                <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${TAG_COLORS[d.tag]}`}>
+                  {d.tag}
+                </span>
+                {urgent && !isFinance && <AlertTriangle size={13} className="text-red-500 shrink-0" aria-label="Urgent" />}
               </div>
-              <div className="text-right shrink-0">
-                <p className="text-xs font-bold text-navy">{d.dueDate.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</p>
+              <div>
+                <p className="text-xs font-bold text-navy leading-tight">{d.name}</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5 leading-tight">{d.description}</p>
+              </div>
+              <div className="mt-auto">
+                <p className="text-sm font-bold text-navy">{d.dueDate.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</p>
                 <p className={`text-[10px] font-bold ${daysColor}`}>
                   {days === 0 ? 'Due today' : days === 1 ? 'Tomorrow' : `${days} days`}
                 </p>
               </div>
-              {urgent && !isFinance && <AlertTriangle size={13} className="text-red-500 shrink-0" aria-label="Urgent" />}
             </div>
           );
         })}
