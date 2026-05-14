@@ -24,7 +24,7 @@ const CompanyNew: React.FC = () => {
       await CompanyAPI.create(form);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create company');
+      setError(err.message || 'Failed to create company');
     } finally {
       setLoading(false);
     }

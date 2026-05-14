@@ -145,7 +145,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
       }
       onSaved();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save');
+      setError(err.message || 'Failed to save');
       setSaving(false);
     }
   };
@@ -164,7 +164,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
       setRuleForm({ conditionType: 'always', conditionValue: '', valueOverride: '', capAmount: '', description: '' });
       setShowRuleForm(false);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add rule');
+      setError(err.message || 'Failed to add rule');
     } finally {
       setSavingRule(false);
     }
@@ -176,7 +176,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
       await TransactionCodeAPI.deleteRule(editData.id, ruleId);
       setRules((prev) => prev.filter((r) => r.id !== ruleId));
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete rule');
+      setError(err.message || 'Failed to delete rule');
     }
   };
 
@@ -809,7 +809,7 @@ const Transactions: React.FC = () => {
       await TransactionCodeAPI.delete(deleteTarget);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Cannot delete — it may be in use');
+      setError(err.message || 'Cannot delete — it may be in use');
     } finally {
       setDeleteTarget(null);
     }

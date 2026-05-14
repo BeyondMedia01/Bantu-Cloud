@@ -74,7 +74,7 @@ const Grades: React.FC = () => {
       setForm(emptyForm());
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save grade.');
+      setError(err.message || 'Failed to save grade.');
     } finally {
       setSaving(false);
     }
@@ -105,7 +105,7 @@ const Grades: React.FC = () => {
       setConfirmDelete(null);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete grade.');
+      setError(err.message || 'Failed to delete grade.');
       setConfirmDelete(null);
     }
   };

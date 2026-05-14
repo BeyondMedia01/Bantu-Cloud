@@ -19,7 +19,7 @@ const SystemSettings: React.FC = () => {
         list.forEach((s: any) => { map[s.settingName] = s.settingValue; });
         setValues(map);
       })
-      .catch((err: any) => setError(err.response?.data?.message || 'Failed to load settings'))
+      .catch((err: any) => setError(err.message || 'Failed to load settings'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -36,7 +36,7 @@ const SystemSettings: React.FC = () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save settings');
+      setError(err.message || 'Failed to save settings');
     } finally {
       setSaving(false);
     }

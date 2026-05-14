@@ -46,7 +46,7 @@ const LoanNew: React.FC = () => {
       });
       navigate(`/loans/${res.data.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create loan');
+      setError(err.message || 'Failed to create loan');
     } finally {
       setLoading(false);
     }

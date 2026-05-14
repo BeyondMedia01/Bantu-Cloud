@@ -5,11 +5,12 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 let R2_ACCOUNT_ID = '';
 let R2_ACCESS_KEY_ID = '';
 let R2_SECRET_ACCESS_KEY = '';
-const R2_BUCKET = 'bantu-production';
-export function initStorage(accountId: string, accessKeyId: string, secretAccessKey: string): void {
+let R2_BUCKET = 'bantu-production';
+export function initStorage(accountId: string, accessKeyId: string, secretAccessKey: string, bucketName?: string): void {
   R2_ACCOUNT_ID = accountId;
   R2_ACCESS_KEY_ID = accessKeyId;
   R2_SECRET_ACCESS_KEY = secretAccessKey;
+  if (bucketName) R2_BUCKET = bucketName;
   client = null;
 }
 

@@ -46,7 +46,7 @@ const DesktopOnboarding: React.FC = () => {
       saveAuthData(token);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Setup failed. Check your license token and try again.');
+      setError(err.message || 'Setup failed. Check your license token and try again.');
     } finally {
       setLoading(false);
     }

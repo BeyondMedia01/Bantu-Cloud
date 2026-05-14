@@ -76,7 +76,7 @@ const Leave: React.FC = () => {
       showToast('Leave record deleted', 'success');
       load();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to delete leave record', 'error');
+      showToast(err.message || 'Failed to delete leave record', 'error');
     } finally {
       setDeleteTarget(null);
     }

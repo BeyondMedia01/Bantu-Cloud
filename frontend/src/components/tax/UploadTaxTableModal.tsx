@@ -28,7 +28,7 @@ const UploadTaxTableModal: React.FC<UploadTaxTableModalProps> = ({ tableId, tabl
         onSuccess();
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to upload tax table. Check console for details.');
+      setError(err.message || 'Failed to upload tax table. Check console for details.');
     } finally {
       setUploading(false);
     }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Clock, Info } from 'lucide-react';
-import api from '../../api/client';
+import { http } from '../../api/http';
 
 interface WorkPeriodForm {
   WORKING_DAYS_PER_PERIOD: number;
@@ -24,7 +24,7 @@ const WorkPeriodSettings: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/work-period-settings')
+    http.get('/work-period-settings')
       .then((res) => {
         const data = res.data as Record<string, { value: number }>;
         setForm({
@@ -50,10 +50,10 @@ const WorkPeriodSettings: React.FC = () => {
     setError('');
     setSuccess(false);
     try {
-      await api.put('/work-period-settings', form);
+      await http.put('/work-period-settings', form);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to save settings');
+      setError(err.message || 'Failed to save settings');
     } finally {
       setSaving(false);
     }

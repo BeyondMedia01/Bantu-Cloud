@@ -42,7 +42,7 @@ const ResetPassword: React.FC = () => {
       await AuthAPI.resetPassword(token, password);
       setDone(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Reset failed. The link may have expired.');
+      setError(err.message || 'Reset failed. The link may have expired.');
     } finally {
       setLoading(false);
     }

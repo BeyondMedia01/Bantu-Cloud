@@ -80,7 +80,7 @@ const Succession: React.FC = () => {
       showToast('Plan created', 'success');
       setShowCreate(false); setFTitle(''); setFDept(''); setFDesc(''); setFRisk('MEDIUM');
       loadPlans();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setSubmitting(false); }
   };
 
@@ -99,14 +99,14 @@ const Succession: React.FC = () => {
         const updated = (res.data.data || []).find((p: SuccessionPlan) => p.id === candPlanId);
         if (updated) setDetailPlan(updated);
       }
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setSubmitting(false); }
   };
 
   const handleFill = async (id: string) => {
     setActionLoading('fill-' + id);
     try { await SuccessionAPI.updatePlan(id, { status: 'FILLED' }); showToast('Marked as filled', 'success'); loadPlans(); setDetailPlan(null); }
-    catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 

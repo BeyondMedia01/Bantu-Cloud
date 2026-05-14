@@ -60,7 +60,7 @@ const AdminClients: React.FC = () => {
       setForm({ name: '', email: '', phone: '', address: '' });
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create client');
+      setError(err.message || 'Failed to create client');
     } finally {
       setSaving(false);
     }

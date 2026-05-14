@@ -39,7 +39,7 @@ const AdminLicenses: React.FC = () => {
       showToast('License issued', 'success');
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to issue license');
+      setError(err.message || 'Failed to issue license');
     } finally {
       setSaving(false);
     }

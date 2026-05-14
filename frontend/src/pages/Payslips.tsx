@@ -65,7 +65,9 @@ const Payslips: React.FC = () => {
     setPreviewName(`payslip-${lastName}-${firstName}.pdf`);
     try {
       const res = await PayrollAPI.downloadPayslipPdf(runId, payslipId);
-      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const contentType = res.headers?.['content-type'] || '';
+      const isHtml = contentType.includes('text/html');
+      const blob = new Blob([res.data], { type: isHtml ? 'text/html' : 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       setPreviewUrl(url);
     } catch { showToast('Failed to load payslip preview', 'error'); }
@@ -78,24 +80,23 @@ const Payslips: React.FC = () => {
     setPreviewName('');
   };
 
-  const downloadFromPreview = () => {
-    if (!previewUrl) return;
-    const a = document.createElement('a');
-    a.href = previewUrl;
-    a.download = previewName;
-    a.click();
-  };
-
   const handlePdf = async (payslipId: string, lastName: string, firstName: string) => {
     if (!runId) return;
     try {
       const res = await PayrollAPI.downloadPayslipPdf(runId, payslipId);
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `payslip-${lastName}-${firstName}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      const contentType = res.headers?.['content-type'] || '';
+      const isHtml = contentType.includes('text/html');
+      const blob = new Blob([res.data], { type: isHtml ? 'text/html' : 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      if (isHtml) {
+        window.open(url, '_blank');
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `payslip-${lastName}-${firstName}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
     } catch { showToast('Failed to download payslip PDF', 'error'); }
   };
 
@@ -409,10 +410,13 @@ const Payslips: React.FC = () => {
               <span className="font-bold text-sm truncate">{previewName}</span>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={downloadFromPreview}
-                  className="flex items-center gap-1.5 bg-brand text-navy px-3 py-1.5 rounded-full text-xs font-bold hover:opacity-90"
+                  onClick={() => {
+                    const win = window.open(previewUrl, '_blank');
+                    win?.addEventListener('load', () => win.print());
+                  }}
+                  className="flex items-center gap-1.5 bg-white/10 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-white/20"
                 >
-                  <Download size={13} /> Download
+                  <Download size={13} /> Save as PDF
                 </button>
                 <button onClick={closePreview} className="p-1.5 rounded-full hover:bg-white/10">
                   <X size={18} />

@@ -45,7 +45,7 @@ const Payroll: React.FC = () => {
       setActionError('');
       loadRuns();
     } catch (err: any) {
-      setActionError(err.response?.data?.message || `Failed to ${action} payroll run`);
+      setActionError(err.message || `Failed to ${action} payroll run`);
     } finally { setActionLoading(null); }
   };
 
@@ -76,7 +76,7 @@ const Payroll: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err: any) {
-      setActionError(err.response?.data?.message || `Failed to download ${format.toUpperCase()} bank file`);
+      setActionError(err.message || `Failed to download ${format.toUpperCase()} bank file`);
     }
   };
 
@@ -94,7 +94,7 @@ const Payroll: React.FC = () => {
       loadRuns();
       showToast('Exchange rate updated', 'success');
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to update exchange rate', 'error');
+      showToast(err.message || 'Failed to update exchange rate', 'error');
     } finally {
       setRateSaving(false);
     }

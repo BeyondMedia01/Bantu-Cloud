@@ -58,7 +58,7 @@ const PeriodEnd: React.FC = () => {
       }
       PayrollCalendarAPI.getAll().then((r) => setCalendars(r.data)).catch(() => {});
     } catch (err: any) {
-      setError(err.response?.data?.message || `Failed to ${confirmPending === 'reopen' ? 're-open' : 'close'} period`);
+      setError(err.message || `Failed to ${confirmPending === 'reopen' ? 're-open' : 'close'} period`);
     } finally {
       setLoading(false);
     }

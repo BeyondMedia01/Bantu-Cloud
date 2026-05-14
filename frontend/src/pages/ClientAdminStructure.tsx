@@ -61,7 +61,7 @@ const ClientAdminStructure: React.FC = () => {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 5000);
     } catch (err: any) {
-      setSaveError(err.response?.data?.message || 'Failed to save changes.');
+      setSaveError(err.message || 'Failed to save changes.');
     } finally {
       setProfileSaving(false);
     }
@@ -118,7 +118,7 @@ const ClientAdminStructure: React.FC = () => {
       setFormData({});
       loadAll();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create');
+      setError(err.message || 'Failed to create');
     } finally {
       setSaving(false);
     }

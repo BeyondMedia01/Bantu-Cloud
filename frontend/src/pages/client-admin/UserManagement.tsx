@@ -183,7 +183,7 @@ const UserManagement: React.FC = () => {
         <>
           {usersLoading ? (
             <div className="flex justify-center py-12">
-              <div className="w-6 h-6 border-2 border-slate-300 border-t-navy rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" />
             </div>
           ) : users.length === 0 ? (
             <div className="bg-card border border-border rounded-2xl p-12 text-center">
@@ -226,7 +226,7 @@ const UserManagement: React.FC = () => {
         <>
           {invitesLoading ? (
             <div className="flex justify-center py-12">
-              <div className="w-6 h-6 border-2 border-slate-300 border-t-navy rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" />
             </div>
           ) : invites.length === 0 ? (
             <div className="bg-card border border-border rounded-2xl p-12 text-center">

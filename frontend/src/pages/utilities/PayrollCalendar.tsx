@@ -87,7 +87,7 @@ const PayrollCalendar: React.FC = () => {
       setForm(emptyForm());
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create period.');
+      setError(err.message || 'Failed to create period.');
     } finally {
       setSaving(false);
     }

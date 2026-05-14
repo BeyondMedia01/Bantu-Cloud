@@ -3,8 +3,12 @@ import type { Context, Next } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { prisma } from './prisma';
 
-let SECRET = 'desktop-dummy-secret';
+let SECRET: string | null = null;
 export function initAuth(jwtSecret: string): void { SECRET = jwtSecret; }
+function getSecret(): string {
+  if (!SECRET) throw new Error('[auth] initAuth not called — JWT_SECRET missing');
+  return SECRET;
+}
 
 export interface TokenPayload {
   userId: string;
@@ -18,7 +22,7 @@ export interface TokenPayload {
 
 export async function signToken(payload: Omit<TokenPayload, 'sessionId'>): Promise<string> {
   const sessionId = crypto.randomUUID();
-  const token = await jwtSign({ ...payload, sessionId }, SECRET, { algorithm: 'HS256' });
+  const token = await jwtSign({ ...payload, sessionId }, getSecret(), 'HS256');
 
   await prisma.session.create({
     data: {
@@ -33,7 +37,7 @@ export async function signToken(payload: Omit<TokenPayload, 'sessionId'>): Promi
 }
 
 export async function verifyToken(token: string): Promise<TokenPayload> {
-  return jwtVerify(token, SECRET, { algorithm: 'HS256' }) as Promise<TokenPayload>;
+  return jwtVerify(token, getSecret(), 'HS256') as unknown as Promise<TokenPayload>;
 }
 
 export const authenticateToken = createMiddleware(async (c: Context, next: Next) => {
@@ -46,14 +50,6 @@ export const authenticateToken = createMiddleware(async (c: Context, next: Next)
 
   try {
     const decoded = await verifyToken(token);
-    const session = await prisma.session.findUnique({
-      where: { id: decoded.sessionId },
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      return c.json({ message: 'Session expired or invalidated' }, 401);
-    }
-
     c.set('user', decoded);
     await next();
   } catch {

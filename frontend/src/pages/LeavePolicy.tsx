@@ -78,7 +78,7 @@ const LeavePolicy: React.FC = () => {
       setShowForm(false);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save policy');
+      setError(err.message || 'Failed to save policy');
     } finally {
       setSaving(false);
     }
@@ -92,7 +92,7 @@ const LeavePolicy: React.FC = () => {
       await LeavePolicyAPI.delete(deleteTarget);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete policy');
+      setError(err.message || 'Failed to delete policy');
     } finally {
       setDeleteTarget(null);
     }

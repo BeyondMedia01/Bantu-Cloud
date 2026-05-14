@@ -7,9 +7,9 @@
 
 :root {
   /* === Surfaces === */
-  --background:             oklch(0.985 0 0);     /* off-white — reduces light/dark vibration */
-  --foreground:             oklch(0.13 0 0);       /* deep charcoal, not pure black */
-  --card:                   oklch(1 0 0);          /* cards lift above page background */
+  --background:             oklch(0.985 0 0);
+  --foreground:             oklch(0.13 0 0);
+  --card:                   oklch(1 0 0);
   --card-foreground:        oklch(0.13 0 0);
   --popover:                oklch(1 0 0);
   --popover-foreground:     oklch(0.13 0 0);
@@ -20,7 +20,7 @@
   --secondary:              oklch(0.96 0 0);
   --secondary-foreground:   oklch(0.205 0 0);
 
-  /* === Muted — fixed: was 3.95:1, now >4.5:1 WCAG AA === */
+  /* === Muted === */
   --muted:                  oklch(0.96 0 0);
   --muted-foreground:       oklch(0.46 0 0);
 
@@ -28,14 +28,24 @@
   --accent:                 oklch(0.96 0 0);
   --accent-foreground:      oklch(0.205 0 0);
   --destructive:            oklch(0.577 0.245 27.325);
+  --success:                oklch(0.53 0.17 145);
+  --warning:                oklch(0.65 0.18 80);
+  --info:                   oklch(0.52 0.18 245);
+  --success-bg:             oklch(0.95 0.08 145);
+  --warning-bg:             oklch(0.95 0.08 80);
+  --info-bg:                oklch(0.93 0.06 245);
+  --destructive-bg:         oklch(0.94 0.08 27);
+  --success-border:         oklch(0.88 0.10 145);
+  --warning-border:         oklch(0.88 0.10 80);
+  --info-border:            oklch(0.84 0.08 245);
 
-  /* === Chrome — ring darkened from 3.1:1 to ~4.5:1 === */
+  /* === Chrome === */
   --border:                 oklch(0.90 0 0);
   --input:                  oklch(0.90 0 0);
   --ring:                   oklch(0.50 0 0);
 
   /* === Brand === */
-  --color-brand:            oklch(0.82 0.18 133);  /* #b2db64 in oklch */
+  --color-brand:            oklch(0.82 0.18 133);
 
   /* === Charts === */
   --chart-1: oklch(0.58 0.17 140);
@@ -47,14 +57,14 @@
   /* === Sidebar === */
   --sidebar:                oklch(0.985 0 0);
   --sidebar-foreground:     oklch(0.13 0 0);
-  --sidebar-primary:        oklch(0.82 0.18 133);  /* brand-aligned, was disconnected blue-purple */
+  --sidebar-primary:        oklch(0.82 0.18 133);
   --sidebar-primary-foreground: oklch(0.13 0 0);
   --sidebar-accent:         oklch(0.93 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border:         oklch(0.90 0 0);
   --sidebar-ring:           oklch(0.50 0 0);
 
-  /* === Legacy tokens — unified to shadcn values === */
+  /* === Legacy tokens === */
   --color-background:       oklch(0.985 0 0);
   --color-primary:          oklch(1 0 0);
   --color-border:           oklch(0.90 0 0);
@@ -77,11 +87,11 @@
 
 .dark {
   /* === Surfaces === */
-  --background:             oklch(0.145 0 0);     /* neutral charcoal — single dark base */
-  --foreground:             oklch(0.95 0 0);       /* off-white — softer than pure white */
-  --card:                   oklch(0.205 0 0);      /* lifted above background for elevation */
+  --background:             oklch(0.145 0 0);
+  --foreground:             oklch(0.95 0 0);
+  --card:                   oklch(0.205 0 0);
   --card-foreground:        oklch(0.95 0 0);
-  --popover:                oklch(0.22 0 0);       /* one level above card */
+  --popover:                oklch(0.22 0 0);
   --popover-foreground:     oklch(0.95 0 0);
 
   /* === Interactive === */
@@ -90,21 +100,31 @@
   --secondary:              oklch(0.269 0 0);
   --secondary-foreground:   oklch(0.95 0 0);
 
-  /* === Muted — 7:1 on dark background === */
+  /* === Muted === */
   --muted:                  oklch(0.269 0 0);
   --muted-foreground:       oklch(0.70 0 0);
 
   /* === Semantic === */
   --accent:                 oklch(0.269 0 0);
   --accent-foreground:      oklch(0.95 0 0);
-  --destructive:            oklch(0.65 0.18 22);   /* slightly desaturated for dark mode */
+  --destructive:            oklch(0.65 0.18 22);
+  --success:                oklch(0.72 0.14 145);
+  --warning:                oklch(0.75 0.14 80);
+  --info:                   oklch(0.68 0.14 245);
+  --success-bg:             oklch(0.22 0.08 145);
+  --warning-bg:             oklch(0.25 0.08 80);
+  --info-bg:                oklch(0.20 0.06 245);
+  --destructive-bg:         oklch(0.28 0.10 22);
+  --success-border:         oklch(0.30 0.08 145);
+  --warning-border:         oklch(0.33 0.08 80);
+  --info-border:            oklch(0.28 0.06 245);
 
   /* === Chrome === */
   --border:                 oklch(1 0 0 / 10%);
   --input:                  oklch(1 0 0 / 15%);
   --ring:                   oklch(0.65 0 0);
 
-  /* === Brand — desaturated in dark mode, same hue, prevents neon effect === */
+  /* === Brand === */
   --color-brand:            oklch(0.78 0.13 133);
 
   /* === Charts === */
@@ -117,16 +137,16 @@
   /* === Sidebar === */
   --sidebar:                oklch(0.205 0 0);
   --sidebar-foreground:     oklch(0.95 0 0);
-  --sidebar-primary:        oklch(0.78 0.13 133);  /* brand, desaturated */
+  --sidebar-primary:        oklch(0.78 0.13 133);
   --sidebar-primary-foreground: oklch(0.13 0 0);
   --sidebar-accent:         oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border:         oklch(1 0 0 / 10%);
   --sidebar-ring:           oklch(0.65 0 0);
 
-  /* === Legacy tokens — unified to shadcn values === */
-  --color-background:       oklch(0.145 0 0);      /* was #0F172A — now matches --background */
-  --color-primary:          oklch(0.205 0 0);       /* matches --card */
+  /* === Legacy tokens === */
+  --color-background:       oklch(0.145 0 0);
+  --color-primary:          oklch(0.205 0 0);
   --color-border:           oklch(1 0 0 / 10%);
   --color-navy:             oklch(0.95 0 0);
   --color-text-main:        oklch(0.95 0 0);
@@ -239,6 +259,17 @@ body {
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-bg: var(--destructive-bg);
+  --color-destructive-border: var(--border);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);

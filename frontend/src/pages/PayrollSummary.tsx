@@ -102,10 +102,12 @@ const PayrollSummary: React.FC = () => {
     setExporting('summary-detailed');
     try {
       const res = await PayrollAPI.downloadPayslipSummaryPdf(runId);
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url; a.download = `payslip-summary-${runId}.pdf`; a.click();
-      URL.revokeObjectURL(url);
+      const contentType = res.headers?.['content-type'] || 'text/html';
+      const url = URL.createObjectURL(new Blob([res.data], { type: contentType }));
+      // Backend returns HTML; open in new tab so user can print/save as PDF
+      const win = window.open(url, '_blank');
+      if (win) win.addEventListener('load', () => { setTimeout(() => URL.revokeObjectURL(url), 1000); });
+      else URL.revokeObjectURL(url);
     } catch { showToast('Failed to generate Detailed Summary', 'error'); }
     finally { setExporting(''); }
   };
@@ -115,10 +117,9 @@ const PayrollSummary: React.FC = () => {
     setExporting('summary-preview');
     try {
       const res = await PayrollAPI.downloadPayslipSummaryPdf(runId);
-      // Use a same-window blob URL (works in both browser and Tauri webview).
-      // window.open with a blob URL fails in Tauri because each window is an
-      // isolated WebView2 instance and cannot access blobs from another window.
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      // Backend returns HTML — use the actual content-type so the iframe renders it correctly
+      const contentType = res.headers?.['content-type'] || 'text/html';
+      const url = URL.createObjectURL(new Blob([res.data], { type: contentType }));
       setPreviewUrl(url);
     } catch { showToast('Failed to preview Payroll Summary', 'error'); }
     finally { setExporting(''); }
@@ -242,7 +243,7 @@ const PayrollSummary: React.FC = () => {
                   setRerunSuccess(true);
                   showToast('Payroll rerun completed successfully!', 'success');
                 } catch (err: any) {
-                  showToast(err.response?.data?.message || 'Rerun failed', 'error');
+                  showToast(err.message || 'Rerun failed', 'error');
                 } finally { setExporting(''); }
               }}
               disabled={!!exporting}

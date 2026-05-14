@@ -93,7 +93,7 @@ const Expenses: React.FC = () => {
       showToast('Expense approved', 'success');
       load();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to approve', 'error');
+      showToast(err.message || 'Failed to approve', 'error');
     } finally {
       setActionLoading('');
     }
@@ -109,7 +109,7 @@ const Expenses: React.FC = () => {
       setRejectReason('');
       load();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to reject', 'error');
+      showToast(err.message || 'Failed to reject', 'error');
     } finally {
       setActionLoading('');
     }
@@ -134,7 +134,7 @@ const Expenses: React.FC = () => {
       resetForm();
       load();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to create expense', 'error');
+      showToast(err.message || 'Failed to create expense', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -105,7 +105,7 @@ const PayrollInputs: React.FC = () => {
       });
       loadInputs();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create input.');
+      setError(err.message || 'Failed to create input.');
     } finally {
       setSaving(false);
     }
@@ -129,7 +129,7 @@ const PayrollInputs: React.FC = () => {
       setEditInput(null);
       loadInputs();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update input.');
+      setError(err.message || 'Failed to update input.');
     } finally {
       setSaving(false);
     }
@@ -142,7 +142,7 @@ const PayrollInputs: React.FC = () => {
       loadInputs();
     } catch (err: any) {
       setDeleteId(null);
-      setError(err.response?.data?.message || 'Cannot delete a processed input.');
+      setError(err.message || 'Cannot delete a processed input.');
     }
   };
 

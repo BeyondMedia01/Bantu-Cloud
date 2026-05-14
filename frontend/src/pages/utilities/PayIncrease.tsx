@@ -40,7 +40,7 @@ const PayIncrease: React.FC = () => {
       const res = await UtilitiesAPI.payIncrease(payload);
       setResult(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to apply pay increase');
+      setError(err.message || 'Failed to apply pay increase');
     } finally {
       setLoading(false);
     }

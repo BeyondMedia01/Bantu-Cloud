@@ -53,7 +53,7 @@ const Login: React.FC = () => {
       else if (role === 'EMPLOYEE') navigate('/employee');
       else navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 font-inter">
       <div className="flex items-center gap-3 mb-10">
-        <div className="w-12 h-12 bg-accent-green rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
+        <img src="/logo.svg" alt="Bantu" className="w-12 h-12" />
         <h1 className="text-3xl font-bold tracking-tight text-navy">Bantu Payroll</h1>
       </div>
 
@@ -139,6 +139,13 @@ const Login: React.FC = () => {
               Forgot password?
             </Link>
           </div>
+          {!IS_DESKTOP && (
+            <div className="text-center mt-4 pt-4 border-t border-border">
+              <Link to="/trial-signup" className="text-sm font-bold text-accent-green hover:underline">
+                Start a free 14-day trial
+              </Link>
+            </div>
+          )}
         </form>
       </div>
 

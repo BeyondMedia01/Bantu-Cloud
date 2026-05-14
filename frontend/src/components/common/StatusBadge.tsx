@@ -1,18 +1,18 @@
 import { cn } from '@/lib/utils';
 
 const STATUS_STYLES: Record<string, string> = {
-  ACTIVE:     'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
-  INACTIVE:   'bg-muted text-foreground/80 border-border dark:bg-slate-800 dark:text-muted-foreground dark:border-slate-700',
-  DISCHARGED: 'bg-red-50 text-red-700 border-red-100 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
-  SUSPENDED:  'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
-  APPROVED:   'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
-  PENDING:    'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
-  REJECTED:   'bg-red-50 text-red-700 border-red-100 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
-  CANCELLED:  'bg-muted text-foreground/80 border-border dark:bg-slate-800 dark:text-muted-foreground dark:border-slate-700',
-  PAID:       'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
-  UNPAID:     'bg-red-50 text-red-700 border-red-100 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
-  DRAFT:      'bg-muted text-foreground/80 border-border dark:bg-slate-800 dark:text-muted-foreground dark:border-slate-700',
-  PROCESSING: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
+  ACTIVE:     'bg-success-bg text-success border-success-border',
+  INACTIVE:   'bg-muted text-muted-foreground/80 border-border',
+  DISCHARGED: 'bg-destructive-bg text-destructive border-destructive/30',
+  SUSPENDED:  'bg-warning-bg text-warning border-warning-border',
+  APPROVED:   'bg-success-bg text-success border-success-border',
+  PENDING:    'bg-warning-bg text-warning border-warning-border',
+  REJECTED:   'bg-destructive-bg text-destructive border-destructive/30',
+  CANCELLED:  'bg-muted text-muted-foreground/80 border-border',
+  PAID:       'bg-success-bg text-success border-success-border',
+  UNPAID:     'bg-destructive-bg text-destructive border-destructive/30',
+  DRAFT:      'bg-muted text-muted-foreground/80 border-border',
+  PROCESSING: 'bg-info-bg text-info border-info-border',
 };
 
 interface StatusBadgeProps {
@@ -22,7 +22,7 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const key = status?.toUpperCase() ?? '';
-  const styles = STATUS_STYLES[key] ?? 'bg-muted text-foreground/80 border-border dark:bg-slate-800 dark:text-muted-foreground dark:border-slate-700';
+  const styles = STATUS_STYLES[key] ?? 'bg-muted text-muted-foreground/80 border-border';
   const label = status
     ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
     : '—';

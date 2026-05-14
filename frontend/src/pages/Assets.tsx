@@ -110,7 +110,7 @@ const Assets: React.FC = () => {
       resetForm();
       loadAssets();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -131,7 +131,7 @@ const Assets: React.FC = () => {
       setShowCreateCat(false); setCatName(''); setCatDesc('');
       loadCategories();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -146,7 +146,7 @@ const Assets: React.FC = () => {
       setAssignTarget(null); setAssignEmp('');
       loadAssets();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setActionLoading('');
     }
@@ -159,7 +159,7 @@ const Assets: React.FC = () => {
       showToast('Asset returned', 'success');
       loadAssets();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setActionLoading('');
     }
@@ -174,7 +174,7 @@ const Assets: React.FC = () => {
       setDeleteTarget(null);
       loadAssets();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setActionLoading('');
     }

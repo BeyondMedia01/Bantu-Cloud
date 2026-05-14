@@ -1,0 +1,22 @@
+import { Hono } from 'hono';
+import recruitmentRoutes from '../routes/recruitment';
+import onboardingRoutes from '../routes/onboarding';
+import assetsRoutes from '../routes/assets';
+import trainingRoutes from '../routes/training';
+import performanceRoutes from '../routes/performance';
+import successionRoutes from '../routes/succession';
+import surveysRoutes from '../routes/surveys';
+import analyticsRoutes from '../routes/analytics';
+import expensesRoutes from '../routes/expenses';
+const app = new Hono();
+app.route('/recruitment', recruitmentRoutes);
+app.route('/onboarding', onboardingRoutes);
+app.route('/assets', assetsRoutes);
+app.route('/training', trainingRoutes);
+app.route('/performance', performanceRoutes);
+app.route('/succession', successionRoutes);
+app.route('/surveys', surveysRoutes);
+app.route('/analytics', analyticsRoutes);
+app.route('/expenses', expensesRoutes);
+
+export default app;

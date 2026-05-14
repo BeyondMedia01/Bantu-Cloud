@@ -249,7 +249,7 @@ const EmployeeNew: React.FC = () => {
       } as any);
       navigate('/employees');
     } catch (err: any) {
-      setSubmitError(err.response?.data?.message || 'Failed to create employee');
+      setSubmitError(err.message || 'Failed to create employee');
     }
   };
 

@@ -99,7 +99,7 @@ const Onboarding: React.FC = () => {
       showToast('Onboarding started', 'success');
       setShowCreate(false); resetForm(); loadRecords();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to create', 'error');
+      showToast(err.message || 'Failed to create', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -129,7 +129,7 @@ const Onboarding: React.FC = () => {
       setDetailRecord(res.data.data);
       loadRecords();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setActionLoading('');
     }
@@ -143,7 +143,7 @@ const Onboarding: React.FC = () => {
       setDetailRecord(null);
       loadRecords();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setActionLoading('');
     }
@@ -159,7 +159,7 @@ const Onboarding: React.FC = () => {
       setShowCreateTemplate(false); setTmplName(''); setTmplDesc(''); setTmplTasks([]);
       loadTemplates();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed', 'error');
+      showToast(err.message || 'Failed', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { validateBody } from '../lib/validate';
-import { prisma } from '../lib/prisma';
+import { prisma, cache } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { checkEmployeeCap } from '../lib/license';
 import { audit } from '../lib/audit';
@@ -43,51 +43,58 @@ const EMPLOYEE_SELECT = {
 } as const;
 
 router.get('/', async (c) => {
-  const user = c.get('user');
-  const employeeId = c.get('employeeId');
+  try {
+    const user = c.get('user');
+    const employeeId = c.get('employeeId');
 
-  if (user.role === 'EMPLOYEE') {
-    if (!employeeId) return c.json({ message: 'Employee profile not found' }, 403);
-    const employee = await prisma.employee.findUnique({ where: { id: employeeId }, select: EMPLOYEE_SELECT });
-    if (!employee) return c.json({ message: 'Employee not found' }, 404);
-    return c.json({ data: [employee], total: 1, page: 1, limit: 1 });
+    if (user.role === 'EMPLOYEE') {
+      if (!employeeId) return c.json({ message: 'Employee profile not found' }, 403);
+      const employee = await prisma.employee.findUnique({ where: { id: employeeId }, select: EMPLOYEE_SELECT });
+      if (!employee) return c.json({ message: 'Employee not found' }, 404);
+      return c.json({ data: [employee], total: 1, page: 1, limit: 1 });
+    }
+
+    const ctxCompanyId = c.get('companyId');
+    const clientId = c.get('clientId');
+    if (!clientId && !ctxCompanyId) return c.json({ data: [], total: 0, page: 1, limit: 20 });
+
+    const page = Math.max(1, parseInt(c.req.query('page') || '1') || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20') || 20));
+    const search = c.req.query('search');
+    const branchId = c.req.query('branchId');
+    const departmentId = c.req.query('departmentId');
+    const employmentType = c.req.query('employmentType');
+    const queryCompanyId = c.req.query('companyId');
+    const companyId = ctxCompanyId || (ctxCompanyId === null ? queryCompanyId : null);
+
+    const where: Record<string, unknown> = {};
+    if (clientId) where.clientId = clientId;
+    if (companyId) where.companyId = companyId;
+    if (branchId) where.branchId = branchId;
+    if (departmentId) where.departmentId = departmentId;
+    if (employmentType) where.employmentType = employmentType;
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { employeeCode: { contains: search, mode: 'insensitive' } },
+        { position: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const [employees, total] = await Promise.all([
+      prisma.employee.findMany({ where, select: EMPLOYEE_SELECT, skip, take: limit, orderBy: { firstName: 'asc' } ,
+    }),
+      prisma.employee.count({ where ,
+    }),
+    ]);
+
+    return c.json({ data: employees, total, page, limit });
+  } catch (err: any) {
+    console.error('[employees GET /]', err?.message);
+    return c.json({ message: 'Internal server error' }, 500);
   }
-
-  const ctxCompanyId = c.get('companyId');
-  const clientId = c.get('clientId');
-  if (!clientId && !ctxCompanyId) return c.json({ data: [], total: 0, page: 1, limit: 20 });
-
-  const page = parseInt(c.req.query('page') || '1');
-  const limit = parseInt(c.req.query('limit') || '20');
-  const search = c.req.query('search');
-  const branchId = c.req.query('branchId');
-  const departmentId = c.req.query('departmentId');
-  const employmentType = c.req.query('employmentType');
-  const queryCompanyId = c.req.query('companyId');
-  const companyId = ctxCompanyId || (ctxCompanyId === null ? queryCompanyId : null);
-
-  const where: Record<string, unknown> = {};
-  if (clientId) where.clientId = clientId;
-  if (companyId) where.companyId = companyId;
-  if (branchId) where.branchId = branchId;
-  if (departmentId) where.departmentId = departmentId;
-  if (employmentType) where.employmentType = employmentType;
-  if (search) {
-    where.OR = [
-      { firstName: { contains: search, mode: 'insensitive' } },
-      { lastName: { contains: search, mode: 'insensitive' } },
-      { employeeCode: { contains: search, mode: 'insensitive' } },
-      { position: { contains: search, mode: 'insensitive' } },
-    ];
-  }
-
-  const skip = (page - 1) * limit;
-  const [employees, total] = await Promise.all([
-    prisma.employee.findMany({ where, select: EMPLOYEE_SELECT, skip, take: limit, orderBy: { firstName: 'asc' } }),
-    prisma.employee.count({ where }),
-  ]);
-
-  return c.json({ data: employees, total, page, limit });
 });
 
 const createEmployeeSchema = z.object({
@@ -158,10 +165,10 @@ router.get('/:id', async (c) => {
     if (employeeId2 && employeeId2 !== c.req.param('id')) {
       return c.json({ message: 'Access denied' }, 403);
     }
-    const employee = await prisma.employee.findUnique({
-      where: { id: c.req.param('id') },
-      select: { ...EMPLOYEE_SELECT, salaryStructure: { select: { id: true, transactionCodeId: true, amount: true, currency: true, effectiveFrom: true, effectiveTo: true, transactionCode: { select: { id: true, name: true, code: true, type: true } } }, orderBy: { effectiveFrom: 'desc' } } },
-    });
+  const employee = await prisma.employee.findUnique({
+    where: { id: c.req.param('id') },
+    select: { ...EMPLOYEE_SELECT, salaryStructure: { select: { id: true, transactionCodeId: true, value: true, currency: true, effectiveFrom: true, effectiveTo: true, isRecurring: true, notes: true, transactionCode: { select: { id: true, name: true, code: true, type: true } } }, orderBy: { effectiveFrom: 'desc' } } },
+  });
     if (!employee) return c.json({ message: 'Employee not found' }, 404);
     const companyId = c.get('companyId');
     const clientId = c.get('clientId');
@@ -170,7 +177,7 @@ router.get('/:id', async (c) => {
     return c.json({ data: employee });
   } catch (err: any) {
     console.error('[employee GET /:id]', err?.message ?? err);
-    return c.json({ message: err?.message ?? 'Internal server error' }, 500);
+    return c.json({ message: 'Internal server error' }, 500);
   }
 });
 
@@ -226,17 +233,14 @@ router.put('/:id', requirePermission('manage_employees'), async (c) => {
       }
     }
 
-    const employee = await prisma.employee.update({
-      where: { id: c.req.param('id') },
-      data,
-      select: EMPLOYEE_SELECT,
-    });
+    await prisma.employee.update({ where: { id: c.req.param('id') }, data });
+    const employee = await prisma.employee.findUnique({ where: { id: c.req.param('id') }, select: EMPLOYEE_SELECT });
     return c.json(employee);
   } catch (err: any) {
     if (err.code === 'P2025') return c.json({ message: 'Employee not found' }, 404);
     if (err.code === 'P2002') return c.json({ message: 'Employee code already exists' }, 409);
     console.error('[employee PUT]', err?.message ?? err);
-    return c.json({ message: err?.message ?? 'Internal server error' }, 500);
+    return c.json({ message: 'Internal server error' }, 500);
   }
 });
 
@@ -258,11 +262,16 @@ router.delete('/:id', requirePermission('manage_employees'), async (c) => {
 });
 
 router.get('/:id/audit-logs', async (c) => {
-  const logs = await prisma.auditLog.findMany({
-    where: { resource: 'employee', resourceId: c.req.param('id') },
-    orderBy: { createdAt: 'desc' },
-  });
-  return c.json(logs);
+  try {
+    const logs = await prisma.auditLog.findMany({
+      where: { resource: 'employee', resourceId: c.req.param('id') },
+      orderBy: { createdAt: 'desc' },
+    });
+    return c.json(logs);
+  } catch (err: any) {
+    console.error('[employees GET /:id/audit-logs]', err?.message);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
 });
 
 async function checkEmployeeAccess(c: any, employeeId: string): Promise<boolean> {
@@ -276,17 +285,22 @@ async function checkEmployeeAccess(c: any, employeeId: string): Promise<boolean>
 }
 
 router.get('/:id/salary-structure', async (c) => {
-  const employeeId = c.req.param('id');
-  if (!(await checkEmployeeAccess(c, employeeId))) return c.json({ message: 'Access denied' }, 403);
-  const active = c.req.query('active');
-  const where: Record<string, unknown> = { employeeId };
-  if (active === 'true') where.effectiveTo = null;
-  const items = await prisma.employeeTransaction.findMany({
-    where,
-    include: { transactionCode: true },
-    orderBy: { effectiveFrom: 'desc' },
-  });
-  return c.json(items);
+  try {
+    const employeeId = c.req.param('id');
+    if (!(await checkEmployeeAccess(c, employeeId))) return c.json({ message: 'Access denied' }, 403);
+    const active = c.req.query('active');
+    const where: Record<string, unknown> = { employeeId };
+    if (active === 'true') where.effectiveTo = null;
+    const items = await prisma.employeeTransaction.findMany({
+      where,
+      include: { transactionCode: true },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+    return c.json(items);
+  } catch (err: any) {
+    console.error('[employees GET /:id/salary-structure]', err?.message);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
 });
 
 router.post('/:id/salary-structure', requirePermission('manage_employees'), async (c) => {
@@ -324,11 +338,8 @@ router.put('/:empId/salary-structure/:id', requirePermission('manage_employees')
     });
     if (!existing || existing.employeeId !== empId) return c.json({ message: 'Entry not found' }, 404);
     const body = await c.req.json();
-    const item = await prisma.employeeTransaction.update({
-      where: { id: c.req.param('id') },
-      data: body,
-      include: { transactionCode: true },
-    });
+    await prisma.employeeTransaction.update({ where: { id: c.req.param('id') }, data: body });
+    const item = await prisma.employeeTransaction.findUnique({ where: { id: c.req.param('id') }, include: { transactionCode: true } });
     return c.json(item);
   } catch (err: any) {
     if (err.code === 'P2025') return c.json({ message: 'Salary structure entry not found' }, 404);

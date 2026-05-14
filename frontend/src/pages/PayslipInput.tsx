@@ -148,7 +148,7 @@ const PayslipInput: React.FC = () => {
       setShowAdd(false);
       loadInputs(selectedEmp.id);
     } catch (err: any) {
-      setAddError(err.response?.data?.message || 'Failed to add input.');
+      setAddError(err.message || 'Failed to add input.');
     } finally {
       setAddSaving(false);
     }
@@ -196,7 +196,7 @@ const PayslipInput: React.FC = () => {
       setEditingId(null);
       loadInputs(selectedEmp.id);
     } catch (err: any) {
-      setEditError(err.response?.data?.message || 'Failed to save changes.');
+      setEditError(err.message || 'Failed to save changes.');
     } finally {
       setEditSaving(false);
     }
@@ -212,7 +212,7 @@ const PayslipInput: React.FC = () => {
       await PayrollInputAPI.delete(deleteTarget.id);
       loadInputs(selectedEmp.id);
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to delete', 'error');
+      showToast(err.message || 'Failed to delete', 'error');
     } finally {
       setDeleteTarget(null);
     }
@@ -229,7 +229,7 @@ const PayslipInput: React.FC = () => {
       if (selectedEmp) loadInputs(selectedEmp.id);
       loadEmployees(); // Refresh employee list if needed
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Import failed.', 'error');
+      showToast(err.message || 'Import failed.', 'error');
     } finally {
       setImporting(false);
       e.target.value = ''; // Reset input

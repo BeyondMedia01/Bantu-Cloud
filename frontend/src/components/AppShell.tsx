@@ -9,7 +9,7 @@ import {
   Package, FolderOpen,
 } from 'lucide-react';
 import { getUser, logout } from '../lib/auth';
-import { CompanyAPI, UserAPI } from '../api/client';
+import { UserAPI } from '../api/client';
 import { setActiveCompanyId } from '../lib/companyContext';
 import { getAvatarGradient } from '../lib/avatarGradient';
 import { useIdleTimer } from '../hooks/useIdleTimer';
@@ -40,8 +40,8 @@ const AppShell: React.FC = () => {
   const location = useLocation();
 
   const { isIdle, isWarning, remainingTime, resetTimer } = useIdleTimer({
-    timeout: IS_DESKTOP ? 30 * 60 * 1000 : 60_000,
-    warningThreshold: IS_DESKTOP ? 29 * 60 * 1000 : 50_000,
+    timeout: IS_DESKTOP ? 30 * 60 * 1000 : 5 * 60 * 1000,
+    warningThreshold: IS_DESKTOP ? 29 * 60 * 1000 : 4 * 60 * 1000,
   });
 
   const [companies, setCompanies] = useState<any[]>([]);
@@ -77,7 +77,7 @@ const AppShell: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     if (userRole !== 'EMPLOYEE') {
-      CompanyAPI.getAll().then((res) => {
+      UserAPI.companies().then((res) => {
         if (!mounted) return;
         const list = res.data;
         setCompanies(list);

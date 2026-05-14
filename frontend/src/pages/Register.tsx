@@ -35,7 +35,7 @@ const Register: React.FC = () => {
       await AuthAPI.register(form);
       navigate('/login');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -176,6 +176,10 @@ const Register: React.FC = () => {
           <p className="text-center text-sm font-medium text-muted-foreground">
             Already have an account?
             <Link to="/login" className="ml-2 font-bold text-accent-green hover:underline">Sign in</Link>
+          </p>
+          <p className="text-center text-sm font-medium text-muted-foreground">
+            No license token?
+            <Link to="/trial-signup" className="ml-2 font-bold text-accent-green hover:underline">Start free trial</Link>
           </p>
         </form>
       </div>

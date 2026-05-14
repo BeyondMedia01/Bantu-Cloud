@@ -101,9 +101,9 @@ function daysUntil(date: Date): number {
 }
 
 const TAG_COLORS: Record<string, string> = {
-  ZIMRA: 'bg-accent-green/10 text-accent-green',
-  NSSA: 'bg-teal-100 text-teal-600',
-  NEC: 'bg-purple-100 text-purple-600',
+  ZIMRA: 'bg-success-bg text-success',
+  NSSA: 'bg-info-bg text-info',
+  NEC: 'bg-warning-bg text-warning',
   FINANCE: 'bg-muted text-muted-foreground',
 };
 

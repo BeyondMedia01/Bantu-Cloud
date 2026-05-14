@@ -94,7 +94,7 @@ const LeaveEncashments: React.FC = () => {
       showToast('Encashment request submitted', 'success');
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to submit encashment');
+      setError(err.message || 'Failed to submit encashment');
     } finally {
       setSaving(false);
     }
@@ -107,7 +107,7 @@ const LeaveEncashments: React.FC = () => {
       showToast('Encashment approved', 'success');
       load();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to approve', 'error');
+      showToast(err.message || 'Failed to approve', 'error');
     } finally {
       setActionLoading('');
     }
@@ -123,7 +123,7 @@ const LeaveEncashments: React.FC = () => {
       showToast('Encashment rejected and balance restored', 'success');
       load();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to reject', 'error');
+      showToast(err.message || 'Failed to reject', 'error');
     } finally {
       setActionLoading('');
       setRejectReason('');
@@ -140,7 +140,7 @@ const LeaveEncashments: React.FC = () => {
       showToast('Encashment processed — a payroll input has been created for the next run', 'success');
       load();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to process', 'error');
+      showToast(err.message || 'Failed to process', 'error');
     } finally {
       setActionLoading('');
     }

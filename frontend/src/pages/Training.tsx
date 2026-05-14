@@ -118,7 +118,7 @@ const Training: React.FC = () => {
       });
       showToast('Course created', 'success');
       setShowCreate(false); resetForm(); loadCourses();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setSubmitting(false); }
   };
 
@@ -130,7 +130,7 @@ const Training: React.FC = () => {
   const handlePublish = async (id: string) => {
     setActionLoading('pub-' + id);
     try { await TrainingAPI.updateCourse(id, { status: 'ACTIVE' }); showToast('Course activated', 'success'); loadCourses(); }
-    catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 
@@ -143,7 +143,7 @@ const Training: React.FC = () => {
       setShowEnroll(false); setSelectedEmps([]);
       loadCourses();
       if (tab === 'enrollments') loadAllEnrollments();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 
@@ -152,7 +152,7 @@ const Training: React.FC = () => {
     try {
       await TrainingAPI.updateEnrollment(enrId, { status });
       loadAllEnrollments();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 
@@ -164,7 +164,7 @@ const Training: React.FC = () => {
       await TrainingAPI.issueCertificate(certCourseId, { employeeId: certEmp, certificateNo: certNo || undefined, expiryDate: certExpiry || undefined });
       showToast('Certificate issued', 'success');
       setShowCert(false); setCertEmp(''); setCertNo(''); setCertExpiry('');
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 

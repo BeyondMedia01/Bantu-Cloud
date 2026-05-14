@@ -51,7 +51,7 @@ const LeaveBalances: React.FC = () => {
       setActionMsg(`Year-end complete — ${r.data.carried} balances carried forward, ${r.data.forfeited} partially forfeited`);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Year-end processing failed');
+      setError(err.message || 'Year-end processing failed');
     } finally {
       setActionLoading('');
     }
@@ -67,7 +67,7 @@ const LeaveBalances: React.FC = () => {
       setAdjNote('');
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Adjustment failed');
+      setError(err.message || 'Adjustment failed');
     } finally {
       setActionLoading('');
     }

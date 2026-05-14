@@ -96,7 +96,7 @@ const Performance: React.FC = () => {
       showToast('Goal created', 'success');
       setShowGoal(false); setGEmp(''); setGTitle(''); setGDesc(''); setGCat(''); setGTarget('');
       loadData();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setSubmitting(false); }
   };
 
@@ -107,7 +107,7 @@ const Performance: React.FC = () => {
       if (status) data.status = status;
       await PerformanceAPI.updateGoal(id, data);
       loadData();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 
@@ -120,7 +120,7 @@ const Performance: React.FC = () => {
       showToast('Review created', 'success');
       setShowReview(false); setREmp(''); setRReviewer(''); setRPeriod('');
       loadData();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setSubmitting(false); }
   };
 
@@ -150,7 +150,7 @@ const Performance: React.FC = () => {
       showToast('Review saved', 'success');
       setEditReviewId(null);
       loadData();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 
@@ -160,7 +160,7 @@ const Performance: React.FC = () => {
       await PerformanceAPI.updateReview(id, { status });
       showToast(`Review ${status}`, 'success');
       loadData();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setActionLoading(''); }
   };
 

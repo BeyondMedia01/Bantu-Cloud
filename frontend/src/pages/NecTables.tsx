@@ -85,7 +85,7 @@ const NecTables: React.FC = () => {
       setNewTable({ ...EMPTY_TABLE });
       setAddingTable(false);
     } catch (err: any) {
-      setTableError(err.response?.data?.message || 'Failed to create NEC table.');
+      setTableError(err.message || 'Failed to create NEC table.');
     } finally {
       setTableSaving(false);
     }
@@ -125,7 +125,7 @@ const NecTables: React.FC = () => {
       setNewGrade({ ...EMPTY_GRADE });
       setAddingGrade(false);
     } catch (err: any) {
-      setAddGradeError(err.response?.data?.message || 'Failed to add grade.');
+      setAddGradeError(err.message || 'Failed to add grade.');
     } finally {
       setAddGradeSaving(false);
     }
@@ -162,7 +162,7 @@ const NecTables: React.FC = () => {
       );
       setEditingGradeId(null);
     } catch (err: any) {
-      setEditGradeError(err.response?.data?.message || 'Failed to save grade.');
+      setEditGradeError(err.message || 'Failed to save grade.');
     } finally {
       setEditGradeSaving(false);
     }

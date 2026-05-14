@@ -27,7 +27,7 @@ const LoanDetail: React.FC = () => {
       await LoanAPI.markRepaymentPaid(repaymentId);
       load();
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Failed to mark repayment as paid');
+      setActionError(err.message || 'Failed to mark repayment as paid');
     }
   };
 

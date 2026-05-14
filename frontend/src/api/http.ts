@@ -1,0 +1,95 @@
+import { getToken, logout } from '../lib/auth';
+
+const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+const DESKTOP_CLOUD_URL = import.meta.env.VITE_DESKTOP_API_URL as string || 'https://api.payroll.thinkbantu.com/api';
+const DESKTOP_LOCAL_URL = 'http://localhost:5005/api';
+const WEB_BASE_URL = import.meta.env.VITE_API_URL as string || 'https://api.payroll.thinkbantu.com';
+const BASE_URL = IS_DESKTOP
+  ? DESKTOP_CLOUD_URL
+  : WEB_BASE_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '') + '/api';
+
+type RequestOptions = {
+  params?: Record<string, string>;
+  responseType?: 'json' | 'blob';
+  headers?: Record<string, string>;
+};
+
+async function request<_T = any>(method: string, url: string, body?: any, options?: RequestOptions): Promise<any> {
+  const token = getToken();
+  const companyId = sessionStorage.getItem('activeCompanyId');
+  const reqHeaders: Record<string, string> = { ...options?.headers };
+
+  if (token) reqHeaders['Authorization'] = `Bearer ${token}`;
+  if (companyId) reqHeaders['x-company-id'] = companyId;
+  if (body && !(body instanceof FormData)) {
+    reqHeaders['Content-Type'] = 'application/json';
+  }
+
+  let fullUrl = `${BASE_URL}${url}`;
+  if (options?.params) {
+    const qs = new URLSearchParams(options.params).toString();
+    if (qs) fullUrl += `?${qs}`;
+  }
+
+  const fetchOpts: RequestInit = {
+    method,
+    headers: reqHeaders,
+    body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+  };
+  if (IS_DESKTOP && method === 'GET') {
+    (fetchOpts as any).signal = AbortSignal.timeout(15_000);
+  }
+
+  let response = await fetch(fullUrl, fetchOpts);
+
+  // Desktop offline fallback
+  if (IS_DESKTOP && !response.ok && response.status >= 500) {
+    const otherUrl = BASE_URL === DESKTOP_CLOUD_URL ? DESKTOP_LOCAL_URL : DESKTOP_CLOUD_URL;
+    const fallbackUrl = url.startsWith('/') ? `${otherUrl}${url}` : `${otherUrl}/${url}`;
+    response = await fetch(fallbackUrl, fetchOpts);
+  }
+
+  if (response.status === 401) {
+    logout();
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login';
+    }
+    throw Object.assign(new Error('Unauthorized'), { status: 401 });
+  }
+
+  const resHeaders: Record<string, string> = {};
+  response.headers.forEach((v, k) => { resHeaders[k.toLowerCase()] = v; });
+
+  if (options?.responseType === 'blob') {
+    if (!response.ok) {
+      const err = await response.text();
+      throw Object.assign(new Error(err || response.statusText), { status: response.status });
+    }
+    return { data: await response.blob(), headers: resHeaders };
+  }
+
+  const json = await response.json();
+  if (!response.ok) {
+    throw Object.assign(new Error(json.error || json.message || response.statusText), { status: response.status });
+  }
+
+  if (
+    json !== null &&
+    typeof json === 'object' &&
+    !Array.isArray(json) &&
+    'data' in json &&
+    !('total' in json)
+  ) {
+    return { data: json.data, headers: resHeaders };
+  }
+
+  return { data: json, headers: resHeaders };
+}
+
+export const http = {
+  get: <T = any>(url: string, options?: RequestOptions) => request<T>('GET', url, undefined, options),
+  post: <T = any>(url: string, body?: any, options?: RequestOptions) => request<T>('POST', url, body, options),
+  put: <T = any>(url: string, body?: any, options?: RequestOptions) => request<T>('PUT', url, body, options),
+  patch: <T = any>(url: string, body?: any, options?: RequestOptions) => request<T>('PATCH', url, body, options),
+  delete: <T = any>(url: string, options?: RequestOptions) => request<T>('DELETE', url, undefined, options),
+};

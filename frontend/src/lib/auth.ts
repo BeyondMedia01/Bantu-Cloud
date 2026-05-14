@@ -1,8 +1,7 @@
 const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
 
-// In-memory token storage for web (XSS-safe). sessionStorage is only used on desktop
-// where there is no cross-site scripting risk.
 let _token: string | null = null;
+const STORAGE_KEY = 'bantu_auth_token';
 
 export type AppModule = 'PEOPLE' | 'TIME_LEAVE' | 'PAYROLL' | 'COMPLIANCE' | 'REPORTS' | 'SETTINGS' | 'RECRUITMENT' | 'PERFORMANCE' | 'EXPENSES' | 'ONBOARDING' | 'TRAINING' | 'ASSETS' | 'SUCCESSION' | 'SURVEYS' | 'ANALYTICS';
 export type ModuleAction = 'VIEW' | 'EDIT' | 'DELETE' | 'APPROVE' | 'EXPORT' | 'RUN' | 'CONFIGURE';
@@ -61,7 +60,9 @@ export function logout(): void {
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('activeCompanyId');
   sessionStorage.removeItem('activeClientId');
-  if (IS_DESKTOP) {
+  if (!IS_DESKTOP) {
+    localStorage.removeItem(STORAGE_KEY);
+  } else {
     import('@tauri-apps/api/core').then(m => m.invoke('clear_license_token')).catch(() => {});
   }
 }
@@ -73,16 +74,28 @@ export function saveAuthData(token: string, companyId?: string): void {
   } else {
     sessionStorage.removeItem('activeCompanyId');
   }
-  // Persist token to file and sessionStorage for offline use (desktop only)
-  if (IS_DESKTOP) {
+  if (!IS_DESKTOP) {
+    localStorage.setItem(STORAGE_KEY, token);
+  } else {
     sessionStorage.setItem('token', token);
     import('@tauri-apps/api/core').then(m => m.invoke('store_license_token', { token })).catch(() => {});
   }
 }
 
-// Load persisted token on startup (desktop only)
 export async function loadPersistedToken(): Promise<void> {
-  if (!IS_DESKTOP || _token) return;
+  if (_token) return;
+  if (!IS_DESKTOP) {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const user = parseJwt(stored);
+      if (user && (!user.exp || user.exp * 1000 > Date.now())) {
+        _token = stored;
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+    return;
+  }
   try {
     const { invoke } = await import('@tauri-apps/api/core');
     const token = await invoke<string | null>('get_license_token');

@@ -77,7 +77,7 @@ const EmployeeLeave: React.FC = () => {
       setTab('history');
       load();
     } catch (err: any) {
-      setSubmitError(err.response?.data?.message || 'Failed to submit leave request');
+      setSubmitError(err.message || 'Failed to submit leave request');
     } finally {
       setSubmitting(false);
     }
@@ -98,7 +98,7 @@ const EmployeeLeave: React.FC = () => {
       setTab('history');
       load();
     } catch (err: any) {
-      setEncashError(err.response?.data?.message || 'Failed to submit encashment request');
+      setEncashError(err.message || 'Failed to submit encashment request');
     } finally {
       setEncashSubmitting(false);
     }

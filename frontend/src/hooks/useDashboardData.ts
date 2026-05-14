@@ -66,10 +66,12 @@ export function usePublicHolidays() {
 }
 
 export function useExchangeRate() {
+  const companyId = getActiveCompanyId();
   return useQuery<CurrencyRate>({
     queryKey: dashboardKeys.exchangeRate(),
     queryFn: () => CurrencyRateAPI.getLatest().then((r) => r.data),
-    staleTime: 60 * 60 * 1000, // exchange rate fresh for 1 hour
+    enabled: !!companyId,
+    staleTime: 60 * 60 * 1000,
     retry: 1,
   });
 }

@@ -147,7 +147,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
       setPendingRows([]);
       showToast(`${newBrackets.length} bracket${newBrackets.length > 1 ? 's' : ''} saved`, 'success');
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to save brackets.', 'error');
+      showToast(err.message || 'Failed to save brackets.', 'error');
     } finally {
       setSavingAll(false);
     }
@@ -185,7 +185,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
       );
       setEditingId(null);
     } catch (err: any) {
-      setEditError(err.response?.data?.message || 'Failed to save changes.');
+      setEditError(err.message || 'Failed to save changes.');
     } finally {
       setEditSaving(false);
     }

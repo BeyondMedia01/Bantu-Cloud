@@ -190,7 +190,7 @@ const BackPay: React.FC = () => {
       setPreview(res.data);
       setStep(3);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to calculate back pay');
+      setError(err.message || 'Failed to calculate back pay');
     } finally {
       setPreviewLoading(false);
     }
@@ -204,7 +204,7 @@ const BackPay: React.FC = () => {
       setCommit(res.data);
       setStep(4);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate back-pay inputs');
+      setError(err.message || 'Failed to generate back-pay inputs');
     } finally {
       setCommitLoading(false);
     }

@@ -133,7 +133,7 @@ const Recruitment: React.FC = () => {
       resetForm();
       loadPostings();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to create posting', 'error');
+      showToast(err.message || 'Failed to create posting', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -151,7 +151,7 @@ const Recruitment: React.FC = () => {
       showToast('Job posting published', 'success');
       loadPostings();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to publish', 'error');
+      showToast(err.message || 'Failed to publish', 'error');
     } finally {
       setActionLoading('');
     }
@@ -164,7 +164,7 @@ const Recruitment: React.FC = () => {
       showToast('Job posting closed', 'success');
       loadPostings();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to close', 'error');
+      showToast(err.message || 'Failed to close', 'error');
     } finally {
       setActionLoading('');
     }
@@ -179,7 +179,7 @@ const Recruitment: React.FC = () => {
       setDeleteTarget(null);
       loadPostings();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to delete', 'error');
+      showToast(err.message || 'Failed to delete', 'error');
     } finally {
       setActionLoading('');
     }
@@ -200,7 +200,7 @@ const Recruitment: React.FC = () => {
       loadPostings();
       loadAllApplications();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to add application', 'error');
+      showToast(err.message || 'Failed to add application', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -217,7 +217,7 @@ const Recruitment: React.FC = () => {
       loadAllApplications();
       loadPostings();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to update status', 'error');
+      showToast(err.message || 'Failed to update status', 'error');
     } finally {
       setActionLoading('');
     }
@@ -230,7 +230,7 @@ const Recruitment: React.FC = () => {
       showToast('Resume uploaded', 'success');
       loadAllApplications();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Upload failed', 'error');
+      showToast(err.message || 'Upload failed', 'error');
     } finally {
       setResumeUploading(null);
     }
@@ -243,7 +243,7 @@ const Recruitment: React.FC = () => {
       showToast(`Parsed: ${res.data.data.skills.length} skills, ${res.data.data.totalYears}y experience`, 'success');
       loadAllApplications();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Parse failed', 'error');
+      showToast(err.message || 'Parse failed', 'error');
     } finally {
       setParseLoading(null);
     }
@@ -257,7 +257,7 @@ const Recruitment: React.FC = () => {
       loadScreeningSummary(postingId);
       loadAllApplications();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Screening failed', 'error');
+      showToast(err.message || 'Screening failed', 'error');
     } finally {
       setScreenLoading(null);
     }
@@ -269,7 +269,7 @@ const Recruitment: React.FC = () => {
       await RecruitmentAPI.toggleShortlist(appId, !current);
       loadAllApplications();
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to update', 'error');
+      showToast(err.message || 'Failed to update', 'error');
     } finally {
       setActionLoading('');
     }

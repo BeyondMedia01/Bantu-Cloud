@@ -36,7 +36,7 @@ const AcceptInvite: React.FC = () => {
     if (!token) { setLoadError('Invalid invite link.'); return; }
     InviteAPI.validate(token)
       .then((res) => setInviteInfo(res.data))
-      .catch((err) => setLoadError(err.response?.data?.message ?? 'Invite not found or expired.'));
+      .catch((err) => setLoadError(err.message ?? 'Invite not found or expired.'));
   }, [token]);
 
   const onSubmit = async (data: FormData) => {
@@ -47,7 +47,7 @@ const AcceptInvite: React.FC = () => {
       saveAuthData(res.data.token, res.data.companyId);
       navigate('/dashboard');
     } catch (err: any) {
-      setSubmitError(err.response?.data?.message ?? 'Failed to accept invite. Please try again.');
+      setSubmitError(err.message ?? 'Failed to accept invite. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -67,7 +67,7 @@ const AcceptInvite: React.FC = () => {
           </div>
         ) : !inviteInfo ? (
           <div className="flex justify-center">
-            <div className="w-6 h-6 border-2 border-slate-300 border-t-navy rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" />
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">

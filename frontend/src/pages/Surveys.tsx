@@ -62,7 +62,7 @@ const Surveys: React.FC = () => {
       showToast('Survey created', 'success');
       setShowCreate(false); setFTitle(''); setFDesc(''); setFAnon(false); setFDue('');
       loadSurveys();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setSubmitting(false); }
   };
 
@@ -83,18 +83,18 @@ const Surveys: React.FC = () => {
       showToast('Questions saved', 'success');
       setEditId(null);
       loadSurveys();
-    } catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     finally { setEditSubmitting(false); }
   };
 
   const handleActivate = async (id: string) => {
     try { await SurveyAPI.update(id, { status: 'ACTIVE' }); showToast('Survey activated', 'success'); loadSurveys(); }
-    catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    catch (err: any) { showToast(err.message || 'Failed', 'error'); }
   };
 
   const handleClose = async (id: string) => {
     try { await SurveyAPI.update(id, { status: 'CLOSED' }); showToast('Survey closed', 'success'); loadSurveys(); }
-    catch (err: any) { showToast(err.response?.data?.message || 'Failed', 'error'); }
+    catch (err: any) { showToast(err.message || 'Failed', 'error'); }
   };
 
   const openResults = async (id: string, title: string) => {

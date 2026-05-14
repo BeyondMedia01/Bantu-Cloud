@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'node:crypto';
+import { UserRole } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { signToken } from '../lib/auth';
 import { validateLicense } from '../lib/license';
@@ -7,7 +8,6 @@ import { sendPasswordReset } from '../lib/mailer';
 
 const MAX_LOGIN_ATTEMPTS = 3;
 const LOCKOUT_MS = 15 * 60 * 1000;
-const loginFailures = new Map<string, { count: number; lockedUntil: number | null }>();
 
 export async function register(data: {
   firstName: string;
@@ -52,12 +52,6 @@ export async function register(data: {
 }
 
 export async function login(email: string, password: string) {
-  const failure = loginFailures.get(email);
-  if (failure?.lockedUntil && failure.lockedUntil > Date.now()) {
-    const remaining = Math.ceil((failure.lockedUntil - Date.now()) / 60000);
-    throw new Object.assign(new Error(`Account temporarily locked. Try again in ${remaining} minute(s).`), { status: 429 });
-  }
-
   const user = await prisma.user.findUnique({
     where: { email },
     include: {
@@ -66,31 +60,49 @@ export async function login(email: string, password: string) {
     },
   });
 
-  if (!user) throw new Object.assign(new Error('Invalid credentials'), { status: 401 });
+  if (!user) throw Object.assign(new Error('Invalid credentials'), { status: 401 });
+
+  // DB-based brute-force lockout (stateless-safe for Workers)
+  const prefs = (user.preferences as Record<string, unknown>) || {};
+  if (prefs.lockedUntil && new Date(prefs.lockedUntil as string) > new Date()) {
+    const remaining = Math.ceil((new Date(prefs.lockedUntil as string).getTime() - Date.now()) / 60000);
+    throw Object.assign(new Error(`Account locked. Try again in ${remaining} min.`), { status: 429 });
+  }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    const rec = loginFailures.get(email) || { count: 0, lockedUntil: null };
-    rec.count += 1;
-    if (rec.count >= MAX_LOGIN_ATTEMPTS) {
-      rec.lockedUntil = Date.now() + LOCKOUT_MS;
-      rec.count = 0;
-    }
-    loginFailures.set(email, rec);
-    throw new Object.assign(new Error('Invalid credentials'), { status: 401 });
+    // Atomic JSON update prevents race conditions from concurrent requests
+    await prisma.$executeRaw`
+      UPDATE "User"
+      SET preferences = CASE
+        WHEN COALESCE((preferences->>'loginAttempts')::int, 0) + 1 >= ${MAX_LOGIN_ATTEMPTS}
+        THEN preferences
+          || jsonb_build_object('lockedUntil', ${new Date(Date.now() + LOCKOUT_MS).toISOString()})
+          || jsonb_build_object('loginAttempts', 0)
+        ELSE preferences
+          || jsonb_build_object('loginAttempts', COALESCE((preferences->>'loginAttempts')::int, 0) + 1)
+      END
+      WHERE email = ${email}
+    `;
+    throw Object.assign(new Error('Invalid credentials'), { status: 401 });
   }
 
-  loginFailures.delete(email);
+  // Clear lockout on successful login
+  await prisma.$executeRaw`
+    UPDATE "User"
+    SET preferences = preferences - 'loginAttempts' - 'lockedUntil'
+    WHERE email = ${email}
+  `;
 
   const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
   const companyId = user.employee?.companyId ?? null;
   const employeeId = user.employee?.id ?? null;
 
-  const token = await signToken({ userId: user.id, email: user.email, role: user.role, clientId, companyId, employeeId });
+  const token = await signToken({ userId: user.id, email: user.email, role: user.role, clientId: clientId ?? undefined, companyId: companyId ?? undefined, employeeId: employeeId ?? undefined });
   return { token, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User' };
 }
 
-export async function forgotPassword(email: string) {
+export async function forgotPassword(email: string, frontendUrl?: string) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (user) {
     const rawToken = randomBytes(32).toString('hex');
@@ -102,7 +114,8 @@ export async function forgotPassword(email: string) {
       data: { passwordResetToken: hashedToken, passwordResetExpiry: expiry },
     });
 
-    const resetUrl = `https://app.bantu.io/reset-password?token=${rawToken}`;
+    const url = frontendUrl || 'https://payroll.thinkbantu.com';
+    const resetUrl = `${url}/reset-password?token=${rawToken}`;
     await sendPasswordReset(email, resetUrl);
   }
 }
@@ -112,18 +125,77 @@ export async function resetPassword(token: string, password: string) {
   const user = await prisma.user.findUnique({ where: { passwordResetToken: hashedToken } });
 
   if (!user || !user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
-    throw new Object.assign(new Error('Reset link is invalid or has expired'), { status: 400 });
+    throw Object.assign(new Error('Reset link is invalid or has expired'), { status: 400 });
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: user.id },
-      data: { password: hashedPassword, passwordResetToken: null, passwordResetExpiry: null },
-    }),
-    prisma.session.deleteMany({ where: { userId: user.id } }),
-  ]);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { password: hashedPassword, passwordResetToken: null, passwordResetExpiry: null },
+  });
+  await prisma.session.deleteMany({ where: { userId: user.id } });
+}
+
+export async function trialSignup(data: {
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  email: string;
+  password: string;
+}) {
+  const { firstName, lastName, companyName, email, password } = data;
+
+  const hashedPassword = await bcrypt.hash(password, 12);
+  const fullName = `${firstName.trim()} ${lastName.trim()}`;
+
+  const client = await prisma.client.create({
+    data: {
+      name: companyName.trim(),
+      companies: {
+        create: { name: companyName.trim() },
+      },
+    },
+    include: { companies: { take: 1 } },
+  });
+
+  const company = client.companies[0];
+
+  const user = await prisma.user.create({
+    data: {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      name: fullName,
+      email,
+      password: hashedPassword,
+      role: 'CLIENT_ADMIN',
+      clientAdmin: { create: { clientId: client.id } },
+    },
+  });
+
+  const { randomBytes } = await import('node:crypto');
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+  await prisma.licenseToken.create({
+    data: {
+      clientId: client.id,
+      token,
+      expiresAt,
+      employeeCap: 5,
+      active: true,
+    },
+  });
+
+  const jwt = await signToken({
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    clientId: client.id,
+    companyId: company.id,
+  });
+
+  return { token: jwt, role: user.role, clientId: client.id, companyId: company.id, name: fullName };
 }
 
 export async function syncCredentials(data: {
@@ -146,7 +218,7 @@ export async function syncCredentials(data: {
       name: data.name || undefined,
       firstName: data.firstName || undefined,
       lastName: data.lastName || undefined,
-      role: data.role || undefined,
+      role: data.role as UserRole | undefined || undefined,
     },
     create: {
       email: data.email,
@@ -154,7 +226,7 @@ export async function syncCredentials(data: {
       name: data.name || data.email,
       firstName: data.firstName || data.name || data.email,
       lastName: data.lastName || '',
-      role: data.role || 'CLIENT_ADMIN',
+      role: (data.role || 'CLIENT_ADMIN') as UserRole,
     },
   });
 }

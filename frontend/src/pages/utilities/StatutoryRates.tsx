@@ -37,7 +37,7 @@ const StatutoryRates: React.FC = () => {
       await StatutoryRatesAPI.update(form);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save statutory rates');
+      setError(err.message || 'Failed to save statutory rates');
     } finally {
       setSaving(false);
     }

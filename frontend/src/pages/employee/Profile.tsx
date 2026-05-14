@@ -39,7 +39,7 @@ const EmployeeProfile: React.FC = () => {
           accountNumber: p.accountNumber || '',
         });
       })
-      .catch((err: any) => setError(err.response?.data?.message || 'Failed to load profile'))
+      .catch((err: any) => setError(err.message || 'Failed to load profile'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,7 +53,7 @@ const EmployeeProfile: React.FC = () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save');
+      setError(err.message || 'Failed to save');
     } finally {
       setSaving(false);
     }

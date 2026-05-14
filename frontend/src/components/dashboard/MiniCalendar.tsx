@@ -65,14 +65,14 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => setYearBase(y => y - 12)} aria-label="Previous years"
-            className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors">
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft size={16} />
           </button>
-          <button onClick={cycleMode} className="text-sm font-bold text-navy hover:text-accent-green transition-colors flex items-center gap-1">
+          <button onClick={cycleMode} className="text-sm font-bold text-foreground hover:text-success transition-colors flex items-center gap-1">
             {yearBase}–{yearBase + 11} <ChevronUp size={14} />
           </button>
           <button onClick={() => setYearBase(y => y + 12)} aria-label="Next years"
-            className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors">
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <ChevronRight size={16} />
           </button>
         </div>
@@ -82,7 +82,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
               key={y}
               onClick={() => { setViewDate(new Date(y, month, 1)); setMode('month'); }}
               className={`py-2 rounded-xl text-xs font-bold transition-colors
-                ${y === year ? 'bg-brand text-navy' : y === today.getFullYear() ? 'border-2 border-brand text-navy' : 'hover:bg-slate-100 text-slate-600'}`}
+                ${y === year ? 'bg-brand text-navy' : y === today.getFullYear() ? 'border-2 border-brand text-foreground' : 'hover:bg-muted text-muted-foreground'}`}
             >
               {y}
             </button>
@@ -101,14 +101,14 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => setViewDate(new Date(year - 1, month, 1))} aria-label="Previous year"
-            className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors">
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft size={16} />
           </button>
-          <button onClick={cycleMode} className="text-sm font-bold text-navy hover:text-accent-green transition-colors flex items-center gap-1">
+          <button onClick={cycleMode} className="text-sm font-bold text-foreground hover:text-success transition-colors flex items-center gap-1">
             {year} <ChevronUp size={14} />
           </button>
           <button onClick={() => setViewDate(new Date(year + 1, month, 1))} aria-label="Next year"
-            className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors">
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <ChevronRight size={16} />
           </button>
         </div>
@@ -118,7 +118,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
               key={m}
               onClick={() => { setViewDate(new Date(year, i, 1)); setMode('day'); }}
               className={`py-2 rounded-xl text-xs font-bold transition-colors
-                ${i === month && year === viewDate.getFullYear() ? 'bg-brand text-navy' : i === today.getMonth() && year === today.getFullYear() ? 'border-2 border-brand text-navy' : 'hover:bg-slate-100 text-slate-600'}`}
+                ${i === month && year === viewDate.getFullYear() ? 'bg-brand text-navy' : i === today.getMonth() && year === today.getFullYear() ? 'border-2 border-brand text-foreground' : 'hover:bg-muted text-muted-foreground'}`}
             >
               {m}
             </button>
@@ -137,19 +137,19 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => setViewDate(new Date(year, month - 1, 1))} aria-label="Previous month"
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
+          className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
           <ChevronLeft size={16} />
         </button>
         <button
           onClick={cycleMode}
-          className="text-sm font-bold text-navy hover:text-accent-green transition-colors flex items-center gap-1"
+          className="text-sm font-bold text-foreground hover:text-success transition-colors flex items-center gap-1"
           aria-label="Pick month and year"
         >
           {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
           <ChevronUp size={14} />
         </button>
         <button onClick={() => setViewDate(new Date(year, month + 1, 1))} aria-label="Next month"
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-navy transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
+          className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center">
           <ChevronRight size={16} />
         </button>
       </div>
@@ -157,7 +157,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
       {/* Day headers */}
       <div className="grid grid-cols-7 mb-1">
         {DAYS.map((d, i) => (
-          <p key={d} className={`text-center text-[10px] font-bold uppercase tracking-wider py-1 ${i === 0 || i === 6 ? 'text-slate-300' : 'text-slate-400'}`}>{d}</p>
+          <p key={d} className={`text-center text-[10px] font-bold uppercase tracking-wider py-1 ${i === 0 || i === 6 ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>{d}</p>
         ))}
       </div>
 
@@ -183,17 +183,17 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
                 ${isSelected
                   ? 'bg-brand text-navy shadow-sm'
                   : isToday_
-                    ? 'bg-brand/20 border-2 border-brand text-navy'
+                    ? 'bg-brand/20 border-2 border-brand text-foreground'
                     : holidayName
-                      ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                      ? 'bg-warning-bg text-warning hover:bg-warning-bg/80'
                       : isWeekend
-                        ? 'text-slate-300 hover:bg-slate-100'
-                        : 'text-slate-600 hover:bg-slate-100'}`}
+                        ? 'text-muted-foreground/50 hover:bg-muted'
+                        : 'text-muted-foreground hover:bg-muted'}`}
               >
                 {day}
                 {(holidayName || hasEvent) && !isSelected && (
                   <div className="flex gap-0.5 mt-0.5">
-                    {holidayName && <div className="w-1 h-1 rounded-full bg-orange-400" />}
+                    {holidayName && <div className="w-1 h-1 rounded-full bg-warning" />}
                     {hasEvent && <div className="w-1 h-1 rounded-full bg-brand" />}
                   </div>
                 )}
@@ -208,18 +208,18 @@ const MiniCalendar: React.FC<MiniCalendarProps> = React.memo(({ reminders, holid
         <div className="flex items-center gap-3">
           {holidayMap.size > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-orange-400" />
-              <span className="text-[10px] text-slate-400 font-bold">Holiday</span>
+              <div className="w-2 h-2 rounded-full bg-warning" />
+              <span className="text-[10px] text-muted-foreground font-bold">Holiday</span>
             </div>
           )}
           {eventDays.size > 0 && (
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-brand" />
-              <span className="text-[10px] text-slate-400 font-bold">Birthday/Anniv.</span>
+              <span className="text-[10px] text-muted-foreground font-bold">Birthday/Anniv.</span>
             </div>
           )}
         </div>
-        <button onClick={goToToday} className="text-[10px] font-bold text-accent-green hover:underline">
+        <button onClick={goToToday} className="text-[10px] font-bold text-success hover:underline">
           Today
         </button>
       </div>

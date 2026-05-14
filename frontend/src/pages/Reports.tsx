@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, Clock, ShieldCheck, FileSpreadsheet, Scale, BarChart2, Users, BookOpen, CreditCard, TrendingUp, Info, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
-import api, { ReportsAPI, IntelligenceAPI, PayrollAPI } from '../api/client';
+import { ReportsAPI, IntelligenceAPI, PayrollAPI } from '../api/client';
+import { http } from '../api/http';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -34,7 +35,7 @@ const Reports: React.FC = () => {
   useEffect(() => {
     if (companyId) {
       // Fetch completed runs for EFT and other run-based reports
-      api.get('/payroll', { params: { companyId, status: 'COMPLETED' } })
+      http.get('/payroll', { params: { companyId, status: 'COMPLETED' } })
         .then(res => {
           const list = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
           setRuns(list);
@@ -63,20 +64,8 @@ const Reports: React.FC = () => {
       URL.revokeObjectURL(url);
       showToast(`${filename} generated successfully`, 'success');
     } catch (err: unknown) {
-      // When responseType:'blob', error response bodies arrive as Blobs — read them back to JSON
-      const axiosErr = err as { response?: { data?: Blob | { message?: string } } };
-      const errData = axiosErr?.response?.data;
-      if (errData instanceof Blob) {
-        try {
-          const text = await errData.text();
-          const json = JSON.parse(text);
-          showToast(json.message || 'Failed to generate report.', 'error');
-        } catch {
-          showToast('Failed to generate report.', 'error');
-        }
-      } else {
-        showToast(errData?.message || 'Failed to generate report.', 'error');
-      }
+      const msg = (err as Error)?.message || 'Failed to generate report.';
+      showToast(msg, 'error');
     } finally {
       setDownloading(null);
     }
@@ -120,12 +109,19 @@ const Reports: React.FC = () => {
 
   const downloadPayeReport = () => {
     if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
-    download('paye-report', () => ReportsAPI.payeReport({ runId: selectedRunId }), `PAYE_Report_${selectedRunId}.pdf`);
+    const run = runs.find((r: any) => r.id === selectedRunId);
+    const year = run ? String(new Date(run.startDate).getFullYear()) : String(selectedYear);
+    download('paye-report', () => ReportsAPI.payeReport({ year, format: 'pdf' }), `PAYE_Report_${year}.pdf`);
   };
 
   const downloadNssaReport = () => {
     if (!selectedRunId) return showToast('Please select a payroll run first.', 'warning');
-    download('nssa-report', () => ReportsAPI.nssaReport({ runId: selectedRunId }), `NSSA_Report_${selectedRunId}.pdf`);
+    const run = runs.find((r: any) => r.id === selectedRunId);
+    if (!run) return showToast('Selected run not found', 'error');
+    const d = new Date(run.startDate);
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear());
+    download('nssa-report', () => ReportsAPI.nssaReport({ month, year }), `NSSA_Report_${year}_${month}.pdf`);
   };
 
   const downloadTotalJournal = () => {

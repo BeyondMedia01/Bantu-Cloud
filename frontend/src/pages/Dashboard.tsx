@@ -73,32 +73,32 @@ const Dashboard: React.FC = () => {
 
       {/* Compliance alerts */}
       {!loading && noTinCount > 0 && (
-        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <UserX size={18} className="text-amber-600 shrink-0" />
+        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
+          <UserX size={18} className="text-warning shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-bold text-amber-800">
+            <p className="text-sm font-bold text-warning">
               {noTinCount} employee{noTinCount > 1 ? 's' : ''} missing ZIMRA TIN
             </p>
-            <p className="text-xs text-amber-600 font-medium">PAYE submissions require a TIN for every active employee.</p>
+            <p className="text-xs text-warning/80 font-medium">PAYE submissions require a TIN for every active employee.</p>
           </div>
           <Button size="sm" onClick={() => navigate('/employees')}
-            className="shrink-0 bg-amber-600 text-white hover:bg-amber-700 rounded-full text-xs font-bold">
+            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
             Review
           </Button>
         </div>
       )}
 
       {!loading && noBankCount > 0 && (
-        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <UserX size={18} className="text-amber-600 shrink-0" />
+        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
+          <UserX size={18} className="text-warning shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-bold text-amber-800">
+            <p className="text-sm font-bold text-warning">
               {noBankCount} employee{noBankCount > 1 ? 's' : ''} lack bank details for electronic payment
             </p>
-            <p className="text-xs text-amber-600 font-medium">Account numbers are required to process EFT payroll runs.</p>
+            <p className="text-xs text-warning/80 font-medium">Account numbers are required to process EFT payroll runs.</p>
           </div>
           <Button size="sm" onClick={() => navigate('/employees')}
-            className="shrink-0 bg-amber-600 text-white hover:bg-amber-700 rounded-full text-xs font-bold">
+            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
             Update Profiles
           </Button>
         </div>

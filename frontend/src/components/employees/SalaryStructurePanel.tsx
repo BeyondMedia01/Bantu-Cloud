@@ -78,7 +78,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
       setShowForm(false);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save.');
+      setError(err.message || 'Failed to save.');
     } finally {
       setSaving(false);
     }
@@ -90,7 +90,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
       await EmployeeSalaryStructureAPI.endDate(empId, id);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed.');
+      setError(err.message || 'Failed.');
     }
   };
 
@@ -100,7 +100,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
       await EmployeeSalaryStructureAPI.delete(empId, id);
       load();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed.');
+      setError(err.message || 'Failed.');
     }
   };
 
