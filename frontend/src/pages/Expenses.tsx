@@ -349,13 +349,13 @@ const Expenses: React.FC = () => {
                 <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} rows={2} placeholder="Optional notes"
                   className="bg-primary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green" />
               </label>
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+                <button type="button" onClick={() => { setShowNew(false); resetForm(); }} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
+                <button type="submit" disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+                  <Plus size={16} /> {submitting ? 'Creating...' : 'Create Expense'}
+                </button>
+              </div>
             </form>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
-              <button onClick={() => { setShowNew(false); resetForm(); }} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreate as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
-                <Plus size={16} /> {submitting ? 'Creating...' : 'Create Expense'}
-              </button>
-            </div>
           </div>
         </div>
       )}
