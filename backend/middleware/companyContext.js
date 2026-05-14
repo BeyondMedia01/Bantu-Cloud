@@ -3,7 +3,7 @@ const prisma = require('../lib/prisma');
 /**
  * Resolves and validates company context.
  *
- * For PLATFORM_ADMIN: sets req.companyId but skips ownership verification.
+ * For PLATFORM_ADMIN: blocks access to any company-scoped data (privacy boundary).
  * For CLIENT_ADMIN / EMPLOYEE: verifies the requested companyId belongs to
  * their client before allowing access.
  *
@@ -29,14 +29,10 @@ const companyContext = async (req, res, next) => {
     return res.status(401).json({ message: 'Session expired, please log in again' });
   }
 
-  // PLATFORM_ADMIN can access any company; resolve clientId if provided to support filters
-  if (role === 'PLATFORM_ADMIN') {
-    if (companyId) {
-      const company = await prisma.company.findUnique({ where: { id: companyId } });
-      if (company) req.clientId = company.clientId;
-    }
-    req.companyId = companyId;
-    return next();
+  // PLATFORM_ADMIN must not access company-scoped client data (payroll, employees, leave, etc.)
+  // They manage the platform infrastructure only — client data privacy is enforced here.
+  if (role === 'PLATFORM_ADMIN' && companyId) {
+    return res.status(403).json({ message: 'Platform administrators cannot access client company data' });
   }
 
   try {

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard, Users, DollarSign, FileText, Settings,
@@ -35,7 +35,7 @@ interface NavGroup {
 }
 
 const AppShell: React.FC = () => {
-  const user = getUser();
+  const user = useMemo(() => getUser(), []);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -71,9 +71,12 @@ const AppShell: React.FC = () => {
     });
   };
 
+  const userId = user?.userId;
+  const userRole = user?.role;
+
   useEffect(() => {
     let mounted = true;
-    if (user?.role !== 'EMPLOYEE') {
+    if (userRole !== 'EMPLOYEE') {
       CompanyAPI.getAll().then((res) => {
         if (!mounted) return;
         const list = res.data;
@@ -82,14 +85,14 @@ const AppShell: React.FC = () => {
         const found = list.find((c: any) => c.id === stored) || list[0];
         if (found) {
           setActiveCompany(found);
-          setActiveCompanyId(found.id);
+          if (found.id !== stored) setActiveCompanyId(found.id);
         } else {
           setActiveCompany(null);
         }
       }).catch(() => {});
     }
     return () => { mounted = false; };
-  }, [user]);
+  }, [userId, userRole]);
 
   useEffect(() => {
     UserAPI.me().then((res) => {
@@ -121,7 +124,6 @@ const AppShell: React.FC = () => {
     setActiveCompany(company);
     setActiveCompanyId(company.id);
     setCompanyDropdown(false);
-    window.dispatchEvent(new Event('activeCompanyChanged'));
     navigate(homeLink);
   };
 

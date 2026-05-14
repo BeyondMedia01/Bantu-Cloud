@@ -1,5 +1,45 @@
 const prisma = require('./prisma')
 
+const ROLE_PERMISSIONS = {
+  // Platform-level operations only — no access to client payroll/employee data
+  PLATFORM_ADMIN: [
+    'manage_clients',
+    'manage_licenses',
+    'manage_users',
+    'manage_roles',
+    'view_audit_logs',
+    'view_settings',
+    'update_settings',
+  ],
+  CLIENT_ADMIN: [
+    'manage_companies',
+    'manage_employees',
+    'manage_payroll',
+    'approve_payroll',
+    'process_payroll',
+    'view_leave',
+    'manage_leave',
+    'approve_leave',
+    'reject_leave',
+    'view_loans',
+    'manage_loans',
+    'approve_loans',
+    'reject_loans',
+    'view_reports',
+    'export_reports',
+    'create_reports',
+    'view_settings',
+    'update_settings',
+  ],
+  EMPLOYEE: [
+    'view_employees',
+    'view_payroll',
+    'view_leave',
+    'view_loans',
+    'view_reports',
+  ],
+};
+
 // ─── Module + Action RBAC ─────────────────────────────────────────────────────
 
 /**

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../context/ToastContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download, ChevronDown } from 'lucide-react';
@@ -78,35 +78,53 @@ const EmployeeEdit: React.FC = () => {
   const [docForm, setDocForm] = useState({ type: 'OTHER', name: '' });
   const [deleteDocTarget, setDeleteDocTarget] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadingRef = useRef(false);
+
+  const loadEmployeeData = () => {
+    if (loadingRef.current || !id) return;
+    loadingRef.current = true;
+
     const companyId = getActiveCompanyId();
+    const handleError = (label: string) => (err: any) => {
+      console.error(`[EmployeeEdit] ${label}: status=${err?.status}, message=`, err?.message);
+      return null;
+    };
+    setFetching(true);
+    setError('');
     Promise.all([
-      EmployeeAPI.getById(id!),
-      BranchAPI.getAll(companyId ? { companyId } : {}),
-      DepartmentAPI.getAll(companyId ? { companyId } : {}),
-      NecTableAPI.getAll(),
-      TaxTableAPI.getAll(),
-      SystemSettingsAPI.getAll(),
+      EmployeeAPI.getById(id!).catch(handleError('EmployeeAPI.getById')),
+      BranchAPI.getAll(companyId ? { companyId } : {}).catch(handleError('BranchAPI.getAll')),
+      DepartmentAPI.getAll(companyId ? { companyId } : {}).catch(handleError('DepartmentAPI.getAll')),
+      NecTableAPI.getAll().catch(handleError('NecTableAPI.getAll')),
+      TaxTableAPI.getAll().catch(handleError('TaxTableAPI.getAll')),
+      SystemSettingsAPI.getAll().catch(handleError('SystemSettingsAPI.getAll')),
     ]).then(([emp, br, dep, nec, tt, ss]) => {
-      setTaxTables(tt.data);
+      if (!emp) {
+        setError('Failed to load employee');
+        return;
+      }
+      if (tt) {
+        setTaxTables(tt.data);
+      }
       const e = emp.data;
       const empCurrency = e.currency || 'USD';
-      const tableNames = new Set((tt.data as any[]).map((t: any) => t.name));
+      const tableNames = new Set((tt?.data as any[] | undefined)?.map((t: any) => t.name) ?? []);
       const settingName = `DEFAULT_TAX_TABLE_${empCurrency}`;
-      const defaultSetting = (ss.data as any[])
-        .filter((s) => s.settingName === settingName && s.isActive)
+      const defaultSetting = (ss?.data as any[] | undefined)
+        ?.filter((s: any) => s.settingName === settingName && s.isActive)
         .sort((a: any, b: any) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
       const resolvedTaxTable = (e.taxTable && tableNames.has(e.taxTable))
         ? e.taxTable
         : (defaultSetting?.settingValue || '');
       const d = (v: any) => (v ? String(v).slice(0, 10) : '');
 
-      // Flatten all grades from all NEC tables for the dropdown
-      const allGrades: any[] = [];
-      (nec.data as any[]).forEach((table: any) => {
-        (table.grades ?? []).forEach((g: any) => allGrades.push({ ...g, tableName: table.name }));
-      });
-      setNecGrades(allGrades);
+      if (nec) {
+        const allGrades: any[] = [];
+        (nec.data as any[]).forEach((table: any) => {
+          (table.grades ?? []).forEach((g: any) => allGrades.push({ ...g, tableName: table.name }));
+        });
+        setNecGrades(allGrades);
+      }
 
       setForm({
         employeeCode:       e.employeeCode || '',
@@ -168,10 +186,19 @@ const EmployeeEdit: React.FC = () => {
           { accountName: '', accountNumber: '', bankName: '', bankBranch: '', branchCode: '', splitType: 'REMAINDER', splitValue: 0, priority: 0, currency: e.currency || 'USD' }
         ],
       });
-      setBranches(br.data);
-      setDepartments(dep.data);
+      if (br) setBranches(br.data);
+      if (dep) setDepartments(dep.data);
       loadDocuments();
-    }).catch(() => setError('Failed to load employee')).finally(() => setFetching(false));
+    }).catch(() => setError('Failed to load employee')).finally(() => {
+      loadingRef.current = false;
+      setFetching(false);
+    });
+  };
+
+  useEffect(() => {
+    loadEmployeeData();
+    window.addEventListener('activeCompanyChanged', loadEmployeeData);
+    return () => window.removeEventListener('activeCompanyChanged', loadEmployeeData);
   }, [id]);
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -216,7 +243,10 @@ const EmployeeEdit: React.FC = () => {
       } as any);
       navigate('/employees');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update employee');
+      const msg = err.message || 'Failed to update employee';
+      console.error('[EmployeeEdit save]', msg, err);
+      setError(msg);
+      return;
     } finally {
       setLoading(false);
     }
