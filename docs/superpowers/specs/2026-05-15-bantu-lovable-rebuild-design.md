@@ -153,7 +153,7 @@ Access rules by role:
 - **PLATFORM_ADMIN:** Uses service role key in Edge Functions only — never client-side
 - **CLIENT_ADMIN:** Pattern 2 — sees all companies under their `client_id` (company_id is NULL in users table)
 - **COMPANY_USER:** Pattern 1 — sees only their assigned `company_id`. Note: Pattern 1 grants full table access within the company; RBAC module/action enforcement for COMPANY_USER is done at the frontend and Edge Function layer, not Postgres RLS.
-- **EMPLOYEE:** Pattern 3 (applied to `payslips`, `leave_requests`, `leave_balances`, `attendance_records`, `employee_documents`) — sees only rows linked to their `employees.user_id`
+- **EMPLOYEE:** Pattern 3 (applied to `payslips`, `leave_requests`, `leave_balances`, `attendance_records`, `employee_documents`) — sees only rows linked to their `employees.user_id`. All Pattern 3 tables resolve via the same join: `employee_id IN (SELECT id FROM employees WHERE user_id = auth.uid())`. Never compare `auth.uid()` directly against `employee_id` — `employees.id` is not a user UUID.
 
 ---
 
@@ -263,7 +263,7 @@ Covers: Transaction codes (with structured conditions schema) · Payroll calenda
 ### Prompt 5 — Payslips & Loans
 **Delivers:** Payslips employees can view and download
 
-Covers: `generate-payslip-pdf` Edge Function · Dual-currency payslip PDF with line item breakdown · Print / download · Employee self-service payslip view · Loan management (create, repayment schedule) · Back pay processing (`back_pay_runs` table)
+Covers: `generate-payslip-pdf` Edge Function · Dual-currency payslip PDF with line item breakdown · Print / download · Employee self-service payslip view · Loan management (create, repayment schedule) · Back pay processing (`back_pay_entries` table)
 
 ### Prompt 6 — Compliance & Statutory Exports
 **Delivers:** Full statutory compliance exports
