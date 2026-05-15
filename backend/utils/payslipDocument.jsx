@@ -186,14 +186,14 @@ const PayslipDocument = ({ data }) => {
   const {
     companyName, period, issuedDate, employeeName, employeeCode, nationalId,
     jobTitle, department, costCenter, paymentMethod, bankName, accountNumber,
-    currency, lineItems = [], grossPay, totalDeductions, netSalary,
+    currency, isDualCurrency, lineItems = [], grossPay, totalDeductions, netSalary,
     netPayUSD, netPayZIG,
     grossUSD, grossZIG,
     exchangeRate,
     leaveBalance, leaveTaken,
   } = data;
 
-  const isDual = grossUSD != null && grossZIG != null;
+  const isDual = isDualCurrency || (grossUSD != null && grossZIG != null);
   const ccy = currency || 'USD';
   const ccyFmt = makeCcyFmt(ccy);
 

@@ -302,6 +302,7 @@ async function payslipToBuffer(payslipId) {
       )
     ),
     currency: payslip.payrollRun.currency,
+    isDualCurrency: payslip.payrollRun.dualCurrency || false,
     lineItems,
     grossPay: payslip.gross,
     totalDeductions: (payslip.gross - payslip.netPay),
