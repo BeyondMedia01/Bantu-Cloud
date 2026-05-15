@@ -21,6 +21,7 @@ const Payslips: React.FC = () => {
   const [confirmSendAll, setConfirmSendAll] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewName, setPreviewName] = useState<string>('');
+  const [previewPayslipId, setPreviewPayslipId] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ const Payslips: React.FC = () => {
   const handlePreview = async (payslipId: string, lastName: string, firstName: string) => {
     if (!runId) return;
     setPreviewLoading(true);
+    setPreviewPayslipId(payslipId);
     setPreviewName(`payslip-${lastName}-${firstName}.pdf`);
     try {
       const res = await PayrollAPI.downloadPayslipPdf(runId, payslipId);
@@ -86,11 +88,11 @@ const Payslips: React.FC = () => {
       const res = await PayrollAPI.downloadPayslipPdf(runId, payslipId);
       const contentType = res.headers?.['content-type'] || '';
       const isHtml = contentType.includes('text/html');
-      const blob = new Blob([res.data], { type: isHtml ? 'text/html' : 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
       if (isHtml) {
-        window.open(url, '_blank');
+        window.open(PayrollAPI.getPayslipPdfUrl(runId, payslipId), '_blank');
       } else {
+        const blob = new Blob([res.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `payslip-${lastName}-${firstName}.pdf`;
@@ -411,8 +413,7 @@ const Payslips: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
-                    const win = window.open(previewUrl, '_blank');
-                    win?.addEventListener('load', () => win.print());
+                    window.open(PayrollAPI.getPayslipPdfUrl(runId || '', previewPayslipId || '') + '?print=1', '_blank');
                   }}
                   className="flex items-center gap-1.5 bg-white/10 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-white/20"
                 >

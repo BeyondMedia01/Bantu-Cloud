@@ -223,103 +223,48 @@ export function generatePayslipHtml(params: {
   ytd: YtdResult;
   run: any;
   emp: any;
+  leaveBalance?: number | null;
+  leaveTaken?: number | null;
 }): string {
-  const { payslip, transactions, ytd, run, emp } = params;
-  const isDual = !!run.dualCurrency || (payslip.grossZIG != null && payslip.grossZIG !== 0);
+  const { payslip, transactions, ytd, run, emp, leaveBalance, leaveTaken } = params;
+  const isDual = !!run.dualCurrency || (payslip.grossZIG != null && payslip.grossZIG !== 0) || (payslip.netPayZIG != null && payslip.netPayZIG !== 0);
   const sym = currencySymbol(run.currency);
   const period = `${new Date(run.startDate).toLocaleDateString()} - ${new Date(run.endDate).toLocaleDateString()}`;
 
-  // Group dual-currency transactions by TC so each line shows USD + ZiG
-  type TxGroup = { name: string; usd: number; zig: number; ytdUsd: number; ytdZig: number };
-  const txGroupMap = new Map<string, TxGroup>();
-  for (const t of transactions) {
-    const tc = t.transactionCode;
-    if (!tc) continue;
-    const key = t.transactionCodeId;
-    if (!txGroupMap.has(key)) {
-      txGroupMap.set(key, {
-        name: tc.name || tc.code,
-        usd: 0, zig: 0,
-        ytdUsd: Number((ytd.ytdMap ?? {})[key] ?? 0),
-        ytdZig: Number((ytd.ytdMapZIG ?? {})[key] ?? 0),
-      });
-    }
-    const g = txGroupMap.get(key)!;
-    if (isDual) {
-      if (t.currency === 'ZiG') g.zig += Number(t.amount || 0);
-      else g.usd += Number(t.amount || 0);
-    } else {
-      g.usd += Number(t.amount || 0);
-    }
-    // For single-currency, use first seen ytd value
-    if (!isDual) {
-      g.ytdUsd = Number((ytd.ytdMap ?? {})[key] ?? Math.abs(g.usd));
-    }
-  }
-
+  // Use the same buildPayslipLineItems logic as v1 to ensure identical data preparation
   const basicSalary = Number(payslip.basicSalaryApplied ?? payslip.basicSalary ?? 0);
-  const earningZigSum = isDual ? [...txGroupMap.entries()].reduce((s, [tcId, g]) => {
-    const tcType = transactions.find(t => t.transactionCodeId === tcId)?.transactionCode?.type;
-    return (tcType === 'EARNING' || tcType === 'BENEFIT') ? s + g.zig : s;
-  }, 0) : 0;
-  const basicSalaryZIG = isDual ? Math.max(0, Number(payslip.grossZIG ?? 0) - earningZigSum) : 0;
-  const ytdBasic = Number(ytd.ytdStat.basicSalary ?? 0);
+  const payslipForLines = { ...payslip, payrollRun: { ...(payslip.payrollRun ?? run), dualCurrency: isDual } };
+  const lineItems = buildPayslipLineItems({
+    payslip: payslipForLines,
+    transactions,
+    ytdStat: ytd.ytdStat,
+    ytdMap: ytd.ytdMap,
+    ytdStatZIG: ytd.ytdStatZIG,
+    ytdMapZIG: ytd.ytdMapZIG,
+    basicSalary,
+  });
 
-  const zigCol = isDual ? `<th class="r zig">ZiG</th>` : '';
+  const earnings   = lineItems.filter(i => (i.allowance ?? 0) > 0 || (i.allowanceZIG ?? 0) > 0);
+  const deductions = lineItems.filter(i => (i.deduction ?? 0) > 0 || (i.deductionZIG ?? 0) > 0);
+
+  const zigCol    = isDual ? `<th class="r zig">ZiG</th>` : '';
   const zigYtdCol = isDual ? `<th class="r ytd zig">ZiG YTD</th>` : '';
 
-  const earningZigRow = (usd: number, zig: number, ytdUsd: number, ytdZig: number, label: string) =>
-    isDual
-      ? `<tr><td>${label}</td><td class="r">${usd > 0 ? fmt2(usd) : '—'}</td><td class="r ytd">${fmt2(ytdUsd)}</td><td class="r zig">${zig > 0 ? fmt2(zig) : '—'}</td><td class="r ytd zig">${fmt2(ytdZig)}</td></tr>`
-      : `<tr><td>${label}</td><td class="r">${fmt2(usd)}</td><td class="r ytd">${fmt2(ytdUsd)}</td></tr>`;
+  const earnRow = (item: LineItem) => isDual
+    ? `<tr><td>${item.name}</td><td class="r">${(item.allowance ?? 0) > 0 ? fmt2(item.allowance) : '—'}</td><td class="r ytd">${fmt2(item.ytd)}</td><td class="r zig">${(item.allowanceZIG ?? 0) > 0 ? fmt2(item.allowanceZIG!) : '—'}</td><td class="r ytd zig">${fmt2(item.ytdZIG ?? 0)}</td></tr>`
+    : `<tr><td>${item.name}</td><td class="r">${fmt2(item.allowance)}</td><td class="r ytd">${fmt2(item.ytd)}</td></tr>`;
 
-  let earningRows = basicSalary > 0 ? earningZigRow(basicSalary, basicSalaryZIG, ytdBasic, Number(ytd.ytdStatZIG?.basicSalary ?? 0), 'Basic Salary') : '';
-  let deductionRows = '';
-  let earnTotalUSD = basicSalary, earnTotalZIG = basicSalaryZIG, deductTotalUSD = 0, deductTotalZIG = 0;
+  const dedRow = (item: LineItem) => isDual
+    ? `<tr><td>${item.name}</td><td class="r">${(item.deduction ?? 0) > 0 ? fmt2(item.deduction) : '—'}</td><td class="r ytd">${fmt2(item.ytd)}</td><td class="r zig">${(item.deductionZIG ?? 0) > 0 ? fmt2(item.deductionZIG!) : '—'}</td><td class="r ytd zig">${fmt2(item.ytdZIG ?? 0)}</td></tr>`
+    : `<tr><td>${item.name}</td><td class="r">${fmt2(item.deduction)}</td><td class="r ytd">${fmt2(item.ytd)}</td></tr>`;
 
-  for (const [tcId, g] of txGroupMap) {
-    const tcRec = transactions.find(t => t.transactionCodeId === tcId)?.transactionCode;
-    if (!tcRec) continue;
-    if (tcRec.type === 'EARNING' || tcRec.type === 'BENEFIT') {
-      earningRows += earningZigRow(g.usd, g.zig, g.ytdUsd, g.ytdZig, g.name);
-      earnTotalUSD += g.usd; earnTotalZIG += g.zig;
-    } else {
-      deductionRows += isDual
-        ? `<tr><td>${g.name}</td><td class="r">${g.usd > 0 ? fmt2(g.usd) : '—'}</td><td class="r ytd">${fmt2(g.ytdUsd)}</td><td class="r zig">${g.zig > 0 ? fmt2(g.zig) : '—'}</td><td class="r ytd zig">${fmt2(g.ytdZig)}</td></tr>`
-        : `<tr><td>${g.name}</td><td class="r">${fmt2(Math.abs(g.usd))}</td><td class="r ytd">${fmt2(g.ytdUsd)}</td></tr>`;
-      deductTotalUSD += Math.abs(g.usd); deductTotalZIG += Math.abs(g.zig);
-    }
-  }
+  const earningRows   = earnings.map(earnRow).join('');
+  const deductionRows = deductions.map(dedRow).join('');
 
-  const statRow = (label: string, usd: number, zig: number, ytdUsd: number, ytdZig: number) =>
-    isDual
-      ? `<tr><td>${label}</td><td class="r">${usd > 0 ? fmt2(usd) : '—'}</td><td class="r ytd">${fmt2(ytdUsd)}</td><td class="r zig">${zig > 0 ? fmt2(zig) : '—'}</td><td class="r ytd zig">${fmt2(ytdZig)}</td></tr>`
-      : `<tr><td>${label}</td><td class="r">${fmt2(usd)}</td><td class="r ytd">${fmt2(ytdUsd)}</td></tr>`;
-
-  const payeUSD = Number(isDual ? (payslip.payeUSD ?? payslip.paye) : payslip.paye);
-  const payeZIG = Number(payslip.payeZIG ?? 0);
-  const aidsUSD = Number(isDual ? (payslip.aidsLevyUSD ?? payslip.aidsLevy) : payslip.aidsLevy);
-  const aidsZIG = Number(payslip.aidsLevyZIG ?? 0);
-  const nssaUSD = Number(isDual ? (payslip.nssaUSD ?? payslip.nssaEmployee) : payslip.nssaEmployee);
-  const nssaZIG = Number(payslip.nssaZIG ?? 0);
-
-  const totalDedUSD = payeUSD + aidsUSD + nssaUSD + Number(payslip.pensionApplied ?? 0) + Number(payslip.loanDeductions ?? 0) + deductTotalUSD;
-  const totalDedZIG = payeZIG + aidsZIG + nssaZIG + deductTotalZIG;
-
-  const ytdBaseRows = `
-    <tr><td>Gross Pay</td><td class="r">${fmt2(ytd.ytdStat.basicSalary)}</td></tr>
-    <tr><td>PAYE</td><td class="r">${fmt2(ytd.ytdStat.paye)}</td></tr>
-    <tr><td>AIDS Levy</td><td class="r">${fmt2(ytd.ytdStat.aidsLevy)}</td></tr>
-    <tr><td>NSSA (Employee)</td><td class="r">${fmt2(ytd.ytdStat.nssaEmployee)}</td></tr>
-    ${Number(ytd.ytdStat.loanDeductions) > 0 ? `<tr><td>Loan Repayments</td><td class="r">${fmt2(ytd.ytdStat.loanDeductions)}</td></tr>` : ''}
-    <tr class="total-row"><td>Net Pay (YTD)</td><td class="r">${fmt2(ytd.ytdStat.basicSalary - ytd.ytdStat.paye - ytd.ytdStat.aidsLevy - ytd.ytdStat.nssaEmployee - ytd.ytdStat.loanDeductions)}</td></tr>`;
-  let ytdZigRows = '';
-  if (isDual) {
-    ytdZigRows = `
-    <tr><td>PAYE (ZiG)</td><td class="r">${fmt2(ytd.ytdStatZIG?.paye ?? 0)}</td></tr>
-    <tr><td>AIDS Levy (ZiG)</td><td class="r">${fmt2(ytd.ytdStatZIG?.aidsLevy ?? 0)}</td></tr>
-    <tr><td>NSSA (ZiG)</td><td class="r">${fmt2(ytd.ytdStatZIG?.nssaEmployee ?? 0)}</td></tr>`;
-  }
+  const earnTotalUSD  = earnings.reduce((s, i) => s + (i.allowance ?? 0), 0);
+  const earnTotalZIG  = earnings.reduce((s, i) => s + (i.allowanceZIG ?? 0), 0);
+  const deductTotalUSD = deductions.reduce((s, i) => s + (i.deduction ?? 0), 0);
+  const deductTotalZIG = deductions.reduce((s, i) => s + (i.deductionZIG ?? 0), 0);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -358,7 +303,7 @@ export function generatePayslipHtml(params: {
   .net-bar{background:#1a2e4a;color:#fff;border-radius:6px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .net-label{font-size:11px;font-weight:600;opacity:0.8}
   .net-amount{font-size:24px;font-weight:700;color:#b2db64}
-  .net-zig{font-size:14px;font-weight:700;color:#b2db64;opacity:0.85;margin-top:2px}
+  .net-zig{font-size:24px;font-weight:700;color:#b2db64;opacity:0.85;margin-top:2px}
   .footer{text-align:center;color:#94a3b8;font-size:7.5px;padding-top:8px;border-top:1px solid #e2e8f0}
   .print-btn{position:fixed;bottom:20px;right:20px;background:#1a2e4a;color:#b2db64;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
   @media print{.print-btn{display:none}body{padding:0}}
@@ -387,12 +332,26 @@ export function generatePayslipHtml(params: {
     </div>
     <div class="emp-field"><div class="label">Job Title</div><div class="value">${emp.position || '—'}</div></div>
     <div class="emp-field"><div class="label">Department</div><div class="value">${emp.department?.name || '—'}</div></div>
-    <div class="emp-field"><div class="label">Currency</div><div class="value">${run.dualCurrency ? 'USD + ZiG' : run.currency || 'USD'}</div></div>
+    <div class="emp-field"><div class="label">Currency</div><div class="value">${isDual ? 'USD + ZiG' : run.currency || 'USD'}</div></div>
     <div class="emp-field"><div class="label">TIN</div><div class="value">${emp.tin || '—'}</div></div>
     <div class="emp-field"><div class="label">Pay Period</div><div class="value">${period}</div></div>
     <div class="emp-field"><div class="label">Pay Date</div><div class="value">${run.paymentDate ? new Date(run.paymentDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</div></div>
   </div>
 </div>
+
+${leaveBalance != null ? `
+<div style="display:flex;align-items:center;gap:16px;background:#edf7e3;border:1px solid #c3e6a0;border-radius:6px;padding:8px 14px;margin-bottom:12px">
+  <div style="flex:1">
+    <div style="font-size:7px;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:0.5px">Annual Leave Balance</div>
+    <div style="font-size:11px;font-weight:700;color:#1a2e4a;margin-top:2px">${(leaveBalance ?? 0).toFixed(1)} days</div>
+  </div>
+  <div style="width:1px;height:28px;background:#c3e6a0"></div>
+  <div style="flex:1">
+    <div style="font-size:7px;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:0.5px">Leave Taken (YTD)</div>
+    <div style="font-size:11px;font-weight:700;color:#1a2e4a;margin-top:2px">${(leaveTaken ?? 0).toFixed(1)} days</div>
+  </div>
+</div>
+` : ''}
 
 <div class="tables-row">
   <div class="section">
@@ -400,7 +359,7 @@ export function generatePayslipHtml(params: {
     <table>
       <thead><tr><th>Description</th><th class="r">USD</th><th class="r ytd">YTD USD</th>${zigCol}${zigYtdCol}</tr></thead>
       <tbody>${earningRows || `<tr><td colspan="${isDual ? 5 : 3}">—</td></tr>`}
-      <tr class="total-row"><td>Total Earnings</td><td class="r">${fmt2(earnTotalUSD)}</td><td class="r ytd">${fmt2(ytdBasic + earnTotalUSD - basicSalary)}</td>${isDual ? `<td class="r zig">${fmt2(earnTotalZIG)}</td><td class="r ytd zig">—</td>` : ''}</tr>
+      <tr class="total-row"><td>Total Earnings</td><td class="r">${fmt2(earnTotalUSD)}</td><td class="r ytd">${fmt2(earnings.reduce((s, i) => s + (i.ytd ?? 0), 0))}</td>${isDual ? `<td class="r zig">${fmt2(earnTotalZIG)}</td><td class="r ytd zig">${fmt2(earnings.reduce((s, i) => s + (i.ytdZIG ?? 0), 0))}</td>` : ''}</tr>
       </tbody>
     </table>
   </div>
@@ -409,12 +368,7 @@ export function generatePayslipHtml(params: {
     <table>
       <thead><tr><th>Description</th><th class="r">USD</th><th class="r ytd">YTD USD</th>${zigCol}${zigYtdCol}</tr></thead>
       <tbody>${deductionRows}
-      ${statRow('PAYE', payeUSD, payeZIG, ytd.ytdStat.paye, ytd.ytdStatZIG?.paye ?? 0)}
-      ${statRow('AIDS Levy', aidsUSD, aidsZIG, ytd.ytdStat.aidsLevy, ytd.ytdStatZIG?.aidsLevy ?? 0)}
-      ${statRow('NSSA (Employee)', nssaUSD, nssaZIG, ytd.ytdStat.nssaEmployee, ytd.ytdStatZIG?.nssaEmployee ?? 0)}
-      ${Number(payslip.pensionApplied) > 0 ? statRow('Pension', Number(payslip.pensionApplied), 0, ytd.ytdStat.pensionApplied ?? 0, 0) : ''}
-      ${Number(payslip.loanDeductions) > 0 ? statRow('Loan Repayment', Number(payslip.loanDeductions), 0, ytd.ytdStat.loanDeductions, 0) : ''}
-      <tr class="total-row"><td>Total Deductions</td><td class="r">${fmt2(totalDedUSD)}</td><td class="r ytd">${fmt2(ytd.ytdStat.paye + ytd.ytdStat.aidsLevy + ytd.ytdStat.nssaEmployee + (ytd.ytdStat.loanDeductions ?? 0))}</td>${isDual ? `<td class="r zig">${fmt2(totalDedZIG)}</td><td class="r ytd zig">—</td>` : ''}</tr>
+      <tr class="total-row"><td>Total Deductions</td><td class="r">${fmt2(deductTotalUSD)}</td><td class="r ytd">${fmt2(deductions.reduce((s, i) => s + (i.ytd ?? 0), 0))}</td>${isDual ? `<td class="r zig">${fmt2(deductTotalZIG)}</td><td class="r ytd zig">${fmt2(deductions.reduce((s, i) => s + (i.ytdZIG ?? 0), 0))}</td>` : ''}</tr>
       </tbody>
     </table>
   </div>
@@ -428,7 +382,8 @@ export function generatePayslipHtml(params: {
   </div>
   <div style="text-align:right;opacity:0.7">
     <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">YTD Net Pay</div>
-    <div style="font-size:16px;font-weight:700;color:#b2db64">${sym} ${fmt2(ytd.ytdStat.basicSalary - ytd.ytdStat.paye - ytd.ytdStat.aidsLevy - ytd.ytdStat.nssaEmployee - (ytd.ytdStat.loanDeductions ?? 0))}</div>
+    <div style="font-size:16px;font-weight:700;color:#b2db64">USD ${fmt2(ytd.ytdStat.basicSalary - ytd.ytdStat.paye - ytd.ytdStat.aidsLevy - ytd.ytdStat.nssaEmployee - (ytd.ytdStat.loanDeductions ?? 0))}</div>
+    ${isDual ? `<div style="font-size:16px;font-weight:700;color:#b2db64;opacity:0.85;margin-top:2px">ZiG ${fmt2((ytd.ytdStatZIG?.basicSalary ?? 0) - (ytd.ytdStatZIG?.paye ?? 0) - (ytd.ytdStatZIG?.aidsLevy ?? 0) - (ytd.ytdStatZIG?.nssaEmployee ?? 0))}</div>` : ''}
   </div>
 </div>
 

@@ -54,7 +54,7 @@ export function calculateYTD(params: {
   };
 
   const ytdStatZIG: YtdStatsZIG = {
-    basicSalary: currentPayslip.basicSalaryApplied || 0,
+    basicSalary: currentPayslip.grossZIG || 0,
     paye: currentPayslip.payeZIG || 0,
     aidsLevy: currentPayslip.aidsLevyZIG || 0,
     nssaEmployee: currentPayslip.nssaZIG || 0,
@@ -74,7 +74,7 @@ export function calculateYTD(params: {
     ytdStat.necEmployer += ps.necEmployer || 0;
     ytdStat.medicalAidCredit += ps.medicalAidCredit || 0;
 
-    ytdStatZIG.basicSalary += ps.basicSalaryApplied || 0;
+    ytdStatZIG.basicSalary += ps.grossZIG || 0;
     ytdStatZIG.paye += ps.payeZIG || 0;
     ytdStatZIG.aidsLevy += ps.aidsLevyZIG || 0;
     ytdStatZIG.nssaEmployee += ps.nssaZIG || 0;

@@ -285,9 +285,11 @@ router.get('/:runId/payslips', async (c) => {
       id: r.id, employeeId: r.employeeId, payrollRunId: r.payrollRunId,
       gross: r.gross, paye: r.paye, aidsLevy: r.aidsLevy, nssaEmployee: r.nssaEmployee,
       loanDeductions: r.loanDeductions, netPay: r.netPay, pdfUrl: r.pdfUrl,
-      grossUSD: r.grossUSD, grossZIG: r.grossZIG, payeUSD: r.payeUSD, payeZIG: r.payeZIG,
-      aidsLevyUSD: r.aidsLevyUSD, aidsLevyZIG: r.aidsLevyZIG,
-      nssaUSD: r.nssaUSD, nssaZIG: r.nssaZIG, netPayUSD: r.netPayUSD, netPayZIG: r.netPayZIG,
+      grossUSD: r.grossusd ?? r.grossUSD ?? null, grossZIG: r.grosszig ?? r.grossZIG ?? null,
+      payeUSD: r.payeusd ?? r.payeUSD ?? null, payeZIG: r.payezig ?? r.payeZIG ?? null,
+      aidsLevyUSD: r.aidslevyusd ?? r.aidsLevyUSD ?? null, aidsLevyZIG: r.aidslevyzig ?? r.aidsLevyZIG ?? null,
+      nssaUSD: r.nssausd ?? r.nssaUSD ?? null, nssaZIG: r.nssazig ?? r.nssaZIG ?? null,
+      netPayUSD: r.netpayusd ?? r.netPayUSD ?? null, netPayZIG: r.netpayzig ?? r.netPayZIG ?? null,
       createdAt: r.createdAt, updatedAt: r.updatedAt,
       employee: { firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode, position: r.position, currency: r.emp_currency, baseRate: r.baseRate },
       basicSalary: r.baseRate ?? 0,
@@ -418,6 +420,7 @@ router.get('/:runId/payslips/:payslipId/pdf', async (c) => {
 
   const format = c.req.query('format');
   if (format && format !== 'html') return c.json({ message: 'PDF not generated yet' }, 404);
+  const doPrint = c.req.query('print') === '1';
 
   const transactions = await prisma.payrollTransaction.findMany({
     where: { payrollRunId: c.req.param('runId'), employeeId: payslip.employeeId },
@@ -450,8 +453,25 @@ router.get('/:runId/payslips/:payslipId/pdf', async (c) => {
     historicalTransactions,
   });
 
+  // Fetch leave balance
+  const leaveYear = new Date(run.startDate).getFullYear();
+  const annualPolicy = await prisma.leavePolicy.findFirst({
+    where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { contains: 'ANNUAL', mode: 'insensitive' } },
+  });
+  let leaveBalance: number | null = null, leaveTaken: number | null = null;
+  if (annualPolicy) {
+    const bal = await prisma.leaveBalance.findFirst({
+      where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveType: annualPolicy.leaveType },
+    });
+    if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
+  }
+
   const { generatePayslipHtml } = await import('../lib/payslipFormatter');
-  return c.html(generatePayslipHtml({ payslip, transactions, ytd, run, emp }));
+  let html = generatePayslipHtml({ payslip, transactions, ytd, run, emp, leaveBalance, leaveTaken });
+  if (doPrint) {
+    html = html.replace('</body>', '<script>window.onload=function(){setTimeout(function(){window.print()},500)}</script></body>');
+  }
+  return c.html(html);
 });
 
 router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payroll'), async (c) => {
@@ -485,7 +505,7 @@ router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payro
       orderBy: { startDate: 'asc' },
       select: { startDate: true },
     });
-    const { calculateYTD, getYtdStartDate } = await import('../lib/ytdCalculator');
+    const { getYtdStartDate } = await import('../lib/ytdCalculator');
     const ytdStart = getYtdStartDate(run.startDate, firstRun?.startDate || null);
     const [historicalPayslips, historicalTransactions] = await Promise.all([
       prisma.payslip.findMany({
@@ -502,8 +522,22 @@ router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payro
       currentTransactions: transactions,
       historicalTransactions,
     });
+
+    // Fetch leave balance
+    const leaveYear = new Date(run.startDate).getFullYear();
+    const annualPolicy = await prisma.leavePolicy.findFirst({
+      where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { contains: 'ANNUAL', mode: 'insensitive' } },
+    });
+    let leaveBalance: number | null = null, leaveTaken: number | null = null;
+    if (annualPolicy) {
+      const bal = await prisma.leaveBalance.findFirst({
+        where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveType: annualPolicy.leaveType },
+      });
+      if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
+    }
+
     const { generatePayslipHtml, generatePayslipEmailHtml } = await import('../lib/payslipFormatter');
-    const html = generatePayslipHtml({ payslip, transactions, ytd, run, emp });
+    const html = generatePayslipHtml({ payslip, transactions, ytd, run, emp, leaveBalance, leaveTaken });
     const htmlKey = `payslips/${payslip.id}.html`;
     await (await import('../lib/storage')).upload(htmlKey, html, 'text/html');
     pdfUrl = await (await import('../lib/storage')).getSignedDownloadUrl(htmlKey);
