@@ -58,14 +58,23 @@ const Reports: React.FC = () => {
     setDownloading(type);
     try {
       const res = await fn();
-      const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast(`${filename} generated successfully`, 'success');
+      const contentType = res.headers['content-type'] || '';
+      if (contentType.includes('text/html')) {
+        const blob = new Blob([res.data], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        showToast(`${filename} opened in new tab`, 'success');
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      } else {
+        const blob = new Blob([res.data], { type: contentType || 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(`${filename} generated successfully`, 'success');
+      }
     } catch (err: unknown) {
       const msg = (err as Error)?.message || 'Failed to generate report.';
       showToast(msg, 'error');
