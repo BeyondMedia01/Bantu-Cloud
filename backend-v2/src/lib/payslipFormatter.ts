@@ -27,7 +27,7 @@ interface BuildPayslipLineItemsParams {
 
 export function buildPayslipLineItems(params: BuildPayslipLineItemsParams): LineItem[] {
   const { payslip, transactions, ytdStat, ytdMap, ytdStatZIG, ytdMapZIG, basicSalary } = params;
-  const isDual = payslip.payrollRun?.dualCurrency || false;
+  const isDual = payslip.payrollRun?.dualCurrency || (payslip.grossZIG != null && payslip.grossZIG !== 0);
 
   const isMedicalAidTc = (tc: any) => {
     const name = (tc.name || '').toLowerCase();
@@ -225,7 +225,7 @@ export function generatePayslipHtml(params: {
   emp: any;
 }): string {
   const { payslip, transactions, ytd, run, emp } = params;
-  const isDual = !!run.dualCurrency;
+  const isDual = !!run.dualCurrency || (payslip.grossZIG != null && payslip.grossZIG !== 0);
   const sym = currencySymbol(run.currency);
   const period = `${new Date(run.startDate).toLocaleDateString()} - ${new Date(run.endDate).toLocaleDateString()}`;
 
@@ -424,7 +424,7 @@ export function generatePayslipHtml(params: {
   <div>
     <div class="net-label">NET PAY</div>
     <div class="net-amount">USD ${fmt2(isDual ? (payslip.netPayUSD ?? payslip.netPay) : payslip.netPay)}</div>
-    ${isDual && payslip.netPayZIG != null ? `<div class="net-zig">ZiG ${fmt2(payslip.netPayZIG)}</div>` : ''}
+    ${isDual ? `<div class="net-zig">ZiG ${fmt2(payslip.netPayZIG ?? 0)}</div>` : ''}
   </div>
   <div style="text-align:right;opacity:0.7">
     <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">YTD Net Pay</div>
