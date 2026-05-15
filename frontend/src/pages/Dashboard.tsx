@@ -4,7 +4,7 @@ import {
   PieChart, Pie,
 } from 'recharts';
 import {
-  Plus, CheckCircle2, UserX, TrendingUp,
+  Plus, CheckCircle2, TrendingUp,
   Users, CalendarCheck, Landmark, AlertTriangle, ShieldCheck,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,6 @@ import IntelligenceWidget from '../components/IntelligenceWidget';
 import UnifiedCalendarCard from '../components/dashboard/UnifiedCalendarCard';
 import FilingDeadlinesCard from '../components/dashboard/FilingDeadlinesCard';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -74,37 +73,7 @@ const Dashboard: React.FC = () => {
         </Card>
       )}
 
-      {!loading && noTinCount > 0 && (
-        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
-          <UserX size={18} className="text-warning shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-warning">
-              {noTinCount} employee{noTinCount > 1 ? 's' : ''} missing ZIMRA TIN
-            </p>
-            <p className="text-xs text-warning/80 font-medium">PAYE submissions require a TIN for every active employee.</p>
-          </div>
-          <Button size="sm" onClick={() => navigate('/employees')}
-            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
-            Review
-          </Button>
-        </div>
-      )}
 
-      {!loading && noBankCount > 0 && (
-        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
-          <UserX size={18} className="text-warning shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-warning">
-              {noBankCount} employee{noBankCount > 1 ? 's' : ''} lack bank details for electronic payment
-            </p>
-            <p className="text-xs text-warning/80 font-medium">Account numbers are required to process EFT payroll runs.</p>
-          </div>
-          <Button size="sm" onClick={() => navigate('/employees')}
-            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
-            Update Profiles
-          </Button>
-        </div>
-      )}
 
       {/* ─── Apple Bento Grid ───────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-3 gap-5 items-stretch">
