@@ -3,21 +3,24 @@ import {
   AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie,
 } from 'recharts';
-import {
-  Plus, CheckCircle2, TrendingUp,
-  Users, CalendarCheck, Landmark, AlertTriangle, ShieldCheck,
-} from 'lucide-react';
+import { Plus, ArrowUpRight, Clock, CheckCircle2, UserX, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import IntelligenceWidget from '../components/IntelligenceWidget';
-import UnifiedCalendarCard from '../components/dashboard/UnifiedCalendarCard';
+import MiniCalendar from '../components/dashboard/MiniCalendar';
+import RemindersCard from '../components/dashboard/RemindersCard';
 import FilingDeadlinesCard from '../components/dashboard/FilingDeadlinesCard';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 const fmtDate = (d: string | undefined) =>
   d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -49,16 +52,11 @@ const Dashboard: React.FC = () => {
   const trendCurrency = summary?.lastRun?.currency ?? 'USD';
   const currencySymbol = trendCurrency === 'USD' ? '$' : trendCurrency + ' ';
 
-  const totalEmployees = summary?.employeeCount ?? 0;
-  const pendingLeave = summary?.pendingLeave ?? 0;
-  const activeLoans = summary?.activeLoans ?? 0;
-  const complianceIssues = noTinCount + noBankCount;
-  const complianceClear = complianceIssues === 0;
-
   return (
     <div className="flex flex-col gap-8">
       <IntelligenceWidget />
 
+      {/* No company selected */}
       {!hasCompany && (
         <Card className="border-border">
           <CardContent className="flex flex-col items-center justify-center py-24 gap-4 text-center">
@@ -73,255 +71,197 @@ const Dashboard: React.FC = () => {
         </Card>
       )}
 
-
-
-      {/* ─── Apple Bento Grid ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-3 gap-5 items-stretch">
-
-        {/* ═══ [1,1] Overview (1x1) ═══ */}
-        <div className="lg:col-start-1 lg:row-start-1">
-          <div className="bg-primary rounded-2xl border border-border shadow-sm card-shimmer p-5 h-full flex flex-col gap-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Overview</p>
-
-            <div className="relative flex justify-center">
-              <div className="w-24 h-24">
-                {loading ? (
-                  <Skeleton className="w-24 h-24 rounded-full" />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%" cy="50%"
-                        innerRadius={30} outerRadius={44}
-                        paddingAngle={3}
-                        dataKey="value"
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-              {!loading && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-lg font-black leading-none text-navy">{totalEmployees}</span>
-                  <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">staff</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-center gap-4">
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 rounded-xl bg-navy/5 flex items-center justify-center">
-                  <Users size={14} className="text-navy" />
-                </div>
-                <span className="text-[9px] font-bold text-muted-foreground">{totalEmployees}</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 rounded-xl bg-brand/20 flex items-center justify-center">
-                  <CalendarCheck size={14} className="text-navy" />
-                </div>
-                <span className="text-[9px] font-bold text-muted-foreground">{pendingLeave}</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                  <Landmark size={14} className="text-muted-foreground" />
-                </div>
-                <span className="text-[9px] font-bold text-muted-foreground">{activeLoans}</span>
-              </div>
-            </div>
-
-            <Separator className="my-1" />
-
-            <button
-              onClick={() => navigate('/employees/new')}
-              className="w-full flex items-center justify-center gap-1.5 bg-brand text-navy px-4 py-2.5 rounded-full font-bold text-sm hover:opacity-90 transition-opacity"
-            >
-              <Plus size={14} /> Add Employee
-            </button>
+      {/* Compliance alerts */}
+      {!loading && noTinCount > 0 && (
+        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
+          <UserX size={18} className="text-warning shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-warning">
+              {noTinCount} employee{noTinCount > 1 ? 's' : ''} missing ZIMRA TIN
+            </p>
+            <p className="text-xs text-warning/80 font-medium">PAYE submissions require a TIN for every active employee.</p>
           </div>
+          <Button size="sm" onClick={() => navigate('/employees')}
+            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
+            Review
+          </Button>
         </div>
+      )}
 
-        {/* ═══ [1,2] Exchange Rate (1x1) ═══ */}
-        <div className="lg:col-start-1 lg:row-start-2">
-          <div className="bg-primary rounded-2xl border border-border shadow-sm card-shimmer p-5 h-full flex flex-col gap-3 relative overflow-hidden">
-            <div className="flex items-center justify-between relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">USD / ZiG Rate</p>
-              {exchangeRate && (
-                <span className="flex items-center gap-1.5 text-[9px] font-bold text-success">
-                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                  Live
-                </span>
-              )}
-            </div>
+      {!loading && noBankCount > 0 && (
+        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
+          <UserX size={18} className="text-warning shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-warning">
+              {noBankCount} employee{noBankCount > 1 ? 's' : ''} lack bank details for electronic payment
+            </p>
+            <p className="text-xs text-warning/80 font-medium">Account numbers are required to process EFT payroll runs.</p>
+          </div>
+          <Button size="sm" onClick={() => navigate('/employees')}
+            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
+            Update Profiles
+          </Button>
+        </div>
+      )}
 
-            {exchangeRateLoading ? (
-              <div className="flex flex-col gap-2 relative z-10">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-3 w-20" />
+      {/* Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
+
+        {/* Column 1: Overview & Payroll */}
+        <div className="flex flex-col gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex justify-center">
+                <div className="w-24 h-24">
+                  {loading ? (
+                    <Skeleton className="w-24 h-24 rounded-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={30} outerRadius={44} paddingAngle={3} dataKey="value" />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
-            ) : exchangeRate ? (
-              <>
-                <div className="relative z-10">
-                  <p className="text-2xl font-black leading-none tracking-tight">
-                    {Number(exchangeRate.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    <span className="text-sm font-bold text-muted-foreground ml-1">{exchangeRate.toCurrency}</span>
-                  </p>
-                  <p className="text-[9px] text-muted-foreground font-medium mt-1">
-                    per 1 {exchangeRate.fromCurrency} &middot; {fmtDate(exchangeRate.effectiveDate)}
-                  </p>
-                </div>
 
-                {/* Ghost trend line */}
-                <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
-                  <svg viewBox="0 0 200 100" className="w-full h-full" preserveAspectRatio="none">
-                    <path
-                      d="M0,80 Q25,70 50,60 T100,30 T150,35 T200,10"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-navy"
-                    />
-                  </svg>
+              <Separator />
+
+              {loading ? (
+                <div className="flex flex-col gap-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-8" />
+                    </div>
+                  ))}
                 </div>
-              </>
-            ) : (
-              <button onClick={() => navigate('/currency-rates')} className="text-sm font-bold text-accent-green hover:underline relative z-10 mt-1">
-                Set USD/ZiG rate &rarr;
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <SummaryItem label="Employees" value={summary?.employeeCount ?? 0} color="bg-slate-900" />
+                  <SummaryItem label="Pending Leave" value={summary?.pendingLeave ?? 0} color="bg-brand" />
+                  <SummaryItem label="Active Loans" value={summary?.activeLoans ?? 0} color="bg-muted" />
+                </div>
+              )}
+
+              <button
+                onClick={() => navigate('/employees/new')}
+                className="w-full flex items-center justify-center gap-1.5 bg-brand text-navy px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-opacity"
+              >
+                <Plus size={14} /> Add Employee
               </button>
-            )}
-          </div>
-        </div>
+            </CardContent>
+          </Card>
 
-        {/* ═══ [1,3] Smart Insight / Compliance Health (1x1) ═══ */}
-        <div className="lg:col-start-1 lg:row-start-3">
-          <div className="bg-primary rounded-2xl border border-border shadow-sm card-shimmer p-5 h-full flex flex-col gap-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Compliance</p>
-
-            {loading ? (
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-8 w-28" />
-                <Skeleton className="h-3 w-36" />
-              </div>
-            ) : complianceClear ? (
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-success-bg flex items-center justify-center">
-                    <ShieldCheck size={20} className="text-success" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-black leading-none text-success">All Clear</p>
-                    <p className="text-[9px] text-muted-foreground font-medium mt-0.5">No compliance issues found</p>
-                  </div>
+          {/* Current / Last Payroll Run */}
+          {loading ? (
+            <Card>
+              <CardContent className="pt-4 flex flex-col gap-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </CardContent>
+            </Card>
+          ) : currentRun ? (
+            <Card className="cursor-pointer hover:border-accent-green/40 transition-colors" onClick={() => navigate('/payroll')}>
+              <CardContent className="pt-4">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Current Run</p>
+                  <StatusBadge status={currentRun.status} />
                 </div>
-                <p className="text-[10px] text-muted-foreground font-medium mt-auto">
-                  {totalEmployees} active employees &middot; all records valid
+                <p className="font-bold text-sm">{currentRun.name}</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                  {fmtDate(currentRun.runDate)} · {currentRun.currency}
                 </p>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-warning-bg flex items-center justify-center">
-                    <AlertTriangle size={20} className="text-warning" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-black leading-none text-warning">{complianceIssues}</p>
-                    <p className="text-[9px] text-muted-foreground font-medium mt-0.5">Issues to resolve</p>
-                  </div>
+              </CardContent>
+            </Card>
+          ) : summary?.lastRun ? (
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Last Payroll</p>
+                  <Badge className="bg-emerald-100 text-emerald-600 text-[10px] font-bold gap-1 rounded-full border-0">
+                    <CheckCircle2 size={10} /> COMPLETED
+                  </Badge>
                 </div>
-                <div className="flex flex-col gap-1 mt-auto">
-                  {noTinCount > 0 && (
-                    <button onClick={() => navigate('/employees')} className="text-left text-[10px] font-bold text-warning hover:underline">
-                      {noTinCount} missing TIN{noTinCount > 1 ? 's' : ''} &rarr;
-                    </button>
-                  )}
-                  {noBankCount > 0 && (
-                    <button onClick={() => navigate('/employees')} className="text-left text-[10px] font-bold text-warning hover:underline">
-                      {noBankCount} missing bank detail{noBankCount > 1 ? 's' : ''} &rarr;
-                    </button>
-                  )}
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm">{fmtDate(summary.lastRun.runDate)}</span>
+                  <ArrowUpRight size={16} className="text-muted-foreground/50" />
                 </div>
-              </>
-            )}
-          </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-accent-green/30 bg-accent-green/5">
+              <CardContent className="pt-4">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Next Action</p>
+                  <Badge className="bg-accent-green/10 text-accent-green text-[10px] font-bold gap-1 rounded-full border-0">
+                    <Clock size={10} /> Pending
+                  </Badge>
+                </div>
+                <button onClick={() => navigate('/payroll/new')} className="text-sm font-bold text-accent-green hover:underline">
+                  Start new payroll run →
+                </button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Exchange Rate */}
+          <Card>
+            <CardHeader className="pb-1">
+              <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <TrendingUp size={14} /> Exchange Rate
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {exchangeRateLoading ? (
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              ) : exchangeRate ? (
+                <>
+                  <p className="text-lg font-bold">
+                    1 {exchangeRate.fromCurrency} ={' '}
+                    {Number(exchangeRate.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+                    {exchangeRate.toCurrency}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                    {fmtDate(exchangeRate.effectiveDate)}
+                    {exchangeRate.source === 'RBZ' ? ' · RBZ' : ''}
+                  </p>
+                </>
+              ) : (
+                <button onClick={() => navigate('/currency-rates')} className="text-sm font-bold text-accent-green hover:underline">
+                  Set USD/ZiG rate →
+                </button>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* ═══ [2-3, 1-2] Filing Deadlines — The Anchor (2x2) ═══ */}
-        <div className="lg:col-start-2 lg:col-span-2 lg:row-start-1 lg:row-span-2 flex flex-col">
+        {/* Column 2-3: Filing Deadlines */}
+        <div className="lg:col-span-2 flex flex-col gap-6 h-full">
           <FilingDeadlinesCard holidays={holidays} />
         </div>
 
-        {/* ═══ [2, 3] Current Run Action (1x1) ═══ */}
-        <div className="lg:col-start-2 lg:row-start-3">
-          {loading ? (
-            <div className="bg-primary rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-3">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-          ) : currentRun ? (
-            <button
-              onClick={() => navigate('/payroll')}
-              className="w-full text-left bg-primary rounded-2xl border border-border shadow-sm card-shimmer p-5 hover:border-brand/40 transition-all flex flex-col gap-3 h-full group"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Current Run</p>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-success-bg text-success border border-success-border status-pill-glow">
-                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                  {currentRun.status === 'DRAFT' ? 'In Progress' : currentRun.status}
-                </span>
-              </div>
-              <p className="font-bold text-sm leading-snug text-navy">{currentRun.name}</p>
-              <p className="text-[10px] text-muted-foreground font-medium">{fmtDate(currentRun.runDate)} &middot; {currentRun.currency}</p>
-              <div className="mt-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[9px] font-bold text-muted-foreground">Progress</span>
-                  <span className="text-[9px] font-bold text-muted-foreground">75%</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-brand transition-all" style={{ width: '75%' }} />
-                </div>
-              </div>
-              <p className="text-xs font-bold text-brand mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                Continue payroll &rarr;
-              </p>
-            </button>
-          ) : summary?.lastRun ? (
-            <div className="bg-primary rounded-2xl border border-border shadow-sm card-shimmer p-5 flex flex-col gap-2 h-full">
-              <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Last Payroll</p>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-success shrink-0" />
-                <p className="font-bold text-sm text-navy">{fmtDate(summary.lastRun.runDate)}</p>
-              </div>
-              <p className="text-[10px] text-muted-foreground font-medium">{summary.lastRun.status} &middot; {summary.lastRun.currency}</p>
-              <button onClick={() => navigate('/payroll/new')} className="self-start text-xs font-bold text-accent-green hover:underline mt-auto pt-2">
-                Start new run &rarr;
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => navigate('/payroll/new')}
-              className="w-full text-left bg-accent-green/5 rounded-2xl border border-accent-green/20 shadow-sm p-5 hover:border-accent-green/40 transition-all flex flex-col gap-2 h-full group"
-            >
-              <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Next Action</p>
-              <p className="font-bold text-sm text-accent-green">Start your first payroll run</p>
-              <p className="text-xs text-accent-green/70 font-medium mt-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                Set up employees, salaries &amp; deductions &rarr;
-              </p>
-            </button>
-          )}
+        {/* Column 4: Calendar & Reminders */}
+        <div className="flex flex-col gap-4 h-full">
+          <Card className="overflow-hidden p-0 shrink-0">
+            <MiniCalendar
+              reminders={reminders}
+              holidays={holidays}
+              selectedDay={selectedDay}
+              onDateSelect={setSelectedDay}
+            />
+          </Card>
+          <Card className="overflow-hidden p-0 flex-1">
+            <RemindersCard reminders={reminders} loading={loading} selectedDay={selectedDay} />
+          </Card>
         </div>
-
-        {/* ═══ [4, 1-2] Unified Calendar (1x2) ═══ */}
-        <div className="lg:col-start-4 lg:row-start-1 lg:row-span-2 flex flex-col h-full">
-          <UnifiedCalendarCard
-            reminders={reminders}
-            holidays={holidays}
-            selectedDay={selectedDay}
-            onDateSelect={setSelectedDay}
-            loading={loading}
-          />
-        </div>
-
       </div>
 
       {/* Net Pay Trend */}
@@ -346,7 +286,7 @@ const Dashboard: React.FC = () => {
                     <div className="flex items-baseline gap-4 flex-wrap">
                       <div>
                         <p className="text-3xl font-bold">{currencySymbol}{last.netPay.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground font-medium mt-0.5">Net pay &middot; last run</p>
+                        <p className="text-xs text-muted-foreground font-medium mt-0.5">Net pay · last run</p>
                       </div>
                       {last.ctc != null && (
                         <div className="pb-0.5">
@@ -429,7 +369,7 @@ const Dashboard: React.FC = () => {
               <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
                 <p className="text-muted-foreground font-medium text-sm">No payroll history yet.</p>
                 <button onClick={() => navigate('/payroll/new')} className="text-accent-green text-sm font-bold hover:underline">
-                  Run your first payroll &rarr;
+                  Run your first payroll →
                 </button>
               </div>
             )}
@@ -439,5 +379,17 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
+
+// ─── Summary Item ─────────────────────────────────────────────────────────────
+
+const SummaryItem: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-2">
+      <div className={`w-2 h-2 rounded-full ${color}`} />
+      <span className="text-xs text-muted-foreground font-bold uppercase">{label}</span>
+    </div>
+    <span className="text-sm font-bold">{value}</span>
+  </div>
+);
 
 export default Dashboard;

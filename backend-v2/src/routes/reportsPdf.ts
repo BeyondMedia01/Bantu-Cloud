@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { prisma } from '../lib/prisma';
+import { prisma, getSql } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 
 const router = new Hono();
@@ -126,7 +126,7 @@ function wrapSummaryHtml(title: string, body: string) {
   .gt-net-amt{width:62px;text-align:right;color:#fff;font-weight:bold;font-size:9px}
   .gt-net-zig{width:62px;text-align:right;color:#B2DB64;font-weight:bold;font-size:9px}
   .end-note{text-align:center;padding:14px 0 6px;font-size:8px;color:#64748b}
-  .page-footer{text-align:center;color:#94a3b8;font-size:7px;margin-top:12px;padding-top:5px;border-top:0.5px solid #e2e8f0}
+  .page-footer{display:flex;align-items:center;justify-content:center;gap:6px;color:#94a3b8;font-size:7px;margin-top:12px;padding-top:5px;border-top:0.5px solid #e2e8f0}
   .print-btn{position:fixed;bottom:20px;right:20px;background:#1a2e4a;color:#B2DB64;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
   @media print{.print-btn{display:none}}
 </style></head>
@@ -146,24 +146,39 @@ const normalizeLabel = (name: string) => {
 router.get('/summary/pdf', requirePermission('export_reports'), async (c) => {
   const runId = c.req.query('runId');
   if (!runId) return c.json({ message: 'runId is required' }, 400);
-  const run = await prisma.payrollRun.findUnique({
-    where: { id: runId },
-    include: { company: true },
-  });
-  if (!run) return c.json({ message: 'Not found' }, 404);
+  const sql = getSql();
+  const runRows = await sql`SELECT pr.*, co.id AS co_id, co.name AS co_name, co."registrationNumber", co."taxId", co.address, co."nssaNumber" FROM "PayrollRun" pr JOIN "Company" co ON co.id = pr."companyId" WHERE pr.id = ${runId}`;
+  if (!runRows.length) return c.json({ message: 'Not found' }, 404);
+  const r0 = runRows[0] as any;
+  const run = { ...r0, company: { id: r0.co_id, name: r0.co_name, registrationNumber: r0.registrationNumber, taxId: r0.taxId, address: r0.address, nssaNumber: r0.nssaNumber } };
   const companyId = c.get('companyId');
   if (companyId && run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
 
-  const payslips = await prisma.payslip.findMany({
-    where: { payrollRunId: runId },
-    include: { employee: { include: { department: true } } },
-    orderBy: { employee: { lastName: 'asc' } },
-  });
+  const payslipRows = await sql`
+    SELECT ps.*, e."firstName", e."lastName", e."employeeCode", e.position, e.currency AS emp_currency, e."baseRate",
+      d.name AS dept_name
+    FROM "Payslip" ps
+    JOIN "Employee" e ON e.id = ps."employeeId"
+    LEFT JOIN "Department" d ON d.id = e."departmentId"
+    WHERE ps."payrollRunId" = ${runId}
+    ORDER BY ps."employeeId" ASC
+  `;
+  const payslips = (payslipRows as any[]).map(r => ({
+    ...r,
+    employee: { firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode, position: r.position, currency: r.emp_currency, baseRate: r.baseRate, department: r.dept_name ? { name: r.dept_name } : null },
+  }));
 
-  const transactions = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: runId },
-    include: { transactionCode: { select: { type: true, incomeCategory: true } } },
-  });
+  const txRows = await sql`
+    SELECT pt.*, tc.type AS tc_type, tc.code AS tc_code, tc.name AS tc_name, tc."incomeCategory" AS tc_income_cat, tc."preTax" AS tc_pre_tax
+    FROM "PayrollTransaction" pt
+    JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+    WHERE pt."payrollRunId" = ${runId}
+    ORDER BY pt."createdAt" ASC
+  `;
+  const transactions = (txRows as any[]).map(r => ({
+    ...r,
+    transactionCode: { type: r.tc_type, code: r.tc_code, name: r.tc_name, incomeCategory: r.tc_income_cat, preTax: r.tc_pre_tax },
+  }));
   const txByEmp: Record<string, { pension: number; otherDed: number }> = {};
   for (const t of transactions) {
     if (!txByEmp[t.employeeId]) txByEmp[t.employeeId] = { pension: 0, otherDed: 0 };
@@ -211,24 +226,39 @@ router.get('/summary/pdf', requirePermission('export_reports'), async (c) => {
 router.get('/payslip-summary', requirePermission('export_reports'), async (c) => {
   const runId = c.req.query('runId');
   if (!runId) return c.json({ message: 'runId is required' }, 400);
-  const run = await prisma.payrollRun.findUnique({
-    where: { id: runId },
-    include: { company: true },
-  });
-  if (!run) return c.json({ message: 'Not found' }, 404);
+  const sql = getSql();
+  const runRows2 = await sql`SELECT pr.*, co.id AS co_id, co.name AS co_name, co."registrationNumber", co."taxId", co.address, co."nssaNumber" FROM "PayrollRun" pr JOIN "Company" co ON co.id = pr."companyId" WHERE pr.id = ${runId}`;
+  if (!runRows2.length) return c.json({ message: 'Not found' }, 404);
+  const r1 = runRows2[0] as any;
+  const run = { ...r1, company: { id: r1.co_id, name: r1.co_name, registrationNumber: r1.registrationNumber, taxId: r1.taxId, address: r1.address, nssaNumber: r1.nssaNumber } };
   const companyId = c.get('companyId');
   if (companyId && run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
 
-  const payslips = await prisma.payslip.findMany({
-    where: { payrollRunId: runId },
-    include: { employee: { include: { department: true } } },
-    orderBy: { employee: { lastName: 'asc' } },
-  });
+  const payslipRows2 = await sql`
+    SELECT ps.*, e."firstName", e."lastName", e."employeeCode", e.position, e.currency AS emp_currency, e."baseRate",
+      d.name AS dept_name
+    FROM "Payslip" ps
+    JOIN "Employee" e ON e.id = ps."employeeId"
+    LEFT JOIN "Department" d ON d.id = e."departmentId"
+    WHERE ps."payrollRunId" = ${runId}
+    ORDER BY ps."employeeId" ASC
+  `;
+  const payslips = (payslipRows2 as any[]).map(r => ({
+    ...r,
+    employee: { firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode, position: r.position, currency: r.emp_currency, baseRate: r.baseRate, department: r.dept_name ? { name: r.dept_name } : null },
+  }));
 
-  const allTransactions = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: runId },
-    include: { transactionCode: { select: { code: true, name: true, type: true, incomeCategory: true } } },
-  });
+  const allTxRows = await sql`
+    SELECT pt.*, tc.type AS tc_type, tc.code AS tc_code, tc.name AS tc_name, tc."incomeCategory" AS tc_income_cat, tc."preTax" AS tc_pre_tax
+    FROM "PayrollTransaction" pt
+    JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+    WHERE pt."payrollRunId" = ${runId}
+    ORDER BY pt."createdAt" ASC
+  `;
+  const allTransactions = (allTxRows as any[]).map(r => ({
+    ...r,
+    transactionCode: { type: r.tc_type, code: r.tc_code, name: r.tc_name, incomeCategory: r.tc_income_cat, preTax: r.tc_pre_tax },
+  }));
 
   const runPeriod = `${new Date(run.startDate).getFullYear()}-${String(new Date(run.startDate).getMonth() + 1).padStart(2, '0')}`;
   const allInputs = await prisma.payrollInput.findMany({
@@ -570,7 +600,7 @@ router.get('/payslip-summary', requirePermission('export_reports'), async (c) =>
     <span class="gt-net-amt">${grandHeadcount}</span>
   </div>
   <div class="end-note">END OF REPORT...</div>
-  <div class="page-footer">${LOGO} &nbsp; Bantu Modern HR &amp; Payroll Automation &nbsp;|&nbsp; CONFIDENTIAL DOCUMENT</div>`;
+  <div class="page-footer">${LOGO} <span>Bantu Modern HR &amp; Payroll Automation &nbsp;|&nbsp; CONFIDENTIAL DOCUMENT</span></div>`;
 
   const jsonData = {
     runId,
@@ -596,10 +626,22 @@ router.get('/nssa-p4a', requirePermission('export_reports'), async (c) => {
   const year = c.req.query('year');
   if (!companyId || !month || !year) return c.json({ message: 'companyId, month, and year are required' }, 400);
 
-  const payslips = await prisma.payslip.findMany({
-    where: { payrollRun: yearPeriodFilter(companyId, year, month) as any },
-    include: { payrollRun: { include: { company: true } } },
-  });
+  const nssaFilter = yearPeriodFilter(companyId, year, month);
+  const nssaRuns = await prisma.payrollRun.findMany({ where: nssaFilter as any, select: { id: true } });
+  const nssaRunIds = nssaRuns.map((rr: any) => rr.id);
+  if (nssaRunIds.length === 0) return c.json({ message: 'No completed payroll data for this period' }, 404);
+  const sqlNssa = getSql();
+  const nssaRows = await sqlNssa`
+    SELECT ps.*, pr.id AS pr_id, co.id AS co_id, co.name AS co_name, co."nssaNumber", co."taxId", co."registrationNumber", co.address
+    FROM "Payslip" ps
+    JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+    JOIN "Company" co ON co.id = pr."companyId"
+    WHERE ps."payrollRunId" = ANY(${nssaRunIds})
+  `;
+  const payslips = (nssaRows as any[]).map(r => ({
+    ...r,
+    payrollRun: { id: r.pr_id, company: { id: r.co_id, name: r.co_name, nssaNumber: r.nssaNumber, taxId: r.taxId, registrationNumber: r.registrationNumber, address: r.address } },
+  }));
   if (payslips.length === 0) return c.json({ message: 'No completed payroll data for this period' }, 404);
 
   const company = payslips[0].payrollRun.company;
@@ -634,11 +676,11 @@ router.get('/nssa-p4a', requirePermission('export_reports'), async (c) => {
 
 router.get('/it7/:employeeId/:year', requirePermission('view_reports'), async (c) => {
   const { employeeId, year } = c.req.param();
-  const employee = await prisma.employee.findUnique({
-    where: { id: employeeId },
-    include: { company: true },
-  });
-  if (!employee) return c.json({ message: 'Employee not found' }, 404);
+  const sqlIt7 = getSql();
+  const empRows = await sqlIt7`SELECT e.*, co.id AS co_id, co.name AS co_name, co."taxId" AS co_tax_id, co.address AS co_address FROM "Employee" e JOIN "Company" co ON co.id = e."companyId" WHERE e.id = ${employeeId}`;
+  if (!empRows.length) return c.json({ message: 'Employee not found' }, 404);
+  const er = empRows[0] as any;
+  const employee = { ...er, company: { id: er.co_id, name: er.co_name, taxId: er.co_tax_id, address: er.co_address } };
   const companyId = c.get('companyId');
   if (companyId && employee.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
 
@@ -646,15 +688,25 @@ router.get('/it7/:employeeId/:year', requirePermission('view_reports'), async (c
   const yearStart = new Date(y, 0, 1);
   const yearEnd = new Date(y + 1, 0, 1);
 
-  const [payslips, transactions] = await Promise.all([
+  const [payslips, it7TxRows] = await Promise.all([
     prisma.payslip.findMany({
       where: { employeeId, payrollRun: { startDate: { gte: yearStart }, endDate: { lt: yearEnd }, status: 'COMPLETED' } },
     }),
-    prisma.payrollTransaction.findMany({
-      where: { employeeId, payrollRun: { startDate: { gte: yearStart }, endDate: { lt: yearEnd }, status: 'COMPLETED' } },
-      include: { transactionCode: { select: { type: true, code: true, incomeCategory: true } } },
-    }),
+    sqlIt7`
+      SELECT pt.*, tc.type AS tc_type, tc.code AS tc_code, tc."incomeCategory" AS tc_income_cat
+      FROM "PayrollTransaction" pt
+      JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+      JOIN "PayrollRun" pr ON pr.id = pt."payrollRunId"
+      WHERE pt."employeeId" = ${employeeId}
+        AND pr."startDate" >= ${yearStart}
+        AND pr."endDate" < ${yearEnd}
+        AND pr.status = 'COMPLETED'
+    `,
   ]);
+  const transactions = (it7TxRows as any[]).map(r => ({
+    ...r,
+    transactionCode: { type: r.tc_type, code: r.tc_code, incomeCategory: r.tc_income_cat },
+  }));
   if (payslips.length === 0) return c.json({ message: 'No completed payroll data for this year' }, 404);
 
   const totals = payslips.reduce((acc, ps) => ({
@@ -721,10 +773,22 @@ router.get('/p2', requirePermission('export_reports'), async (c) => {
   const year = c.req.query('year');
   if (!companyId || !month || !year) return c.json({ message: 'companyId, month, and year are required' }, 400);
 
-  const payslips = await prisma.payslip.findMany({
-    where: { payrollRun: yearPeriodFilter(companyId, year, month) as any },
-    include: { payrollRun: { include: { company: true } } },
-  });
+  const p2Filter = yearPeriodFilter(companyId, year, month);
+  const p2Runs = await prisma.payrollRun.findMany({ where: p2Filter as any, select: { id: true } });
+  const p2RunIds = p2Runs.map((rr: any) => rr.id);
+  if (p2RunIds.length === 0) return c.json({ message: 'No completed payroll data for this period' }, 404);
+  const sqlP2 = getSql();
+  const p2Rows = await sqlP2`
+    SELECT ps.*, pr.id AS pr_id, co.id AS co_id, co.name AS co_name, co."taxId", co."registrationNumber", co.address
+    FROM "Payslip" ps
+    JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+    JOIN "Company" co ON co.id = pr."companyId"
+    WHERE ps."payrollRunId" = ANY(${p2RunIds})
+  `;
+  const payslips = (p2Rows as any[]).map(r => ({
+    ...r,
+    payrollRun: { id: r.pr_id, company: { id: r.co_id, name: r.co_name, taxId: r.taxId, registrationNumber: r.registrationNumber, address: r.address } },
+  }));
   if (payslips.length === 0) return c.json({ message: 'No completed payroll data for this period' }, 404);
 
   const company = payslips[0].payrollRun.company;
@@ -756,16 +820,25 @@ router.get('/p2', requirePermission('export_reports'), async (c) => {
 router.get('/total-journal', requirePermission('view_reports'), async (c) => {
   const runId = c.req.query('runId');
   if (!runId) return c.json({ message: 'runId is required' }, 400);
-  const run = await prisma.payrollRun.findUnique({ where: { id: runId }, include: { company: true } });
-  if (!run) return c.json({ message: 'Run not found' }, 404);
+  const sqlTj = getSql();
+  const tjRunRows = await sqlTj`SELECT pr.*, co.id AS co_id, co.name AS co_name FROM "PayrollRun" pr JOIN "Company" co ON co.id = pr."companyId" WHERE pr.id = ${runId}`;
+  if (!tjRunRows.length) return c.json({ message: 'Run not found' }, 404);
+  const tjR = tjRunRows[0] as any;
+  const run = { ...tjR, company: { id: tjR.co_id, name: tjR.co_name } };
   const companyId = c.get('companyId');
   if (companyId && run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
 
-  const txns = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: runId },
-    include: { transactionCode: { select: { code: true, name: true, type: true } } },
-    orderBy: [{ transactionCode: { type: 'asc' } }, { transactionCode: { code: 'asc' } }],
-  });
+  const tjTxRows = await sqlTj`
+    SELECT pt.*, tc.type AS tc_type, tc.code AS tc_code, tc.name AS tc_name
+    FROM "PayrollTransaction" pt
+    JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+    WHERE pt."payrollRunId" = ${runId}
+    ORDER BY pt."transactionCodeId" ASC
+  `;
+  const txns = (tjTxRows as any[]).map(r => ({
+    ...r,
+    transactionCode: { type: r.tc_type, code: r.tc_code, name: r.tc_name },
+  }));
 
   const tcMap: Record<string, any> = {};
   for (const t of txns) {
@@ -794,19 +867,28 @@ router.get('/total-journal', requirePermission('view_reports'), async (c) => {
 router.get('/department-journal', requirePermission('view_reports'), async (c) => {
   const runId = c.req.query('runId');
   if (!runId) return c.json({ message: 'runId is required' }, 400);
-  const run = await prisma.payrollRun.findUnique({ where: { id: runId }, include: { company: true } });
-  if (!run) return c.json({ message: 'Run not found' }, 404);
+  const sqlDj = getSql();
+  const djRunRows = await sqlDj`SELECT pr.*, co.id AS co_id, co.name AS co_name FROM "PayrollRun" pr JOIN "Company" co ON co.id = pr."companyId" WHERE pr.id = ${runId}`;
+  if (!djRunRows.length) return c.json({ message: 'Run not found' }, 404);
+  const djR = djRunRows[0] as any;
+  const run = { ...djR, company: { id: djR.co_id, name: djR.co_name } };
   const companyId = c.get('companyId');
   if (companyId && run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
 
-  const txns = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: runId },
-    include: {
-      transactionCode: { select: { code: true, name: true, type: true } },
-      employee: { include: { department: { select: { name: true } } } },
-    },
-    orderBy: [{ employee: { department: { name: 'asc' } } }, { transactionCode: { code: 'asc' } }],
-  });
+  const djTxRows = await sqlDj`
+    SELECT pt.*, tc.type AS tc_type, tc.code AS tc_code, tc.name AS tc_name, d.name AS dept_name
+    FROM "PayrollTransaction" pt
+    JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+    JOIN "Employee" e ON e.id = pt."employeeId"
+    LEFT JOIN "Department" d ON d.id = e."departmentId"
+    WHERE pt."payrollRunId" = ${runId}
+    ORDER BY pt."employeeId" ASC, pt."transactionCodeId" ASC
+  `;
+  const txns = (djTxRows as any[]).map(r => ({
+    ...r,
+    transactionCode: { type: r.tc_type, code: r.tc_code, name: r.tc_name },
+    employee: { department: r.dept_name ? { name: r.dept_name } : null },
+  }));
 
   const deptMap: Record<string, any> = {};
   for (const t of txns) {
@@ -836,16 +918,29 @@ router.get('/department-journal', requirePermission('view_reports'), async (c) =
 router.get('/medical-aid', requirePermission('view_reports'), async (c) => {
   const runId = c.req.query('runId');
   if (!runId) return c.json({ message: 'runId is required' }, 400);
-  const run = await prisma.payrollRun.findUnique({ where: { id: runId }, include: { company: true } });
-  if (!run) return c.json({ message: 'Run not found' }, 404);
+  const sqlMa = getSql();
+  const maRunRows = await sqlMa`SELECT pr.*, co.id AS co_id, co.name AS co_name FROM "PayrollRun" pr JOIN "Company" co ON co.id = pr."companyId" WHERE pr.id = ${runId}`;
+  if (!maRunRows.length) return c.json({ message: 'Run not found' }, 404);
+  const maR = maRunRows[0] as any;
+  const run = { ...maR, company: { id: maR.co_id, name: maR.co_name } };
   const companyId = c.get('companyId');
   if (companyId && run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
 
-  const txns = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: runId, transactionCode: { OR: [{ incomeCategory: 'MEDICAL_AID' }, { name: { contains: 'medical' } }], type: 'DEDUCTION' } },
-    include: { transactionCode: { select: { code: true, name: true } }, employee: { select: { employeeCode: true, firstName: true, lastName: true } } },
-    orderBy: { employee: { lastName: 'asc' } },
-  });
+  const maTxRows = await sqlMa`
+    SELECT pt.*, tc.code AS tc_code, tc.name AS tc_name, e."employeeCode", e."firstName", e."lastName"
+    FROM "PayrollTransaction" pt
+    JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+    JOIN "Employee" e ON e.id = pt."employeeId"
+    WHERE pt."payrollRunId" = ${runId}
+      AND tc.type = 'DEDUCTION'
+      AND (tc."incomeCategory" = 'MEDICAL_AID' OR LOWER(tc.name) LIKE '%medical%')
+    ORDER BY pt."employeeId" ASC
+  `;
+  const txns = (maTxRows as any[]).map(r => ({
+    ...r,
+    transactionCode: { code: r.tc_code, name: r.tc_name },
+    employee: { employeeCode: r.employeeCode, firstName: r.firstName, lastName: r.lastName },
+  }));
 
   const period = `${new Date(run.startDate).toLocaleDateString()} - ${new Date(run.endDate).toLocaleDateString()}`;
   let cuerpo = `<div class="header"><div class="logo-row">${LOGO}<h1>Medical Aid Report</h1></div><p class="sub">${run.company?.name || ''} | ${period}</p></div>`;
@@ -864,16 +959,29 @@ router.get('/medical-aid', requirePermission('view_reports'), async (c) => {
 router.get('/overtime', requirePermission('view_reports'), async (c) => {
   const runId = c.req.query('runId');
   if (!runId) return c.json({ message: 'runId is required' }, 400);
-  const run = await prisma.payrollRun.findUnique({ where: { id: runId }, include: { company: true } });
-  if (!run) return c.json({ message: 'Run not found' }, 404);
+  const sqlOt = getSql();
+  const otRunRows = await sqlOt`SELECT pr.*, co.id AS co_id, co.name AS co_name FROM "PayrollRun" pr JOIN "Company" co ON co.id = pr."companyId" WHERE pr.id = ${runId}`;
+  if (!otRunRows.length) return c.json({ message: 'Run not found' }, 404);
+  const otR = otRunRows[0] as any;
+  const run = { ...otR, company: { id: otR.co_id, name: otR.co_name } };
   const companyId = c.get('companyId');
   if (companyId && run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
 
-  const txns = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: runId, transactionCode: { type: 'EARNING', OR: [{ incomeCategory: 'OVERTIME' }, { name: { contains: 'overtime' } }, { code: { startsWith: 'OT' } }] } },
-    include: { transactionCode: { select: { code: true, name: true } }, employee: { select: { employeeCode: true, firstName: true, lastName: true } } },
-    orderBy: { employee: { lastName: 'asc' } },
-  });
+  const otTxRows = await sqlOt`
+    SELECT pt.*, tc.code AS tc_code, tc.name AS tc_name, e."employeeCode", e."firstName", e."lastName"
+    FROM "PayrollTransaction" pt
+    JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+    JOIN "Employee" e ON e.id = pt."employeeId"
+    WHERE pt."payrollRunId" = ${runId}
+      AND tc.type = 'EARNING'
+      AND (tc."incomeCategory" = 'OVERTIME' OR LOWER(tc.name) LIKE '%overtime%' OR tc.code LIKE 'OT%')
+    ORDER BY pt."employeeId" ASC
+  `;
+  const txns = (otTxRows as any[]).map(r => ({
+    ...r,
+    transactionCode: { code: r.tc_code, name: r.tc_name },
+    employee: { employeeCode: r.employeeCode, firstName: r.firstName, lastName: r.lastName },
+  }));
 
   const period = `${new Date(run.startDate).toLocaleDateString()} - ${new Date(run.endDate).toLocaleDateString()}`;
   let cuerpo = `<div class="header"><div class="logo-row">${LOGO}<h1>Overtime Report</h1></div><p class="sub">${run.company?.name || ''} | ${period}</p></div>`;
@@ -898,7 +1006,7 @@ router.get('/salary-advance', requirePermission('view_reports'), async (c) => {
   const loans = await prisma.loan.findMany({
     where,
     include: { employee: { select: { employeeCode: true, firstName: true, lastName: true } } },
-    orderBy: { employee: { lastName: 'asc' } },
+    orderBy: { employeeId: 'asc' },
   });
 
   let cuerpo = `<div class="header"><div class="logo-row">${LOGO}<h1>Salary Advance Report</h1></div><p class="sub">As at ${new Date().toLocaleDateString()}</p></div>`;
@@ -923,7 +1031,7 @@ router.get('/leave-provision', requirePermission('view_reports'), async (c) => {
   const balances = await prisma.leaveBalance.findMany({
     where,
     include: { employee: { select: { employeeCode: true, firstName: true, lastName: true, baseRate: true, currency: true } } },
-    orderBy: [{ employee: { lastName: 'asc' } }, { leaveType: 'asc' }],
+    orderBy: [{ employeeId: 'asc' }, { leaveType: 'asc' }],
   });
 
   let cuerpo = `<div class="header"><div class="logo-row">${LOGO}<h1>Leave Provision Report</h1></div><p class="sub">As at ${new Date().toLocaleDateString()}</p></div>`;

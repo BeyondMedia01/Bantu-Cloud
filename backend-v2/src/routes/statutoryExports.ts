@@ -1,20 +1,26 @@
 import { Hono } from 'hono';
-import { prisma } from '../lib/prisma';
+import { prisma, getSql } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 
 const router = new Hono();
 
 async function getRunForCompany(runId: string, companyId: string | undefined) {
-  const run = await prisma.payrollRun.findUnique({
-    where: { id: runId },
-    select: {
-      id: true, companyId: true, startDate: true, endDate: true, dualCurrency: true, currency: true,
-      payrollCalendar: { select: { year: true, month: true } },
-    },
-  });
-  if (!run) return null;
-  if (!companyId || run.companyId !== companyId) return null;
-  return run;
+  const sql = getSql();
+  const rows = await sql`
+    SELECT pr.id, pr."companyId", pr."startDate", pr."endDate", pr."dualCurrency", pr.currency,
+      pc.year AS cal_year, pc.month AS cal_month
+    FROM "PayrollRun" pr
+    LEFT JOIN "PayrollCalendar" pc ON pc.id = pr."payrollCalendarId"
+    WHERE pr.id = ${runId}
+  `;
+  if (!rows.length) return null;
+  const r = rows[0] as any;
+  if (!companyId || r.companyId !== companyId) return null;
+  return {
+    id: r.id, companyId: r.companyId, startDate: r.startDate, endDate: r.endDate,
+    dualCurrency: r.dualCurrency, currency: r.currency,
+    payrollCalendar: r.cal_year ? { year: r.cal_year, month: r.cal_month } : null,
+  };
 }
 
 router.get('/zimra-paye/:runId', requirePermission('export_reports'), async (c) => {
@@ -38,18 +44,15 @@ router.get('/zimra-paye/:runId', requirePermission('export_reports'), async (c) 
     const run = await getRunForCompany(runId, companyId);
     if (!run) return c.json({ message: 'Payroll run not found' }, 404);
 
-    const payslips = await prisma.payslip.findMany({
-      where: { payrollRunId: runId },
-      include: {
-        employee: {
-          select: {
-            employeeCode: true, firstName: true, lastName: true,
-            tin: true, nationalId: true, passportNumber: true,
-          },
-        },
-      },
-      orderBy: { employee: { lastName: 'asc' } },
-    });
+    const sql = getSql();
+    const payslips = await sql`
+      SELECT ps.*,
+        e."employeeCode", e."firstName", e."lastName", e.tin, e."nationalId", e."passportNumber"
+      FROM "Payslip" ps
+      JOIN "Employee" e ON e.id = ps."employeeId"
+      WHERE ps."payrollRunId" = ${runId}
+      ORDER BY ps."employeeId" ASC
+    `;
 
     const period = run.startDate ? new Date(run.startDate) : new Date();
     const month = String(run.payrollCalendar?.month || (period.getMonth() + 1)).padStart(2, '0');
@@ -61,7 +64,7 @@ router.get('/zimra-paye/:runId', requirePermission('export_reports'), async (c) 
       'TaxableIncomeAnnual', 'PAYE', 'AIDSLevy', 'TotalTaxDeducted',
     ].join(',');
 
-    const rows = payslips.map((p) => {
+    const rows = (payslips as any[]).map((p) => {
       const gross = p.gross ?? 0;
       const paye = p.paye ?? 0;
       const aidsLevy = p.aidsLevy ?? 0;
@@ -73,11 +76,11 @@ router.get('/zimra-paye/:runId', requirePermission('export_reports'), async (c) 
       const totalTax = (paye + aidsLevy).toFixed(2);
 
       return [
-        p.employee.employeeCode || '',
-        p.employee.tin || '',
-        `"${(p.employee.lastName || '').replace(/"/g, '""')}"`,
-        `"${(p.employee.firstName || '').replace(/"/g, '""')}"`,
-        p.employee.nationalId || p.employee.passportNumber || '',
+        p.employeeCode || '',
+        p.tin || '',
+        `"${(p.lastName || '').replace(/"/g, '""')}"`,
+        `"${(p.firstName || '').replace(/"/g, '""')}"`,
+        p.nationalId || p.passportNumber || '',
         month,
         year,
         gross.toFixed(2),
@@ -119,18 +122,16 @@ router.get('/nssa/:runId', requirePermission('export_reports'), async (c) => {
       return c.json({ message: 'NSSA employer registration number is required for NSSA CSV export. Configure it under Company Settings.' }, 422);
     }
 
-    const payslips = await prisma.payslip.findMany({
-      where: { payrollRunId: c.req.param('runId') },
-      include: {
-        employee: {
-          select: {
-            employeeCode: true, firstName: true, lastName: true,
-            nationalId: true, passportNumber: true, socialSecurityNum: true,
-          },
-        },
-      },
-      orderBy: { employee: { lastName: 'asc' } },
-    });
+    const sql = getSql();
+    const payslips = await sql`
+      SELECT ps.*,
+        e."employeeCode", e."firstName", e."lastName",
+        e."nationalId", e."passportNumber", e."socialSecurityNum"
+      FROM "Payslip" ps
+      JOIN "Employee" e ON e.id = ps."employeeId"
+      WHERE ps."payrollRunId" = ${c.req.param('runId')}
+      ORDER BY ps."employeeId" ASC
+    `;
 
     const period = run.startDate ? new Date(run.startDate) : new Date();
     const month = String(run.payrollCalendar?.month || (period.getMonth() + 1)).padStart(2, '0');
@@ -143,7 +144,7 @@ router.get('/nssa/:runId', requirePermission('export_reports'), async (c) => {
       'EmployerContribution', 'TotalContribution',
     ].join(',');
 
-    const rows = payslips.map((p) => {
+    const rows = (payslips as any[]).map((p) => {
       const nssaEmp = p.nssaEmployee ?? 0;
       const nssaEmpr = p.nssaEmployer ?? nssaEmp;
       const total = (nssaEmp + nssaEmpr).toFixed(2);
@@ -154,10 +155,10 @@ router.get('/nssa/:runId', requirePermission('export_reports'), async (c) => {
 
       return [
         employerCode,
-        p.employee.socialSecurityNum || '',
-        p.employee.nationalId || p.employee.passportNumber || '',
-        `"${(p.employee.lastName || '').replace(/"/g, '""')}"`,
-        `"${(p.employee.firstName || '').replace(/"/g, '""')}"`,
+        p.socialSecurityNum || '',
+        p.nationalId || p.passportNumber || '',
+        `"${(p.lastName || '').replace(/"/g, '""')}"`,
+        `"${(p.firstName || '').replace(/"/g, '""')}"`,
         month,
         year,
         pensionable,

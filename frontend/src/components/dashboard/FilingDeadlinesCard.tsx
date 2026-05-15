@@ -159,7 +159,7 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
         <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Filing Deadlines</h3>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1 auto-rows-fr">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 auto-rows-fr">
         {deadlines.map((d, i) => {
           const k = filedKey(companyId, d.name, d.dueDate);
           const isFiled = filed.has(k);
@@ -176,34 +176,30 @@ const FilingDeadlinesCard: React.FC<FilingDeadlinesCardProps> = React.memo(({ ho
           const daysColor = isFiled ? 'text-success' : urgent && !isFinance ? 'text-red-600' : soon && !isFinance ? 'text-amber-600' : 'text-muted-foreground';
 
           return (
-            <div key={i} className={`rounded-2xl border p-3 flex flex-col gap-1.5 h-full ${borderColor}`}>
-              <div className="flex items-center justify-between">
-                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-xl ${TAG_COLORS[d.tag]}`}>
+            <div key={i} className={`rounded-xl border p-3 flex flex-col gap-2 h-full ${borderColor}`}>
+              <div className="flex items-center justify-between gap-1">
+                <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${TAG_COLORS[d.tag]}`}>
                   {d.tag}
                 </span>
                 {isFiled
-                  ? <CheckCircle2 size={12} className="text-success shrink-0" />
-                  : urgent && !isFinance && <AlertTriangle size={12} className="text-red-500 shrink-0" />
+                  ? <CheckCircle2 size={13} className="text-success shrink-0" aria-label="Filed" />
+                  : urgent && !isFinance && <AlertTriangle size={13} className="text-red-500 shrink-0" aria-label="Urgent" />
                 }
               </div>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className={`text-3xl font-black leading-none tabular-nums ${isFiled ? 'text-muted-foreground' : urgent && !isFinance ? 'text-red-600' : 'text-navy'}`}>
-                  {d.dueDate.getDate()}
-                </span>
-                <span className="text-xs font-bold text-muted-foreground">
-                  {d.dueDate.toLocaleDateString(undefined, { month: 'short' })}
-                </span>
+              <div>
+                <p className={`text-xs font-bold leading-tight ${isFiled ? 'text-muted-foreground line-through' : 'text-navy'}`}>{d.name}</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5 leading-tight">{d.description}</p>
               </div>
-              <p className={`text-[10px] font-bold leading-tight ${isFiled ? 'text-muted-foreground line-through' : 'text-navy'}`}>
-                {d.name}
-              </p>
-              <div className="mt-auto flex items-center justify-between gap-1 pt-1">
-                <p className={`text-[9px] font-bold ${daysColor}`}>
-                  {isFiled ? 'Filed' : days === 0 ? 'Due today' : days === 1 ? 'Tomorrow' : `${days}d`}
-                </p>
+              <div className="mt-auto flex items-end justify-between gap-1">
+                <div>
+                  <p className={`text-sm font-bold ${isFiled ? 'text-muted-foreground' : 'text-navy'}`}>{d.dueDate.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</p>
+                  <p className={`text-[10px] font-bold ${daysColor}`}>
+                    {isFiled ? 'Filed' : days === 0 ? 'Due today' : days === 1 ? 'Tomorrow' : `${days} days`}
+                  </p>
+                </div>
                 <button
                   onClick={() => toggle(d)}
-                  className={`text-[9px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
                     isFiled
                       ? 'border-success-border text-success hover:bg-destructive-bg hover:text-destructive hover:border-destructive/30'
                       : 'border-border text-muted-foreground hover:border-success-border hover:text-success hover:bg-success-bg'

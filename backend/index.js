@@ -312,6 +312,14 @@ const startServer = async () => {
 
 startServer();
 
+// Prevent crashes from unhandled promise rejections (e.g. routes missing try/catch)
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+});
+
 process.on('SIGINT', async () => {
   const prisma = require('./lib/prisma');
   await prisma.$disconnect();

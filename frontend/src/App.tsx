@@ -191,7 +191,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/setup" element={<Setup />} />
-              <Route path="/onboarding" element={<DesktopOnboarding />} />
+              <Route path="/activate" element={<DesktopOnboarding />} />
               <Route path="/license-expired" element={<LicenseExpired />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />

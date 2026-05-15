@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { prisma } from '../lib/prisma';
+import { prisma, getSql } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 
 const router = new Hono();
@@ -84,7 +84,7 @@ router.get('/payslips', requirePermission('view_reports'), async (c) => {
   const payslips = await prisma.payslip.findMany({
     where: { payrollRunId: runId },
     include: { employee: { select: { firstName: true, lastName: true, employeeCode: true, position: true, currency: true } } },
-    orderBy: [{ employee: { lastName: 'asc' } }],
+    orderBy: [{ employeeId: 'asc' }],
   });
 
   if (format === 'csv') {
@@ -113,7 +113,7 @@ router.get('/journals', requirePermission('view_reports'), async (c) => {
   const transactions = await prisma.payrollTransaction.findMany({
     where: { payrollRunId: runId },
     include: { employee: { select: { firstName: true, lastName: true, employeeCode: true } }, transactionCode: { select: { code: true, name: true, type: true } } },
-    orderBy: [{ employee: { lastName: 'asc' } }, { transactionCode: { code: 'asc' } }],
+    orderBy: [{ employeeId: 'asc' }, { transactionCodeId: 'asc' }],
   });
 
   if (format === 'csv') {
@@ -190,40 +190,61 @@ router.get('/tax', requirePermission('export_reports'), async (c) => {
   const year = c.req.query('year') || String(new Date().getFullYear());
   const format = c.req.query('format') || 'json';
 
-  const payslips = await prisma.payslip.findMany({
-    where: { payrollRun: yearPeriodFilter(companyId, year) },
-    select: {
-      id: true, employeeId: true, payrollRunId: true, gross: true, paye: true, aidsLevy: true,
-      nssaEmployee: true, netPay: true, wcifEmployer: true, sdfContribution: true, necLevy: true, basicSalaryApplied: true,
-      employee: { select: { id: true, firstName: true, lastName: true, employeeCode: true, tin: true, nationalId: true, passportNumber: true } },
-      payrollRun: { select: { id: true, startDate: true, endDate: true, currency: true, dualCurrency: true, company: { select: { id: true, name: true, taxId: true, registrationNumber: true, address: true } } } },
-    },
-  });
+  const sql = getSql();
+  const y = parseInt(year);
+  const yearStart = new Date(y, 0, 1).toISOString();
+  const yearEnd = new Date(y + 1, 0, 1).toISOString();
+  const payslips = await sql`
+    SELECT ps.id, ps."employeeId", ps."payrollRunId", ps.gross, ps.paye, ps."aidsLevy",
+      ps."nssaEmployee", ps."netPay", ps."wcifEmployer", ps."sdfContribution", ps."necLevy", ps."basicSalaryApplied",
+      e.id AS emp_id, e."firstName", e."lastName", e."employeeCode", e.tin, e."nationalId", e."passportNumber",
+      pr.id AS pr_id, pr."startDate", pr."endDate", pr.currency, pr."dualCurrency",
+      co.id AS co_id, co.name AS co_name, co."taxId", co."registrationNumber", co.address
+    FROM "Payslip" ps
+    JOIN "Employee" e ON e.id = ps."employeeId"
+    JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+    JOIN "Company" co ON co.id = pr."companyId"
+    LEFT JOIN "PayrollCalendar" pc ON pc.id = pr."payrollCalendarId"
+    WHERE pr."companyId" = ${companyId}
+      AND pr.status = 'COMPLETED'
+      AND (pc.year = ${y} OR (pr."payrollCalendarId" IS NULL AND pr."startDate" >= ${yearStart} AND pr."startDate" < ${yearEnd}))
+  `;
+  const payslipsMapped = (payslips as any[]).map(r => ({
+    id: r.id, employeeId: r.employeeId, payrollRunId: r.pr_id,
+    gross: r.gross, paye: r.paye, aidsLevy: r.aidsLevy, nssaEmployee: r.nssaEmployee,
+    netPay: r.netPay, wcifEmployer: r.wcifEmployer, sdfContribution: r.sdfContribution,
+    necLevy: r.necLevy, basicSalaryApplied: r.basicSalaryApplied,
+    employee: { id: r.emp_id, firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode, tin: r.tin, nationalId: r.nationalId, passportNumber: r.passportNumber },
+    payrollRun: { id: r.pr_id, startDate: r.startDate, endDate: r.endDate, currency: r.currency, dualCurrency: r.dualCurrency, company: { id: r.co_id, name: r.co_name, taxId: r.taxId, registrationNumber: r.registrationNumber, address: r.address } },
+  }));
 
   const byEmployee: Record<string, any> = {};
-  for (const ps of payslips) {
+  for (const ps of payslipsMapped) {
     const key = ps.employeeId;
-    if (!byEmployee[key]) byEmployee[key] = { employee: (ps as any).employee, company: (ps as any).payrollRun.company, totalGross: 0, totalBasicSalary: 0, totalBonus: 0, totalGratuity: 0, totalAllowances: 0, totalOvertime: 0, totalCommission: 0, totalBenefits: 0, totalPaye: 0, totalAidsLevy: 0, totalNssa: 0, totalNet: 0, totalWcif: 0, totalSdf: 0, totalNecLevy: 0 };
+    if (!byEmployee[key]) byEmployee[key] = { employee: ps.employee, company: ps.payrollRun.company, totalGross: 0, totalBasicSalary: 0, totalBonus: 0, totalGratuity: 0, totalAllowances: 0, totalOvertime: 0, totalCommission: 0, totalBenefits: 0, totalPaye: 0, totalAidsLevy: 0, totalNssa: 0, totalNet: 0, totalWcif: 0, totalSdf: 0, totalNecLevy: 0 };
     const e = byEmployee[key];
     e.totalGross += ps.gross || 0; e.totalPaye += ps.paye || 0; e.totalAidsLevy += ps.aidsLevy || 0;
     e.totalNssa += ps.nssaEmployee || 0; e.totalNet += ps.netPay || 0;
     e.totalWcif += ps.wcifEmployer || 0; e.totalSdf += ps.sdfContribution || 0; e.totalNecLevy += ps.necLevy || 0;
   }
 
-  const runIds = [...new Set(payslips.map(p => p.payrollRunId))];
+  const runIds = [...new Set(payslipsMapped.map((p: any) => p.payrollRunId))];
   const employeeIds = Object.keys(byEmployee);
-  const transactions = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: { in: runIds }, employeeId: { in: employeeIds } },
-    select: { employeeId: true, amount: true, transactionCode: { select: { type: true, incomeCategory: true, code: true } } },
-  });
+  const txRows = runIds.length > 0 && employeeIds.length > 0
+    ? await sql`
+        SELECT pt."employeeId", pt.amount, tc.type AS tc_type, tc."incomeCategory" AS tc_income_cat, tc.code AS tc_code
+        FROM "PayrollTransaction" pt
+        JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+        WHERE pt."payrollRunId" = ANY(${runIds as string[]}) AND pt."employeeId" = ANY(${employeeIds as string[]})
+      `
+    : [];
 
-  for (const t of transactions) {
+  for (const t of txRows as any[]) {
     const e = byEmployee[t.employeeId];
     if (!e) continue;
-    const tc = t.transactionCode;
-    if (!tc || tc.type !== 'EARNING') continue;
+    if (!t.tc_type || t.tc_type !== 'EARNING') continue;
     const amt = Math.abs(t.amount || 0);
-    const cat = tc.incomeCategory; const code = (tc.code || '').toUpperCase();
+    const cat = t.tc_income_cat; const code = (t.tc_code || '').toUpperCase();
     if (cat === 'BASIC_SALARY' || (!cat && code.includes('BASIC'))) e.totalBasicSalary += amt;
     else if (cat === 'BONUS') e.totalBonus += amt;
     else if (cat === 'GRATUITY') e.totalGratuity += amt;

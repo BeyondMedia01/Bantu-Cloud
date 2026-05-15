@@ -25,86 +25,83 @@ router.get('/', requirePermission('view_payroll'), async (c) => {
   const limit = Math.min(500, Math.max(1, parseInt(c.req.query('limit') || '20') || 20));
   const skip = (page - 1) * limit;
 
-  const where: Record<string, unknown> = {};
+  try {
+    const sql = getSql();
+    const limitLit = sql.unsafe(String(limit));
+    const skipLit = sql.unsafe(String(skip));
 
-  if (user.role === 'EMPLOYEE' && employeeIdFromCtx) {
-    where.employeeId = employeeIdFromCtx;
-  } else if (companyId) {
-    where.payrollRun = { companyId };
-  } else {
-    const clientId = c.get('clientId');
-    if (clientId) {
-      where.payrollRun = { company: { clientId } };
+    let rows: any[], total: number;
+
+    if (user.role === 'EMPLOYEE' && employeeIdFromCtx) {
+      const [data, cnt] = await Promise.all([
+        sql`
+          SELECT ps.*,
+            e."firstName", e."lastName", e."employeeCode",
+            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status
+          FROM "Payslip" ps
+          JOIN "Employee" e ON e.id = ps."employeeId"
+          JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+          WHERE ps."employeeId" = ${employeeIdFromCtx}
+          ORDER BY ps."createdAt" DESC
+          LIMIT ${limitLit} OFFSET ${skipLit}
+        `,
+        sql`SELECT COUNT(*)::int AS cnt FROM "Payslip" WHERE "employeeId" = ${employeeIdFromCtx}`,
+      ]);
+      rows = data;
+      total = cnt[0]?.cnt ?? 0;
+    } else if (companyId) {
+      const [data, cnt] = await Promise.all([
+        sql`
+          SELECT ps.*,
+            e."firstName", e."lastName", e."employeeCode",
+            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status
+          FROM "Payslip" ps
+          JOIN "Employee" e ON e.id = ps."employeeId"
+          JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+          WHERE pr."companyId" = ${companyId}
+          ORDER BY ps."createdAt" DESC
+          LIMIT ${limitLit} OFFSET ${skipLit}
+        `,
+        sql`SELECT COUNT(ps.*)::int AS cnt FROM "Payslip" ps JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId" WHERE pr."companyId" = ${companyId}`,
+      ]);
+      rows = data;
+      total = cnt[0]?.cnt ?? 0;
     } else {
-      return c.json({ data: [], total: 0, page, limit });
+      const clientId = c.get('clientId');
+      if (!clientId) return c.json({ data: [], total: 0, page, limit });
+      const [data, cnt] = await Promise.all([
+        sql`
+          SELECT ps.*,
+            e."firstName", e."lastName", e."employeeCode",
+            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status
+          FROM "Payslip" ps
+          JOIN "Employee" e ON e.id = ps."employeeId"
+          JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+          JOIN "Company" co ON co.id = pr."companyId"
+          WHERE co."clientId" = ${clientId}
+          ORDER BY ps."createdAt" DESC
+          LIMIT ${limitLit} OFFSET ${skipLit}
+        `,
+        sql`SELECT COUNT(ps.*)::int AS cnt FROM "Payslip" ps JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId" JOIN "Company" co ON co.id = pr."companyId" WHERE co."clientId" = ${clientId}`,
+      ]);
+      rows = data;
+      total = cnt[0]?.cnt ?? 0;
     }
+
+    const data = rows.map((r: any) => ({
+      id: r.id, employeeId: r.employeeId, payrollRunId: r.payrollRunId,
+      gross: r.gross, paye: r.paye, aidsLevy: r.aidsLevy, nssaEmployee: r.nssaEmployee,
+      loanDeductions: r.loanDeductions, netPay: r.netPay, pdfUrl: r.pdfUrl,
+      createdAt: r.createdAt, updatedAt: r.updatedAt,
+      employee: { firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode },
+      payrollRun: { startDate: r.pr_start, endDate: r.pr_end, currency: r.pr_currency, status: r.pr_status },
+    }));
+
+    return c.json({ data, total, page, limit });
+  } catch (err: any) {
+    console.error('[payslips GET]', err?.message);
+    return c.json({ message: 'Failed to load payslips', error: err?.message }, 500);
   }
-
-  const sql = getSql();
-
-  let filterClause: string;
-  let countClause: string;
-  let params: unknown[];
-
-  if (user.role === 'EMPLOYEE' && employeeIdFromCtx) {
-    filterClause = `ps."employeeId" = $1`;
-    countClause = filterClause;
-    params = [employeeIdFromCtx];
-  } else if (companyId) {
-    filterClause = `pr."companyId" = $1`;
-    countClause = filterClause;
-    params = [companyId];
-  } else {
-    const clientId = c.get('clientId');
-    if (clientId) {
-      filterClause = `co."clientId" = $1`;
-      countClause = `pr."companyId" IN (SELECT id FROM "Company" WHERE "clientId" = $1)`;
-      params = [clientId];
-    } else {
-      return c.json({ data: [], total: 0, page, limit });
-    }
-  }
-
-  const [rows, countRows] = await Promise.all([
-    sql.unsafe(`
-      SELECT
-        ps.id, ps."employeeId", ps."payrollRunId", ps.gross, ps.paye, ps."aidsLevy",
-        ps."nssaEmployee", ps."loanDeductions", ps."netPay", ps."pdfUrl", ps."createdAt",
-        e."firstName", e."lastName", e."employeeCode",
-        pr."startDate", pr."endDate", pr.currency, pr.status AS "runStatus", pr."runDate"
-      FROM "Payslip" ps
-      JOIN "Employee" e ON e.id = ps."employeeId"
-      JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
-      ${filterClause.includes('co.') ? 'JOIN "Company" co ON co.id = pr."companyId"' : ''}
-      WHERE ${filterClause}
-      ORDER BY pr."runDate" DESC NULLS LAST
-      LIMIT ${limit} OFFSET ${skip}
-    `, params),
-    sql.unsafe(`
-      SELECT COUNT(*)::int AS total
-      FROM "Payslip" ps
-      JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
-      WHERE ${countClause}
-    `, params),
-  ]);
-
-  const payslips = rows.map((r: any) => ({
-    id: r.id,
-    employeeId: r.employeeId,
-    payrollRunId: r.payrollRunId,
-    gross: r.gross,
-    paye: r.paye,
-    aidsLevy: r.aidsLevy,
-    nssaEmployee: r.nssaEmployee,
-    loanDeductions: r.loanDeductions,
-    netPay: r.netPay,
-    pdfUrl: r.pdfUrl,
-    createdAt: r.createdAt,
-    employee: { firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode },
-    payrollRun: { startDate: r.startDate, endDate: r.endDate, currency: r.currency, status: r.runStatus },
-  }));
-
-  return c.json({ data: payslips, total: countRows[0]?.total ?? 0, page, limit });
 });
 
 router.get('/:id', requirePermission('view_payroll'), async (c) => {
@@ -113,34 +110,51 @@ router.get('/:id', requirePermission('view_payroll'), async (c) => {
   const user = c.get('user');
   const employeeIdFromCtx = c.get('employeeId');
 
-  const payslip = await prisma.payslip.findUnique({
-    where: { id },
-    include: {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT
+      ps.*,
+      e."firstName", e."lastName", e."employeeCode", e.position,
+      d.name AS dept_name,
+      pr.id AS pr_id, pr."companyId" AS pr_company_id, pr."startDate" AS pr_start, pr."endDate" AS pr_end,
+      pr.currency AS pr_currency, pr.status AS pr_status, pr."exchangeRate" AS pr_xr,
+      pr."dualCurrency" AS pr_dual, pr."runDate" AS pr_run_date,
+      co.id AS co_id, co.name AS co_name, co."registrationNumber" AS co_reg, co."taxId" AS co_tax, co.address AS co_address
+    FROM "Payslip" ps
+    JOIN "Employee" e ON e.id = ps."employeeId"
+    LEFT JOIN "Department" d ON d.id = e."departmentId"
+    JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+    JOIN "Company" co ON co.id = pr."companyId"
+    WHERE ps.id = ${id}
+  `;
+
+  if (!rows.length) return c.json({ message: 'Payslip not found' }, 404);
+  const r = rows[0] as any;
+  if (user.role === 'EMPLOYEE' && r.employeeId !== employeeIdFromCtx) {
+    return c.json({ message: 'Access denied' }, 403);
+  }
+  if (!companyId || r.pr_company_id !== companyId) {
+    return c.json({ message: 'Access denied' }, 403);
+  }
+
+  return c.json({
+    data: {
+      id: r.id, employeeId: r.employeeId, payrollRunId: r.payrollRunId,
+      gross: r.gross, paye: r.paye, aidsLevy: r.aidsLevy, nssaEmployee: r.nssaEmployee,
+      loanDeductions: r.loanDeductions, netPay: r.netPay, pdfUrl: r.pdfUrl,
+      createdAt: r.createdAt, updatedAt: r.updatedAt,
       employee: {
-        select: {
-          firstName: true, lastName: true, employeeCode: true, position: true,
-          department: { select: { name: true } },
-        },
+        firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode, position: r.position,
+        department: r.dept_name ? { name: r.dept_name } : null,
       },
       payrollRun: {
-        include: {
-          company: {
-            select: { id: true, name: true, registrationNumber: true, taxId: true, address: true },
-          },
-        },
+        id: r.pr_id, companyId: r.pr_company_id, startDate: r.pr_start, endDate: r.pr_end,
+        currency: r.pr_currency, status: r.pr_status, exchangeRate: r.pr_xr,
+        dualCurrency: r.pr_dual, runDate: r.pr_run_date,
+        company: { id: r.co_id, name: r.co_name, registrationNumber: r.co_reg, taxId: r.co_tax, address: r.co_address },
       },
     },
   });
-
-  if (!payslip) return c.json({ message: 'Payslip not found' }, 404);
-  if (user.role === 'EMPLOYEE' && payslip.employeeId !== employeeIdFromCtx) {
-    return c.json({ message: 'Access denied' }, 403);
-  }
-  if (!companyId || payslip.payrollRun.companyId !== companyId) {
-    return c.json({ message: 'Access denied' }, 403);
-  }
-
-  return c.json({ data: payslip });
 });
 
 router.post('/', requirePermission('manage_payroll'), validateBody(createPayslipSchema), async (c) => {

@@ -1,0 +1,20 @@
+name = "bantu-api-v2"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+routes = [
+  { pattern = "api.payroll.thinkbantu.com", custom_domain = true },
+]
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "bantu-production"
+
+[triggers]
+crons = ["5 0 1 * *", "0 7 * * *"]
+
+[vars]
+ENVIRONMENT = "production"
+# SENTRY_DSN = "https://..."  # Uncomment and set after creating Sentry project

@@ -27,7 +27,7 @@ router.get('/', requirePermission('export_reports'), async (c) => {
         },
         payrollRun: { select: { startDate: true, endDate: true } },
       },
-      orderBy: { employee: { firstName: 'asc' } },
+      orderBy: { employeeId: 'asc' },
     });
 
     if (format === 'csv') {
@@ -83,7 +83,7 @@ router.post('/', requirePermission('export_reports'), async (c) => {
   const payslips = await prisma.payslip.findMany({
     where: { payrollRun: { companyId, ...(body.payPeriod ? { startDate: { lte: new Date(body.payPeriod) }, endDate: { gte: new Date(body.payPeriod) } } : {}) } },
     include: { employee: { select: { firstName: true, lastName: true, employeeCode: true, bankName: true, accountNumber: true } } },
-    orderBy: { employee: { firstName: 'asc' } },
+    orderBy: { employeeId: 'asc' },
   });
   const format = body.format || 'csv';
   if (format === 'csv') {

@@ -7,8 +7,8 @@
  * The STATUTORY_RATES constants below serve as fallback defaults only.
  */
 
-/** Round to 2 decimal places — Number.EPSILON prevents 1.005→1.00 float drift */
-const r2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+/** Round to 2 decimal places — 1e-10 prevents binary float drift (3000/xr*xr → 2999.99) */
+const r2 = (n) => Math.round((n + 1e-10) * 100) / 100;
 
 const STATUTORY_RATES = {
   AIDS_LEVY: 0.03,

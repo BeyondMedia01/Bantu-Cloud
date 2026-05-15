@@ -248,6 +248,7 @@ const AppShell: React.FC = () => {
     { to: '/companies', label: 'Companies', icon: <Building2 size={18} /> },
     { to: '/client-admin/roles', label: 'Roles', icon: <ShieldCheck size={18} /> },
     { to: '/client-admin/users', label: 'Team Members', icon: <UserCog size={18} /> },
+    { to: '/subscription', label: 'Subscription', icon: <CreditCard size={18} /> },
   ] : [];
 
   const homeLink = isAdmin ? '/admin' : isEmployee ? '/employee' : '/dashboard';

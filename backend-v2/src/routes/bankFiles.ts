@@ -40,7 +40,7 @@ async function getPayslipsForRun(runId: string, companyId: string | undefined) {
         },
       },
     },
-    orderBy: { employee: { lastName: 'asc' } },
+    orderBy: { employeeId: 'asc' },
   });
 
   return { run, payslips };

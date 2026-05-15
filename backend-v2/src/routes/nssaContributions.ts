@@ -57,7 +57,7 @@ router.get('/', requirePermission('view_reports'), async (c) => {
         },
       },
     },
-    orderBy: [{ payrollRun: { startDate: 'desc' } }, { employee: { lastName: 'asc' } }],
+    orderBy: [{ payrollRunId: 'asc' }, { employeeId: 'asc' }],
     take: limit,
     skip: (page - 1) * limit,
   });

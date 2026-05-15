@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import * as XLSX from 'xlsx';
-import { prisma } from '../lib/prisma';
+import { prisma, getSql } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 
 const router = new Hono();
@@ -86,19 +86,38 @@ router.get('/nssa-p4a-excel', requirePermission('export_reports'), async (c) => 
     select: { name: true, registrationNumber: true },
   });
 
-  const payslips = await prisma.payslip.findMany({
-    where: { payrollRun: yearPeriodFilter(companyId, year, month) as any },
-    include: {
-      employee: {
-        select: {
-          employeeCode: true, socialSecurityNum: true, passportNumber: true,
-          dateOfBirth: true, lastName: true, firstName: true,
-          startDate: true, dischargeDate: true, baseRate: true,
-        },
-      },
+  const y = parseInt(year);
+  const m = parseInt(month);
+  const mStart = new Date(y, m - 1, 1).toISOString();
+  const mEnd = new Date(y, m, 1).toISOString();
+  const sql = getSql();
+  const rawPayslips = await sql`
+    SELECT ps.*,
+      e."employeeCode", e."socialSecurityNum", e."passportNumber",
+      e."dateOfBirth", e."lastName", e."firstName", e."startDate" AS e_start_date,
+      e."dischargeDate", e."baseRate"
+    FROM "Payslip" ps
+    JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+    JOIN "Employee" e ON e.id = ps."employeeId"
+    WHERE pr."companyId" = ${companyId}
+      AND pr.status = 'COMPLETED'
+      AND (
+        (pr."payrollCalendarId" IS NOT NULL AND EXISTS (
+          SELECT 1 FROM "PayrollCalendar" pc WHERE pc.id = pr."payrollCalendarId" AND pc.year = ${y} AND pc.month = ${m}
+        ))
+        OR (pr."payrollCalendarId" IS NULL AND pr."startDate" >= ${mStart}::timestamptz AND pr."startDate" < ${mEnd}::timestamptz)
+      )
+    ORDER BY ps."employeeId" ASC
+  `;
+  const payslips = (rawPayslips as any[]).map(r => ({
+    ...r,
+    employee: {
+      employeeCode: r.employeeCode, socialSecurityNum: r.socialSecurityNum,
+      passportNumber: r.passportNumber, dateOfBirth: r.dateOfBirth,
+      lastName: r.lastName, firstName: r.firstName,
+      startDate: r.e_start_date, dischargeDate: r.dischargeDate, baseRate: r.baseRate,
     },
-    orderBy: { employee: { lastName: 'asc' } },
-  });
+  }));
   if (payslips.length === 0) return c.json({ message: 'No completed payroll data for this period' }, 404);
 
   const ssrNumber = company?.registrationNumber || '';
@@ -180,23 +199,49 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (c) =
   const year = c.req.query('year');
   if (!companyId || !month || !year) return c.json({ message: 'month and year are required' }, 400);
 
-  const payslips = await prisma.payslip.findMany({
-    where: { payrollRun: yearPeriodFilter(companyId, year, month) as any },
-    include: {
-      employee: { select: { tin: true, passportNumber: true, firstName: true, lastName: true, currency: true, taxMethod: true } },
-      payrollRun: { select: { id: true, startDate: true, dualCurrency: true, currency: true } },
-    },
-    orderBy: { employee: { lastName: 'asc' } },
-  });
+  const ty = parseInt(year);
+  const tm = parseInt(month);
+  const tmStart = new Date(ty, tm - 1, 1).toISOString();
+  const tmEnd = new Date(ty, tm, 1).toISOString();
+  const sql = getSql();
+  const rawPayslips = await sql`
+    SELECT ps.*,
+      e.tin, e."passportNumber", e."firstName", e."lastName", e.currency AS e_currency, e."taxMethod",
+      pr.id AS pr_id, pr."startDate" AS pr_start_date, pr."dualCurrency", pr.currency AS pr_currency
+    FROM "Payslip" ps
+    JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
+    JOIN "Employee" e ON e.id = ps."employeeId"
+    WHERE pr."companyId" = ${companyId}
+      AND pr.status = 'COMPLETED'
+      AND (
+        (pr."payrollCalendarId" IS NOT NULL AND EXISTS (
+          SELECT 1 FROM "PayrollCalendar" pc WHERE pc.id = pr."payrollCalendarId" AND pc.year = ${ty} AND pc.month = ${tm}
+        ))
+        OR (pr."payrollCalendarId" IS NULL AND pr."startDate" >= ${tmStart}::timestamptz AND pr."startDate" < ${tmEnd}::timestamptz)
+      )
+    ORDER BY ps."employeeId" ASC
+  `;
+  const payslips = (rawPayslips as any[]).map(r => ({
+    ...r,
+    employee: { tin: r.tin, passportNumber: r.passportNumber, firstName: r.firstName, lastName: r.lastName, currency: r.e_currency, taxMethod: r.taxMethod },
+    payrollRun: { id: r.pr_id, startDate: r.pr_start_date, dualCurrency: r.dualCurrency, currency: r.pr_currency },
+  }));
   if (payslips.length === 0) return c.json({ message: 'No completed payroll data for this period' }, 404);
 
   const runIds = [...new Set(payslips.map(p => p.payrollRunId))];
   const employeeIds = payslips.map(p => p.employeeId);
 
-  const transactions = await prisma.payrollTransaction.findMany({
-    where: { payrollRunId: { in: runIds }, employeeId: { in: employeeIds } },
-    include: { transactionCode: { select: { code: true, name: true, type: true, preTax: true, incomeCategory: true } } },
-  });
+  const rawTransactions = await sql`
+    SELECT pt.*, tc.code AS tc_code, tc.name AS tc_name, tc.type AS tc_type, tc."preTax", tc."incomeCategory"
+    FROM "PayrollTransaction" pt
+    JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+    WHERE pt."payrollRunId" = ANY(${runIds}::text[])
+      AND pt."employeeId" = ANY(${employeeIds}::text[])
+  `;
+  const transactions = (rawTransactions as any[]).map(r => ({
+    ...r,
+    transactionCode: { code: r.tc_code, name: r.tc_name, type: r.tc_type, preTax: r.preTax, incomeCategory: r.incomeCategory },
+  }));
 
   const txByEmployee: Record<string, any[]> = {};
   for (const t of transactions) {

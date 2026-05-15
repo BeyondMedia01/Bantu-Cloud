@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { validateBody } from '../lib/validate';
-import { prisma, cache } from '../lib/prisma';
+import { prisma, cache, getSql } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { checkEmployeeCap } from '../lib/license';
 import { audit } from '../lib/audit';
@@ -289,13 +289,36 @@ router.get('/:id/salary-structure', async (c) => {
     const employeeId = c.req.param('id');
     if (!(await checkEmployeeAccess(c, employeeId))) return c.json({ message: 'Access denied' }, 403);
     const active = c.req.query('active');
-    const where: Record<string, unknown> = { employeeId };
-    if (active === 'true') where.effectiveTo = null;
-    const items = await prisma.employeeTransaction.findMany({
-      where,
-      include: { transactionCode: true },
-      orderBy: { effectiveFrom: 'desc' },
-    });
+    const sql = getSql();
+    const rows = active === 'true'
+      ? await sql`
+          SELECT et.*, tc.id AS tc_id, tc.code AS tc_code, tc.name AS tc_name, tc.type AS tc_type,
+            tc."calculationType" AS tc_calc_type, tc."incomeCategory" AS tc_income_cat,
+            tc."preTax" AS tc_pre_tax, tc."taxable" AS tc_taxable, tc."active" AS tc_active
+          FROM "EmployeeTransaction" et
+          JOIN "TransactionCode" tc ON tc.id = et."transactionCodeId"
+          WHERE et."employeeId" = ${employeeId} AND et."effectiveTo" IS NULL
+          ORDER BY et."effectiveFrom" DESC
+        `
+      : await sql`
+          SELECT et.*, tc.id AS tc_id, tc.code AS tc_code, tc.name AS tc_name, tc.type AS tc_type,
+            tc."calculationType" AS tc_calc_type, tc."incomeCategory" AS tc_income_cat,
+            tc."preTax" AS tc_pre_tax, tc."taxable" AS tc_taxable, tc."active" AS tc_active
+          FROM "EmployeeTransaction" et
+          JOIN "TransactionCode" tc ON tc.id = et."transactionCodeId"
+          WHERE et."employeeId" = ${employeeId}
+          ORDER BY et."effectiveFrom" DESC
+        `;
+    const items = (rows as any[]).map(r => ({
+      id: r.id, employeeId: r.employeeId, transactionCodeId: r.transactionCodeId,
+      value: r.value, currency: r.currency, effectiveFrom: r.effectiveFrom, effectiveTo: r.effectiveTo,
+      isRecurring: r.isRecurring, notes: r.notes, createdAt: r.createdAt, updatedAt: r.updatedAt,
+      transactionCode: {
+        id: r.tc_id, code: r.tc_code, name: r.tc_name, type: r.tc_type,
+        calculationType: r.tc_calc_type, incomeCategory: r.tc_income_cat,
+        preTax: r.tc_pre_tax, taxable: r.tc_taxable, active: r.tc_active,
+      },
+    }));
     return c.json(items);
   } catch (err: any) {
     console.error('[employees GET /:id/salary-structure]', err?.message);

@@ -36,22 +36,38 @@ router.get('/', async (c) => {
 
   try {
     const sql = getSql();
-    const statusPart = status ? sql.unsafe(`AND pr.status = '${status}'`) : sql.unsafe('');
+    const runsQuery = status
+      ? sql`
+          SELECT
+            pr.*,
+            COUNT(ps.id)::int AS payslip_count,
+            pc.id AS cal_id, pc."periodType" AS cal_period_type,
+            pc.year AS cal_year, pc.month AS cal_month, pc."payDay" AS cal_pay_day,
+            pc."startDate" AS cal_start, pc."endDate" AS cal_end, pc."isClosed" AS cal_closed
+          FROM "PayrollRun" pr
+          LEFT JOIN "Payslip" ps ON ps."payrollRunId" = pr.id
+          LEFT JOIN "PayrollCalendar" pc ON pc.id = pr."payrollCalendarId"
+          WHERE pr."companyId" = ${companyId} AND pr.status = ${status as PayrollStatus}
+          GROUP BY pr.id, pc.id
+          ORDER BY pr."runDate" DESC NULLS LAST
+        `
+      : sql`
+          SELECT
+            pr.*,
+            COUNT(ps.id)::int AS payslip_count,
+            pc.id AS cal_id, pc."periodType" AS cal_period_type,
+            pc.year AS cal_year, pc.month AS cal_month, pc."payDay" AS cal_pay_day,
+            pc."startDate" AS cal_start, pc."endDate" AS cal_end, pc."isClosed" AS cal_closed
+          FROM "PayrollRun" pr
+          LEFT JOIN "Payslip" ps ON ps."payrollRunId" = pr.id
+          LEFT JOIN "PayrollCalendar" pc ON pc.id = pr."payrollCalendarId"
+          WHERE pr."companyId" = ${companyId}
+          GROUP BY pr.id, pc.id
+          ORDER BY pr."runDate" DESC NULLS LAST
+        `;
+
     const [runs, empRow] = await Promise.all([
-      sql`
-        SELECT
-          pr.*,
-          COUNT(ps.id)::int AS payslip_count,
-          pc.id AS cal_id, pc."periodType" AS cal_period_type,
-          pc.year AS cal_year, pc.month AS cal_month, pc."payDay" AS cal_pay_day,
-          pc."startDate" AS cal_start, pc."endDate" AS cal_end, pc."isClosed" AS cal_closed
-        FROM "PayrollRun" pr
-        LEFT JOIN "Payslip" ps ON ps."payrollRunId" = pr.id
-        LEFT JOIN "PayrollCalendar" pc ON pc.id = pr."payrollCalendarId"
-        WHERE pr."companyId" = ${companyId} ${statusPart}
-        GROUP BY pr.id, pc.id
-        ORDER BY pr."runDate" DESC NULLS LAST
-      `,
+      runsQuery,
       sql`SELECT COUNT(*)::int AS cnt FROM "Employee" WHERE "companyId" = ${companyId}`,
     ]);
 
@@ -124,13 +140,41 @@ router.post('/', requirePermission('manage_payroll'), validateBody(createRunSche
 
 router.get('/:runId', async (c) => {
   const companyId = c.get('companyId');
-  const run = await prisma.payrollRun.findUnique({
-    where: { id: c.req.param('runId') },
-    include: { payslips: { include: { employee: { select: { firstName: true, lastName: true, position: true } } } }, _count: { select: { payslips: true } }, payrollCalendar: true },
-  });
-  if (!run) return c.json({ message: 'Payroll run not found' }, 404);
-  if (!companyId || run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
-  return c.json({ data: run });
+  const runId = c.req.param('runId');
+  try {
+    const sql = getSql();
+    const [runRows, calRows, payslipRows] = await Promise.all([
+      sql`SELECT * FROM "PayrollRun" WHERE id = ${runId}`,
+      sql`SELECT pc.* FROM "PayrollCalendar" pc JOIN "PayrollRun" pr ON pr."payrollCalendarId" = pc.id WHERE pr.id = ${runId}`,
+      sql`
+        SELECT ps.*, e."firstName", e."lastName", e.position
+        FROM "Payslip" ps
+        JOIN "Employee" e ON e.id = ps."employeeId"
+        WHERE ps."payrollRunId" = ${runId}
+        ORDER BY ps."createdAt" ASC
+      `,
+    ]);
+    if (!runRows.length) return c.json({ message: 'Payroll run not found' }, 404);
+    const run = runRows[0] as any;
+    if (!companyId || run.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
+    return c.json({
+      data: {
+        ...run,
+        payrollCalendar: calRows[0] ?? null,
+        payslips: payslipRows.map((r: any) => ({
+          id: r.id, employeeId: r.employeeId, payrollRunId: r.payrollRunId,
+          gross: r.gross, paye: r.paye, aidsLevy: r.aidsLevy, nssaEmployee: r.nssaEmployee,
+          loanDeductions: r.loanDeductions, netPay: r.netPay, pdfUrl: r.pdfUrl,
+          createdAt: r.createdAt, updatedAt: r.updatedAt,
+          employee: { firstName: r.firstName, lastName: r.lastName, position: r.position },
+        })),
+        _count: { payslips: payslipRows.length },
+      },
+    });
+  } catch (err: any) {
+    console.error('[payroll GET /:runId]', err?.message);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
 });
 
 router.put('/:runId', requirePermission('approve_payroll'), validateBody(updateRunSchema), async (c) => {
@@ -202,50 +246,54 @@ router.post('/:runId/approve', requirePermission('approve_payroll'), async (c) =
 });
 
 router.get('/:runId/payslips', async (c) => {
-  const run = await prisma.payrollRun.findUnique({ where: { id: c.req.param('runId') }, select: { companyId: true } });
+  const sql = getSql();
+  const runRows = await sql`SELECT id, "companyId" FROM "PayrollRun" WHERE id = ${c.req.param('runId')}`;
+  const run = runRows[0] as any ?? null;
   if (!run) return c.json({ message: 'Payroll run not found' }, 404);
   if (!denyUnlessCompany(c, run)) return c.json({ message: 'Access denied' }, 403);
-  const [payslips, transactions] = await Promise.all([
-    prisma.payslip.findMany({
-      where: { payrollRunId: c.req.param('runId') },
-      include: { employee: { select: { firstName: true, lastName: true, employeeCode: true, position: true, currency: true, baseRate: true } } },
-      orderBy: { employee: { lastName: 'asc' as const } },
-    }),
-    prisma.payrollTransaction.findMany({
-      where: { payrollRunId: c.req.param('runId') },
-      include: { transactionCode: { select: { type: true, code: true, name: true, preTax: true } } },
-      orderBy: { createdAt: 'asc' as const },
-    }),
+  const runSql = getSql();
+  const [payslipRows, txRows] = await Promise.all([
+    runSql`
+      SELECT ps.*,
+        e."firstName", e."lastName", e."employeeCode", e.position, e.currency AS emp_currency, e."baseRate"
+      FROM "Payslip" ps
+      JOIN "Employee" e ON e.id = ps."employeeId"
+      WHERE ps."payrollRunId" = ${c.req.param('runId')}
+      ORDER BY ps."createdAt" ASC
+    `,
+    runSql`
+      SELECT pt.*,
+        tc.type AS tc_type, tc.code AS tc_code, tc.name AS tc_name, tc."preTax" AS tc_pre_tax
+      FROM "PayrollTransaction" pt
+      JOIN "TransactionCode" tc ON tc.id = pt."transactionCodeId"
+      WHERE pt."payrollRunId" = ${c.req.param('runId')}
+      ORDER BY pt."createdAt" ASC
+    `,
   ]);
 
-  const txByEmp: Record<string, typeof transactions> = {};
-  for (const t of transactions) {
+  const txByEmp: Record<string, any[]> = {};
+  for (const t of txRows as any[]) {
     if (!txByEmp[t.employeeId]) txByEmp[t.employeeId] = [];
     txByEmp[t.employeeId].push(t);
   }
 
-  const result = payslips.map((p) => {
-    const empTxs = txByEmp[p.employeeId] || [];
-    const earningTxs = empTxs.filter(t => t.transactionCode?.type === 'EARNING' || t.transactionCode?.type === 'BENEFIT');
-    const deductionTxs = empTxs.filter(t => t.transactionCode?.type === 'DEDUCTION');
+  const result = (payslipRows as any[]).map((r) => {
+    const empTxs = txByEmp[r.employeeId] || [];
+    const earningTxs = empTxs.filter(t => t.tc_type === 'EARNING' || t.tc_type === 'BENEFIT');
+    const deductionTxs = empTxs.filter(t => t.tc_type === 'DEDUCTION');
     return {
-      ...p,
-      basicSalary: (p.employee as any)?.baseRate ?? 0,
-      allowancesTotal: earningTxs.reduce((s, t) => s + Number(t.amount), 0),
-      earningLines: earningTxs.map(t => ({
-        tcId: t.transactionCodeId,
-        code: t.transactionCode?.code,
-        name: t.transactionCode?.name,
-        amount: t.amount,
-        currency: t.currency,
-      })),
-      deductionLines: deductionTxs.map(t => ({
-        tcId: t.transactionCodeId,
-        code: t.transactionCode?.code,
-        name: t.transactionCode?.name,
-        amount: t.amount,
-        currency: t.currency,
-      })),
+      id: r.id, employeeId: r.employeeId, payrollRunId: r.payrollRunId,
+      gross: r.gross, paye: r.paye, aidsLevy: r.aidsLevy, nssaEmployee: r.nssaEmployee,
+      loanDeductions: r.loanDeductions, netPay: r.netPay, pdfUrl: r.pdfUrl,
+      grossUSD: r.grossUSD, grossZIG: r.grossZIG, payeUSD: r.payeUSD, payeZIG: r.payeZIG,
+      aidsLevyUSD: r.aidsLevyUSD, aidsLevyZIG: r.aidsLevyZIG,
+      nssaUSD: r.nssaUSD, nssaZIG: r.nssaZIG, netPayUSD: r.netPayUSD, netPayZIG: r.netPayZIG,
+      createdAt: r.createdAt, updatedAt: r.updatedAt,
+      employee: { firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode, position: r.position, currency: r.emp_currency, baseRate: r.baseRate },
+      basicSalary: r.baseRate ?? 0,
+      allowancesTotal: earningTxs.reduce((s: number, t: any) => s + Number(t.amount), 0),
+      earningLines: earningTxs.map((t: any) => ({ tcId: t.transactionCodeId, code: t.tc_code, name: t.tc_name, amount: t.amount, currency: t.currency })),
+      deductionLines: deductionTxs.map((t: any) => ({ tcId: t.transactionCodeId, code: t.tc_code, name: t.tc_name, amount: t.amount, currency: t.currency })),
     };
   });
 
@@ -283,7 +331,7 @@ router.post('/:runId/send-all', requirePermission('process_payroll'), async (c) 
     prisma.payrollTransaction.findMany({
       where: { payrollRunId: c.req.param('runId') },
       include: { transactionCode: { select: { code: true, name: true, type: true } } },
-      orderBy: { transactionCode: { code: 'asc' } },
+      orderBy: { transactionCodeId: 'asc' },
     }),
     prisma.payrollRun.findFirst({
       where: { companyId: run.companyId },
@@ -374,7 +422,7 @@ router.get('/:runId/payslips/:payslipId/pdf', async (c) => {
   const transactions = await prisma.payrollTransaction.findMany({
     where: { payrollRunId: c.req.param('runId'), employeeId: payslip.employeeId },
     include: { transactionCode: { select: { code: true, name: true, type: true } } },
-    orderBy: { transactionCode: { code: 'asc' } },
+    orderBy: { transactionCodeId: 'asc' },
   });
 
   const run = payslip.payrollRun;
@@ -428,7 +476,7 @@ router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payro
     const transactions = await prisma.payrollTransaction.findMany({
       where: { payrollRunId: c.req.param('runId'), employeeId: payslip.employeeId },
       include: { transactionCode: { select: { code: true, name: true, type: true } } },
-      orderBy: { transactionCode: { code: 'asc' } },
+      orderBy: { transactionCodeId: 'asc' },
     });
     const run = payslip.payrollRun;
     const emp = payslip.employee;
@@ -765,7 +813,7 @@ router.get('/:runId/reconcile', requirePermission('process_payroll'), async (c) 
   const payslips = await prisma.payslip.findMany({
     where: { payrollRun: { companyId, status: 'COMPLETED', startDate: { gte: yearStart, lte: yearEnd } } },
     select: { employeeId: true, gross: true, paye: true, aidsLevy: true, nssaEmployee: true },
-    orderBy: { payrollRun: { startDate: 'asc' } },
+    orderBy: { payrollRunId: 'asc' },
   });
 
   const byEmployee: Record<string, { cumulativeGross: number; cumulativePaye: number; cumulativeAidsLevy: number; months: number }> = {};
@@ -847,7 +895,7 @@ router.get('/:runId/export', requirePermission('export_reports'), async (c) => {
   const payslips = await prisma.payslip.findMany({
     where: { payrollRunId: c.req.param('runId') },
     include: { employee: { select: { firstName: true, lastName: true, employeeCode: true, position: true, currency: true } } },
-    orderBy: { employee: { lastName: 'asc' } },
+    orderBy: { employeeId: 'asc' },
   });
 
   const header = 'Employee Code,Name,Position,Gross,PAYE,AIDS Levy,NSSA,Loan Deductions,Net Pay,Currency\n';
