@@ -228,7 +228,8 @@ export function generatePayslipHtml(params: {
 }): string {
   const { payslip, transactions, ytd, run, emp, leaveBalance, leaveTaken } = params;
   const isDual = !!run.dualCurrency || (payslip.grossZIG != null && payslip.grossZIG !== 0) || (payslip.netPayZIG != null && payslip.netPayZIG !== 0);
-  const sym = currencySymbol(run.currency);
+  const ccy = run.currency || 'USD';
+  const sym = currencySymbol(ccy);
   const period = `${new Date(run.startDate).toLocaleDateString()} - ${new Date(run.endDate).toLocaleDateString()}`;
 
   // Use the same buildPayslipLineItems logic as v1 to ensure identical data preparation
@@ -244,8 +245,8 @@ export function generatePayslipHtml(params: {
     basicSalary,
   });
 
-  const earnings   = lineItems.filter(i => (i.allowance ?? 0) > 0 || (i.allowanceZIG ?? 0) > 0);
-  const deductions = lineItems.filter(i => (i.deduction ?? 0) > 0 || (i.deductionZIG ?? 0) > 0);
+  const earnings   = lineItems.filter(i => !i.taxCredit && ((i.allowance ?? 0) > 0 || (i.allowanceZIG ?? 0) > 0));
+  const deductions = lineItems.filter(i => !i.taxCredit && ((i.deduction ?? 0) > 0 || (i.deductionZIG ?? 0) > 0));
 
   const zigCol    = isDual ? `<th class="r zig">ZiG</th>` : '';
   const zigYtdCol = isDual ? `<th class="r ytd zig">ZiG YTD</th>` : '';
@@ -357,7 +358,7 @@ ${leaveBalance != null ? `
   <div class="section">
     <h3>Earnings</h3>
     <table>
-      <thead><tr><th>Description</th><th class="r">USD</th><th class="r ytd">YTD USD</th>${zigCol}${zigYtdCol}</tr></thead>
+      <thead><tr><th>Description</th><th class="r">${ccy}</th><th class="r ytd">YTD ${ccy}</th>${zigCol}${zigYtdCol}</tr></thead>
       <tbody>${earningRows || `<tr><td colspan="${isDual ? 5 : 3}">—</td></tr>`}
       <tr class="total-row"><td>Total Earnings</td><td class="r">${fmt2(earnTotalUSD)}</td><td class="r ytd">${fmt2(earnings.reduce((s, i) => s + (i.ytd ?? 0), 0))}</td>${isDual ? `<td class="r zig">${fmt2(earnTotalZIG)}</td><td class="r ytd zig">${fmt2(earnings.reduce((s, i) => s + (i.ytdZIG ?? 0), 0))}</td>` : ''}</tr>
       </tbody>
@@ -366,7 +367,7 @@ ${leaveBalance != null ? `
   <div class="section">
     <h3>Deductions</h3>
     <table>
-      <thead><tr><th>Description</th><th class="r">USD</th><th class="r ytd">YTD USD</th>${zigCol}${zigYtdCol}</tr></thead>
+      <thead><tr><th>Description</th><th class="r">${ccy}</th><th class="r ytd">YTD ${ccy}</th>${zigCol}${zigYtdCol}</tr></thead>
       <tbody>${deductionRows}
       <tr class="total-row"><td>Total Deductions</td><td class="r">${fmt2(deductTotalUSD)}</td><td class="r ytd">${fmt2(deductions.reduce((s, i) => s + (i.ytd ?? 0), 0))}</td>${isDual ? `<td class="r zig">${fmt2(deductTotalZIG)}</td><td class="r ytd zig">${fmt2(deductions.reduce((s, i) => s + (i.ytdZIG ?? 0), 0))}</td>` : ''}</tr>
       </tbody>
@@ -377,12 +378,12 @@ ${leaveBalance != null ? `
 <div class="net-bar">
   <div>
     <div class="net-label">NET PAY</div>
-    <div class="net-amount">USD ${fmt2(isDual ? (payslip.netPayUSD ?? payslip.netPay) : payslip.netPay)}</div>
+    <div class="net-amount">${ccy} ${fmt2(isDual ? (payslip.netPayUSD ?? payslip.netPay) : payslip.netPay)}</div>
     ${isDual ? `<div class="net-zig">ZiG ${fmt2(payslip.netPayZIG ?? 0)}</div>` : ''}
   </div>
   <div style="text-align:right;opacity:0.7">
     <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">YTD Net Pay</div>
-    <div style="font-size:16px;font-weight:700;color:#b2db64">USD ${fmt2(ytd.ytdStat.basicSalary - ytd.ytdStat.paye - ytd.ytdStat.aidsLevy - ytd.ytdStat.nssaEmployee - (ytd.ytdStat.loanDeductions ?? 0))}</div>
+    <div style="font-size:16px;font-weight:700;color:#b2db64">${ccy} ${fmt2(ytd.ytdStat.basicSalary - ytd.ytdStat.paye - ytd.ytdStat.aidsLevy - ytd.ytdStat.nssaEmployee - (ytd.ytdStat.loanDeductions ?? 0))}</div>
     ${isDual ? `<div style="font-size:16px;font-weight:700;color:#b2db64;opacity:0.85;margin-top:2px">ZiG ${fmt2((ytd.ytdStatZIG?.basicSalary ?? 0) - (ytd.ytdStatZIG?.paye ?? 0) - (ytd.ytdStatZIG?.aidsLevy ?? 0) - (ytd.ytdStatZIG?.nssaEmployee ?? 0))}</div>` : ''}
   </div>
 </div>
