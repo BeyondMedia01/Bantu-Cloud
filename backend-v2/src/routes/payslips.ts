@@ -37,7 +37,7 @@ router.get('/', requirePermission('view_payroll'), async (c) => {
         sql`
           SELECT ps.*,
             e."firstName", e."lastName", e."employeeCode",
-            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status
+            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status, pr."dualCurrency" AS pr_dual
           FROM "Payslip" ps
           JOIN "Employee" e ON e.id = ps."employeeId"
           JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
@@ -54,7 +54,7 @@ router.get('/', requirePermission('view_payroll'), async (c) => {
         sql`
           SELECT ps.*,
             e."firstName", e."lastName", e."employeeCode",
-            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status
+            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status, pr."dualCurrency" AS pr_dual
           FROM "Payslip" ps
           JOIN "Employee" e ON e.id = ps."employeeId"
           JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
@@ -73,7 +73,7 @@ router.get('/', requirePermission('view_payroll'), async (c) => {
         sql`
           SELECT ps.*,
             e."firstName", e."lastName", e."employeeCode",
-            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status
+            pr."startDate" AS pr_start, pr."endDate" AS pr_end, pr.currency AS pr_currency, pr.status AS pr_status, pr."dualCurrency" AS pr_dual
           FROM "Payslip" ps
           JOIN "Employee" e ON e.id = ps."employeeId"
           JOIN "PayrollRun" pr ON pr.id = ps."payrollRunId"
@@ -92,9 +92,22 @@ router.get('/', requirePermission('view_payroll'), async (c) => {
       id: r.id, employeeId: r.employeeId, payrollRunId: r.payrollRunId,
       gross: r.gross, paye: r.paye, aidsLevy: r.aidsLevy, nssaEmployee: r.nssaEmployee,
       loanDeductions: r.loanDeductions, netPay: r.netPay, pdfUrl: r.pdfUrl,
+      // Dual-currency fields
+      grossUSD: r.grossusd ?? r.grossUSD ?? null,
+      grossZIG: r.grosszig ?? r.grossZIG ?? null,
+      payeUSD: r.payeusd ?? r.payeUSD ?? null,
+      payeZIG: r.payezig ?? r.payeZIG ?? null,
+      aidsLevyUSD: r.aidslevyusd ?? r.aidsLevyUSD ?? null,
+      aidsLevyZIG: r.aidslevyzig ?? r.aidsLevyZIG ?? null,
+      nssaUSD: r.nssausd ?? r.nssaUSD ?? null,
+      nssaZIG: r.nssazig ?? r.nssaZIG ?? null,
+      netPayUSD: r.netpayusd ?? r.netPayUSD ?? null,
+      netPayZIG: r.netpayzig ?? r.netPayZIG ?? null,
+      exchangeRate: r.exchangerate ?? r.exchangeRate ?? null,
+      basicSalaryApplied: r.basicsalaryapplied ?? r.basicSalaryApplied ?? null,
       createdAt: r.createdAt, updatedAt: r.updatedAt,
       employee: { firstName: r.firstName, lastName: r.lastName, employeeCode: r.employeeCode },
-      payrollRun: { startDate: r.pr_start, endDate: r.pr_end, currency: r.pr_currency, status: r.pr_status },
+      payrollRun: { startDate: r.pr_start, endDate: r.pr_end, currency: r.pr_currency, status: r.pr_status, dualCurrency: r.pr_dual ?? false },
     }));
 
     return c.json({ data, total, page, limit });
