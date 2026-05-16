@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { User, Lock, Phone, CheckCircle2, AlertCircle, ShieldCheck, ShieldOff, QrCode } from 'lucide-react';
 import { UserAPI } from '../api/client';
 import { AuthAPI } from '../api/client';
@@ -51,7 +51,7 @@ const ProfileSettings: React.FC = () => {
     if (!firstName.trim()) { setProfileError('First name cannot be empty'); return; }
     setProfileLoading(true);
     try {
-      await UserAPI.update({ firstName: firstName.trim(), lastName: lastName.trim(), phone: phone.trim() });
+      await UserAPI.update({ firstName: firstName.trim(), lastName: lastName.trim(), phone: phone.trim() } as any);
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
     } catch (err: any) {

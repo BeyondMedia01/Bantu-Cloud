@@ -160,8 +160,8 @@ const PayrollInputGrid: React.FC = () => {
       }
       setTaxConfig(resolvedTaxConfig);
 
-      const emps = empRes.data.data ?? [];
-      const tcs = tcRes.data ?? [];
+      const emps: Employee[] = (empRes.data.data ?? []) as Employee[];
+      const tcs: TxCode[] = (tcRes.data ?? []) as TxCode[];
       const inputs = inputRes.data ?? [];
 
       setEmployees(emps);

@@ -57,7 +57,7 @@ const TwoFAStep: React.FC<TwoFAStepProps> = ({ tempToken, email, onBack }) => {
     setLoading(true);
     try {
       const res = await AuthAPI.twoFA.authenticate(tempToken, code);
-      const { token, refreshToken, role, companyId, clientId } = res.data;
+      const { token, refreshToken, role, companyId, clientId: _clientId } = res.data;
       const userId = (res.data as any).userId;
       saveAuthData(token, companyId ?? undefined, refreshToken, userId);
       navigateAfterLogin(role, navigate);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, X, Star, TrendingUp, Edit } from 'lucide-react';
+import { Plus, X, TrendingUp, Edit } from 'lucide-react';
 import { SuccessionAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -7,15 +7,7 @@ import SkeletonTable from '../components/common/SkeletonTable';
 import { EmptyState } from '@/components/ui/empty-state';
 import type { SuccessionPlan } from '../types/domain';
 import { StatusBadge } from '@/components/common/StatusBadge';
-const READINESS_LABELS: Record<string, string> = {
-  READY_NOW: 'Ready Now', READY_1_2_YEARS: '1-2 Years', READY_3_5_YEARS: '3-5 Years', LONG_TERM: 'Long Term',
-};
-const READINESS_COLORS: Record<string, string> = {
-  READY_NOW: 'bg-emerald-50 text-emerald-700',
-  READY_1_2_YEARS: 'bg-blue-50 text-blue-700',
-  READY_3_5_YEARS: 'bg-amber-50 text-amber-700',
-  LONG_TERM: 'bg-muted text-muted-foreground',
-};
+
 const RISK_COLORS: Record<string, string> = {
   HIGH: 'bg-red-50 text-red-700',
   MEDIUM: 'bg-amber-50 text-amber-700',
@@ -44,7 +36,7 @@ const Succession: React.FC = () => {
 
   // Add candidate
   const [showCandidate, setShowCandidate] = useState(false);
-  const [candPlanId, setCandPlanId] = useState('');
+  const [candPlanId, _setCandPlanId] = useState('');
   const [employees, setEmployees] = useState<any[]>([]);
   const [cEmp, setCEmp] = useState('');
   const [cReadiness, setCReadiness] = useState('READY_1_2_YEARS');
@@ -62,7 +54,7 @@ const Succession: React.FC = () => {
 
   useEffect(() => { loadPlans(); }, []);
 
-  const loadEmployees = async () => {
+  const _loadEmployees = async () => {
     try { const res = await SuccessionAPI.getEmployees(); setEmployees(res.data.data || []); } catch { /* ignore */ }
   };
 

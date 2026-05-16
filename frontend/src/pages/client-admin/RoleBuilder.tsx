@@ -53,15 +53,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ initial, onSave, onCancel, saving }
   const [description, setDescription] = useState(initial?.description ?? '');
   const [permissions, setPermissions] = useState<PermissionMap>(initial?.permissions ?? {});
 
-  const toggleModule = (mod: ModuleKey) => {
-    setPermissions((prev) => {
-      const next = { ...prev };
-      if (next[mod]) { delete next[mod]; } else { next[mod] = ['VIEW']; }
-      return next;
-    });
-  };
-
-  const toggleAction = (mod: ModuleKey, action: string) => {
+const toggleAction = (mod: ModuleKey, action: string) => {
     setPermissions((prev) => {
       const current = prev[mod] ?? [];
       const updated = current.includes(action)

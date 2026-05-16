@@ -114,7 +114,8 @@ const EmployeeNew: React.FC = () => {
   });
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(employeeSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(employeeSchema) as any,
     defaultValues: {
       employeeCode: '', title: '', firstName: '', lastName: '', maidenName: '',
       nationality: 'Zimbabwean', nationalId: '', passportNumber: '', email: '', phone: '',
@@ -135,8 +136,8 @@ const EmployeeNew: React.FC = () => {
     if (systemSettings.length > 0 && !form.getValues('taxTable')) {
       const defaultSetting = systemSettings
         .filter((s) => s.settingName === 'DEFAULT_TAX_TABLE_USD' && s.isActive)
-        .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
-      if (defaultSetting) form.setValue('taxTable', defaultSetting.settingValue);
+        .sort((a, b) => new Date(b.effectiveFrom ?? 0).getTime() - new Date(a.effectiveFrom ?? 0).getTime())[0];
+      if (defaultSetting) form.setValue('taxTable', (defaultSetting.settingValue ?? '') as any);
     }
   }, [systemSettings]);
 
