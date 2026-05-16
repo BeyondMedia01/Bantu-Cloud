@@ -20,7 +20,7 @@ function yearPeriodFilter(companyId: string, year: string) {
   };
 }
 
-router.get('/summary', async (c) => {
+router.get('/summary', requirePermission('view_reports'), async (c) => {
   try {
     const companyId = c.get('companyId');
     const clientId = c.get('clientId');
@@ -56,7 +56,7 @@ router.get('/summary', async (c) => {
   }
 });
 
-router.get('/payroll-trend', async (c) => {
+router.get('/payroll-trend', requirePermission('view_reports'), async (c) => {
   const companyId = c.get('companyId');
   const runs = await prisma.payrollRun.findMany({
     where: { companyId: companyId ?? undefined, status: 'COMPLETED' },

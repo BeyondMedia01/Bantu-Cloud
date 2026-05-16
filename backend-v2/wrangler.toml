@@ -1,6 +1,6 @@
 name = "bantu-api-v2"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
@@ -18,3 +18,32 @@ crons = ["5 0 1 * *", "0 7 * * *"]
 [vars]
 ENVIRONMENT = "production"
 # SENTRY_DSN = "https://..."  # Uncomment and set after creating Sentry project
+
+# ─── Staging ────────────────────────────────────────────────────────────────────
+# Usage: npx wrangler deploy --env staging
+# Requires: DATABASE_URL secret set to staging Neon branch connection string
+#
+# Setup:
+#   1. Create a staging branch in Neon: `neon branches create --name staging`
+#   2. Push schema:       npx prisma migrate deploy
+#   3. Set secrets:        echo "$DATABASE_URL_STAGING" | npx wrangler secret put DATABASE_URL --env staging
+#                          echo "$SENTRY_DSN_STAGING"   | npx wrangler secret put SENTRY_DSN  --env staging
+#   4. Deploy:             npx wrangler deploy --env staging
+#   5. Seed initial data:  POST https://bantu-api-staging.workers.dev/api/seed
+#
+# Teardown:
+#   npx wrangler delete --env staging
+
+[env.staging]
+name = "bantu-api-staging"
+workers_dev = true
+
+[[env.staging.r2_buckets]]
+binding = "STORAGE"
+bucket_name = "bantu-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+
+[env.staging.triggers]
+crons = []

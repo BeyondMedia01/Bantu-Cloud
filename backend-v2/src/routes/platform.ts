@@ -5,6 +5,35 @@ import { prisma } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { issueLicense, revokeLicense, reactivateLicense, validateLicense } from '../lib/license';
 
+const CompanyCreateSchema = z.object({
+  name: z.string().min(1),
+  registrationNumber: z.string().optional(),
+  taxId: z.string().optional(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  currency: z.enum(['USD', 'ZiG']).optional(),
+  wcifRate: z.number().nonnegative().optional(),
+  sdfRate: z.number().nonnegative().optional(),
+  zimdefRate: z.number().nonnegative().optional(),
+  necIndustryId: z.string().optional(),
+});
+
+const CompanyUpdateSchema = CompanyCreateSchema.partial();
+
+const LicenseValidateSchema = z.object({
+  token: z.string().min(1),
+});
+
+const LicenseIssueSchema = z.object({
+  clientId: z.string().min(1),
+  expiryMonths: z.number().int().positive().optional(),
+});
+
+const LicenseIdSchema = z.object({
+  clientId: z.string().min(1),
+});
+
 const router = new Hono();
 
 router.get('/dashboard/reminders', async (c) => {
@@ -62,14 +91,13 @@ router.get('/companies/:id', async (c) => {
   }
 });
 
-router.put('/companies/:id', requirePermission('manage_companies'), async (c) => {
+router.put('/companies/:id', requirePermission('manage_companies'), validateBody(CompanyUpdateSchema), async (c) => {
   try {
     const clientId = c.get('clientId');
     const existing = await prisma.company.findUnique({ where: { id: c.req.param('id') } });
     if (!existing) return c.json({ message: 'Company not found' }, 404);
     if (!clientId || existing.clientId !== clientId) return c.json({ message: 'Access denied' }, 403);
-    const body = await c.req.json();
-    const updated = await prisma.company.update({ where: { id: c.req.param('id') }, data: body });
+    const updated = await prisma.company.update({ where: { id: c.req.param('id') }, data: c.req.valid('json' as any) });
     return c.json(updated);
   } catch (err: any) {
     console.error('[companies PUT]', err?.message);
@@ -91,12 +119,11 @@ router.delete('/companies/:id', requirePermission('manage_companies'), async (c)
   }
 });
 
-router.post('/companies', requirePermission('manage_companies'), async (c) => {
+router.post('/companies', requirePermission('manage_companies'), validateBody(CompanyCreateSchema), async (c) => {
   try {
     const clientId = c.get('clientId');
     if (!clientId) return c.json({ message: 'Client context required' }, 400);
-    const body = await c.req.json();
-    const company = await prisma.company.create({ data: { ...body, clientId } });
+    const company = await prisma.company.create({ data: { ...c.req.valid('json' as any), clientId } });
     return c.json(company, 201);
   } catch (err: any) {
     console.error('[companies POST]', err?.message);
@@ -119,43 +146,29 @@ router.get('/license', async (c) => {
   return c.json(license);
 });
 
-router.post('/license/validate', async (c) => {
-  const body = await c.req.json();
-  const token = await prisma.licenseToken.findUnique({ where: { token: body.token }, include: { client: true } });
+router.post('/license/validate', validateBody(LicenseValidateSchema), async (c) => {
+  const { token: tokenStr } = c.req.valid('json' as any);
+  const token = await prisma.licenseToken.findUnique({ where: { token: tokenStr }, include: { client: true } });
   if (!token || !token.active || token.expiresAt < new Date()) return c.json({ valid: false });
   return c.json({ valid: true, client: token.client });
 });
 
-router.post('/license/issue', requirePermission('manage_licenses'), async (c) => {
-  const body = await c.req.json();
-  const token = await prisma.licenseToken.create({
-    data: { clientId: body.clientId, token: crypto.randomUUID(), expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), employeeCap: body.employeeCap || 10 },
-  });
-  return c.json(token, 201);
-});
-
-router.post('/license/revoke', requirePermission('manage_licenses'), async (c) => {
-  const body = await c.req.json();
-  await prisma.licenseToken.update({ where: { id: body.id }, data: { active: false } });
-  return c.json({ message: 'License revoked' });
-});
-
-router.post('/license/reactivate', requirePermission('manage_licenses'), async (c) => {
-  const body = await c.req.json();
-  await prisma.licenseToken.update({ where: { id: body.id }, data: { active: true } });
-  return c.json({ message: 'License reactivated' });
-});
-
-router.post('/license/issue', requirePermission('manage_licenses'), async (c) => {
-  const { clientId, expiryMonths } = await c.req.json();
+router.post('/license/issue', requirePermission('manage_licenses'), validateBody(LicenseIssueSchema), async (c) => {
+  const { clientId, expiryMonths } = c.req.valid('json' as any);
   const license = await issueLicense(clientId, 10, expiryMonths || 12);
-  return c.json(license);
+  return c.json(license, 201);
 });
 
-router.post('/license/revoke', requirePermission('manage_licenses'), async (c) => {
-  const { clientId } = await c.req.json();
+router.post('/license/revoke', requirePermission('manage_licenses'), validateBody(LicenseIdSchema), async (c) => {
+  const { clientId } = c.req.valid('json' as any);
   await revokeLicense(clientId);
   return c.json({ message: 'License revoked' });
+});
+
+router.post('/license/reactivate', requirePermission('manage_licenses'), validateBody(LicenseIdSchema), async (c) => {
+  const { clientId } = c.req.valid('json' as any);
+  await reactivateLicense(clientId);
+  return c.json({ message: 'License reactivated' });
 });
 
 router.get('/subscription', async (c) => {

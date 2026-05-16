@@ -1,7 +1,9 @@
-const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
 let _token: string | null = null;
 const STORAGE_KEY = 'bantu_auth_token';
+const REFRESH_TOKEN_KEY = 'bantu_refresh_token';
+const USER_ID_KEY = 'bantu_user_id';
 
 export type AppModule = 'PEOPLE' | 'TIME_LEAVE' | 'PAYROLL' | 'COMPLIANCE' | 'REPORTS' | 'SETTINGS' | 'RECRUITMENT' | 'PERFORMANCE' | 'EXPENSES' | 'ONBOARDING' | 'TRAINING' | 'ASSETS' | 'SUCCESSION' | 'SURVEYS' | 'ANALYTICS';
 export type ModuleAction = 'VIEW' | 'EDIT' | 'DELETE' | 'APPROVE' | 'EXPORT' | 'RUN' | 'CONFIGURE';
@@ -55,6 +57,14 @@ export function getUserRole(): AuthUser['role'] | null {
   return getUser()?.role ?? null;
 }
 
+export function getRefreshToken(): string | null {
+  return IS_DESKTOP ? null : localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function getStoredUserId(): string | null {
+  return localStorage.getItem(USER_ID_KEY);
+}
+
 export function logout(): void {
   _token = null;
   sessionStorage.removeItem('token');
@@ -62,12 +72,14 @@ export function logout(): void {
   sessionStorage.removeItem('activeClientId');
   if (!IS_DESKTOP) {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_ID_KEY);
   } else {
     import('@tauri-apps/api/core').then(m => m.invoke('clear_license_token')).catch(() => {});
   }
 }
 
-export function saveAuthData(token: string, companyId?: string): void {
+export function saveAuthData(token: string, companyId?: string, refreshToken?: string, userId?: string): void {
   _token = token;
   if (companyId) {
     sessionStorage.setItem('activeCompanyId', companyId);
@@ -76,6 +88,8 @@ export function saveAuthData(token: string, companyId?: string): void {
   }
   if (!IS_DESKTOP) {
     localStorage.setItem(STORAGE_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    if (userId) localStorage.setItem(USER_ID_KEY, userId);
   } else {
     sessionStorage.setItem('token', token);
     import('@tauri-apps/api/core').then(m => m.invoke('store_license_token', { token })).catch(() => {});

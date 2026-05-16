@@ -31,7 +31,7 @@ const LeaveNew: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      await LeaveAPI.create({ ...form, totalDays: days } as any);
+      await LeaveAPI.create({ ...form, totalDays: days } as Parameters<typeof LeaveAPI.create>[0]);
       navigate('/leave');
     } catch (err: any) {
       setError(err.message || 'Failed to record leave');

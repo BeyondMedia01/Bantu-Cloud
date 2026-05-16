@@ -28,6 +28,19 @@ const createTaxTableSchema = z.object({
   isAnnual: z.boolean().optional(),
 });
 
+const updateTaxTableSchema = createTaxTableSchema.partial();
+
+const BracketSchema = z.object({
+  lowerBound: z.number().nonnegative(),
+  upperBound: z.number().nonnegative().nullable().optional(),
+  rate: z.number().min(0).max(100),
+  fixedAmount: z.number().nonnegative().optional().default(0),
+});
+
+const ReplaceBracketsSchema = z.object({
+  brackets: z.array(BracketSchema).min(1),
+});
+
 router.post('/tax-tables', requirePermission('update_settings'), validateBody(createTaxTableSchema), async (c) => {
   const clientId = c.get('clientId');
   if (!clientId) return c.json({ message: 'Client context required' }, 400);
@@ -55,13 +68,20 @@ router.get('/tax-tables/:id', async (c) => {
   return c.json(table);
 });
 
-router.put('/tax-tables/:id', requirePermission('update_settings'), async (c) => {
+router.put('/tax-tables/:id', requirePermission('update_settings'), validateBody(updateTaxTableSchema), async (c) => {
   const existing = await prisma.taxTable.findUnique({ where: { id: c.req.param('id') }, select: { clientId: true } });
   if (!existing) return c.json({ message: 'Tax table not found' }, 404);
   if (!denyUnlessClient(c, existing)) return c.json({ message: 'Access denied' }, 403);
   try {
-    const body = await c.req.json();
-    const table = await prisma.taxTable.update({ where: { id: c.req.param('id') }, data: body });
+    const body = c.req.valid('json' as any);
+    const table = await prisma.taxTable.update({
+      where: { id: c.req.param('id') },
+      data: {
+        ...body,
+        effectiveDate: body.effectiveDate ? new Date(body.effectiveDate) : undefined,
+        expiryDate: body.expiryDate ? new Date(body.expiryDate) : undefined,
+      },
+    });
     return c.json(table);
   } catch (err: any) {
     if (err.code === 'P2025') return c.json({ message: 'Tax table not found' }, 404);
@@ -83,7 +103,12 @@ router.delete('/tax-tables/:id', requirePermission('update_settings'), async (c)
 });
 
 router.patch('/tax-tables/:id/activate', requirePermission('update_settings'), async (c) => {
-  await prisma.taxTable.updateMany({ data: { isActive: false } });
+  const clientId = c.get('clientId');
+  if (!clientId) return c.json({ message: 'Client context required' }, 400);
+  const existing = await prisma.taxTable.findUnique({ where: { id: c.req.param('id') }, select: { clientId: true } });
+  if (!existing) return c.json({ message: 'Tax table not found' }, 404);
+  if (!denyUnlessClient(c, existing)) return c.json({ message: 'Access denied' }, 403);
+  await prisma.taxTable.updateMany({ where: { clientId }, data: { isActive: false } });
   const table = await prisma.taxTable.update({ where: { id: c.req.param('id') }, data: { isActive: true } });
   return c.json(table);
 });
@@ -99,13 +124,15 @@ router.get('/tax-tables/:id/brackets', async (c) => {
   return c.json(brackets);
 });
 
-router.post('/tax-tables/:id/brackets', requirePermission('update_settings'), async (c) => {
+router.post('/tax-tables/:id/brackets', requirePermission('update_settings'), validateBody(BracketSchema), async (c) => {
+  const taxTableId = c.req.param('id')!;
+  const table = await prisma.taxTable.findUnique({ where: { id: taxTableId }, select: { clientId: true } });
+  if (!table) return c.json({ message: 'Tax table not found' }, 404);
+  if (!denyUnlessClient(c, table)) return c.json({ message: 'Access denied' }, 403);
   try {
-    const body = await c.req.json();
-    const taxTableId = c.req.param('id');
-    if (!taxTableId) return c.json({ message: 'Tax table ID required' }, 400);
+    const { lowerBound, upperBound, rate, fixedAmount } = c.req.valid('json' as any);
     const bracket = await prisma.taxBracket.create({
-      data: { taxTableId, lowerBound: body.lowerBound, upperBound: body.upperBound ?? null, rate: body.rate, fixedAmount: body.fixedAmount || 0 },
+      data: { taxTableId, lowerBound, upperBound: upperBound ?? null, rate, fixedAmount: fixedAmount || 0 },
     });
     return c.json(bracket, 201);
   } catch (err) {
@@ -114,15 +141,15 @@ router.post('/tax-tables/:id/brackets', requirePermission('update_settings'), as
   }
 });
 
-router.put('/tax-tables/:id/brackets/:bracketId', requirePermission('update_settings'), async (c) => {
+router.put('/tax-tables/:id/brackets/:bracketId', requirePermission('update_settings'), validateBody(BracketSchema), async (c) => {
   const table = await prisma.taxTable.findUnique({ where: { id: c.req.param('id') }, select: { clientId: true } });
   if (!table) return c.json({ message: 'Tax table not found' }, 404);
   if (!denyUnlessClient(c, table)) return c.json({ message: 'Access denied' }, 403);
   try {
-    const body = await c.req.json();
+    const { lowerBound, upperBound, rate, fixedAmount } = c.req.valid('json' as any);
     const bracket = await prisma.taxBracket.update({
       where: { id: c.req.param('bracketId') },
-      data: { lowerBound: body.lowerBound, upperBound: body.upperBound ?? null, rate: body.rate, fixedAmount: body.fixedAmount || 0 },
+      data: { lowerBound, upperBound: upperBound ?? null, rate, fixedAmount: fixedAmount || 0 },
     });
     return c.json(bracket);
   } catch (err: any) {
@@ -182,21 +209,18 @@ router.post('/tax-tables/:id/upload', requirePermission('update_settings'), asyn
   }
 });
 
-router.post('/tax-tables/:id/brackets/replace', requirePermission('update_settings'), async (c) => {
+router.post('/tax-tables/:id/brackets/replace', requirePermission('update_settings'), validateBody(ReplaceBracketsSchema), async (c) => {
   const table = await prisma.taxTable.findUnique({ where: { id: c.req.param('id') }, select: { clientId: true } });
   if (!table) return c.json({ message: 'Tax table not found' }, 404);
   if (!denyUnlessClient(c, table)) return c.json({ message: 'Access denied' }, 403);
-  const taxTableId = c.req.param('id') as string;
+  const taxTableId = c.req.param('id')!;
   try {
-    const { brackets } = await c.req.json();
+    const { brackets } = c.req.valid('json' as any);
     await prisma.taxBracket.deleteMany({ where: { taxTableId } });
-    for (const b of brackets as any[]) {
+    for (const b of brackets) {
       await prisma.taxBracket.create({ data: { taxTableId, lowerBound: b.lowerBound, upperBound: b.upperBound ?? null, rate: b.rate, fixedAmount: b.fixedAmount || 0 } });
     }
-    const all = await prisma.taxBracket.findMany({
-      where: { taxTableId: c.req.param('id') },
-      orderBy: { lowerBound: 'asc' },
-    });
+    const all = await prisma.taxBracket.findMany({ where: { taxTableId }, orderBy: { lowerBound: 'asc' } });
     return c.json(all);
   } catch (err) {
     console.error(err);

@@ -1,6 +1,6 @@
-import { getToken, logout } from '../lib/auth';
+import { getToken, logout, getRefreshToken, getStoredUserId, saveAuthData } from '../lib/auth';
 
-const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 const DESKTOP_CLOUD_URL = import.meta.env.VITE_DESKTOP_API_URL as string || 'https://api.payroll.thinkbantu.com/api';
 const DESKTOP_LOCAL_URL = 'http://localhost:5005/api';
 const WEB_BASE_URL = import.meta.env.VITE_API_URL as string || 'https://api.payroll.thinkbantu.com';
@@ -14,7 +14,9 @@ type RequestOptions = {
   headers?: Record<string, string>;
 };
 
-async function request<_T = any>(method: string, url: string, body?: any, options?: RequestOptions): Promise<any> {
+type HttpResponse<T> = { data: T; headers: Record<string, string> };
+
+async function request<T = any>(method: string, url: string, body?: any, options?: RequestOptions): Promise<HttpResponse<T>> {
   const token = getToken();
   const companyId = sessionStorage.getItem('activeCompanyId');
   const reqHeaders: Record<string, string> = { ...options?.headers };
@@ -37,7 +39,7 @@ async function request<_T = any>(method: string, url: string, body?: any, option
     body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
   };
   if (IS_DESKTOP && method === 'GET') {
-    (fetchOpts as any).signal = AbortSignal.timeout(15_000);
+    fetchOpts.signal = AbortSignal.timeout(15_000);
   }
 
   let response = await fetch(fullUrl, fetchOpts);
@@ -50,6 +52,34 @@ async function request<_T = any>(method: string, url: string, body?: any, option
   }
 
   if (response.status === 401) {
+    const refreshToken = getRefreshToken();
+    const userId = getStoredUserId();
+    if (refreshToken && userId) {
+      try {
+        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, refreshToken }),
+        });
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          saveAuthData(data.token, sessionStorage.getItem('activeCompanyId') ?? undefined, data.refreshToken, userId);
+          // Retry original request with new token
+          const retryHeaders = { ...reqHeaders, Authorization: `Bearer ${data.token}` };
+          const retryOpts: RequestInit = { ...fetchOpts, headers: retryHeaders };
+          response = await fetch(fullUrl, retryOpts);
+          if (response.ok) {
+            const retryJson = await response.json();
+            if (retryJson !== null && typeof retryJson === 'object' && !Array.isArray(retryJson) && 'data' in retryJson && !('total' in retryJson)) {
+              return { data: retryJson.data, headers: resHeaders };
+            }
+            return { data: retryJson, headers: resHeaders };
+          }
+        }
+      } catch {
+        // fall through to logout
+      }
+    }
     logout();
     if (!window.location.pathname.startsWith('/login')) {
       window.location.href = '/login';

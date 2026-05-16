@@ -46,6 +46,19 @@ router.get('/:id', requirePermission('view_leave'), async (c) => {
   return c.json(record);
 });
 
+const updateLeaveSchema = z.object({
+  type: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  totalDays: z.number().positive().optional(),
+  reason: z.string().optional(),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']).optional(),
+});
+
+const reviewSchema = z.object({
+  note: z.string().max(1000).optional(),
+});
+
 const createLeaveSchema = z.object({
   employeeId: z.string().optional(),
   type: z.string().optional(),
@@ -78,10 +91,17 @@ router.post('/', requirePermission('manage_leave'), validateBody(createLeaveSche
     return c.json(request, 201);
   }
 
+  if (!body.employeeId) return c.json({ error: 'Missing required field: employeeId' }, 400);
+  const companyId = c.get('companyId');
+  if (companyId) {
+    const emp = await prisma.employee.findUnique({ where: { id: body.employeeId }, select: { companyId: true } });
+    if (!emp || emp.companyId !== companyId) return c.json({ message: 'Employee not found' }, 404);
+  }
+
   try {
     const record = await prisma.leaveRecord.create({
       data: {
-        employeeId: body.employeeId!,
+        employeeId: body.employeeId,
         type: body.type || 'ANNUAL',
         startDate: new Date(body.startDate),
         endDate: new Date(body.endDate),
@@ -104,13 +124,20 @@ router.post('/', requirePermission('manage_leave'), validateBody(createLeaveSche
   }
 });
 
-router.put('/:id', requirePermission('manage_leave'), async (c) => {
+router.put('/:id', requirePermission('manage_leave'), validateBody(updateLeaveSchema), async (c) => {
   const existing = await prisma.leaveRecord.findUnique({ where: { id: c.req.param('id') }, include: { employee: { select: { companyId: true } } } });
   if (!existing) return c.json({ message: 'Leave record not found' }, 404);
   if (!denyUnlessCompany(c, { companyId: existing.employee.companyId })) return c.json({ message: 'Access denied' }, 403);
   try {
-    const body = await c.req.json();
-    const record = await prisma.leaveRecord.update({ where: { id: c.req.param('id') }, data: body });
+    const body = c.req.valid('json' as any);
+    const record = await prisma.leaveRecord.update({
+      where: { id: c.req.param('id') },
+      data: {
+        ...body,
+        startDate: body.startDate ? new Date(body.startDate) : undefined,
+        endDate: body.endDate ? new Date(body.endDate) : undefined,
+      },
+    });
     return c.json(record);
   } catch (err: any) {
     if (err.code === 'P2025') return c.json({ message: 'Leave record not found' }, 404);
@@ -133,12 +160,12 @@ router.delete('/:id', requirePermission('manage_leave'), async (c) => {
   }
 });
 
-router.put('/request/:id/approve', requirePermission('approve_leave'), async (c) => {
+router.put('/request/:id/approve', requirePermission('approve_leave'), validateBody(reviewSchema), async (c) => {
   const existing = await prisma.leaveRequest.findUnique({ where: { id: c.req.param('id') }, include: { employee: { select: { companyId: true } } } });
   if (!existing) return c.json({ message: 'Leave request not found' }, 404);
   if (!denyUnlessCompany(c, { companyId: existing.employee.companyId })) return c.json({ message: 'Access denied' }, 403);
   try {
-    const { note } = await c.req.json().catch(() => ({}));
+    const { note } = c.req.valid('json' as any);
     await prisma.leaveRequest.update({
       where: { id: c.req.param('id') },
       data: { status: 'APPROVED', reviewedBy: c.get('user').userId, reviewNote: note },
@@ -161,12 +188,12 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), async (c)
   }
 });
 
-router.put('/request/:id/reject', requirePermission('reject_leave'), async (c) => {
+router.put('/request/:id/reject', requirePermission('reject_leave'), validateBody(reviewSchema), async (c) => {
   const existing = await prisma.leaveRequest.findUnique({ where: { id: c.req.param('id') }, include: { employee: { select: { companyId: true } } } });
   if (!existing) return c.json({ message: 'Leave request not found' }, 404);
   if (!denyUnlessCompany(c, { companyId: existing.employee.companyId })) return c.json({ message: 'Access denied' }, 403);
   try {
-    const { note } = await c.req.json().catch(() => ({}));
+    const { note } = c.req.valid('json' as any);
     await prisma.leaveRequest.update({
       where: { id: c.req.param('id') },
       data: { status: 'REJECTED', reviewedBy: c.get('user').userId, reviewNote: note },

@@ -137,7 +137,7 @@ const PayIncrease: React.FC = () => {
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Filter by Department</label>
               <Dropdown className="w-full" trigger={(isOpen) => {
-                const dept = (departments as any[]).find(d => d.id === form.departmentId);
+                const dept = departments.find((d: any) => d.id === form.departmentId);
                 return (
                   <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
                     <span>{dept ? dept.name : 'All Departments'}</span>
@@ -146,7 +146,7 @@ const PayIncrease: React.FC = () => {
                 );
               }} sections={[{ items: [
                 { label: 'All Departments', onClick: () => set('departmentId')({ target: { value: '' } } as any) },
-                ...(departments as any[]).map(d => ({ label: d.name, onClick: () => set('departmentId')({ target: { value: d.id } } as any) }))
+                ...departments.map((d: any) => ({ label: d.name, onClick: () => set('departmentId')({ target: { value: d.id } } as any) }))
               ]}]} />
             </div>
             <div>

@@ -102,12 +102,18 @@ router.get('/:id', requirePermission('view_loans'), async (c) => {
   return c.json(loan);
 });
 
-router.put('/:id', requirePermission('manage_loans'), async (c) => {
+const updateLoanSchema = z.object({
+  status: z.enum(['ACTIVE', 'PAID_OFF', 'DEFAULTED', 'CANCELLED']).optional(),
+  notes: z.string().optional(),
+  repaymentMethod: z.string().optional(),
+});
+
+router.put('/:id', requirePermission('manage_loans'), validateBody(updateLoanSchema), async (c) => {
   try {
     const loanId = c.req.param('id');
     if (!loanId || !(await checkLoanAccess(c, loanId))) return c.json({ message: 'Loan not found' }, 404);
-    const body = await c.req.json();
-    const loan = await prisma.loan.update({ where: { id: loanId }, data: body });
+    const { status, notes, repaymentMethod } = c.req.valid('json' as any);
+    const loan = await prisma.loan.update({ where: { id: loanId }, data: { status, notes, repaymentMethod } });
     return c.json(loan);
   } catch (err: any) {
     if (err.code === 'P2025') return c.json({ message: 'Loan not found' }, 404);
@@ -129,8 +135,8 @@ router.delete('/:id', requirePermission('manage_loans'), async (c) => {
   }
 });
 
-router.get('/:id/repayments', async (c) => {
-  if (!(await checkLoanAccess(c, c.req.param('id')))) return c.json({ message: 'Loan not found' }, 404);
+router.get('/:id/repayments', requirePermission('view_loans'), async (c) => {
+  if (!(await checkLoanAccess(c, c.req.param('id')!))) return c.json({ message: 'Loan not found' }, 404);
   const repayments = await prisma.loanRepayment.findMany({
     where: { loanId: c.req.param('id') },
     orderBy: { dueDate: 'asc' },
@@ -138,7 +144,7 @@ router.get('/:id/repayments', async (c) => {
   return c.json(repayments);
 });
 
-router.patch('/repayments/:repaymentId', async (c) => {
+router.patch('/repayments/:repaymentId', requirePermission('manage_loans'), async (c) => {
   try {
     const repayment = await prisma.loanRepayment.findUnique({
       where: { id: c.req.param('repaymentId') },

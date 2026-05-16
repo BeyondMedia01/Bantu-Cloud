@@ -558,6 +558,7 @@ export interface TrainingEnrollment {
   score?: number | null;
   notes?: string | null;
   employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+  course?: { title?: string } | null;
 }
 
 export interface TrainingCertificate {

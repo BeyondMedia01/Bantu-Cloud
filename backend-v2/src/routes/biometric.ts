@@ -4,6 +4,15 @@ import { prisma } from '../lib/prisma';
 import { parseAdmsPayload, buildAdmsAck, buildAdmsOptions } from '../lib/zktecoClient';
 import { parseHikvisionPush } from '../lib/hikvisionClient';
 import { matchEmployeeByPin } from '../lib/attendanceEngine';
+import { validateBody } from '../lib/validate';
+
+const ImportLogsSchema = z.object({
+  logs: z.array(z.object({
+    pin: z.union([z.string(), z.number()]),
+    punchTime: z.string().min(1),
+    punchType: z.string().optional(),
+  })).min(1),
+});
 
 const router = new Hono();
 
@@ -98,11 +107,13 @@ router.post('/hikvision', async (c) => {
     ? await prisma.biometricDevice.findFirst({ where: { webhookKey: key, vendor: 'HIKVISION', isActive: true } })
     : null;
 
+  if (!device) return c.json({ ok: false, error: 'Invalid or missing webhook key' }, 401);
+
   try {
     const body = await c.req.text();
     const records = parseHikvisionPush(body);
 
-    if (!device || records.length === 0) {
+    if (records.length === 0) {
       return c.json({ ok: true, saved: 0 });
     }
 
@@ -150,10 +161,9 @@ router.post('/import', async (c) => {
   if (!device) return c.json({ message: 'Invalid key' }, 403);
 
   try {
-    const { logs } = await c.req.json();
-    if (!Array.isArray(logs) || logs.length === 0) {
-      return c.json({ message: 'logs array is required' }, 400);
-    }
+    const result = ImportLogsSchema.safeParse(await c.req.json());
+    if (!result.success) return c.json({ message: result.error.errors[0].message }, 400);
+    const { logs } = result.data;
 
     let saved = 0;
     for (const l of logs) {

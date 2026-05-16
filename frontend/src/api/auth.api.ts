@@ -1,14 +1,29 @@
 import { http } from './http';
 
+export type LoginResponse =
+  | { requiresTwoFactor: true; tempToken: string }
+  | { requiresTwoFactor?: false; token: string; refreshToken: string; role: string; clientId: string | null; companyId: string | null; employeeId: string | null; name: string };
+
 export const AuthAPI = {
-  login: (data: { email: string; password: string }) => http.post('/auth/login', data),
+  login: (data: { email: string; password: string }) => http.post<LoginResponse>('/auth/login', data),
   register: (data: { firstName: string; lastName: string; phone?: string; email: string; password: string; licenseToken: string }) =>
-    http.post('/auth/register', data),
+    http.post<{ token: string; refreshToken: string; role: string; clientId: string }>('/auth/register', data),
   trialSignup: (data: { firstName: string; lastName: string; companyName: string; email: string; password: string }) =>
-    http.post<{ token: string; role: string; clientId: string; companyId: string; name: string }>('/auth/trial-signup', data),
+    http.post<{ token: string; refreshToken: string; role: string; clientId: string; companyId: string; name: string }>('/auth/trial-signup', data),
   forgotPassword: (email: string) => http.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) =>
     http.post('/auth/reset-password', { token, password }),
+  refresh: (userId: string, refreshToken: string) =>
+    http.post<{ token: string; refreshToken: string }>('/auth/refresh', { userId, refreshToken }),
+  logout: (refreshToken: string) => http.post('/auth/logout', { refreshToken }),
+
+  twoFA: {
+    authenticate: (tempToken: string, code: string) =>
+      http.post<{ token: string; refreshToken: string; role: string; clientId: string | null; companyId: string | null; name: string }>('/auth/2fa/authenticate', { tempToken, code }),
+    setup: () => http.post<{ secret: string; uri: string }>('/auth/2fa/setup'),
+    verify: (code: string) => http.post('/auth/2fa/verify', { code }),
+    disable: (password: string, code: string) => http.post('/auth/2fa/disable', { password, code }),
+  },
 };
 
 export const SetupAPI = {

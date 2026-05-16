@@ -1,13 +1,18 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
+import { validateBody } from '../lib/validate';
+
+const PeriodEndSchema = z.object({
+  payrollCalendarId: z.string().min(1),
+});
 
 const router = new Hono();
 
-router.post('/', requirePermission('approve_payroll'), async (c) => {
+router.post('/', requirePermission('approve_payroll'), validateBody(PeriodEndSchema), async (c) => {
   const clientId = c.get('clientId');
-  const { payrollCalendarId } = await c.req.json();
-  if (!payrollCalendarId) return c.json({ message: 'payrollCalendarId is required' }, 400);
+  const { payrollCalendarId } = c.req.valid('json' as any);
 
   try {
     const calendar = await prisma.payrollCalendar.findUnique({ where: { id: payrollCalendarId } });
@@ -116,10 +121,9 @@ router.get('/status', requirePermission('approve_payroll'), async (c) => {
   }
 });
 
-router.post('/un-close', requirePermission('approve_payroll'), async (c) => {
+router.post('/un-close', requirePermission('approve_payroll'), validateBody(PeriodEndSchema), async (c) => {
   const clientId = c.get('clientId');
-  const { payrollCalendarId } = await c.req.json();
-  if (!payrollCalendarId) return c.json({ message: 'payrollCalendarId is required' }, 400);
+  const { payrollCalendarId } = c.req.valid('json' as any);
 
   try {
     const calendar = await prisma.payrollCalendar.findUnique({ where: { id: payrollCalendarId } });

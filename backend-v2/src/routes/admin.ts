@@ -16,6 +16,22 @@ const createUserSchema = z.object({
   role: z.enum(['PLATFORM_ADMIN', 'CLIENT_ADMIN', 'EMPLOYEE']),
 });
 
+const updateUserSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email().optional(),
+});
+
+const updateUserRoleSchema = z.object({
+  role: z.enum(['PLATFORM_ADMIN', 'CLIENT_ADMIN', 'EMPLOYEE']),
+});
+
+const updateSettingSchema = z.object({
+  settingName: z.string().min(1).max(100),
+  settingValue: z.union([z.string(), z.number(), z.boolean()]),
+  dataType: z.enum(['TEXT', 'NUMBER', 'BOOLEAN', 'JSON']).optional(),
+  description: z.string().max(500).optional(),
+});
+
 router.get('/users', adminOnly, async (c) => {
   const users = await prisma.user.findMany({
     select: { id: true, name: true, email: true, role: true, createdAt: true },
@@ -49,9 +65,9 @@ router.get('/users/:id', adminOnly, async (c) => {
   return c.json(user);
 });
 
-router.put('/users/:id', adminOnly, async (c) => {
+router.put('/users/:id', adminOnly, validateBody(updateUserSchema), async (c) => {
   try {
-    const { name, email } = await c.req.json();
+    const { name, email } = c.req.valid('json');
     const user = await prisma.user.update({
       where: { id: c.req.param('id') },
       data: { name, email },
@@ -65,12 +81,9 @@ router.put('/users/:id', adminOnly, async (c) => {
   }
 });
 
-router.post('/users/:id/role', adminOnly, async (c) => {
+router.post('/users/:id/role', adminOnly, validateBody(updateUserRoleSchema), async (c) => {
   try {
-    const { role } = await c.req.json();
-    const validRoles = ['PLATFORM_ADMIN', 'CLIENT_ADMIN', 'EMPLOYEE'];
-    if (!validRoles.includes(role)) return c.json({ message: 'Invalid role' }, 400);
-
+    const { role } = c.req.valid('json');
     const user = await prisma.user.update({
       where: { id: c.req.param('id') },
       data: { role },
@@ -103,12 +116,9 @@ router.get('/settings', adminOnly, async (c) => {
   return c.json(settings);
 });
 
-router.put('/settings', adminOnly, async (c) => {
+router.put('/settings', adminOnly, validateBody(updateSettingSchema), async (c) => {
   try {
-    const { settingName, settingValue, dataType, description } = await c.req.json();
-    if (!settingName || settingValue === undefined) {
-      return c.json({ message: 'settingName and settingValue are required' }, 400);
-    }
+    const { settingName, settingValue, dataType, description } = c.req.valid('json');
 
     const user = c.get('user');
     await prisma.systemSetting.updateMany({

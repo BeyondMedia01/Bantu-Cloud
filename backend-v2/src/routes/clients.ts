@@ -1,5 +1,24 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
+import { validateBody } from '../lib/validate';
+
+const CreateClientSchema = z.object({
+  name: z.string().min(1),
+  taxId: z.string().optional(),
+  defaultCurrency: z.enum(['USD', 'ZiG']).default('USD'),
+});
+
+const UpdateClientSchema = z.object({
+  name: z.string().min(1).optional(),
+  taxId: z.string().optional(),
+  defaultCurrency: z.enum(['USD', 'ZiG']).optional(),
+  isActive: z.boolean().optional(),
+});
+
+const ModulesSchema = z.object({
+  modules: z.array(z.string()),
+});
 
 const router = new Hono();
 
@@ -22,11 +41,10 @@ router.get('/', requirePlatformAdmin(), async (c) => {
   return c.json(clients);
 });
 
-router.post('/', requirePlatformAdmin(), async (c) => {
-  const { name, taxId, defaultCurrency } = await c.req.json();
-  if (!name) return c.json({ message: 'name is required' }, 400);
+router.post('/', requirePlatformAdmin(), validateBody(CreateClientSchema), async (c) => {
+  const { name, taxId, defaultCurrency } = c.req.valid('json' as any);
   const client = await prisma.client.create({
-    data: { name, taxId, defaultCurrency: defaultCurrency || 'USD' },
+    data: { name, taxId, defaultCurrency },
   });
   return c.json(client, 201);
 });
@@ -40,8 +58,8 @@ router.get('/:id', requirePlatformAdmin(), async (c) => {
   return c.json(client);
 });
 
-router.put('/:id', requirePlatformAdmin(), async (c) => {
-  const { name, taxId, defaultCurrency, isActive } = await c.req.json();
+router.put('/:id', requirePlatformAdmin(), validateBody(UpdateClientSchema), async (c) => {
+  const { name, taxId, defaultCurrency, isActive } = c.req.valid('json' as any);
   try {
     const client = await prisma.client.update({
       where: { id: c.req.param('id') },
@@ -54,9 +72,8 @@ router.put('/:id', requirePlatformAdmin(), async (c) => {
   }
 });
 
-router.patch('/:id/modules', requirePlatformAdmin(), async (c) => {
-  const { modules } = await c.req.json();
-  if (!Array.isArray(modules)) return c.json({ message: 'modules must be an array' }, 400);
+router.patch('/:id/modules', requirePlatformAdmin(), validateBody(ModulesSchema), async (c) => {
+  const { modules } = c.req.valid('json' as any);
   const client = await prisma.client.update({
     where: { id: c.req.param('id') },
     data: { enabledModules: modules },

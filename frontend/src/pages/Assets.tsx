@@ -330,7 +330,7 @@ const Assets: React.FC = () => {
                   <tr key={c.id} className="hover:bg-muted/70 transition-colors">
                     <td className="px-5 py-4 font-medium text-navy">{c.name}</td>
                     <td className="px-5 py-4 text-muted-foreground">{c.description || '—'}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{(c as any)._count?.assets ?? '—'}</td>
+                    <td className="px-5 py-4 text-muted-foreground">{c._count?.assets ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -405,7 +405,7 @@ const Assets: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreate as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleCreate(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Creating...' : 'Create Asset'}
               </button>
             </div>
@@ -435,7 +435,7 @@ const Assets: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowCreateCat(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreateCategory as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleCreateCategory(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Creating...' : 'Create Category'}
               </button>
             </div>

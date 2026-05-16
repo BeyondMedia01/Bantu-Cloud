@@ -15,9 +15,9 @@ export function initPrisma(databaseUrl: string): void {
   _sql = neon(databaseUrl)
 }
 
-export function getSql(): ReturnType<typeof neon> {
+export function getSql(): (strings: TemplateStringsArray, ...values: any[]) => Promise<any[]> {
   if (!_sql) throw new Error('[neon] initPrisma not called.')
-  return _sql
+  return _sql as unknown as (strings: TemplateStringsArray, ...values: any[]) => Promise<any[]>
 }
 
 export const prisma = new Proxy({} as PrismaClient, {

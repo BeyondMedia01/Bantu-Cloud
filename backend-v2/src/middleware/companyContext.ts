@@ -1,6 +1,7 @@
 import type { Context, Next } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { prisma } from '../lib/prisma';
+import { cacheGet, cacheSet } from '../lib/cache';
 import type { TokenPayload } from '../lib/auth';
 
 declare module 'hono' {
@@ -45,19 +46,31 @@ export const companyContext = createMiddleware(async (c: Context, next: Next) =>
       let resolvedClientId: string;
 
       if (!clientIdFromToken) {
-        const ca = await prisma.clientAdmin.findUnique({ where: { userId } });
-        if (!ca) return c.json({ message: 'Client admin record not found' }, 403);
-        resolvedClientId = ca.clientId;
+        const cacheKey = `clientAdmin:${userId}`;
+        let cached = cacheGet<{ clientId: string }>(cacheKey);
+        if (!cached) {
+          const ca = await prisma.clientAdmin.findUnique({ where: { userId } });
+          if (!ca) return c.json({ message: 'Client admin record not found' }, 403);
+          cached = { clientId: ca.clientId };
+          cacheSet(cacheKey, cached);
+        }
+        resolvedClientId = cached.clientId;
       } else {
         resolvedClientId = clientIdFromToken;
       }
 
-      const company = await prisma.company.findUnique({
-        where: { id: companyId },
-        select: { clientId: true },
-      });
-
-      if (!company || company.clientId !== resolvedClientId) {
+      const companyCacheKey = `company:${companyId}`;
+      let cachedCompany = cacheGet<{ clientId: string }>(companyCacheKey);
+      if (!cachedCompany) {
+        const company = await prisma.company.findUnique({
+          where: { id: companyId },
+          select: { clientId: true },
+        });
+        if (!company) return c.json({ message: 'Access denied: company does not belong to your client' }, 403);
+        cachedCompany = { clientId: company.clientId };
+        cacheSet(companyCacheKey, cachedCompany);
+      }
+      if (cachedCompany.clientId !== resolvedClientId) {
         return c.json({ message: 'Access denied: company does not belong to your client' }, 403);
       }
 
@@ -73,12 +86,19 @@ export const companyContext = createMiddleware(async (c: Context, next: Next) =>
         return c.json({ message: 'Access denied: not your company' }, 403);
       }
       if (!tokenCompanyId) {
-        const emp = await prisma.employee.findUnique({ where: { userId } });
-        if (!emp || emp.companyId !== companyId) {
+        const cacheKey = `employee:${userId}`;
+        let cachedEmp = cacheGet<{ companyId: string; clientId: string; id: string }>(cacheKey);
+        if (!cachedEmp) {
+          const emp = await prisma.employee.findUnique({ where: { userId } });
+          if (!emp) return c.json({ message: 'Access denied: employee not found' }, 403);
+          cachedEmp = { companyId: emp.companyId, clientId: emp.clientId, id: emp.id };
+          cacheSet(cacheKey, cachedEmp);
+        }
+        if (cachedEmp.companyId !== companyId) {
           return c.json({ message: 'Access denied: not your company' }, 403);
         }
-        c.set('clientId', emp.clientId);
-        c.set('employeeId', emp.id);
+        c.set('clientId', cachedEmp.clientId);
+        c.set('employeeId', cachedEmp.id);
       } else {
         c.set('clientId', user.clientId ?? null);
         c.set('employeeId', user.employeeId ?? null);

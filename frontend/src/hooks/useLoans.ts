@@ -30,7 +30,26 @@ export function useUpdateLoan() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Loan> }) =>
       LoanAPI.update(id, data),
-    onSuccess: () => {
+    onMutate: async ({ id, data }) => {
+      await qc.cancelQueries({ queryKey: loanKeys.all() });
+
+      const previous = qc.getQueriesData<Loan[]>({ queryKey: loanKeys.all() });
+
+      qc.setQueriesData<Loan[]>({ queryKey: loanKeys.all() }, (old) => {
+        if (!old) return old;
+        return old.map((l) => (l.id === id ? { ...l, ...data } : l));
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (!context) return;
+      const { previous } = context as { previous: [unknown, Loan[] | undefined][] };
+      for (const [key, data] of previous) {
+        qc.setQueryData(key, data);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: loanKeys.all() });
     },
   });
@@ -40,7 +59,26 @@ export function useDeleteLoan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => LoanAPI.delete(id),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: loanKeys.all() });
+
+      const previous = qc.getQueriesData<Loan[]>({ queryKey: loanKeys.all() });
+
+      qc.setQueriesData<Loan[]>({ queryKey: loanKeys.all() }, (old) => {
+        if (!old) return old;
+        return old.filter((l) => l.id !== id);
+      });
+
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (!context) return;
+      const { previous } = context as { previous: [unknown, Loan[] | undefined][] };
+      for (const [key, data] of previous) {
+        qc.setQueryData(key, data);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: loanKeys.all() });
     },
   });

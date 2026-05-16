@@ -1,7 +1,16 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
 import { signToken } from '../lib/auth';
+import { validateBody } from '../lib/validate';
+
+const AcceptInviteSchema = z.object({
+  token: z.string().min(1),
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
 
 const router = new Hono();
 
@@ -23,12 +32,8 @@ router.get('/validate/:token', async (c) => {
   }
 });
 
-router.post('/accept', async (c) => {
-  const { token, firstName, lastName, password } = await c.req.json();
-  if (!token || !firstName || !lastName || !password) {
-    return c.json({ message: 'token, firstName, lastName, and password are required' }, 400);
-  }
-  if (password.length < 8) return c.json({ message: 'Password must be at least 8 characters' }, 400);
+router.post('/accept', validateBody(AcceptInviteSchema), async (c) => {
+  const { token, firstName, lastName, password } = c.req.valid('json' as any);
 
   try {
     const invite = await prisma.invite.findUnique({ where: { token } });

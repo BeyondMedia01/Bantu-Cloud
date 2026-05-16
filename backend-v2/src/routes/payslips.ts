@@ -40,8 +40,8 @@ router.get('/', requirePermission('view_payroll'), async (c) => {
 
   try {
     const sql = getSql();
-    const limitLit = sql.unsafe(String(limit));
-    const skipLit = sql.unsafe(String(skip));
+    const limitLit = (sql as any).unsafe(String(limit));
+    const skipLit = (sql as any).unsafe(String(skip));
 
     let rows: any[], total: number;
 

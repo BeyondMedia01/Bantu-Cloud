@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { LeaveAPI, EmployeeAPI } from '../api/client';
+import type { LeaveRecord } from '../types/domain';
 import { Field } from '../components/common/Field';
 
 const LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
@@ -50,7 +51,7 @@ const LeaveEdit: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      await LeaveAPI.update(id!, { ...form, totalDays: days } as any);
+      await LeaveAPI.update(id!, { ...form, totalDays: days } as Partial<LeaveRecord>);
       navigate('/leave');
     } catch (err: any) {
       setError(err.message || 'Failed to update leave record');

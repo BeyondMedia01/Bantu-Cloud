@@ -245,7 +245,7 @@ export function generatePayslipHtml(params: {
     basicSalary,
   });
 
-  const earnings   = lineItems.filter(i => !i.taxCredit && ((i.allowance ?? 0) > 0 || (i.allowanceZIG ?? 0) > 0));
+  const earnings   = lineItems.filter(i => ((i.allowance ?? 0) > 0 || (i.allowanceZIG ?? 0) > 0));
   const deductions = lineItems.filter(i => !i.taxCredit && ((i.deduction ?? 0) > 0 || (i.deductionZIG ?? 0) > 0));
 
   const zigCol    = isDual ? `<th class="r zig">ZiG</th>` : '';
@@ -262,8 +262,8 @@ export function generatePayslipHtml(params: {
   const earningRows   = earnings.map(earnRow).join('');
   const deductionRows = deductions.map(dedRow).join('');
 
-  const earnTotalUSD  = earnings.reduce((s, i) => s + (i.allowance ?? 0), 0);
-  const earnTotalZIG  = earnings.reduce((s, i) => s + (i.allowanceZIG ?? 0), 0);
+  const earnTotalUSD  = earnings.reduce((s, i) => s + (!i.taxCredit ? (i.allowance ?? 0) : 0), 0);
+  const earnTotalZIG  = earnings.reduce((s, i) => s + (!i.taxCredit ? (i.allowanceZIG ?? 0) : 0), 0);
   const deductTotalUSD = deductions.reduce((s, i) => s + (i.deduction ?? 0), 0);
   const deductTotalZIG = deductions.reduce((s, i) => s + (i.deductionZIG ?? 0), 0);
 
@@ -360,7 +360,7 @@ ${leaveBalance != null ? `
     <table>
       <thead><tr><th>Description</th><th class="r">${ccy}</th><th class="r ytd">YTD ${ccy}</th>${zigCol}${zigYtdCol}</tr></thead>
       <tbody>${earningRows || `<tr><td colspan="${isDual ? 5 : 3}">—</td></tr>`}
-      <tr class="total-row"><td>Total Earnings</td><td class="r">${fmt2(earnTotalUSD)}</td><td class="r ytd">${fmt2(earnings.reduce((s, i) => s + (i.ytd ?? 0), 0))}</td>${isDual ? `<td class="r zig">${fmt2(earnTotalZIG)}</td><td class="r ytd zig">${fmt2(earnings.reduce((s, i) => s + (i.ytdZIG ?? 0), 0))}</td>` : ''}</tr>
+      <tr class="total-row"><td>Total Earnings</td><td class="r">${fmt2(earnTotalUSD)}</td><td class="r ytd">${fmt2(earnings.reduce((s, i) => s + (!i.taxCredit ? (i.ytd ?? 0) : 0), 0))}</td>${isDual ? `<td class="r zig">${fmt2(earnTotalZIG)}</td><td class="r ytd zig">${fmt2(earnings.reduce((s, i) => s + (!i.taxCredit ? (i.ytdZIG ?? 0) : 0), 0))}</td>` : ''}</tr>
       </tbody>
     </table>
   </div>

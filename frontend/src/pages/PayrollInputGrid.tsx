@@ -127,7 +127,7 @@ const PayrollInputGrid: React.FC = () => {
       if (!activePeriod) {
         // Fetch active calendar to determine the correct period
         const calRes = await PayrollCalendarAPI.getAll({ isClosed: 'false' });
-        const calendars: any[] = (calRes.data as any) || [];
+        const calendars = calRes.data ?? [];
         const activeCalendar = calendars.sort((a: any, b: any) =>
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
         )[0];
@@ -140,7 +140,7 @@ const PayrollInputGrid: React.FC = () => {
       const inputRes = await PayrollInputAPI.getAll({ period: activePeriod });
 
       // Brackets are now embedded in the table response — no second round-trip needed
-      const activeTables: any[] = (tablesRes.data as any) || [];
+      const activeTables = tablesRes.data ?? [];
       const activeTable = activeTables.find((t: any) => t.isActive && t.currency === currency);
       let resolvedTaxConfig: ActiveTaxConfig | null = null;
       if (activeTable) {
@@ -160,9 +160,9 @@ const PayrollInputGrid: React.FC = () => {
       }
       setTaxConfig(resolvedTaxConfig);
 
-      const emps: Employee[] = (empRes.data as any).data || empRes.data || [];
-      const tcs: TxCode[] = (tcRes.data as any) || [];
-      const inputs: any[] = (inputRes.data as any) || [];
+      const emps = empRes.data.data ?? [];
+      const tcs = tcRes.data ?? [];
+      const inputs = inputRes.data ?? [];
 
       setEmployees(emps);
       setAllTxCodes(tcs);

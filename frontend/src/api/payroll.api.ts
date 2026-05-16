@@ -4,7 +4,7 @@ import type {
   PayrollRun, Payslip, PayrollInput, PayrollLog, PayrollUser,
 } from '../types/domain';
 
-const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 const DESKTOP_CLOUD_URL = import.meta.env.VITE_DESKTOP_API_URL as string || 'https://api.payroll.thinkbantu.com/api';
 const WEB_BASE_URL = import.meta.env.VITE_API_URL as string || 'https://api.payroll.thinkbantu.com';
 const API_BASE_URL = IS_DESKTOP

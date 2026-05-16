@@ -431,7 +431,7 @@ const Recruitment: React.FC = () => {
                         <p className="font-medium text-navy">{a.candidateName}</p>
                         <p className="text-xs text-muted-foreground">{a.candidateEmail}{a.candidatePhone ? ` · ${a.candidatePhone}` : ''}</p>
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{(a as any).jobPosting?.title || '—'}</td>
+                      <td className="px-5 py-4 text-muted-foreground">{a.jobPosting?.title || '—'}</td>
                       <td className="px-5 py-4">
                         <StatusBadge status={a.status} />
                         {a.shortlisted && (
@@ -567,7 +567,7 @@ const Recruitment: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreate as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleCreate(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Creating...' : 'Create Posting'}
               </button>
             </div>
@@ -623,7 +623,7 @@ const Recruitment: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowAddApp(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleAddApplication as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleAddApplication(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Adding...' : 'Add Application'}
               </button>
             </div>

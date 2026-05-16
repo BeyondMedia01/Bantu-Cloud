@@ -115,7 +115,23 @@ function calculatePaye(params: CalculatePayeParams): PayeResult {
     loanBenefit = 0,
     fdsAveragePAYEBasis = null,
     zimdefRate = 0.01,
-  } = params;
+   } = params;
+
+  if (aidsLevyRate === STATUTORY_RATES.AIDS_LEVY) {
+    console.warn(`[taxEngine] Using default aidsLevyRate (${STATUTORY_RATES.AIDS_LEVY}). Callers should pass aidsLevyRate from SystemSettings.`);
+  }
+  if (nssaEmployeeRate === STATUTORY_RATES.NSSA_EMPLOYEE) {
+    console.warn(`[taxEngine] Using default nssaEmployeeRate (${STATUTORY_RATES.NSSA_EMPLOYEE}). Callers should pass nssaEmployeeRate from SystemSettings.`);
+  }
+  if (nssaEmployerRate === STATUTORY_RATES.NSSA_EMPLOYER) {
+    console.warn(`[taxEngine] Using default nssaEmployerRate (${STATUTORY_RATES.NSSA_EMPLOYER}). Callers should pass nssaEmployerRate from SystemSettings.`);
+  }
+  if (medicalAidCreditRate === STATUTORY_RATES.MEDICAL_AID_CREDIT_RATE) {
+    console.warn(`[taxEngine] Using default medicalAidCreditRate (${STATUTORY_RATES.MEDICAL_AID_CREDIT_RATE}). Callers should pass medicalAidCreditRate from SystemSettings.`);
+  }
+  if (zimdefRate === 0.01) {
+    console.warn(`[taxEngine] Using default zimdefRate (0.01). Callers should pass zimdefRate from SystemSettings.`);
+  }
 
   if (!taxBrackets || taxBrackets.length === 0) {
     console.warn('[taxEngine] No tax brackets provided — PAYE will be zero. Check tax table configuration.');

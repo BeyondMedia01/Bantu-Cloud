@@ -211,67 +211,17 @@ const Succession: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreate as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
-                <Plus size={16} /> {submitting ? 'Creating...' : 'Create Plan'}
+              <button onClick={(e) => { handleCreate(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+
+                {submitting ? 'Creating...' : 'Create Plan'}
+
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Detail / candidates modal */}
-      {detailPlan && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setDetailPlan(null); }}>
-          <div role="dialog" aria-modal="true" aria-labelledby="modal-title-detail" className="bg-primary rounded-2xl shadow-xl w-full max-w-lg flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setDetailPlan(null); }} tabIndex={-1}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <div>
-                <h2 id="modal-title-detail" className="text-lg font-bold text-navy">{detailPlan.positionTitle}</h2>
-                <p className="text-xs text-muted-foreground">{detailPlan.department || 'No department'} · {detailPlan._count?.candidates ?? 0} candidates</p>
-              </div>
-              <button onClick={() => setDetailPlan(null)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground"><X size={18} /></button>
-            </div>
-            <div className="p-6 flex flex-col gap-3 overflow-y-auto max-h-[60vh]">
-              {!detailPlan.candidates || detailPlan.candidates.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No candidates identified yet.</p>
-              ) : detailPlan.candidates.map(c => (
-                <div key={c.id} className="bg-muted rounded-2xl p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-medium text-navy">{c.employee?.firstName} {c.employee?.lastName}</span>
-                        {c.readiness && (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${READINESS_COLORS[c.readiness]}`}>
-                            {READINESS_LABELS[c.readiness] || c.readiness}
-                          </span>
-                        )}
-                      </div>
-                      {c.rating && (
-                        <div className="flex items-center gap-0.5 mb-1">
-                          {Array.from({ length: c.rating }).map((_, i) => <Star key={i} size={12} className="fill-amber-400 text-amber-400" />)}
-                        </div>
-                      )}
-                      {c.strengths && <p className="text-xs text-muted-foreground"><strong>Strengths:</strong> {c.strengths}</p>}
-                      {c.areasForGrowth && <p className="text-xs text-muted-foreground"><strong>Growth:</strong> {c.areasForGrowth}</p>}
-                      {c.notes && <p className="text-xs text-muted-foreground italic mt-0.5">{c.notes}</p>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
-              <button onClick={() => setDetailPlan(null)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Close</button>
-              {canManage && detailPlan.status === 'ACTIVE' && (
-                <button onClick={() => { setCandPlanId(detailPlan.id); setShowCandidate(true); loadEmployees(); }}
-                  className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
-                  <Plus size={16} /> Add Candidate
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Candidate modal */}
+      {/* Add Candidate Modal */}
       {showCandidate && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowCandidate(false); }}>
           <div role="dialog" aria-modal="true" aria-labelledby="modal-title-candidate" className="bg-primary rounded-2xl shadow-xl w-full max-w-md flex flex-col" onKeyDown={(e) => { if (e.key === 'Escape') setShowCandidate(false); }} tabIndex={-1}>
@@ -325,7 +275,7 @@ const Succession: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowCandidate(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleAddCandidate as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleAddCandidate(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Adding...' : 'Add Candidate'}
               </button>
             </div>

@@ -83,6 +83,12 @@ router.post('/', requirePermission('manage_employees'), async (c) => {
     const file = body['file'] as File | undefined;
     if (!file) return c.json({ message: 'No file uploaded' }, 400);
 
+    const isCSV = file.name.toLowerCase().endsWith('.csv') ||
+      file.type === 'text/csv' || file.type === 'application/vnd.ms-excel';
+    if (!isCSV) return c.json({ message: 'Only CSV files are accepted' }, 400);
+
+    if (file.size > 5 * 1024 * 1024) return c.json({ message: 'File must be under 5 MB' }, 400);
+
     const text = await file.text();
     const result = await processEmployeeImport(text, companyId!, clientId!);
     return c.json(result);

@@ -1,8 +1,33 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { audit } from '../lib/audit';
 import { calculatePaye } from '../lib/taxEngine';
+import { getSettings } from '../services/settings.service';
+import { validateBody } from '../lib/validate';
+
+const EmployeeRateSchema = z.object({
+  employeeId: z.string(),
+  oldRate: z.number().nonnegative(),
+  newRate: z.number().nonnegative(),
+});
+
+const BackPayBodySchema = z.object({
+  effectiveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'effectiveDate must be YYYY-MM-DD'),
+  employeeIds: z.array(z.string()).min(1),
+  employeeRates: z.array(EmployeeRateSchema).optional(),
+  uniformNewRate: z.number().nonnegative().optional(),
+  currency: z.enum(['USD', 'ZiG']).default('USD'),
+});
+
+const NegativeRunSchema = z.object({
+  sourceRunId: z.string().min(1),
+  employeeIds: z.array(z.string()).optional(),
+  employeeRates: z.array(EmployeeRateSchema).optional(),
+  uniformNewRate: z.number().nonnegative().optional(),
+  currency: z.enum(['USD', 'ZiG']).default('USD'),
+});
 
 const router = new Hono();
 
@@ -80,6 +105,18 @@ async function calculateBackPay(params: {
   const rateMap = await buildRateMap(employeeIds, companyId, employeeRates, uniformNewRate);
   const taxBrackets = await getTaxBrackets(companyId, 'USD');
 
+  const statutorySettings = await getSettings([
+    'AIDS_LEVY_RATE',
+    'NSSA_EMPLOYEE_RATE',
+    'NSSA_CEILING_USD',
+    'MEDICAL_AID_CREDIT_RATE',
+  ]);
+  const ss = (key: string) => parseFloat(statutorySettings[key] ?? '0');
+  const aidsLevyRate = ss('AIDS_LEVY_RATE') / 100;
+  const nssaEmployeeRate = ss('NSSA_EMPLOYEE_RATE') / 100;
+  const nssaCeiling = ss('NSSA_CEILING_USD');
+  const medicalAidCreditRate = ss('MEDICAL_AID_CREDIT_RATE') / 100;
+
   const runIds = runs.map((r) => r.id);
   const payslips = await prisma.payslip.findMany({
     where: { payrollRunId: { in: runIds }, employeeId: { in: employeeIds } },
@@ -128,7 +165,15 @@ async function calculateBackPay(params: {
     }
 
     const taxResult = empGross > 0
-      ? calculatePaye({ baseSalary: empGross, currency: 'USD', taxBrackets: taxBrackets as any })
+      ? calculatePaye({
+          baseSalary: empGross,
+          currency: 'USD',
+          taxBrackets: taxBrackets as any,
+          aidsLevyRate,
+          nssaEmployeeRate,
+          nssaCeiling,
+          medicalAidCreditRate,
+        })
       : { totalPaye: 0, nssaEmployee: 0, netSalary: empGross };
 
     totalGross += empGross;
@@ -158,14 +203,11 @@ async function calculateBackPay(params: {
   };
 }
 
-router.post('/', requirePermission('process_payroll'), async (c) => {
+router.post('/', requirePermission('process_payroll'), validateBody(BackPayBodySchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
-  const { effectiveDate, employeeIds, employeeRates, uniformNewRate, currency = 'USD' } = await c.req.json();
-  if (!effectiveDate || !employeeIds?.length) {
-    return c.json({ message: 'effectiveDate and employeeIds are required' }, 400);
-  }
+  const { effectiveDate, employeeIds, employeeRates, uniformNewRate, currency } = c.req.valid('json' as any);
 
   try {
     const result = await calculateBackPay({ companyId, effectiveDate, employeeIds, employeeRates, uniformNewRate, currency });
@@ -176,14 +218,11 @@ router.post('/', requirePermission('process_payroll'), async (c) => {
   }
 });
 
-router.post('/commit', requirePermission('process_payroll'), async (c) => {
+router.post('/commit', requirePermission('process_payroll'), validateBody(BackPayBodySchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
-  const { effectiveDate, employeeIds, employeeRates, uniformNewRate, currency = 'USD' } = await c.req.json();
-  if (!effectiveDate || !employeeIds?.length) {
-    return c.json({ message: 'effectiveDate and employeeIds are required' }, 400);
-  }
+  const { effectiveDate, employeeIds, employeeRates, uniformNewRate, currency } = c.req.valid('json' as any);
 
   try {
     const company = await prisma.company.findUnique({ where: { id: companyId } });
@@ -299,12 +338,11 @@ router.post('/commit', requirePermission('process_payroll'), async (c) => {
   }
 });
 
-router.post('/negative-run', requirePermission('process_payroll'), async (c) => {
+router.post('/negative-run', requirePermission('process_payroll'), validateBody(NegativeRunSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
-  const { sourceRunId, employeeIds: reqEmployeeIds, employeeRates, uniformNewRate, currency = 'USD' } = await c.req.json();
-  if (!sourceRunId) return c.json({ message: 'sourceRunId is required' }, 400);
+  const { sourceRunId, employeeIds: reqEmployeeIds, employeeRates, uniformNewRate, currency } = c.req.valid('json' as any);
 
   try {
     const sourceRun = await prisma.payrollRun.findUnique({

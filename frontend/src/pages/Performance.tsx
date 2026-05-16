@@ -416,7 +416,7 @@ const Performance: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowGoal(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreateGoal as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleCreateGoal(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Creating...' : 'Create Goal'}
               </button>
             </div>
@@ -466,7 +466,7 @@ const Performance: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowReview(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreateReview as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleCreateReview(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Creating...' : 'Create Review'}
               </button>
             </div>

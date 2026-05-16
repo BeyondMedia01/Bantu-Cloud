@@ -8,6 +8,27 @@ import { audit } from '../lib/audit';
 import { denyUnlessCompany, denyUnlessClient } from '../lib/ownership';
 
 const router = new Hono();
+
+const updateInputSchema = z.object({
+  employeeUSD: z.number().optional(),
+  employeeZiG: z.number().optional(),
+  employerUSD: z.number().optional(),
+  employerZiG: z.number().optional(),
+  units: z.number().optional(),
+  notes: z.string().optional(),
+  duration: z.string().optional(),
+  transactionCodeId: z.string().optional(),
+});
+
+const updateCalendarSchema = z.object({
+  periodType: z.string().optional(),
+  year: z.number().int().optional(),
+  month: z.number().int().min(1).max(12).optional(),
+  payDay: z.number().int().min(1).max(31).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  isClosed: z.boolean().optional(),
+});
 const fmt2 = (n: number | null | undefined) => (n ?? 0).toFixed(2);
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -556,7 +577,7 @@ router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payro
   return c.json({ message: 'Payslip sent', to: payslip.employee.email });
 });
 
-router.get('/payroll-inputs', async (c) => {
+router.get('/payroll-inputs', requirePermission('view_payroll'), async (c) => {
   const companyId = c.get('companyId');
   const clientId = c.get('clientId');
   if (!companyId && !clientId) return c.json([]);
@@ -644,7 +665,7 @@ router.post('/payroll-inputs', requirePermission('process_payroll'), validateBod
   return c.json(input, 201);
 });
 
-router.put('/payroll-inputs/:id', requirePermission('process_payroll'), async (c) => {
+router.put('/payroll-inputs/:id', requirePermission('process_payroll'), validateBody(updateInputSchema), async (c) => {
   const existing = await prisma.payrollInput.findUnique({
     where: { id: c.req.param('id') },
     include: { employee: { select: { companyId: true, clientId: true } } },
@@ -653,7 +674,7 @@ router.put('/payroll-inputs/:id', requirePermission('process_payroll'), async (c
   if (!denyUnlessCompany(c, { companyId: existing.employee.companyId })) return c.json({ message: 'Access denied' }, 403);
   if (existing.processed) return c.json({ message: 'Cannot edit a processed input' }, 400);
 
-  const body = await c.req.json();
+  const body = c.req.valid('json' as any);
   const data: Record<string, unknown> = {};
   if (body.employeeUSD !== undefined) data.employeeUSD = body.employeeUSD;
   if (body.employeeZiG !== undefined) data.employeeZiG = body.employeeZiG;
@@ -695,7 +716,7 @@ router.delete('/payroll-inputs/:id', requirePermission('process_payroll'), async
   return c.body(null, 204);
 });
 
-router.get('/payroll-calendar', async (c) => {
+router.get('/payroll-calendar', requirePermission('view_payroll'), async (c) => {
   const clientId = c.get('clientId');
   if (!clientId) return c.json([]);
   const year = c.req.query('year');
@@ -752,13 +773,20 @@ router.get('/payroll-calendar/:id', async (c) => {
   return c.json(calendar);
 });
 
-router.put('/payroll-calendar/:id', requirePermission('manage_payroll'), async (c) => {
+router.put('/payroll-calendar/:id', requirePermission('manage_payroll'), validateBody(updateCalendarSchema), async (c) => {
   const existing = await prisma.payrollCalendar.findUnique({ where: { id: c.req.param('id') }, select: { clientId: true } });
   if (!existing) return c.json({ message: 'Payroll calendar not found' }, 404);
   if (!denyUnlessClient(c, existing)) return c.json({ message: 'Access denied' }, 403);
   try {
-    const body = await c.req.json();
-    const calendar = await prisma.payrollCalendar.update({ where: { id: c.req.param('id') }, data: body });
+    const body = c.req.valid('json' as any);
+    const calendar = await prisma.payrollCalendar.update({
+      where: { id: c.req.param('id') },
+      data: {
+        ...body,
+        startDate: body.startDate ? new Date(body.startDate) : undefined,
+        endDate: body.endDate ? new Date(body.endDate) : undefined,
+      },
+    });
     return c.json(calendar);
   } catch (err: any) {
     if (err.code === 'P2025') return c.json({ message: 'Payroll calendar not found' }, 404);

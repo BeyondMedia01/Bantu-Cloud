@@ -157,8 +157,15 @@ router.put('/:id', requirePermission('manage_payroll'), async (c) => {
   if (!(existingRows as any[]).length) return c.json({ message: 'Transaction not found' }, 404);
   const existing = (existingRows as any[])[0];
   if (existing.pr_company_id !== companyId) return c.json({ message: 'Access denied' }, 403);
-  const body = await c.req.json();
-  const updated = await prisma.payrollTransaction.update({ where: { id }, data: body });
+  const { amount, description, currency } = await c.req.json();
+  const updated = await prisma.payrollTransaction.update({
+    where: { id },
+    data: {
+      amount: typeof amount === 'number' ? amount : undefined,
+      description: typeof description === 'string' ? description : undefined,
+      currency: typeof currency === 'string' ? currency : undefined,
+    },
+  });
   return c.json(updated);
 });
 

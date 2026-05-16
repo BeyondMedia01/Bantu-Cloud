@@ -59,12 +59,12 @@ const PayslipInput: React.FC = () => {
   const [loadingInputs, setLoadingInputs]   = useState(false);
 
   const [showAdd, setShowAdd]       = useState(false);
-  const [addForm, setAddForm]       = useState({ ...EMPTY_FORM });
+  const [addForm, setAddForm]       = useState<Record<string, string>>({ ...EMPTY_FORM });
   const [addSaving, setAddSaving]   = useState(false);
   const [addError, setAddError]     = useState('');
 
   const [editingId, setEditingId]   = useState<string | null>(null);
-  const [editForm, setEditForm]     = useState({ ...EMPTY_FORM });
+  const [editForm, setEditForm]     = useState<Record<string, string>>({ ...EMPTY_FORM });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError]   = useState('');
 
@@ -84,7 +84,7 @@ const PayslipInput: React.FC = () => {
       EmployeeAPI.getAll({ limit: '500', ...(cid ? { companyId: cid } : {}) }),
       TransactionCodeAPI.getAll(),
     ]).then(([empRes, txRes]) => {
-      const list = (empRes.data as any).data ?? empRes.data;
+      const list = empRes.data.data ?? empRes.data;
       setEmployees(list);
       setTxCodes(txRes.data);
     }).catch(() => showToast('Failed to load employees or transaction codes', 'error')).finally(() => setLoadingEmps(false));
@@ -474,7 +474,7 @@ const PayslipInput: React.FC = () => {
                     ].map(({ label, field }) => (
                       <div key={field} className="flex flex-col gap-1.5">
                         <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{label}</label>
-                        {amtInput((addForm as any)[field], v => setAddForm(p => ({ ...p, [field]: v })), field)}
+                        {amtInput(addForm[field], v => setAddForm(p => ({ ...p, [field]: v })), field)}
                       </div>
                     ))}
                   </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
+import { PageErrorBoundary } from './common/PageErrorBoundary';
 import {
   LayoutDashboard, Users, DollarSign, FileText, Settings,
   Building2, User, ChevronDown, LogOut, Wrench,
@@ -8,7 +9,7 @@ import {
   UserCog, UserPlus, TrendingUp, Receipt, BookOpen, BarChart2,
   Package, FolderOpen,
 } from 'lucide-react';
-import { getUser, logout } from '../lib/auth';
+import { getUser, logout, type AppModule } from '../lib/auth';
 import { UserAPI } from '../api/client';
 import { setActiveCompanyId } from '../lib/companyContext';
 import { getAvatarGradient } from '../lib/avatarGradient';
@@ -16,7 +17,7 @@ import { useIdleTimer } from '../hooks/useIdleTimer';
 import IdleTimerModal from './common/IdleTimerModal';
 import { usePermissions } from '../hooks/usePermissions';
 
-const IS_DESKTOP = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__;
+const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
 // ── Nav structure ─────────────────────────────────────────────────────────────
 
@@ -96,7 +97,7 @@ const AppShell: React.FC = () => {
 
   useEffect(() => {
     UserAPI.me().then((res) => {
-      const d = res.data as any;
+      const d: Record<string, any> = res.data;
       const first = d.firstName || d.name?.split(' ')[0] || null;
       setLiveUserName(first);
     }).catch(() => {});
@@ -208,7 +209,7 @@ const AppShell: React.FC = () => {
   // Filter items the user has access to, then remove empty groups
   const visibleGroups = allGroups.map(group => ({
     ...group,
-    items: group.items.filter(item => !item.module || can(item.module as any)),
+    items: group.items.filter(item => !item.module || can(item.module as AppModule)),
   })).filter(group => group.items.length > 0);
 
   // Auto-expand the group containing the active route (on route change)
@@ -538,7 +539,9 @@ const AppShell: React.FC = () => {
       {/* Main content */}
       <main className={`flex-1 min-w-0 ${mainML} min-h-screen transition-all duration-200`}>
         <div className="pt-16 md:pt-8 px-4 sm:px-8 pb-8 max-w-[1400px] mx-auto">
-          <Outlet />
+          <PageErrorBoundary>
+            <Outlet />
+          </PageErrorBoundary>
         </div>
       </main>
 

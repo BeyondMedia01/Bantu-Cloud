@@ -1,6 +1,6 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getToken, getUser, getUserRole } from './lib/auth';
 
 // Layout (eagerly loaded — always needed)
@@ -151,16 +151,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
 
 import { ToastProvider } from './context/ToastContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { QueryErrorBanner } from './components/common/QueryErrorBanner';
 import { Toaster } from './components/ui/sonner';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000,
-      retry: 1,
-    },
-  },
-});
 
 // Minimal fallback while lazy chunks load
 const PageLoader = () => (
@@ -174,17 +166,38 @@ const PageLoader = () => (
 
 const App: React.FC = () => {
   const role = getUserRole();
+  const [queryError, setQueryError] = useState<string | null>(null);
+
+  const queryClient = useMemo(
+    () =>
+      new QueryClient({
+        queryCache: new QueryCache({
+          onError: (error) => {
+            if (error instanceof Error && 'status' in error && (error as any).status === 401) return;
+            setQueryError(error instanceof Error ? error.message : 'API request failed');
+          },
+        }),
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000,
+            retry: 1,
+          },
+        },
+      }),
+    [],
+  );
 
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
+          <QueryErrorBanner error={queryError} onDismiss={() => setQueryError(null)} />
           <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public */}
               <Route path="/" element={
-                typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__
+                typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__
                   ? <Navigate to="/login" replace />
                   : <Landing />
               } />

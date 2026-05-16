@@ -113,9 +113,8 @@ const EmployeeNew: React.FC = () => {
     queryFn: () => SystemSettingsAPI.getAll().then(r => r.data),
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<FormValues>({
-    resolver: zodResolver(employeeSchema) as any,
+    resolver: zodResolver(employeeSchema),
     defaultValues: {
       employeeCode: '', title: '', firstName: '', lastName: '', maidenName: '',
       nationality: 'Zimbabwean', nationalId: '', passportNumber: '', email: '', phone: '',
@@ -133,10 +132,10 @@ const EmployeeNew: React.FC = () => {
 
   // Set default tax table once system settings load
   useEffect(() => {
-    if ((systemSettings as any[]).length > 0 && !form.getValues('taxTable')) {
-      const defaultSetting = (systemSettings as any[])
-        .filter((s: any) => s.settingName === 'DEFAULT_TAX_TABLE_USD' && s.isActive)
-        .sort((a: any, b: any) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
+    if (systemSettings.length > 0 && !form.getValues('taxTable')) {
+      const defaultSetting = systemSettings
+        .filter((s) => s.settingName === 'DEFAULT_TAX_TABLE_USD' && s.isActive)
+        .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
       if (defaultSetting) form.setValue('taxTable', defaultSetting.settingValue);
     }
   }, [systemSettings]);
@@ -160,14 +159,15 @@ const EmployeeNew: React.FC = () => {
   const onSubmit = async (values: FormValues) => {
     setSubmitError('');
     try {
-      await EmployeeAPI.create({
+      const payload: Record<string, unknown> = {
         ...values,
         dateOfBirth: values.dateOfBirth?.toISOString(),
         startDate: values.startDate?.toISOString(),
         dischargeDate: values.dischargeDate?.toISOString(),
         companyId: companyId ?? undefined,
         bankAccounts: values.paymentMethod === 'BANK' ? values.bankAccounts : [],
-      } as any);
+      };
+      await EmployeeAPI.create(payload as Parameters<typeof EmployeeAPI.create>[0]);
       navigate('/employees');
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to create employee');
@@ -341,7 +341,7 @@ const EmployeeNew: React.FC = () => {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger><SelectValue placeholder="— None —" /></SelectTrigger>
                       <SelectContent>
-                        {(departments as any[]).map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                        {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
@@ -351,7 +351,7 @@ const EmployeeNew: React.FC = () => {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger><SelectValue placeholder="— None —" /></SelectTrigger>
                       <SelectContent>
-                        {(branches as any[]).map((b: any) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                        {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
@@ -642,7 +642,7 @@ const EmployeeNew: React.FC = () => {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger><SelectValue placeholder="— Select tax table —" /></SelectTrigger>
                       <SelectContent>
-                        {(taxTables as any[]).map((t: any) => (
+                        {taxTables.map((t) => (
                           <SelectItem key={t.id} value={t.name}>
                             {t.name} ({t.currency}){t.isActive ? ' ★' : ''}
                           </SelectItem>

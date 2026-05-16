@@ -3,6 +3,7 @@ import type { ExportedHandler } from '@cloudflare/workers-types';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
+import * as Sentry from '@sentry/cloudflare';
 import { initPrisma, prisma } from './lib/prisma';
 import { initAuth, authenticateToken } from './lib/auth';
 import { initMailer } from './lib/mailer';
@@ -166,7 +167,14 @@ const handler = {
   scheduled,
 };
 
-export default handler as ExportedHandler<Bindings>;
+export default Sentry.withSentry(
+  (env: Record<string, any>) => ({
+    dsn: env.SENTRY_DSN,
+    environment: env.ENVIRONMENT || 'development',
+    tracesSampleRate: env.ENVIRONMENT === 'production' ? 0.1 : 0.0,
+  }),
+  handler as any,
+) as ExportedHandler<Bindings>;
 
 async function scheduled(event: { cron?: string }, env: Bindings, _ctx: ExecutionContext) {
   if (!env.DATABASE_URL) {

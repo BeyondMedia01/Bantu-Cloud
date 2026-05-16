@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Loader, FileText, Upload, Trash2, Download, ChevronDow
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { employeeSchema, type EmployeeFormValues } from '@/lib/schemas/employee.schema';
+import type { NecGrade } from '../types/domain';
 import { Dropdown } from '@/components/ui/dropdown';
 import { Input } from '@/components/ui/input';
 import {
@@ -82,7 +83,7 @@ const EmployeeEdit: React.FC = () => {
   const loadingRef = useRef(false);
 
   const rhfForm = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeSchema) as any,
+    resolver: zodResolver(employeeSchema),
     defaultValues: {
       // Personal
       employeeCode: '', title: '', firstName: '', lastName: '', maidenName: '',
@@ -159,26 +160,26 @@ const EmployeeEdit: React.FC = () => {
       if (tt) setTaxTables(tt.data);
       const e = emp.data;
       const empCurrency = e.currency || 'USD';
-      const tableNames = new Set((tt?.data as any[] | undefined)?.map((t: any) => t.name) ?? []);
+      const tableNames = new Set((tt?.data ?? []).map((t) => t.name));
       const settingName = `DEFAULT_TAX_TABLE_${empCurrency}`;
-      const defaultSetting = (ss?.data as any[] | undefined)
-        ?.filter((s: any) => s.settingName === settingName && s.isActive)
-        .sort((a: any, b: any) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
+      const defaultSetting = (ss?.data ?? [])
+        .filter((s) => s.settingName === settingName && s.isActive)
+        .sort((a, b) => new Date(b.effectiveFrom!).getTime() - new Date(a.effectiveFrom!).getTime())[0];
       const resolvedTaxTable = (e.taxTable && tableNames.has(e.taxTable))
         ? e.taxTable
         : (defaultSetting?.settingValue || '');
 
       if (nec) {
-        const allGrades: any[] = [];
-        (nec.data as any[]).forEach((table: any) => {
-          (table.grades ?? []).forEach((g: any) => allGrades.push({ ...g, tableName: table.name }));
+        const allGrades: Array<NecGrade & { tableName: string }> = [];
+        nec.data.forEach((table) => {
+          table.grades.forEach((g) => allGrades.push({ ...g, tableName: table.name }));
         });
         setNecGrades(allGrades);
       }
 
       // Populate RHF fields
-      const setVal = (k: keyof EmployeeFormValues, v: any) => {
-        if (v !== undefined && v !== null) setValue(k, v as any);
+      const setVal = <K extends keyof EmployeeFormValues>(k: K, v: EmployeeFormValues[K] | undefined | null) => {
+        if (v !== undefined && v !== null) setValue(k, v);
       };
 
       setVal('employeeCode',      e.employeeCode || '');
@@ -269,7 +270,7 @@ const EmployeeEdit: React.FC = () => {
         splitZigMode: data.splitZigMode || 'NONE',
         splitZigValue: data.splitZigValue ?? null,
         bankAccounts: data.paymentMethod === 'BANK' ? data.bankAccounts : [],
-      } as any);
+      } as unknown as Parameters<typeof EmployeeAPI.update>[1]);
       navigate('/employees');
     } catch (err: any) {
       const msg = err.message || 'Failed to update employee';
@@ -412,7 +413,7 @@ const EmployeeEdit: React.FC = () => {
           <button
             key={t.id}
             type="button"
-            onClick={() => setActiveTab(t.id as any)}
+            onClick={() => setActiveTab(t.id as 'PERSONAL' | 'WORK' | 'PAY' | 'TAX' | 'LEAVE' | 'DOCUMENTS' | 'AUDIT')}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
               activeTab === t.id ? 'tab-pill-active' : 'tab-pill-inactive'
             }`}

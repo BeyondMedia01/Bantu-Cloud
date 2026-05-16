@@ -50,15 +50,35 @@ router.get('/summary', async (c) => {
   return c.json(records);
 });
 
-router.put('/:id', async (c) => {
+const updateAttendanceSchema = z.object({
+  clockIn: z.string().optional(),
+  clockOut: z.string().optional(),
+  totalMinutes: z.number().int().min(0).optional(),
+  normalMinutes: z.number().int().min(0).optional(),
+  ot0Minutes: z.number().int().min(0).optional(),
+  ot1Minutes: z.number().int().min(0).optional(),
+  ot2Minutes: z.number().int().min(0).optional(),
+  shiftId: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+router.put('/:id', requirePermission('manage_attendance'), validateBody(updateAttendanceSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
   const { id } = c.req.param();
   const existing = await prisma.attendanceRecord.findUnique({ where: { id }, select: { companyId: true } });
   if (!existing) return c.json({ message: 'Attendance record not found' }, 404);
   if (existing.companyId !== companyId) return c.json({ message: 'Access denied' }, 403);
-  const body = await c.req.json();
-  const updated = await prisma.attendanceRecord.update({ where: { id }, data: { ...body, isManualOverride: true } });
+  const { clockIn, clockOut, totalMinutes, normalMinutes, ot0Minutes, ot1Minutes, ot2Minutes, shiftId, notes } = c.req.valid('json' as any);
+  const updated = await prisma.attendanceRecord.update({
+    where: { id },
+    data: {
+      clockIn: clockIn ? new Date(clockIn) : undefined,
+      clockOut: clockOut ? new Date(clockOut) : undefined,
+      totalMinutes, normalMinutes, ot0Minutes, ot1Minutes, ot2Minutes, shiftId, notes,
+      isManualOverride: true,
+    },
+  });
   return c.json(updated);
 });
 

@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { calculatePaye, calculateSplitSalaryPaye, grossUpNet } from '../lib/taxEngine';
@@ -6,12 +7,38 @@ import { getSettings } from '../services/settings.service';
 import { audit } from '../lib/audit';
 import { denyUnlessCompany } from '../lib/ownership';
 import { getYtdStartDate } from '../lib/ytdCalculator';
+import { validateBody } from '../lib/validate';
+import { processEmployee, type EngineSettings, type FdsYtd } from '../lib/payrollEngine';
+
+const PreviewSchema = z.object({
+  inputs: z.array(z.object({
+    employeeId: z.string(),
+    transactionCodeId: z.string(),
+    amount: z.union([z.number(), z.string()]),
+    units: z.number().optional(),
+    employeeUSD: z.number().optional(),
+    employeeZiG: z.number().optional(),
+    notes: z.string().optional(),
+  })).min(1),
+  currency: z.enum(['USD', 'ZiG']).default('USD'),
+  period: z.string().regex(/^\d{4}-\d{2}$/, 'period must be YYYY-MM').optional(),
+});
+
+const ProcessSchema = z.object({
+  adjustments: z.record(z.object({
+    taxableBenefits: z.number().optional(),
+    overtimeAmount: z.number().optional(),
+    bonus: z.number().optional(),
+    severanceAmount: z.number().optional(),
+    pensionContribution: z.number().optional(),
+    medicalAid: z.number().optional(),
+  })).optional().default({}),
+});
 
 const router = new Hono();
 
-router.post('/preview', requirePermission('process_payroll'), async (c) => {
-  const { inputs, currency = 'USD', period } = await c.req.json() as any;
-  if (!inputs?.length) return c.json({ data: [] });
+router.post('/preview', requirePermission('process_payroll'), validateBody(PreviewSchema), async (c) => {
+  const { inputs, currency, period } = c.req.valid('json' as any);
 
   try {
     const clientId = c.get('clientId');
@@ -137,13 +164,12 @@ router.post('/preview', requirePermission('process_payroll'), async (c) => {
   }
 });
 
-router.post('/:runId/process', requirePermission('process_payroll'), async (c) => {
+router.post('/:runId/process', requirePermission('process_payroll'), validateBody(ProcessSchema), async (c) => {
   try {
     const companyId = c.get('companyId');
     const clientId = c.get('clientId');
     const runId = c.req.param('runId');
-    const body = await c.req.json().catch(() => ({}));
-    const adjustments = body?.adjustments || {};
+    const { adjustments } = c.req.valid('json' as any);
 
     const run = await prisma.payrollRun.findUnique({
       where: { id: runId },
@@ -284,13 +310,6 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (c) =
         ABOVE_2000CC: s('VEHICLE_BENEFIT_ABOVE_2000_ZIG'),
       },
     };
-    const resolveVehicleBenefit = (emp: any, runCurrency: string) => {
-      const cat = emp.vehicleEngineCategory;
-      if (!cat || cat === 'NONE') return emp.motorVehicleBenefit || 0;
-      const ccy = runCurrency === 'ZiG' ? 'ZiG' : 'USD';
-      return vehicleBenefitTable[ccy][cat] ?? emp.motorVehicleBenefit ?? 0;
-    };
-
     const globalZimdefRate = s('ZIMDEF_RATE') / 100;
     const zimdefRate = run.company.zimdefRate != null ? run.company.zimdefRate / 100 : globalZimdefRate;
 
@@ -326,12 +345,6 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (c) =
       console.warn(`[PAYROLL] Run ${run.id} is ZiG/dual but exchangeRate is ${run.exchangeRate} — falling back to 1. All ZiG conversions will be wrong.`);
     }
     const xr = (run.exchangeRate > 0) ? run.exchangeRate : 1;
-
-    const round2 = (x: number) => Math.round((x + Number.EPSILON) * 100) / 100;
-
-    const toRunCcy = (usd: number, zig: number) => round2(run.currency === 'ZiG'
-      ? (zig || 0) + (usd || 0) * xr
-      : (usd || 0) + (zig || 0) / xr);
 
     const runPeriod = `${new Date(run.startDate).getFullYear()}-${String(new Date(run.startDate).getMonth() + 1).padStart(2, '0')}`;
     const allInputs = await prisma.payrollInput.findMany({
@@ -491,6 +504,29 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (c) =
       }
     }
 
+    const engineSettings: EngineSettings = {
+      nssaCeilingUSD, nssaCeilingZIG: effectiveNssaCeilingZIG,
+      bonusExemptionUSD, bonusExemptionZIG,
+      severanceExemptionUSD, severanceExemptionZIG,
+      wcifRate, sdfRate,
+      nssaEmployeeRateUSD, nssaEmployerRateUSD,
+      nssaEmployeeRateZIG, nssaEmployerRateZIG,
+      aidsLevyRate, medicalAidCreditRate,
+      monthlyPensionCapUSD, monthlyPensionCapZIG,
+      prescribedRateUSD, prescribedRateZIG,
+      elderlyCreditUSD, elderlyCreditZIG,
+      vehicleBenefitTable,
+      zimdefRate, workingDaysPerPeriodDefault,
+    };
+
+    const runContext = {
+      id: run.id, currency: run.currency, dualCurrency: run.dualCurrency,
+      exchangeRate: xr, startDate: run.startDate, endDate: run.endDate,
+      company: run.company,
+      taxBracketsUSD, taxBracketsZIG: taxBracketsZIG,
+      annualBracketsUSD, annualBracketsZIG,
+    };
+
     const payslipData: any[] = [];
     const payrollTxData: any[] = [];
     const now = new Date();
@@ -502,590 +538,23 @@ router.post('/:runId/process', requirePermission('process_payroll'), async (c) =
       const empDefaults = defaultsByEmployee[emp.id] || [];
       const empRepayments = repaymentsByEmployee[emp.id] || [];
       const empLoans = loansByEmployee[emp.id] || [];
-
-      let totalLoanBenefit = 0;
-      let totalLoanBenefitUSD = 0;
-      let totalLoanBenefitZIG = 0;
-
-      if (run.dualCurrency) {
-        const empPrescribedRate = emp.currency === 'USD' ? prescribedRateUSD : prescribedRateZIG;
-        for (const loan of empLoans) {
-          const loanRate = (loan.interestRate != null && !isNaN(loan.interestRate)) ? loan.interestRate : 0;
-          if (loanRate < empPrescribedRate) {
-            const paidAmt = loan.repayments.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
-            const currentBalance = Math.max(0, loan.amount - paidAmt);
-            if (currentBalance > 0) {
-              const monthlyBenefit = round2((currentBalance * (empPrescribedRate - loanRate)) / 100 / 12);
-              if (emp.currency === 'USD') totalLoanBenefitUSD += monthlyBenefit;
-              else totalLoanBenefitZIG += monthlyBenefit;
-            }
-          }
-        }
-      } else {
-        const empPrescribedRate = emp.currency === 'ZiG' ? prescribedRateZIG : prescribedRateUSD;
-        for (const loan of empLoans) {
-          const loanRate = (loan.interestRate != null && !isNaN(loan.interestRate)) ? loan.interestRate : 0;
-          if (loanRate < empPrescribedRate) {
-            const paidAmt = loan.repayments.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
-            const currentBalance = Math.max(0, loan.amount - paidAmt);
-            if (currentBalance > 0) {
-              let monthlyBenefit = round2((currentBalance * (empPrescribedRate - loanRate)) / 100 / 12);
-              if (emp.currency === 'ZiG' && run.currency === 'USD') monthlyBenefit = round2(monthlyBenefit / xr);
-              else if (emp.currency === 'USD' && run.currency === 'ZiG') monthlyBenefit = round2(monthlyBenefit * xr);
-              totalLoanBenefit += monthlyBenefit;
-            }
-          }
-        }
-      }
-
       const unpaidLeave = unpaidLeaveByEmployee[emp.id];
-
-      let inputEarnings = 0, inputDeductions = 0, inputPension = 0;
-      let inputMedicalAid = 0, inputMedicalAidUSD = 0, inputMedicalAidZIG = 0;
-      let inputEarningsUSD = 0, inputEarningsZIG = 0;
-      let inputDeductionsUSD = 0, inputDeductionsZIG = 0;
-      let inputPensionUSD = 0, inputPensionZIG = 0;
-      let inputNssaExcluded = 0, inputPayeExcluded = 0;
-      let inputNssaExcludedUSD = 0, inputNssaExcludedZIG = 0;
-      let inputPayeExcludedUSD = 0, inputPayeExcludedZIG = 0;
-
-      for (const i of empInputs) {
-        if (i.transactionCode.code === '201' && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
-          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault || 22;
-          const dayRate = emp.baseRate / divisor;
-          const amt = round2(dayRate * i.units);
-          if (emp.currency === 'ZiG') i.employeeZiG = amt;
-          else i.employeeUSD = amt;
-        }
-      }
-
-      for (const i of empInputs) {
-        const tc = i.transactionCode;
-        const isOvertime = tc.incomeCategory === 'OVERTIME' || tc.name.toLowerCase().includes('overtime');
-
-        if (isOvertime && i.units > 0 && (i.employeeUSD || 0) === 0 && (i.employeeZiG || 0) === 0) {
-          const divisor = emp.daysPerPeriod || workingDaysPerPeriodDefault || 22;
-          const dayRate = emp.baseRate / divisor;
-          const hourlyRate = dayRate / 8;
-          const nameMatch = tc.name.match(/(\d+(?:\.\d+)?)x/i);
-          const multiplier = tc.defaultValue != null ? parseFloat(tc.defaultValue) : (nameMatch ? parseFloat(nameMatch[1]) : 1.5);
-          const amt = round2(hourlyRate * i.units * multiplier);
-
-          if (emp.currency === 'ZiG') i.employeeZiG = amt;
-          else i.employeeUSD = amt;
-        }
-      }
-
-      for (const input of empInputs) {
-        const tc = input.transactionCode;
-        const isEarning = tc.type === 'EARNING' || tc.type === 'BENEFIT';
-        const isPreTaxDeduction = tc.type === 'DEDUCTION' && tc.preTax === true;
-        const tcName = tc.name || '';
-        const tcCode = tc.code || '';
-        const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
-          (tc.incomeCategory === 'MEDICAL_AID' ||
-            /medical\s*aid|med\s*aid/i.test(tcName) ||
-            /MED_AID|MEDICAL_AID/i.test(tcCode) ||
-            (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
-
-        if (run.dualCurrency) {
-          if (isEarning) {
-            inputEarningsUSD += input.employeeUSD || 0;
-            inputEarningsZIG += input.employeeZiG || 0;
-            if (tc.affectsNssa === false) {
-              inputNssaExcludedUSD += input.employeeUSD || 0;
-              inputNssaExcludedZIG += input.employeeZiG || 0;
-            }
-            if (tc.affectsPaye === false || tc.taxable === false) {
-              inputPayeExcludedUSD += input.employeeUSD || 0;
-              inputPayeExcludedZIG += input.employeeZiG || 0;
-            }
-            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
-              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
-              inputPayeExcludedUSD += (input.employeeUSD || 0) * exemptFraction;
-              inputPayeExcludedZIG += (input.employeeZiG || 0) * exemptFraction;
-            }
-          } else if (isPreTaxDeduction) {
-            inputPensionUSD += input.employeeUSD || 0;
-            inputPensionZIG += input.employeeZiG || 0;
-          } else if (isMedicalAid) {
-            inputMedicalAidUSD += input.employeeUSD || 0;
-            inputMedicalAidZIG += input.employeeZiG || 0;
-          } else {
-            inputDeductionsUSD += input.employeeUSD || 0;
-            inputDeductionsZIG += input.employeeZiG || 0;
-          }
-        } else {
-          const amt = toRunCcy(input.employeeUSD, input.employeeZiG);
-          if (isEarning) {
-            inputEarnings += amt;
-            if (tc.affectsNssa === false) inputNssaExcluded += amt;
-            if (tc.affectsPaye === false || tc.taxable === false) inputPayeExcluded += amt;
-            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
-              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
-              inputPayeExcluded += amt * exemptFraction;
-            }
-          } else if (isPreTaxDeduction) {
-            inputPension += amt;
-          } else if (isMedicalAid) {
-            inputMedicalAid += amt;
-          } else {
-            inputDeductions += amt;
-          }
-        }
-      }
-
-      for (const sd of empDefaults) {
-        const tc = sd.transactionCode;
-        const isEarning = tc.type === 'EARNING' || tc.type === 'BENEFIT';
-        const isPreTaxDeduction = tc.type === 'DEDUCTION' && tc.preTax === true;
-        const tcName = tc.name || '';
-        const tcCode = tc.code || '';
-        const isMedicalAid = tc.type === 'DEDUCTION' && tc.preTax === false &&
-          (tc.incomeCategory === 'MEDICAL_AID' ||
-            /medical\s*aid|med\s*aid/i.test(tcName) ||
-            /MED_AID|MEDICAL_AID/i.test(tcCode) ||
-            (tcName.toLowerCase().includes('medical') && /^\d+$/.test(tcCode)));
-
-        const empUSD = sd.currency === 'USD' ? sd.value : 0;
-        const empZIG = sd.currency === 'ZiG' ? sd.value : 0;
-
-        if (run.dualCurrency) {
-          if (isEarning) {
-            inputEarningsUSD += empUSD;
-            inputEarningsZIG += empZIG;
-            if (tc.affectsNssa === false) {
-              inputNssaExcludedUSD += empUSD;
-              inputNssaExcludedZIG += empZIG;
-            }
-            if (tc.affectsPaye === false || tc.taxable === false) {
-              inputPayeExcludedUSD += empUSD;
-              inputPayeExcludedZIG += empZIG;
-            }
-            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
-              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
-              inputPayeExcludedUSD += empUSD * exemptFraction;
-              inputPayeExcludedZIG += empZIG * exemptFraction;
-            }
-          } else if (isPreTaxDeduction) {
-            inputPensionUSD += empUSD;
-            inputPensionZIG += empZIG;
-          } else if (isMedicalAid) {
-            inputMedicalAidUSD += empUSD;
-            inputMedicalAidZIG += empZIG;
-          } else {
-            inputDeductionsUSD += empUSD;
-            inputDeductionsZIG += empZIG;
-          }
-        } else {
-          const amt = toRunCcy(empUSD, empZIG);
-          if (isEarning) {
-            inputEarnings += amt;
-            if (tc.affectsNssa === false) inputNssaExcluded += amt;
-            if (tc.affectsPaye === false || tc.taxable === false) inputPayeExcluded += amt;
-            if (isEarning && tc.deemedBenefitPercent != null && tc.deemedBenefitPercent > 0 && tc.deemedBenefitPercent < 100) {
-              const exemptFraction = (100 - tc.deemedBenefitPercent) / 100;
-              inputPayeExcluded += amt * exemptFraction;
-            }
-          } else if (isPreTaxDeduction) {
-            inputPension += amt;
-          } else if (isMedicalAid) {
-            inputMedicalAid += amt;
-          } else {
-            inputDeductions += amt;
-          }
-        }
-      }
-
-      let effectiveBaseRate = emp.baseRate;
-      if (unpaidLeave) {
-        const unpaidDays = unpaidLeave.totalDays || 0;
-        const wDays = emp.daysPerPeriod || workingDaysPerPeriodDefault || 22;
-        if (unpaidDays >= wDays) {
-          effectiveBaseRate = 0;
-        } else {
-          effectiveBaseRate = emp.baseRate * (1 - unpaidDays / wDays);
-        }
-      }
-
-      if (emp.dischargeDate && effectiveBaseRate > 0) {
-        const dDate = new Date(emp.dischargeDate);
-        if (dDate >= run.startDate && dDate <= run.endDate) {
-          const workedDays = Math.ceil((dDate.getTime() - run.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-          const periodDays = Math.ceil((run.endDate.getTime() - run.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-          const prorationFactor = Math.min(1, workedDays / periodDays);
-          effectiveBaseRate = effectiveBaseRate * prorationFactor;
-        } else if (dDate < run.startDate) {
-          effectiveBaseRate = 0;
-        }
-      }
-
-      let baseRate = effectiveBaseRate;
-      if (effectiveBaseRate > 0 && emp.currency && emp.currency !== run.currency && run.exchangeRate && run.exchangeRate !== 1 && !run.dualCurrency) {
-        if (run.currency === 'ZiG' && emp.currency === 'USD') baseRate = round2(effectiveBaseRate * run.exchangeRate);
-        else if (run.currency === 'USD' && emp.currency === 'ZiG') baseRate = round2(effectiveBaseRate / run.exchangeRate);
-      }
-
-      let necLevy = 0;
-      let necEmployer = 0;
-      if (emp.rateSource === 'NEC_GRADE' && emp.necGrade) {
-        const necMinRate = emp.necGrade.minRate;
-        if (baseRate < necMinRate) baseRate = necMinRate;
-        necLevy = baseRate * (emp.necGrade.necLevyRate || 0);
-        necEmployer = necLevy;
-      }
-
-      const ytd = fdsYtdByEmployee[emp.id] || {
-        cumGross: 0,
-        uniqueMonths: new Set<string>(),
-        cumExemptBonus: 0,
-        cumExemptBonusUSD: 0,
-        cumExemptBonusZIG: 0,
-        cumExemptSeverance: 0,
+      const ytd: FdsYtd = fdsYtdByEmployee[emp.id] || {
+        cumGross: 0, uniqueMonths: new Set<string>(),
+        cumExemptBonus: 0, cumExemptBonusUSD: 0, cumExemptBonusZIG: 0,
+        cumExemptSeverance: 0, cumExemptSeveranceUSD: 0, cumExemptSeveranceZIG: 0,
       };
 
-      const runStart = new Date(run.startDate);
-
-      let elderlyCredit = 0, elderlyCreditUSD_val = 0, elderlyCreditZIG_val = 0;
-      let effectiveNssaEmpRate = nssaEmployeeRate;
-      let effectiveNssaEmprRate = nssaEmployerRate;
-
-      if (emp.dateOfBirth) {
-        const dob = new Date(emp.dateOfBirth);
-        const age = runStart.getFullYear() - dob.getFullYear();
-        const birthdayThisYear = new Date(runStart.getFullYear(), dob.getMonth(), dob.getDate());
-        const isElderly = age > 65 || (age === 65 && runStart >= birthdayThisYear);
-        if (isElderly) {
-          elderlyCredit = run.currency === 'ZiG' ? elderlyCreditZIG : elderlyCreditUSD;
-          elderlyCreditUSD_val = elderlyCreditUSD;
-          elderlyCreditZIG_val = elderlyCreditZIG;
-          effectiveNssaEmpRate = 0;
-          effectiveNssaEmprRate = 0;
-        }
-      }
-
-      const remBonusExUSD = Math.max(0, bonusExemptionUSD - ytd.cumExemptBonusUSD);
-      const remBonusExZIG = Math.max(0, bonusExemptionZIG - ytd.cumExemptBonusZIG);
-      const remBonusEx = run.currency === 'ZiG' ? remBonusExZIG : remBonusExUSD;
-
-      const remSevExUSD = Math.max(0, severanceExemptionUSD - (ytd.cumExemptSeveranceUSD || ytd.cumExemptSeverance));
-      const remSevExZIG = Math.max(0, severanceExemptionZIG - (ytd.cumExemptSeveranceZIG || ytd.cumExemptSeverance));
-      const remSevEx = run.currency === 'ZiG' ? remSevExZIG : remSevExUSD;
-
-      let fdsAvgPAYEBasis: number | null = null;
-      if (emp.taxMethod === 'FDS_AVERAGE') {
-        const provisionalBaseZIG = (run.dualCurrency && emp.splitZigMode === 'FIXED' && (emp.splitZigValue || 0) > 0)
-          ? (emp.splitZigValue || 0)
-          : 0;
-        const currGross = run.dualCurrency
-          ? baseRate + inputEarningsUSD + (inputEarningsZIG / xr) + (provisionalBaseZIG / xr)
-          : baseRate + inputEarnings;
-        fdsAvgPAYEBasis = round2((ytd.cumGross + currGross) / (ytd.uniqueMonths.size + 1));
-      }
-
-      const directiveActive =
-        (!emp.taxDirectiveEffective || new Date(emp.taxDirectiveEffective) <= runStart) &&
-        (!emp.taxDirectiveExpiry || new Date(emp.taxDirectiveExpiry) >= runStart);
-      const effectiveTaxDirectivePerc = directiveActive ? (emp.taxDirectivePerc || 0) : 0;
-      const effectiveTaxDirectiveAmt = directiveActive ? (emp.taxDirectiveAmt || 0) : 0;
-
-      const effectiveBaseSalary = emp.grossingUp
-        ? (() => {
-            const isZIG = run.currency === 'ZiG';
-            const pensionContribution = (adj.pensionContribution || 0) + (isZIG ? inputPensionZIG : inputPensionUSD || inputPension);
-            const pensionCap = isZIG ? monthlyPensionCapZIG : monthlyPensionCapUSD;
-            const cappedPension = pensionCap != null
-              ? Math.min(pensionContribution, pensionCap)
-              : pensionContribution;
-            const medForGrossUp = isZIG
-              ? 0
-              : ((adj.medicalAid || 0) + (inputMedicalAidUSD || inputMedicalAid || 0) +
-                 (run.dualCurrency ? (inputMedicalAidZIG || 0) / xr : 0));
-            const grossUpTargetNet = baseRate + cappedPension + medForGrossUp;
-            const solved = grossUpNet({
-              targetNet: grossUpTargetNet,
-              currency: isZIG ? 'ZiG' : 'USD',
-              taxBrackets: taxBracketsUSD,
-              annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
-              nssaCeiling: isZIG ? effectiveNssaCeilingZIG : nssaCeilingUSD,
-              pensionContribution, pensionCap,
-              medicalAid: medForGrossUp,
-              taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
-              nssaEmployeeRate, nssaEmployerRate,
-            } as any);
-            return solved ? solved.grossSalary : baseRate;
-          })()
-        : baseRate;
-
-      let taxResult: any, taxResultUSD: any, taxResultZIG: any;
-
-      if (run.dualCurrency) {
-        let baseUSD = 0, baseZIG = 0;
-        const totalBasicUSD = emp.currency === 'USD' ? effectiveBaseSalary : effectiveBaseSalary / xr;
-
-        if (emp.splitZigMode === 'PERCENTAGE' && (emp.splitZigValue || 0) > 0) {
-          const splitPerc = Math.min(100, Math.max(0, emp.splitZigValue || 0));
-          baseUSD = totalBasicUSD * (1 - splitPerc / 100);
-          baseZIG = totalBasicUSD * (splitPerc / 100) * xr;
-        } else if (emp.splitZigMode === 'FIXED' && (emp.splitZigValue || 0) > 0) {
-          baseZIG = emp.splitZigValue || 0;
-          baseUSD = totalBasicUSD;
-        } else {
-          if (emp.currency === 'ZiG') {
-            baseZIG = effectiveBaseSalary;
-            baseUSD = 0;
-          } else {
-            baseUSD = effectiveBaseSalary;
-            baseZIG = 0;
-          }
-        }
-
-        const resolvedMV = resolveVehicleBenefit(emp, run.currency);
-        const mvBenefitUSD = emp.currency !== 'ZiG' ? resolvedMV : 0;
-        const mvBenefitZIG = emp.currency === 'ZiG' ? resolvedMV : 0;
-
-        const splitResult = calculateSplitSalaryPaye({
-          usdParams: {
-            baseSalary: baseUSD,
-            taxableBenefits: adj.taxableBenefits || 0,
-            motorVehicleBenefit: mvBenefitUSD,
-            overtimeAmount: (adj.overtimeAmount || 0) + inputEarningsUSD,
-            bonus: adj.bonus || 0, bonusExemption: remBonusExUSD,
-            severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevExUSD,
-            pensionContribution: (adj.pensionContribution || 0) + inputPensionUSD,
-            pensionCap: monthlyPensionCapUSD,
-            medicalAid: (adj.medicalAid || 0) + inputMedicalAidUSD,
-            taxCredits: elderlyCreditUSD_val > 0 ? elderlyCreditUSD_val : (emp.taxCredits || 0),
-            nssaCeiling: nssaCeilingUSD,
-            nssaExcludedEarnings: inputNssaExcludedUSD,
-            payeExcludedEarnings: inputPayeExcludedUSD,
-            loanBenefit: totalLoanBenefitUSD,
-            fdsAveragePAYEBasis: fdsAvgPAYEBasis,
-          },
-          zigParams: {
-            baseSalary: baseZIG,
-            taxableBenefits: 0,
-            motorVehicleBenefit: mvBenefitZIG,
-            overtimeAmount: inputEarningsZIG,
-            bonus: 0, bonusExemption: remBonusExZIG,
-            severanceAmount: 0, severanceExemption: remSevExZIG,
-            pensionContribution: inputPensionZIG,
-            pensionCap: monthlyPensionCapZIG,
-            medicalAid: inputMedicalAidZIG,
-            taxCredits: elderlyCreditZIG_val > 0 ? elderlyCreditZIG_val : (emp.taxCredits || 0),
-            nssaCeiling: effectiveNssaCeilingZIG,
-            nssaExcludedEarnings: inputNssaExcludedZIG,
-            payeExcludedEarnings: inputPayeExcludedZIG,
-            loanBenefit: totalLoanBenefitZIG,
-            fdsAveragePAYEBasis: null,
-          },
-          exchangeRate: xr,
-          taxBracketsUSD,
-          annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBracketsUSD,
-          wcifRate,
-          sdfRate,
-          zimdefRate,
-          aidsLevyRate,
-          medicalAidCreditRate,
-          nssaEmployeeRate: effectiveNssaEmpRate,
-          nssaEmployerRate: effectiveNssaEmprRate,
-          taxDirectivePerc: effectiveTaxDirectivePerc,
-          taxDirectiveAmt: effectiveTaxDirectiveAmt,
-        });
-
-        taxResultUSD = splitResult.usd;
-        taxResultZIG = splitResult.zig;
-        taxResult = splitResult.totalResult;
-      } else {
-        taxResult = calculatePaye({
-          baseSalary: effectiveBaseSalary, currency: run.currency,
-          taxableBenefits: adj.taxableBenefits || 0,
-          motorVehicleBenefit: resolveVehicleBenefit(emp, run.currency),
-          overtimeAmount: (adj.overtimeAmount || 0) + inputEarnings,
-          bonus: adj.bonus || 0, bonusExemption: remBonusEx,
-          severanceAmount: adj.severanceAmount || 0, severanceExemption: remSevEx,
-          pensionContribution: (adj.pensionContribution || 0) + inputPension,
-          pensionCap: run.currency === 'ZiG' ? monthlyPensionCapZIG : monthlyPensionCapUSD,
-          medicalAid: (adj.medicalAid || 0) + inputMedicalAid,
-          taxCredits: elderlyCredit > 0 ? elderlyCredit : (emp.taxCredits || 0),
-          wcifRate, sdfRate,
-          taxBrackets,
-          annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : annualBrackets,
-          nssaCeiling,
-          nssaEmployeeRate: effectiveNssaEmpRate,
-          nssaEmployerRate: effectiveNssaEmprRate,
-          nssaExcludedEarnings: inputNssaExcluded,
-          payeExcludedEarnings: inputPayeExcluded,
-          taxDirectivePerc: effectiveTaxDirectivePerc,
-          taxDirectiveAmt: effectiveTaxDirectiveAmt,
-          aidsLevyRate, medicalAidCreditRate,
-          loanBenefit: totalLoanBenefit,
-          fdsAveragePAYEBasis: fdsAvgPAYEBasis,
-          zimdefRate,
-        });
-      }
-
-      let netPayAfterLoans: number, netPayUSD: number | null, netPayZIG: number | null, dualFields: any;
-      let loanDeductions = 0;
-
-      if (run.dualCurrency) {
-        let availableUSD = Math.max(0, taxResultUSD.netSalary - inputDeductionsUSD);
-        for (const rep of empRepayments) {
-          if (rep.amount > availableUSD + 0.001) {
-            console.warn(`[LOANS] Skipped repayment ${rep.id} (${rep.amount} USD) for employee ${emp.id} — insufficient net pay (available: ${availableUSD.toFixed(2)})`);
-            continue;
-          }
-          appliedRepaymentIds.add(rep.id);
-          loanDeductions += rep.amount;
-          availableUSD -= rep.amount;
-        }
-        const netUSD = Math.max(0, taxResultUSD.netSalary - loanDeductions - inputDeductionsUSD);
-        const netZIG = Math.max(0, taxResultZIG.netSalary - inputDeductionsZIG);
-        netPayAfterLoans = netUSD;
-        netPayUSD = netUSD;
-        netPayZIG = netZIG;
-        dualFields = {
-          grossUSD: taxResultUSD.gross, grossZIG: taxResultZIG.gross,
-          payeUSD: taxResultUSD.paye, payeZIG: taxResultZIG.paye,
-          aidsLevyUSD: taxResultUSD.aidsLevy, aidsLevyZIG: taxResultZIG.aidsLevy,
-          nssaUSD: taxResultUSD.nssaEmployee, nssaZIG: taxResultZIG.nssaEmployee,
-        };
-      } else {
-        let availableNet = Math.max(0, taxResult.netSalary - inputDeductions);
-        for (const rep of empRepayments) {
-          if (rep.amount > availableNet + 0.001) {
-            console.warn(`[LOANS] Skipped repayment ${rep.id} (${rep.amount}) for employee ${emp.id} — insufficient net pay (available: ${availableNet.toFixed(2)})`);
-            continue;
-          }
-          appliedRepaymentIds.add(rep.id);
-          loanDeductions += rep.amount;
-          availableNet -= rep.amount;
-        }
-        netPayAfterLoans = Math.max(0, taxResult.netSalary - loanDeductions - inputDeductions);
-        netPayUSD = null;
-        netPayZIG = null;
-        const splitPct = emp.splitUsdPercent;
-        if (splitPct && splitPct > 0 && splitPct < 100 && run.exchangeRate && run.exchangeRate !== 1) {
-          const usdShare = splitPct / 100;
-          if (run.currency === 'USD') {
-            netPayUSD = round2(netPayAfterLoans * usdShare);
-            netPayZIG = round2(netPayAfterLoans * (1 - usdShare) * run.exchangeRate);
-          } else {
-            netPayZIG = round2(netPayAfterLoans * (1 - usdShare));
-            netPayUSD = round2((netPayAfterLoans * usdShare) / run.exchangeRate);
-          }
-        }
-        dualFields = {};
-      }
-
-      payslipData.push({
-        employeeId: emp.id,
-        payrollRunId: run.id,
-        gross: taxResult.grossSalary,
-        paye: taxResult.payeBeforeLevy,
-        aidsLevy: taxResult.aidsLevy,
-        nssaEmployee: taxResult.nssaEmployee,
-        nssaEmployer: taxResult.nssaEmployer,
-        nssaBasis: taxResult.nssaBasis,
-        pensionApplied: taxResult.pensionApplied,
-        basicSalaryApplied: run.dualCurrency
-          ? Math.max(baseRate > 0 ? 0.01 : 0, round2(emp.currency === 'USD' ? baseRate : baseRate / xr))
-          : round2(baseRate),
-        wcifEmployer: taxResult.wcifEmployer,
-        sdfContribution: taxResult.sdfContribution,
-        zimdefEmployer: taxResult.zimdefEmployer,
-        necLevy,
-        necEmployer,
-        loanDeductions,
-        netPay: netPayAfterLoans,
-        netPayUSD,
-        netPayZIG,
-        exchangeRate: (run.dualCurrency || run.currency === 'ZiG') ? (run.exchangeRate || null) : null,
-        ...dualFields,
-        exemptBonus: taxResult.exemptBonus,
-        exemptBonusUSD: run.dualCurrency ? (taxResultUSD?.exemptBonus ?? null) : null,
-        exemptBonusZIG: run.dualCurrency ? (taxResultZIG?.exemptBonus ?? null) : null,
-        exemptSeverance: taxResult.exemptSeverance,
-        exemptSeveranceUSD: run.dualCurrency ? (taxResultUSD?.exemptSeverance ?? null) : (run.currency === 'USD' ? taxResult.exemptSeverance : null),
-        exemptSeveranceZIG: run.dualCurrency ? (taxResultZIG?.exemptSeverance ?? null) : (run.currency === 'ZiG' ? taxResult.exemptSeverance : null),
-        medicalAidCredit: taxResult.medicalAidCredit,
-        taxCreditsApplied: taxResult.taxCreditsApplied,
+      const result = processEmployee({
+        emp, run: runContext, adj, empInputs, empDefaults, empRepayments, empLoans,
+        unpaidLeave, ytd, settings: engineSettings,
       });
 
-      const allEmpItems: any[] = [];
-
-      for (const i of empInputs) {
-        if (run.dualCurrency) {
-          if ((i.employeeUSD || 0) !== 0) {
-            allEmpItems.push({
-              transactionCodeId: i.transactionCodeId,
-              amount: i.employeeUSD,
-              currency: 'USD',
-              description: i.notes,
-            });
-          }
-          if ((i.employeeZiG || 0) !== 0) {
-            allEmpItems.push({
-              transactionCodeId: i.transactionCodeId,
-              amount: i.employeeZiG,
-              currency: 'ZiG',
-              description: i.notes,
-            });
-          }
-        } else {
-          const amt = toRunCcy(i.employeeUSD, i.employeeZiG);
-          if (amt !== 0) {
-            allEmpItems.push({
-              transactionCodeId: i.transactionCodeId,
-              amount: amt,
-              currency: run.currency,
-              description: i.notes,
-            });
-          }
-        }
-      }
-
-      for (const sd of empDefaults) {
-        if (run.dualCurrency) {
-          if (sd.currency === 'USD' && (sd.value || 0) !== 0) {
-            allEmpItems.push({
-              transactionCodeId: sd.transactionCodeId,
-              amount: sd.value,
-              currency: 'USD',
-              description: sd.notes,
-            });
-          } else if (sd.currency === 'ZiG' && (sd.value || 0) !== 0) {
-            allEmpItems.push({
-              transactionCodeId: sd.transactionCodeId,
-              amount: sd.value,
-              currency: 'ZiG',
-              description: sd.notes,
-            });
-          }
-        } else {
-          const amt = toRunCcy(sd.currency === 'USD' ? sd.value : 0, sd.currency === 'ZiG' ? sd.value : 0);
-          if (amt !== 0) {
-            allEmpItems.push({
-              transactionCodeId: sd.transactionCodeId,
-              amount: amt,
-              currency: run.currency,
-              description: sd.notes,
-            });
-          }
-        }
-      }
-
-      for (const item of allEmpItems) {
-        payrollTxData.push({
-          employeeId: emp.id,
-          payrollRunId: run.id,
-          transactionCodeId: item.transactionCodeId,
-          amount: item.amount,
-          currency: item.currency,
-          description: item.description,
-        });
-      }
+      payslipData.push(result.payslip);
+      payrollTxData.push(...result.transactions);
+      for (const id of result.appliedRepaymentIds) appliedRepaymentIds.add(id);
     }
+
 
     const paidOffLoanIds = affectedLoanIds.filter((loanId: string) => {
       if (remainingRepaymentCounts[loanId] !== 0) return false;

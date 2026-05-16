@@ -329,7 +329,7 @@ const Training: React.FC = () => {
                       <td className="px-5 py-4 font-medium text-navy">
                         {e.employee?.firstName} {e.employee?.lastName}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{(e as any).course?.title || '—'}</td>
+                      <td className="px-5 py-4 text-muted-foreground">{e.course?.title || '—'}</td>
                       <td className="px-5 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${ENR_STATUS_COLORS[e.status]}`}>
                           {e.status}
@@ -423,7 +423,7 @@ const Training: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleCreate as any} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
+              <button onClick={(e) => { handleCreate(e); }} disabled={submitting} className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Plus size={16} /> {submitting ? 'Creating...' : 'Create Course'}
               </button>
             </div>
@@ -501,7 +501,7 @@ const Training: React.FC = () => {
             </form>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowCert(false)} className="px-4 py-2 rounded-full border border-border text-sm font-bold hover:bg-muted transition-colors">Cancel</button>
-              <button onClick={handleIssueCert as any} disabled={!!actionLoading}
+              <button onClick={(e) => { handleIssueCert(e); }} disabled={!!actionLoading}
                 className="bg-brand text-navy px-4 py-2 rounded-full font-bold shadow hover:opacity-90 flex items-center gap-1.5">
                 <Award size={16} /> Issue Certificate
               </button>

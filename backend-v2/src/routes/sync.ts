@@ -1,15 +1,29 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { validateBody } from '../lib/validate';
 import { prisma } from '../lib/prisma';
+import { requirePermission } from '../lib/permissions';
 
 const router = new Hono();
 
-router.post('/', async (c) => {
-  try {
-    const { operation, payload } = await c.req.json();
-    if (!operation || !payload) {
-      return c.json({ error: 'operation and payload are required' }, 400);
-    }
+const ALLOWED_OPERATIONS = new Set([
+  'CREATE_EMPLOYEE', 'UPDATE_EMPLOYEE', 'DELETE_EMPLOYEE',
+  'CREATE_COMPANY', 'UPDATE_COMPANY',
+  'CREATE_PAYROLL_RUN', 'UPDATE_PAYROLL_RUN',
+  'CREATE_PAYSLIP', 'UPDATE_PAYSLIP',
+]);
 
+const syncOperationSchema = z.object({
+  operation: z.string().min(1),
+  payload: z.record(z.unknown()),
+});
+
+router.post('/', requirePermission('manage_payroll'), validateBody(syncOperationSchema), async (c) => {
+  const { operation, payload } = c.req.valid('json' as any);
+  if (!ALLOWED_OPERATIONS.has(operation)) {
+    return c.json({ error: `Unknown operation: ${operation}` }, 400);
+  }
+  try {
     const { executeOperation } = await import('../sync_queue/operations');
     const result = await executeOperation(operation, payload, prisma);
     return c.json({ success: true, id: result?.id ?? null });
@@ -19,17 +33,24 @@ router.post('/', async (c) => {
   }
 });
 
-router.get('/initial', async (c) => {
+router.get('/initial', requirePermission('view_payroll'), async (c) => {
+  const companyId = c.get('companyId');
+  const clientId = c.get('clientId');
+  if (!companyId && !clientId) return c.json({ error: 'Company context required' }, 400);
+
   const page = Math.max(1, parseInt(c.req.query('page') || '1'));
   const limit = Math.min(500, parseInt(c.req.query('limit') || '100'));
   const skip = (page - 1) * limit;
 
+  const companyWhere = companyId ? { companyId } : { company: { clientId } };
+  const runWhere = companyId ? { companyId } : { companyId: { in: await prisma.company.findMany({ where: { clientId: clientId! }, select: { id: true } }).then(cs => cs.map(c => c.id)) } };
+
   try {
     const [employees, companies, payrollRuns, payslips] = await Promise.all([
-      prisma.employee.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
-      prisma.company.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
-      prisma.payrollRun.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
-      prisma.payslip.findMany({ skip, take: limit, orderBy: { createdAt: 'asc' } }),
+      prisma.employee.findMany({ where: companyWhere as any, skip, take: limit, orderBy: { createdAt: 'asc' } }),
+      prisma.company.findMany({ where: companyId ? { id: companyId } : { clientId: clientId! }, skip, take: limit, orderBy: { createdAt: 'asc' } }),
+      prisma.payrollRun.findMany({ where: runWhere as any, skip, take: limit, orderBy: { createdAt: 'asc' } }),
+      prisma.payslip.findMany({ where: { payrollRun: runWhere as any }, skip, take: limit, orderBy: { createdAt: 'asc' } }),
     ]);
 
     return c.json({ page, limit, data: { employees, companies, payrollRuns, payslips } });

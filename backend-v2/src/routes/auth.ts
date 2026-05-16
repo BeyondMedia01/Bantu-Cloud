@@ -2,6 +2,8 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { validateBody } from '../lib/validate';
 import * as authService from '../services/auth.service';
+import { authenticateToken, verifyToken, rotateRefreshToken, revokeRefreshToken } from '../lib/auth';
+import { prisma } from '../lib/prisma';
 
 // Per-isolate rate limiter — best-effort protection; complements CF-level rules
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -112,7 +114,7 @@ router.post('/forgot-password', rateLimit(5, 15 * 60 * 1000), validateBody(forgo
   }
 });
 
-router.post('/reset-password', validateBody(resetPasswordSchema), async (c) => {
+router.post('/reset-password', rateLimit(5, 15 * 60 * 1000), validateBody(resetPasswordSchema), async (c) => {
   try {
     const { token, password } = c.req.valid('json');
     await authService.resetPassword(token, password);
@@ -120,6 +122,101 @@ router.post('/reset-password', validateBody(resetPasswordSchema), async (c) => {
   } catch (err: any) {
     const status = err.status || 500;
     return c.json({ message: err.message || 'Failed to reset password' }, status);
+  }
+});
+
+// ---------- Refresh tokens ----------
+
+const logoutSchema = z.object({ refreshToken: z.string().min(1) });
+
+const refreshSchema = z.object({
+  userId: z.string().min(1),
+  refreshToken: z.string().min(1),
+});
+
+router.post('/refresh', rateLimit(30, 15 * 60 * 1000), validateBody(refreshSchema), async (c) => {
+  try {
+    const { userId, refreshToken } = c.req.valid('json');
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        clientAdmin: true,
+        employee: { select: { id: true, companyId: true, clientId: true } },
+      },
+    });
+    if (!user) return c.json({ message: 'User not found' }, 404);
+
+    const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? undefined;
+    const companyId = user.employee?.companyId ?? undefined;
+    const employeeId = user.employee?.id ?? undefined;
+
+    const result = await rotateRefreshToken(refreshToken, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      clientId,
+      companyId,
+      employeeId,
+    });
+    return c.json(result);
+  } catch (err: any) {
+    return c.json({ message: err.message }, err.status || 500);
+  }
+});
+
+router.post('/logout', validateBody(logoutSchema), async (c) => {
+  const { refreshToken } = c.req.valid('json');
+  await revokeRefreshToken(refreshToken);
+  return c.json({ message: 'Logged out' });
+});
+
+// ---------- 2FA ----------
+
+const twoFACodeSchema = z.object({ code: z.string().length(6) });
+const twoFAAuthSchema = z.object({ tempToken: z.string().min(1), code: z.string().length(6) });
+const twoFADisableSchema = z.object({ password: z.string().min(1), code: z.string().length(6) });
+
+router.post('/2fa/authenticate', rateLimit(10, 15 * 60 * 1000), validateBody(twoFAAuthSchema), async (c) => {
+  try {
+    const { tempToken, code } = c.req.valid('json');
+    const payload = await verifyToken(tempToken);
+    if (!payload.pending2fa) return c.json({ message: 'Invalid token' }, 400);
+    const result = await authService.completeTwoFactorLogin(payload.userId, code);
+    return c.json(result);
+  } catch (err: any) {
+    return c.json({ message: err.message }, err.status || 401);
+  }
+});
+
+router.post('/2fa/setup', authenticateToken, async (c) => {
+  try {
+    const user = c.get('user');
+    const result = await authService.setupTOTP(user.userId);
+    return c.json(result);
+  } catch (err: any) {
+    return c.json({ message: err.message }, err.status || 500);
+  }
+});
+
+router.post('/2fa/verify', authenticateToken, validateBody(twoFACodeSchema), async (c) => {
+  try {
+    const user = c.get('user');
+    const { code } = c.req.valid('json');
+    await authService.enableTOTP(user.userId, code);
+    return c.json({ message: '2FA enabled successfully' });
+  } catch (err: any) {
+    return c.json({ message: err.message }, err.status || 500);
+  }
+});
+
+router.post('/2fa/disable', authenticateToken, validateBody(twoFADisableSchema), async (c) => {
+  try {
+    const user = c.get('user');
+    const { password, code } = c.req.valid('json');
+    await authService.disableTOTP(user.userId, password, code);
+    return c.json({ message: '2FA disabled successfully' });
+  } catch (err: any) {
+    return c.json({ message: err.message }, err.status || 500);
   }
 });
 

@@ -110,7 +110,8 @@ router.put('/change-password', validateBody(changePasswordSchema), async (c) => 
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({ where: { id: user.userId }, data: { password: hashedPassword } });
-    return c.json({ message: 'Password updated successfully' });
+    await prisma.session.deleteMany({ where: { userId: user.userId } });
+    return c.json({ message: 'Password updated successfully. All other sessions have been logged out.' });
   } catch (err) {
     console.error(err);
     return c.json({ message: 'Internal server error' }, 500);

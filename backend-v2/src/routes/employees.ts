@@ -97,6 +97,25 @@ router.get('/', async (c) => {
   }
 });
 
+const salaryStructureSchema = z.object({
+  transactionCodeId: z.string().min(1),
+  value: z.union([z.number(), z.string()]),
+  currency: z.enum(['USD', 'ZiG']).default('USD'),
+  effectiveFrom: z.string().min(1),
+  effectiveTo: z.string().optional(),
+  isRecurring: z.boolean().optional(),
+  notes: z.string().optional(),
+});
+
+const updateSalaryStructureSchema = z.object({
+  value: z.union([z.number(), z.string()]).optional(),
+  currency: z.enum(['USD', 'ZiG']).optional(),
+  effectiveFrom: z.string().optional(),
+  effectiveTo: z.string().optional(),
+  isRecurring: z.boolean().optional(),
+  notes: z.string().optional(),
+});
+
 const createEmployeeSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
@@ -261,8 +280,9 @@ router.delete('/:id', requirePermission('manage_employees'), async (c) => {
   }
 });
 
-router.get('/:id/audit-logs', async (c) => {
+router.get('/:id/audit-logs', requirePermission('view_employees'), async (c) => {
   try {
+    if (!(await checkEmployeeAccess(c, c.req.param('id')!))) return c.json({ message: 'Employee not found' }, 404);
     const logs = await prisma.auditLog.findMany({
       where: { resource: 'employee', resourceId: c.req.param('id') },
       orderBy: { createdAt: 'desc' },
@@ -326,12 +346,12 @@ router.get('/:id/salary-structure', async (c) => {
   }
 });
 
-router.post('/:id/salary-structure', requirePermission('manage_employees'), async (c) => {
+router.post('/:id/salary-structure', requirePermission('manage_employees'), validateBody(salaryStructureSchema), async (c) => {
   try {
     const employeeId = c.req.param('id');
     if (!employeeId) return c.json({ message: 'Employee ID required' }, 400);
     if (!(await checkEmployeeAccess(c, employeeId))) return c.json({ message: 'Access denied' }, 403);
-    const body = await c.req.json();
+    const body = c.req.valid('json' as any);
     const item = await prisma.employeeTransaction.create({
       data: {
         employeeId,
@@ -351,7 +371,7 @@ router.post('/:id/salary-structure', requirePermission('manage_employees'), asyn
   }
 });
 
-router.put('/:empId/salary-structure/:id', requirePermission('manage_employees'), async (c) => {
+router.put('/:empId/salary-structure/:id', requirePermission('manage_employees'), validateBody(updateSalaryStructureSchema), async (c) => {
   try {
     const empId = c.req.param('empId');
     if (!empId || !(await checkEmployeeAccess(c, empId))) return c.json({ message: 'Access denied' }, 403);
@@ -360,8 +380,16 @@ router.put('/:empId/salary-structure/:id', requirePermission('manage_employees')
       select: { employeeId: true },
     });
     if (!existing || existing.employeeId !== empId) return c.json({ message: 'Entry not found' }, 404);
-    const body = await c.req.json();
-    await prisma.employeeTransaction.update({ where: { id: c.req.param('id') }, data: body });
+    const body = c.req.valid('json' as any);
+    await prisma.employeeTransaction.update({
+      where: { id: c.req.param('id') },
+      data: {
+        ...body,
+        value: body.value !== undefined ? parseFloat(body.value) : undefined,
+        effectiveFrom: body.effectiveFrom ? new Date(body.effectiveFrom) : undefined,
+        effectiveTo: body.effectiveTo ? new Date(body.effectiveTo) : undefined,
+      },
+    });
     const item = await prisma.employeeTransaction.findUnique({ where: { id: c.req.param('id') }, include: { transactionCode: true } });
     return c.json(item);
   } catch (err: any) {

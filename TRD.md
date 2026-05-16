@@ -81,8 +81,8 @@
 │  ├─Reports     │  ┌──────────────┐ │  ├─settings       │                        │
 │  ├─Admin       │  │  auth, emp,  │ │  └─admin          │  INTEGRATIONS          │
 │  └─Utilities   │  │  pay, leave,│ │                   │  ├─Stripe              │
-│                │  │  loans, ... │ │  ~80 routes        │  ├─Resend/Nodemailer   │
-│  Shared Libs   │  └──────────────┘ │  (mirror v1)      │  ├─ZKTeco Biometric    │
+│                │  │  loans, ... │ │  ~90+ routes       │  ├─Resend/Nodemailer   │
+│  Shared Libs   │  └──────────────┘ │  (CSV/HTML/JSON)  │  ├─ZKTeco Biometric    │
 │  ├─react-query │                   │                   │  └─Hikvision Biometric │
 │  ├─react-hook  │  Cron Jobs        │  CF Cron Triggers │                        │
 │  │  -form      │  ├─1st 00:05     │  ├─1st 00:05      │  CI/CD                 │
@@ -188,8 +188,17 @@ test: { environment: 'jsdom', globals: true }
 | Resend | ^4.0.0 | Email |
 | Zod + @hono/zod-validator | ^0.4.0 | Request validation |
 | Sentry | ^10.53.0 | Error monitoring |
-| Wrangler | ^4.90.0 | Deployment CLI |
+| Wrangler | ^4.90.0 | Deployment CLI; `wrangler.toml`: compat_date `2025-01-01`, `nodejs_compat` flag |
 
+**Neon Adapter Config:**
+```typescript
+// backend-v2/src/lib/prisma.ts
+neonConfig.webSocketConstructor = WebSocket
+const adapter = new PrismaNeon({ connectionString: databaseUrl })
+const client = new PrismaClient({ adapter })
+const sql = neon(databaseUrl)  // Raw SQL tagged template
+```
+ 
 ### 2.4 Desktop (Tauri 2.0)
 
 | Technology | Version | Purpose |
@@ -1067,7 +1076,7 @@ GitHub Actions:
 │                      │  SPA rewrites: /* → /index.html           │
 ├──────────────────────┼───────────────────────────────────────────┤
 │  Cloudflare Workers  │  https://api.payroll.thinkbantu.com        │
-│  Backend v2 (future) │  Hono + Prisma + Neon                     │
+│  Backend v2          │  Hono + Prisma + Neon; compat 2025-01-01  │
 ├──────────────────────┼───────────────────────────────────────────┤
 │  Render / Vercel     │  Backend v1 (Express)                      │
 │  Backend v1          │  Env: DATABASE_URL, JWT_SECRET, etc.      │
@@ -1251,7 +1260,10 @@ Critical indexes (beyond Prisma defaults):
 
 Connection pooling:
   - Backend v1: pg Pool with max 10 connections
-  - Backend v2: Neon serverless (auto-scaling)
+  - Backend v2: Neon serverless via `@prisma/adapter-neon` + `@neondatabase/serverless`
+    - WebSocket-based, lazy connection (first query triggers handshake)
+    - `neonConfig.webSocketConstructor = WebSocket` for CF Workers compat
+    - Cold starts may add 0.5–2s latency on first DB query per isolate
 ```
 
 ---
@@ -1378,7 +1390,15 @@ Updater endpoint: https://bantu-cloud.onrender.com/api/desktop/updates
 | `frontend/src/App.tsx` | Route definitions, ~70 lazy pages | — |
 | `frontend/src/api/client.ts` | Axios instance with auth interceptors | — |
 | `frontend/src/hooks/usePermissions.ts` | Frontend RBAC hook | — |
-| `backend-v2/src/index.ts` | CF Worker entry, Hono setup, cron | 247 |
+| `frontend/src/api/reports.api.ts` | Report API calls (all CSV/HTML/PDF endpoints) | 81 |
+| `frontend/src/pages/Reports.tsx` | Reports page with `download()` helper (HTML→new tab) | 462 |
+| `backend-v2/src/index.ts` | CF Worker entry, Hono setup, cron | 258 |
+| `backend-v2/wrangler.toml` | CF Worker config: compat_date `2025-01-01`, `nodejs_compat` | 20 |
+| `backend-v2/src/lib/prisma.ts` | Prisma + Neon serverless adapter init | 34 |
+| `backend-v2/src/lib/payslipFormatter.ts` | Dual-currency HTML payslip generator | 480 |
+| `backend-v2/src/routes/payroll.ts` | Payroll routes, raw SQL fallback pattern | ~930 |
+| `backend-v2/src/routes/reports.ts` | All CSV/JSON report routes (12 endpoints) | 522 |
+| `backend-v2/src/routes/reportsPdf.ts` | HTML report routes (12 endpoints) | ~1060 |
 | `desktop/src-tauri/Cargo.toml` | Tauri Rust dependencies | — |
 
 ### B. Module ↔ Route File Mapping
@@ -1389,7 +1409,7 @@ Updater endpoint: https://bantu-cloud.onrender.com/api/desktop/updates
 | TIME_LEAVE | leave, leavePolicies, leaveBalances, leaveEncashments, shifts, roster, attendance, devices |
 | PAYROLL | payroll, payrollCore, payslips, payrollCalendar, payrollInputs, transactionCodes, transactions, bankFiles, payIncrease, backPay, periodEnd |
 | COMPLIANCE | taxTables, taxBands, statutoryExports, nssaSettings, statutoryRates, nssaContributions, necTables |
-| REPORTS | reports |
+| REPORTS | reports (v1), backend-v2 reports.ts (CSV/JSON), reportsPdf.ts (HTML), reportsExcel.ts (XLSX) |
 | SETTINGS | systemSettings, currencyRates, publicHolidays, workPeriodSettings, backup |
 | RECRUITMENT | recruitment |
 | PERFORMANCE | performance |
@@ -1401,7 +1421,34 @@ Updater endpoint: https://bantu-cloud.onrender.com/api/desktop/updates
 | SURVEYS | surveys |
 | ANALYTICS | analytics |
 
-### C. Known Technical Debt
+### C. Architecture Decisions & Patterns
+
+**Raw SQL Dual-Currency Fallback Pattern:**
+```typescript
+// PostgreSQL raw SQL returns lowercase column names.
+// Prisma ORM maps camelCase↔snake_case, but raw `SELECT ps.*` does not.
+// All raw SQL querying split-currency fields must use the fallback:
+grossUSD: r.grossusd ?? r.grossUSD ?? null,
+grossZIG: r.grosszig ?? r.grossZIG ?? null,
+```
+
+**Frontend HTML Report Handling:**
+```typescript
+// V2 report routes return HTML (c.html()) for Print→Save as PDF.
+// Frontend download helper detects content-type and opens HTML in new tab:
+const contentType = res.headers['content-type'] || '';
+if (contentType.includes('text/html')) {
+  window.open(URL.createObjectURL(new Blob([res.data], { type: 'text/html' })), '_blank');
+}
+```
+
+**Payslip Auto-Print Pattern:**
+```typescript
+// Query param `?print=1` triggers window.print() on payslip PDF page load:
+setTimeout(() => window.print(), 500);
+```
+
+### D. Known Technical Debt
 
 | Issue | Impact | Priority | Mitigation |
 |-------|--------|----------|------------|
@@ -1409,6 +1456,8 @@ Updater endpoint: https://bantu-cloud.onrender.com/api/desktop/updates
 | `Working Days Per Period` config required | Pro-rata accuracy | High | Document prominently, add validation |
 | Legacy `requirePermission` bridge | Maintenance overhead | Low | Migrate fully to RBAC module guards |
 | Backend v1/v2 dual maintenance | Feature parity effort | High | Migrate v1 routes to v2, deprecate v1 |
+| Neon/Prisma "memory access out of bounds" on CF Workers | Service disruption | High | `compatibility_date >= 2025-01-01`; avoid `nodejs_compat_v2` with `@neondatabase/serverless` |
+| Cold start latency on Neon WebSocket connection | Slow first request per isolate | Medium | Keep Worker warm or pre-warm with health check pings |
 | No E2E test suite | Regression risk | High | Add Playwright + TestSprite tests |
 | Template.db shipping with desktop app | Data freshness | Medium | Add post-install migration step |
 

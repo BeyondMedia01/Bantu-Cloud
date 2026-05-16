@@ -132,7 +132,8 @@
 | PRL-10 | NSSA (employee + employer) calculation | P0 | |
 | PRL-11 | NEC levy calculation | P0 | |
 | PRL-12 | SDF / WCIF / ZIMDEF deductions | P0 | |
-| PRL-13 | Payslip PDF generation with dual-currency breakdown | P0 | |
+| PRL-13 | Payslip PDF generation with dual-currency breakdown | P0 | HTML-rendered, browser Print→Save as PDF; `?print=1` auto-print param |
+| PRL-13a | Medical Aid Credit display | P0 | Shows in Earnings table as informational line, excluded from Running Total |
 | PRL-14 | Back pay processing | P1 | |
 | PRL-15 | Bulk pay increases | P1 | |
 | PRL-16 | Payroll variance reports (run-to-run comparison) | P1 | |
@@ -430,12 +431,85 @@ Enforced via JWT authentication + `x-company-id` header middleware. All queries 
 - React Hook Form + Zod (forms + validation)
 - Axios (HTTP client with auth interceptors)
 
-### 8.2 Page Structure
-- **Public:** Landing page, Login, Register, Setup, Accept Invite
-- **Employee:** Dashboard, Payslips, Profile, Leave
-- **Client Admin:** Dashboard, Employees, Payroll, Leave, Loans, Reports, Structure, Settings, Roles, Team
-- **Platform Admin:** Dashboard, Users, Clients, Licenses, Roles, Audit Logs, System Settings
-- **Utilities:** Transaction Codes, Back Pay, Import Earnings, Pay Increase, Period End, Biometric Devices, Payroll Calendar
+### 8.2 Page Directory
+
+#### Public (Unauthenticated)
+
+| Page | Route | Purpose |
+|------|-------|---------|
+| Landing | `/` | Marketing site, product overview, sign-up CTA |
+| Login | `/login` | Email/password authentication with company-scoped access |
+| Register | `/register` | Self-service account creation for new clients |
+| Setup | `/setup` | First-time company configuration after registration |
+| Accept Invite | `/accept-invite` | Accept user invitation to join an existing company |
+| License Expired | `/license-expired` | Notification page when subscription has lapsed |
+
+#### Employee Self-Service
+
+| Page | Route | Purpose | Module |
+|------|-------|---------|--------|
+| Dashboard | `/employee` | Personal summary: upcoming leave, recent payslips, profile status | PEOPLE, PAYROLL, TIME_LEAVE |
+| My Payslips | `/employee/payslips` | View/download personal payslips (historical) | PAYROLL |
+| My Profile | `/employee/profile` | View/edit limited personal details (banking, contact, dependants) | PEOPLE |
+| My Leave | `/employee/leave` | Submit leave requests, view balance and history | TIME_LEAVE |
+
+#### Client Admin / Company User (Core Operations)
+
+| Page | Route | Purpose | Module |
+|------|-------|---------|--------|
+| Dashboard | `/dashboard` | KPI overview: employee count, pending leaves, recent payroll runs, alerts | CROSS-MODULE |
+| Employees | `/employees` | Employee master list with search, filter, sorting; quick actions | PEOPLE |
+| Add Employee | `/employees/new` | Create new employee record (personal, employment, salary, banking) | PEOPLE |
+| Edit Employee | `/employees/:id/edit` | Full employee record management | PEOPLE |
+| Import Employees | `/employees/import` | Bulk upload CSV/Excel with column mapping, validation, error preview | PEOPLE |
+| Payroll Runs | `/payroll` | Payroll calendar: list of past/pending runs, period open/close | PAYROLL |
+| New Payroll Run | `/payroll/new` | Configure and initiate a payroll run (period, employees, currency split) | PAYROLL |
+| Payroll Detail | `/payroll/:runId` | Run summary: totals, breakdowns, preview → submit → approve → process lifecycle | PAYROLL |
+| Payslips | `/payroll/:runId/payslips` | Per-employee payslips within a run: preview, download PDF, send | PAYROLL |
+| Leave | `/leave` | Leave requests list with status (pending/approved/rejected) | TIME_LEAVE |
+| New Leave | `/leave/new` | Submit leave request for an employee | TIME_LEAVE |
+| Loans | `/loans` | Employee loan register with repayment tracking | PAYROLL |
+| New Loan | `/loans/new` | Issue a new loan (amount, repayment terms, deduction schedule) | PAYROLL |
+| Loan Detail | `/loans/:id` | Loan amortisation schedule, payment history, balance | PAYROLL |
+| Reports | `/reports` | 20+ report types: payslips, journals, EFT, tax returns, leave, loans, exports | REPORTS |
+| Subscription | `/subscription` | Plan management, billing history, seat count | PLATFORM |
+| Licence | `/license` | Current license details, expiry, active user count | PLATFORM |
+
+#### Client Admin Only (Administration)
+
+| Page | Route | Purpose | Module |
+|------|-------|---------|--------|
+| Org Structure | `/client-admin/structure` | Company hierarchy editor: Branches, Departments, SubCompanies | PEOPLE |
+| Settings | `/client-admin/settings` | Company-level defaults: currency, tax methods, payroll preferences | SETTINGS |
+| Role Builder | `/client-admin/roles` | Custom RBAC role creation: 15 modules × 7 actions per role | PLATFORM |
+| User Management | `/client-admin/users` | Invite/manage company users, assign roles | PLATFORM |
+
+#### Utilities
+
+| Page | Route | Purpose | Module |
+|------|-------|---------|--------|
+| Utilities Hub | `/utilities` | Overview/index of all utility tools | VARIOUS |
+| Transaction Codes | `/utilities/transactions` | Define EARNING/DEDUCTION/BENEFIT codes with calculation rules | PAYROLL |
+| Back Pay | `/utilities/back-pay` | Retroactive pay adjustments for previous periods | PAYROLL |
+| Import Earnings | `/utilities/import-earnings` | Bulk import one-time earnings/deductions (bonuses, penalties) | PAYROLL |
+| Pay Increase | `/utilities/pay-increase` | Mass salary adjustment: % or fixed amount, effective date | PEOPLE |
+| Period End | `/utilities/period-end` | Close current payroll period, open next; enforces cut-off | PAYROLL |
+| Biometric Devices | `/utilities/devices` | Register/manage ZKTeco/Hikvision devices, test connection | TIME_LEAVE |
+| Payroll Calendar | `/utilities/payroll-calendar` | Define pay periods, frequencies, and run schedules | PAYROLL |
+| Currency Rates | `/utilities/currency-rates` | Manage USD/ZiG exchange rates with effective dating | SETTINGS |
+| Holidays | `/utilities/holidays` | Manage public holiday calendar for attendance/OT rules | TIME_LEAVE |
+
+#### Platform Admin (Bantu Internal)
+
+| Page | Route | Purpose | Module |
+|------|-------|---------|--------|
+| Admin Dashboard | `/admin` | Global metrics: total clients, users, licenses, system health | PLATFORM |
+| Users | `/admin/users` | All users across all clients; search, disable, impersonate | PLATFORM |
+| Clients | `/admin/clients` | Client lifecycle: create, suspend, configure, view activity | PLATFORM |
+| Licences | `/admin/licenses` | License keys, seat counts, expiry management, provisioning | PLATFORM |
+| Roles | `/admin/roles` | Global role templates available to all clients | PLATFORM |
+| Audit Logs | `/admin/logs` | System-wide audit trail of state-changing operations | PLATFORM |
+| System Settings | `/admin/settings` | Global configuration: tax rates, NSSA thresholds, system defaults | SETTINGS |
 
 ### 8.3 Key Components
 - `AppShell.tsx` — Main layout with dynamic sidebar nav (filtered by permissions)
@@ -573,6 +647,7 @@ Enforced via JWT authentication + `x-company-id` header middleware. All queries 
 ### B. Known Issues
 - ZiG basic salary may display rounding artifacts (e.g., `2,999.99` vs `3,000.00`) due to floating-point math in payroll engine
 - "Working Days Per Period" configuration is critical for pro-rata calculations
+- Neon/Prisma WebSocket adapter may throw "memory access out of bounds" on CF Workers with `compatibility_date` older than `2025-01-01` — fixed by updating compat date
 
 ### C. File Organization
 ```

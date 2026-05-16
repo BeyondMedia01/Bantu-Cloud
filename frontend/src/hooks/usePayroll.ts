@@ -39,7 +39,37 @@ export function useProcessPayroll() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (runId: string) => PayrollAPI.process(runId),
-    onSuccess: () => {
+    onMutate: async (runId) => {
+      await qc.cancelQueries({ queryKey: payrollKeys.all() });
+
+      const previousList = qc.getQueriesData<PayrollRun[]>({ queryKey: payrollKeys.list() });
+      const previousDetail = qc.getQueryData<PayrollRun>(payrollKeys.detail(runId));
+
+      qc.setQueriesData<PayrollRun[]>({ queryKey: payrollKeys.list() }, (old) => {
+        if (!old) return old;
+        return old.map((r) => (r.id === runId ? { ...r, status: 'PROCESSED' } : r));
+      });
+      qc.setQueryData<PayrollRun>(payrollKeys.detail(runId), (old) => {
+        if (!old) return old;
+        return { ...old, status: 'PROCESSED' };
+      });
+
+      return { previousList, previousDetail };
+    },
+    onError: (_err, runId, context) => {
+      if (!context) return;
+      const { previousList, previousDetail } = context as {
+        previousList: [unknown, PayrollRun[] | undefined][];
+        previousDetail: PayrollRun | undefined;
+      };
+      for (const [key, data] of previousList) {
+        qc.setQueryData(key, data);
+      }
+      if (previousDetail) {
+        qc.setQueryData(payrollKeys.detail(runId), previousDetail);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: payrollKeys.all() });
     },
   });

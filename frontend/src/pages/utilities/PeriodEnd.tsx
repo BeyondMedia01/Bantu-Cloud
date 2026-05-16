@@ -104,7 +104,7 @@ const PeriodEnd: React.FC = () => {
           <div>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Select Payroll Period *</label>
             <Dropdown className="w-full" trigger={(isOpen) => {
-              const cal = (calendars as any[]).find(c => c.id === selectedId);
+              const cal = calendars.find((c: any) => c.id === selectedId);
               const label = cal ? `${cal.isClosed ? '🔒 ' : ''}${cal.periodType} — ${new Date(cal.startDate).toLocaleDateString()} to ${new Date(cal.endDate).toLocaleDateString()}` : 'Choose an open period…';
               return (
                 <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-muted border border-border rounded-xl font-medium text-sm hover:border-accent-green transition-colors">
@@ -114,7 +114,7 @@ const PeriodEnd: React.FC = () => {
               );
             }} sections={[{ items: [
               { label: 'Choose an open period…', onClick: () => checkStatus('') },
-              ...(calendars as any[]).map(c => ({ label: `${c.isClosed ? '🔒 ' : ''}${c.periodType} — ${new Date(c.startDate).toLocaleDateString()} to ${new Date(c.endDate).toLocaleDateString()}`, onClick: () => checkStatus(c.id) }))
+              ...calendars.map((c: any) => ({ label: `${c.isClosed ? '🔒 ' : ''}${c.periodType} — ${new Date(c.startDate).toLocaleDateString()} to ${new Date(c.endDate).toLocaleDateString()}`, onClick: () => checkStatus(c.id) }))
             ]}]} />
           </div>
 

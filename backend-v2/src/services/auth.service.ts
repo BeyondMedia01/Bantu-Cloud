@@ -2,9 +2,10 @@ import bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { UserRole } from '@prisma/client';
 import { prisma } from '../lib/prisma';
-import { signToken } from '../lib/auth';
+import { signToken, createRefreshToken } from '../lib/auth';
 import { validateLicense } from '../lib/license';
 import { sendPasswordReset } from '../lib/mailer';
+import { generateSecret, verifyTOTP, totpUri } from '../lib/totp';
 
 const MAX_LOGIN_ATTEMPTS = 3;
 const LOCKOUT_MS = 15 * 60 * 1000;
@@ -47,8 +48,11 @@ export async function register(data: {
     },
   });
 
-  const token = await signToken({ userId: user.id, email: user.email, role: user.role, clientId: licenseResult.license.clientId });
-  return { token, role: user.role, clientId: licenseResult.license.clientId };
+  const [token, refreshToken] = await Promise.all([
+    signToken({ userId: user.id, email: user.email, role: user.role, clientId: licenseResult.license.clientId }),
+    createRefreshToken(user.id),
+  ]);
+  return { token, refreshToken, role: user.role, clientId: licenseResult.license.clientId };
 }
 
 export async function login(email: string, password: string) {
@@ -98,8 +102,82 @@ export async function login(email: string, password: string) {
   const companyId = user.employee?.companyId ?? null;
   const employeeId = user.employee?.id ?? null;
 
-  const token = await signToken({ userId: user.id, email: user.email, role: user.role, clientId: clientId ?? undefined, companyId: companyId ?? undefined, employeeId: employeeId ?? undefined });
-  return { token, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User' };
+  if (user.totpEnabled && user.totpSecret) {
+    const tempToken = await signToken(
+      { userId: user.id, email: user.email, role: user.role, clientId: clientId ?? undefined, companyId: companyId ?? undefined, employeeId: employeeId ?? undefined, pending2fa: true },
+      5 * 60,
+    );
+    return { requiresTwoFactor: true, tempToken };
+  }
+
+  const [token, refreshToken] = await Promise.all([
+    signToken({ userId: user.id, email: user.email, role: user.role, clientId: clientId ?? undefined, companyId: companyId ?? undefined, employeeId: employeeId ?? undefined }),
+    createRefreshToken(user.id),
+  ]);
+  return { token, refreshToken, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User' };
+}
+
+export async function completeTwoFactorLogin(userId: string, code: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      clientAdmin: true,
+      employee: { select: { id: true, companyId: true, clientId: true } },
+    },
+  });
+
+  if (!user || !user.totpEnabled || !user.totpSecret) {
+    throw Object.assign(new Error('2FA not configured'), { status: 400 });
+  }
+
+  const valid = await verifyTOTP(user.totpSecret, code);
+  if (!valid) throw Object.assign(new Error('Invalid authenticator code'), { status: 401 });
+
+  const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
+  const companyId = user.employee?.companyId ?? null;
+  const employeeId = user.employee?.id ?? null;
+
+  const [token, refreshToken] = await Promise.all([
+    signToken({ userId: user.id, email: user.email, role: user.role, clientId: clientId ?? undefined, companyId: companyId ?? undefined, employeeId: employeeId ?? undefined }),
+    createRefreshToken(user.id),
+  ]);
+  return { token, refreshToken, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User' };
+}
+
+export async function setupTOTP(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, totpEnabled: true } });
+  if (!user) throw Object.assign(new Error('User not found'), { status: 404 });
+  if (user.totpEnabled) throw Object.assign(new Error('2FA is already enabled'), { status: 409 });
+
+  const secret = generateSecret();
+  await prisma.user.update({ where: { id: userId }, data: { totpSecret: secret } });
+
+  return { secret, uri: totpUri(secret, user.email) };
+}
+
+export async function enableTOTP(userId: string, code: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { totpSecret: true, totpEnabled: true } });
+  if (!user?.totpSecret) throw Object.assign(new Error('Call setup first'), { status: 400 });
+  if (user.totpEnabled) throw Object.assign(new Error('2FA is already enabled'), { status: 409 });
+
+  const valid = await verifyTOTP(user.totpSecret, code);
+  if (!valid) throw Object.assign(new Error('Invalid authenticator code'), { status: 401 });
+
+  await prisma.user.update({ where: { id: userId }, data: { totpEnabled: true } });
+}
+
+export async function disableTOTP(userId: string, password: string, code: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { password: true, totpSecret: true, totpEnabled: true } });
+  if (!user) throw Object.assign(new Error('User not found'), { status: 404 });
+  if (!user.totpEnabled) throw Object.assign(new Error('2FA is not enabled'), { status: 400 });
+
+  const passOk = await bcrypt.compare(password, user.password);
+  if (!passOk) throw Object.assign(new Error('Invalid password'), { status: 401 });
+
+  const valid = await verifyTOTP(user.totpSecret!, code);
+  if (!valid) throw Object.assign(new Error('Invalid authenticator code'), { status: 401 });
+
+  await prisma.user.update({ where: { id: userId }, data: { totpEnabled: false, totpSecret: null } });
 }
 
 export async function forgotPassword(email: string, frontendUrl?: string) {
@@ -187,15 +265,12 @@ export async function trialSignup(data: {
     },
   });
 
-  const jwt = await signToken({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-    clientId: client.id,
-    companyId: company.id,
-  });
+  const [jwt, refreshToken] = await Promise.all([
+    signToken({ userId: user.id, email: user.email, role: user.role, clientId: client.id, companyId: company.id }),
+    createRefreshToken(user.id),
+  ]);
 
-  return { token: jwt, role: user.role, clientId: client.id, companyId: company.id, name: fullName };
+  return { token: jwt, refreshToken, role: user.role, clientId: client.id, companyId: company.id, name: fullName };
 }
 
 export async function syncCredentials(data: {

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { denyUnlessCompany } from '../lib/ownership';
+import { validateBody } from '../lib/validate';
 
 const router = new Hono();
 
@@ -26,11 +27,19 @@ const createSchema = z.object({
   canExportData: z.boolean().default(false),
 });
 
-router.post('/', requirePermission('manage_employees'), async (c) => {
+const updateSchema = z.object({
+  fullName: z.string().min(1).optional(),
+  role: z.enum(['ADMIN', 'PAYROLL_OFFICER', 'AUDITOR', 'VIEWER']).optional(),
+  canProcessPayroll: z.boolean().optional(),
+  canEditEmployees: z.boolean().optional(),
+  canViewReports: z.boolean().optional(),
+  canExportData: z.boolean().optional(),
+});
+
+router.post('/', requirePermission('manage_employees'), validateBody(createSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
-  const body = await c.req.json();
-  const parsed = createSchema.parse(body);
+  const parsed = c.req.valid('json' as any);
   const existing = await prisma.payrollUser.findFirst({
     where: { companyId, email: parsed.email },
   });
@@ -51,24 +60,18 @@ router.post('/', requirePermission('manage_employees'), async (c) => {
   return c.json(user, 201);
 });
 
-router.patch('/:id', requirePermission('manage_employees'), async (c) => {
-  const companyId = c.get('companyId');
+router.patch('/:id', requirePermission('manage_employees'), validateBody(updateSchema), async (c) => {
   const existing = await prisma.payrollUser.findUnique({ where: { id: c.req.param('id') } });
   if (!existing) return c.json({ message: 'User not found' }, 404);
   if (!denyUnlessCompany(c, existing)) return c.json({ message: 'Access denied' }, 403);
 
-  const body = await c.req.json();
-  const isAdmin = body.role === 'ADMIN';
-  if (isAdmin) {
-    body.canProcessPayroll = true;
-    body.canEditEmployees = true;
-    body.canViewReports = true;
-    body.canExportData = true;
-  }
-  const user = await prisma.payrollUser.update({
-    where: { id: c.req.param('id') },
-    data: body,
-  });
+  const parsed = c.req.valid('json' as any);
+  const isAdmin = parsed.role === 'ADMIN';
+  const data = {
+    ...parsed,
+    ...(isAdmin && { canProcessPayroll: true, canEditEmployees: true, canViewReports: true, canExportData: true }),
+  };
+  const user = await prisma.payrollUser.update({ where: { id: c.req.param('id') }, data });
   return c.json(user);
 });
 

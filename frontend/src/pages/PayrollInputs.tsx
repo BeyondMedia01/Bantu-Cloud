@@ -59,9 +59,9 @@ const PayrollInputs: React.FC = () => {
         TransactionCodeAPI.getAll(),
         PayrollAPI.getAll(),
       ]);
-      setEmployees((empRes.data as any).data || empRes.data);
+      setEmployees(empRes.data.data ?? empRes.data);
       setTxCodes(txRes.data);
-      const runData = (runRes.data as any).data || runRes.data;
+      const runData = runRes.data.data ?? runRes.data;
       setRuns(runData.filter((r: any) => r.status !== 'COMPLETED'));
     } catch {
       // silent
