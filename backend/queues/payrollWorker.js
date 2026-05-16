@@ -224,8 +224,8 @@ async function processPayrollRun(job) {
   });
   await job.updateProgress(25);
 
-  // Adjustments are not available in worker context (the run was already approved when queued)
-  const adjustments = {};
+  // Per-employee adjustments passed in the job payload by POST /process
+  const adjustments = job.data.adjustments || {};
 
   if ((run.dualCurrency || run.currency === 'ZiG') && !(run.exchangeRate > 1)) {
     console.warn(`[PAYROLL] Run ${run.id} is ZiG/dual but exchangeRate is ${run.exchangeRate} — falling back to 1. All ZiG conversions will be wrong.`);
