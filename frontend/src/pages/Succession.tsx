@@ -37,7 +37,7 @@ const Succession: React.FC = () => {
   // Add candidate
   const [showCandidate, setShowCandidate] = useState(false);
   const [candPlanId, _setCandPlanId] = useState('');
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees] = useState<any[]>([]);
   const [cEmp, setCEmp] = useState('');
   const [cReadiness, setCReadiness] = useState('READY_1_2_YEARS');
   const [cRating, setCRating] = useState(3);
