@@ -110,6 +110,11 @@ app.use('/api/biometric', deviceLimiter, require('./routes/biometric'));
 // Desktop download redirect (public — no auth needed)
 app.use('/api/desktop', require('./routes/download'));
 
+// ─── Bull Board Admin UI (PLATFORM_ADMIN protected, handles its own auth) ──────
+
+const { bullBoardRouter, requirePlatformAdmin } = require('./admin/bullBoard');
+app.use('/admin/queues', requirePlatformAdmin, bullBoardRouter);
+
 // ─── Protected Routes (auth + company context required) ──────────────────────
 
 app.use(authenticateToken);
