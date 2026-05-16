@@ -12,6 +12,33 @@ const { payslipToBuffer, buildPayslipLineItems } = require('../utils/payslipForm
 const router = express.Router();
 router.use(requireModule('PAYROLL'));
 
+// GET /api/payroll/:runId/status — lightweight polling endpoint for job progress
+router.get('/:runId/status', async (req, res) => {
+  const { runId } = req.params;
+  if (!req.companyId) return res.status(400).json({ message: 'x-company-id header required' });
+
+  try {
+    const run = await prisma.payrollRun.findUnique({
+      where: { id: runId, companyId: req.companyId },
+      select: {
+        id: true,
+        status: true,
+        progress: true,
+        employeesProcessed: true,
+        totalEmployees: true,
+        errorMessage: true,
+        jobId: true,
+      },
+    });
+
+    if (!run) return res.status(404).json({ message: 'Payroll run not found' });
+
+    res.json(run);
+  } catch (err) {
+    console.error('[Payroll] Status error:', err);
+    res.status(500).json({ message: 'Failed to fetch run status' });
+  }
+});
 
 // --- Sub-Routers ---
 router.use('/', require('./payroll/process'));
