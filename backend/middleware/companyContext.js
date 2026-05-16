@@ -59,10 +59,21 @@ const companyContext = async (req, res, next) => {
     if (role === 'COMPANY_USER') {
       const clientIdFromToken = req.user.clientId;
       if (!clientIdFromToken) return res.status(403).json({ message: 'Access denied' });
+
+      // Verify the company belongs to the user's client
       const company = await prisma.company.findUnique({ where: { id: companyId }, select: { clientId: true } });
       if (!company || company.clientId !== clientIdFromToken) {
         return res.status(403).json({ message: 'Access denied: company does not belong to your client' });
       }
+
+      // Verify the user is actually assigned to this specific company via a role
+      const assignment = await prisma.userCompanyRole.findFirst({
+        where: { userId, companyId },
+      });
+      if (!assignment) {
+        return res.status(403).json({ message: 'Access denied: not assigned to this company' });
+      }
+
       req.companyId = companyId;
       req.clientId = clientIdFromToken;
       return next();

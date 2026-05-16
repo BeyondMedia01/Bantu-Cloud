@@ -2,13 +2,61 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
-const { signToken } = require('../lib/auth');
+const { signToken, authenticateToken } = require('../lib/auth');
 const { validateLicense } = require('../lib/license');
 const { sendPasswordReset } = require('../lib/mailer');
 
 const router = express.Router();
 
-// POST /api/auth/register — CLIENT_ADMIN registration with license token
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_BASE_MS    = 15 * 60 * 1000; // 15 min, doubles with each over-limit attempt
+const REFRESH_TTL_MS     = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+/** HMAC-SHA256 tied to JWT_SECRET — avoids plain-SHA256 rainbow-table risk. */
+function hmacToken(raw) {
+  return crypto.createHmac('sha256', process.env.JWT_SECRET).update(raw).digest('hex');
+}
+
+/** Issue a new opaque refresh token, persist its HMAC, return the raw value. */
+async function rotateRefreshToken(userId) {
+  const raw = crypto.randomBytes(32).toString('hex');
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      refreshToken:       hmacToken(raw),
+      refreshTokenExpiry: new Date(Date.now() + REFRESH_TTL_MS),
+    },
+  });
+  return raw;
+}
+
+/** Write the httpOnly refresh-token cookie to the response. */
+function setRefreshCookie(res, raw) {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.cookie('bantu_rt', raw, {
+    httpOnly: true,
+    secure:   isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    maxAge:   REFRESH_TTL_MS,
+    path:     '/api/auth',          // cookie is only sent to /api/auth/* routes
+  });
+}
+
+/** Clear the refresh-token cookie. */
+function clearRefreshCookie(res) {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('bantu_rt', {
+    httpOnly: true,
+    secure:   isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    path:     '/api/auth',
+  });
+}
+
+// ─── POST /api/auth/register ─────────────────────────────────────────────────
+
 router.post('/register', async (req, res) => {
   const { firstName, lastName, phone, email, password, licenseToken } = req.body;
 
@@ -16,7 +64,6 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ message: 'firstName, lastName, email, password, and licenseToken are required' });
   }
 
-  // Email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ message: 'Invalid email format' });
@@ -39,19 +86,23 @@ router.post('/register', async (req, res) => {
     const user = await prisma.user.create({
       data: {
         firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        name: fullName,
-        phone: phone?.trim() || null,
+        lastName:  lastName.trim(),
+        name:      fullName,
+        phone:     phone?.trim() || null,
         email,
-        password: hashedPassword,
-        role: 'CLIENT_ADMIN',
+        password:  hashedPassword,
+        role:      'CLIENT_ADMIN',
         clientAdmin: { create: { clientId: license.clientId } },
       },
     });
 
-    const freshClient = await prisma.client.findUnique({ where: { id: license.clientId }, select: { enabledModules: true } });
+    const freshClient    = await prisma.client.findUnique({ where: { id: license.clientId }, select: { enabledModules: true } });
     const enabledModules = freshClient?.enabledModules ?? null;
-    const token = await signToken({ userId: user.id, role: user.role, clientId: license.clientId, enabledModules });
+    const token          = await signToken({ userId: user.id, role: user.role, clientId: license.clientId, enabledModules });
+
+    const raw = await rotateRefreshToken(user.id);
+    setRefreshCookie(res, raw);
+
     res.status(201).json({ token, role: user.role, clientId: license.clientId });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -62,23 +113,12 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Per-account lockout: 3 failed attempts → 15-minute lockout
-const loginFailures = new Map(); // email → { count, lockedUntil }
-const MAX_LOGIN_ATTEMPTS = 3;
-const LOCKOUT_MS = 15 * 60 * 1000;
+// ─── POST /api/auth/login ─────────────────────────────────────────────────────
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: 'email and password are required' });
-  }
-
-  // Check per-account lockout
-  const failure = loginFailures.get(email);
-  if (failure?.lockedUntil && failure.lockedUntil > Date.now()) {
-    const remaining = Math.ceil((failure.lockedUntil - Date.now()) / 60000);
-    return res.status(429).json({ message: `Account temporarily locked. Try again in ${remaining} minute(s).` });
   }
 
   try {
@@ -92,28 +132,48 @@ router.post('/login', async (req, res) => {
 
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
+    // Database-backed lockout (survives restarts and works across instances)
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const remaining = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      return res.status(429).json({ message: `Account locked. Try again in ${remaining} minute(s).` });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      const rec = loginFailures.get(email) || { count: 0, lockedUntil: null };
-      rec.count += 1;
-      if (rec.count >= MAX_LOGIN_ATTEMPTS) {
-        rec.lockedUntil = Date.now() + LOCKOUT_MS;
-        rec.count = 0;
-      }
-      loginFailures.set(email, rec);
+      const attempts  = user.loginAttempts + 1;
+      const overLimit = Math.max(0, attempts - MAX_LOGIN_ATTEMPTS);
+      const lockUntil = attempts >= MAX_LOGIN_ATTEMPTS
+        ? new Date(Date.now() + LOCKOUT_BASE_MS * Math.pow(2, overLimit))
+        : null;
+      await prisma.user.update({
+        where: { id: user.id },
+        data:  { loginAttempts: attempts, lockedUntil: lockUntil },
+      });
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Successful login — clear any failure record
-    loginFailures.delete(email);
+    // Success — clear lockout counters
+    await prisma.user.update({
+      where: { id: user.id },
+      data:  { loginAttempts: 0, lockedUntil: null },
+    });
 
-    // Desktop builds are CLIENT_ADMIN only — PLATFORM_ADMIN accounts are cloud-only
     if (process.env.APP_MODE === 'desktop' && user.role === 'PLATFORM_ADMIN') {
       return res.status(403).json({ message: 'Platform admin accounts cannot log in on the desktop app' });
     }
 
-    const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
-    const companyId = user.employee?.companyId ?? null;
+    // 2FA check — if enabled, issue a short-lived temp token instead
+    if (user.totpEnabled) {
+      const tempToken = crypto.randomBytes(16).toString('hex');
+      await prisma.user.update({
+        where: { id: user.id },
+        data:  { passwordResetToken: `2fa:${tempToken}`, passwordResetExpiry: new Date(Date.now() + 5 * 60 * 1000) },
+      });
+      return res.json({ requires2FA: true, tempToken });
+    }
+
+    const clientId   = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
+    const companyId  = user.employee?.companyId ?? null;
     const employeeId = user.employee?.id ?? null;
 
     let enabledModules = null;
@@ -123,20 +183,136 @@ router.post('/login', async (req, res) => {
     }
 
     const token = await signToken({ userId: user.id, role: user.role, clientId, companyId, employeeId, enabledModules });
-    res.json({ token, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User' });
+    const raw   = await rotateRefreshToken(user.id);
+    setRefreshCookie(res, raw);
+
+    res.json({ token, role: user.role, clientId, companyId, employeeId, name: user.name ?? 'User', userId: user.id });
   } catch (error) {
-    console.error('Login error details:', {
-      message: error.message,
-      code: error.code,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-    });
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Login failed' });
   }
 });
 
-// POST /api/auth/forgot-password
-// Generates a reset token and emails a link. Always returns 200 to prevent
-// email enumeration — callers can't tell if the address exists or not.
+// ─── POST /api/auth/2fa/authenticate ─────────────────────────────────────────
+
+router.post('/2fa/authenticate', async (req, res) => {
+  const { tempToken, code } = req.body;
+  if (!tempToken || !code) return res.status(400).json({ message: 'tempToken and code are required' });
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        passwordResetToken: `2fa:${tempToken}`,
+        passwordResetExpiry: { gt: new Date() },
+      },
+      include: {
+        clientAdmin: true,
+        employee: { select: { id: true, companyId: true, clientId: true } },
+      },
+    });
+
+    if (!user) return res.status(401).json({ message: 'Invalid or expired 2FA session' });
+
+    // Verify TOTP code
+    const speakeasy = require('speakeasy');
+    const verified = speakeasy.totp.verify({
+      secret:   user.totpSecret,
+      encoding: 'base32',
+      token:    code,
+      window:   1,
+    });
+
+    if (!verified) return res.status(401).json({ message: 'Invalid 2FA code' });
+
+    // Clear the temp token
+    await prisma.user.update({
+      where: { id: user.id },
+      data:  { passwordResetToken: null, passwordResetExpiry: null },
+    });
+
+    const clientId   = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
+    const companyId  = user.employee?.companyId ?? null;
+    const employeeId = user.employee?.id ?? null;
+
+    let enabledModules = null;
+    if (clientId) {
+      const client = await prisma.client.findUnique({ where: { id: clientId }, select: { enabledModules: true } });
+      enabledModules = client?.enabledModules ?? null;
+    }
+
+    const token = await signToken({ userId: user.id, role: user.role, clientId, companyId, employeeId, enabledModules });
+    const raw   = await rotateRefreshToken(user.id);
+    setRefreshCookie(res, raw);
+
+    res.json({ token, role: user.role, clientId, companyId, employeeId, userId: user.id });
+  } catch (error) {
+    console.error('2FA error:', error);
+    res.status(500).json({ message: '2FA verification failed' });
+  }
+});
+
+// ─── POST /api/auth/refresh ───────────────────────────────────────────────────
+
+router.post('/refresh', async (req, res) => {
+  const rawToken = req.cookies?.bantu_rt;
+  if (!rawToken) return res.status(401).json({ message: 'No refresh token' });
+
+  try {
+    const hashed = hmacToken(rawToken);
+    const user   = await prisma.user.findFirst({
+      where: { refreshToken: hashed },
+      include: {
+        clientAdmin: true,
+        employee: { select: { id: true, companyId: true, clientId: true } },
+      },
+    });
+
+    if (!user || !user.refreshTokenExpiry || user.refreshTokenExpiry < new Date()) {
+      clearRefreshCookie(res);
+      return res.status(401).json({ message: 'Refresh token invalid or expired' });
+    }
+
+    const clientId   = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
+    const companyId  = user.employee?.companyId ?? null;
+    const employeeId = user.employee?.id ?? null;
+
+    let enabledModules = null;
+    if (clientId) {
+      const client = await prisma.client.findUnique({ where: { id: clientId }, select: { enabledModules: true } });
+      enabledModules = client?.enabledModules ?? null;
+    }
+
+    const token = await signToken({ userId: user.id, role: user.role, clientId, companyId, employeeId, enabledModules });
+    const raw   = await rotateRefreshToken(user.id);   // rotate every time
+    setRefreshCookie(res, raw);
+
+    res.json({ token, role: user.role, clientId, companyId, employeeId, userId: user.id });
+  } catch (error) {
+    console.error('Refresh error:', error);
+    res.status(500).json({ message: 'Refresh failed' });
+  }
+});
+
+// ─── POST /api/auth/logout ────────────────────────────────────────────────────
+
+router.post('/logout', authenticateToken, async (req, res) => {
+  try {
+    await prisma.$transaction([
+      prisma.session.deleteMany({ where: { userId: req.user.userId } }),
+      prisma.user.update({
+        where: { id: req.user.userId },
+        data:  { refreshToken: null, refreshTokenExpiry: null },
+      }),
+    ]);
+  } catch {
+    // best-effort — clear cookie regardless
+  }
+  clearRefreshCookie(res);
+  res.json({ message: 'Logged out' });
+});
+
+// ─── POST /api/auth/forgot-password ──────────────────────────────────────────
+
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: 'email is required' });
@@ -144,14 +320,13 @@ router.post('/forgot-password', async (req, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (user) {
-      const rawToken = crypto.randomBytes(32).toString('hex');
-      // Point #5: Store hashed reset token
-      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
-      const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      const rawToken   = crypto.randomBytes(32).toString('hex');
+      const hashedToken = hmacToken(rawToken);   // HMAC instead of plain SHA-256
+      const expiry     = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
       await prisma.user.update({
         where: { id: user.id },
-        data: { passwordResetToken: hashedToken, passwordResetExpiry: expiry },
+        data:  { passwordResetToken: hashedToken, passwordResetExpiry: expiry },
       });
 
       const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${rawToken}`;
@@ -164,7 +339,8 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// POST /api/auth/reset-password
+// ─── POST /api/auth/reset-password ───────────────────────────────────────────
+
 router.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) {
@@ -175,9 +351,8 @@ router.post('/reset-password', async (req, res) => {
   }
 
   try {
-    // Point #5: Hash incoming token to compare
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-    const user = await prisma.user.findUnique({ where: { passwordResetToken: hashedToken } });
+    const hashedToken = hmacToken(token);
+    const user        = await prisma.user.findUnique({ where: { passwordResetToken: hashedToken } });
 
     if (!user || !user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
       return res.status(400).json({ message: 'Reset link is invalid or has expired' });
@@ -189,25 +364,26 @@ router.post('/reset-password', async (req, res) => {
       prisma.user.update({
         where: { id: user.id },
         data: {
-          password: hashedPassword,
+          password:           hashedPassword,
           passwordResetToken: null,
           passwordResetExpiry: null,
+          refreshToken:       null,    // revoke all refresh tokens
+          refreshTokenExpiry: null,
         },
       }),
-      // Point #3: Invalidate all existing sessions (revokes existing JWTs)
       prisma.session.deleteMany({ where: { userId: user.id } }),
     ]);
 
-    res.json({ message: 'Password updated successfully. All other devices have been logged out. You can now log in.' });
+    clearRefreshCookie(res);
+    res.json({ message: 'Password updated. All other devices have been logged out. You can now log in.' });
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ message: 'Failed to reset password' });
   }
 });
 
-// POST /api/auth/sync — Desktop-only: sync user credentials to local SQLite after successful cloud login.
-// This allows offline login via the sidecar when the cloud is unreachable.
-// Only accessible when APP_MODE=desktop (sidecar mode) to prevent abuse on the cloud server.
+// ─── POST /api/auth/sync (desktop-only) ──────────────────────────────────────
+
 router.post('/sync', async (req, res) => {
   if (process.env.APP_MODE !== 'desktop') {
     return res.status(404).json({ message: 'Not found' });
@@ -223,33 +399,32 @@ router.post('/sync', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.upsert({
-      where: { email },
+      where:  { email },
       update: {
-        password: hashedPassword,
-        name: name || undefined,
+        password:  hashedPassword,
+        name:      name || undefined,
         firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        role: role || undefined,
+        lastName:  lastName || undefined,
+        role:      role || undefined,
       },
       create: {
         email,
-        password: hashedPassword,
-        name: name || email,
+        password:  hashedPassword,
+        name:      name || email,
         firstName: firstName || name || email,
-        lastName: lastName || '',
-        role: role || 'CLIENT_ADMIN',
+        lastName:  lastName || '',
+        role:      role || 'CLIENT_ADMIN',
       },
     });
 
-    // Persist the client association so offline login can derive clientId correctly.
     if (clientId) {
       await prisma.client.upsert({
-        where: { id: clientId },
+        where:  { id: clientId },
         update: {},
         create: { id: clientId, name: name || email },
       });
       await prisma.clientAdmin.upsert({
-        where: { userId: user.id },
+        where:  { userId: user.id },
         update: { clientId },
         create: { userId: user.id, clientId },
       });

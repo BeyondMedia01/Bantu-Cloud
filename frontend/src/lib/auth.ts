@@ -2,8 +2,8 @@ const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__
 
 let _token: string | null = null;
 const STORAGE_KEY = 'bantu_auth_token';
-const REFRESH_TOKEN_KEY = 'bantu_refresh_token';
 const USER_ID_KEY = 'bantu_user_id';
+// Refresh token is stored as an httpOnly cookie by the server — never in JS storage.
 
 export type AppModule = 'PEOPLE' | 'TIME_LEAVE' | 'PAYROLL' | 'COMPLIANCE' | 'REPORTS' | 'SETTINGS' | 'RECRUITMENT' | 'PERFORMANCE' | 'EXPENSES' | 'ONBOARDING' | 'TRAINING' | 'ASSETS' | 'SUCCESSION' | 'SURVEYS' | 'ANALYTICS';
 export type ModuleAction = 'VIEW' | 'EDIT' | 'DELETE' | 'APPROVE' | 'EXPORT' | 'RUN' | 'CONFIGURE';
@@ -43,7 +43,13 @@ export function getUser(): AuthUser | null {
   const user = parseJwt(token);
   if (!user) return null;
   if (user.exp && user.exp * 1000 < Date.now()) {
-    logout();
+    // Local-only clear — don't fire the async backend call from a sync getter
+    _token = null;
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('activeCompanyId');
+    sessionStorage.removeItem('activeClientId');
+    localStorage.removeItem('bantu_auth_token');
+    localStorage.removeItem('bantu_user_id');
     return null;
   }
   return user;
@@ -57,29 +63,35 @@ export function getUserRole(): AuthUser['role'] | null {
   return getUser()?.role ?? null;
 }
 
-export function getRefreshToken(): string | null {
-  return IS_DESKTOP ? null : localStorage.getItem(REFRESH_TOKEN_KEY);
-}
-
 export function getStoredUserId(): string | null {
   return localStorage.getItem(USER_ID_KEY);
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
+  // Tell the server to revoke the session and clear the httpOnly refresh cookie.
+  const token = getToken();
+  if (token && !IS_DESKTOP) {
+    try {
+      await fetch(`${(import.meta.env.VITE_API_URL ?? 'http://localhost:5005').replace(/\/api\/?$/, '').replace(/\/+$/, '')}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch { /* best-effort */ }
+  }
   _token = null;
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('activeCompanyId');
   sessionStorage.removeItem('activeClientId');
   if (!IS_DESKTOP) {
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_ID_KEY);
   } else {
     import('@tauri-apps/api/core').then(m => m.invoke('clear_license_token')).catch(() => {});
   }
 }
 
-export function saveAuthData(token: string, companyId?: string, refreshToken?: string, userId?: string): void {
+export function saveAuthData(token: string, companyId?: string, _refreshToken?: string, userId?: string): void {
   _token = token;
   if (companyId) {
     sessionStorage.setItem('activeCompanyId', companyId);
@@ -88,7 +100,7 @@ export function saveAuthData(token: string, companyId?: string, refreshToken?: s
   }
   if (!IS_DESKTOP) {
     localStorage.setItem(STORAGE_KEY, token);
-    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    // refreshToken is now an httpOnly cookie set by the server — not stored in JS.
     if (userId) localStorage.setItem(USER_ID_KEY, userId);
   } else {
     sessionStorage.setItem('token', token);

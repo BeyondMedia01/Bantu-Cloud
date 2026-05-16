@@ -105,7 +105,7 @@ const AppShell: React.FC = () => {
 
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => { logout().finally(() => navigate('/login')); };
 
   const handleCheckUpdates = async () => {
     if (!IS_DESKTOP) return;

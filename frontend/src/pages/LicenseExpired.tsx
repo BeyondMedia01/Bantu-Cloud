@@ -6,10 +6,7 @@ import { logout } from '../lib/auth';
 const LicenseExpired: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const handleLogout = () => { logout().finally(() => navigate('/login')); };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 font-inter text-center">

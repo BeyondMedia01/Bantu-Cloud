@@ -3,19 +3,16 @@ const crypto = require('crypto');
 const prisma = require('./prisma');
 const { resolvePermissions } = require('./permissions.js');
 
-const SKIP_VERIFY = process.env.AUTH_SKIP_VERIFY === 'true';
-const SECRET = SKIP_VERIFY ? 'desktop-dummy-secret' : process.env.JWT_SECRET;
+const SECRET = process.env.JWT_SECRET;
 
-if (!SECRET && !SKIP_VERIFY) {
-  console.error('FATAL: JWT_SECRET environment variable is not set. Refusing to start.');
+if (!SECRET || SECRET.length < 32) {
+  console.error('FATAL: JWT_SECRET is not set or is shorter than 32 characters. Refusing to start.');
   process.exit(1);
 }
 
 const signToken = async (payload) => {
   const sessionId = crypto.randomUUID();
 
-  // Resolve permissions for COMPANY_USER so the frontend JWT decode
-  // has access to them (the backend re-resolves on each request).
   if (payload.role === 'COMPANY_USER' && payload.companyId) {
     payload.permissions = await resolvePermissions(payload.userId, payload.companyId);
     payload.isClientAdmin = false;
@@ -23,7 +20,10 @@ const signToken = async (payload) => {
     payload.isClientAdmin = payload.role === 'CLIENT_ADMIN' || payload.role === 'PLATFORM_ADMIN';
   }
 
-  const token = jwt.sign({ ...payload, sessionId }, SECRET, { expiresIn: '8h' });
+  const token = jwt.sign({ ...payload, sessionId }, SECRET, {
+    expiresIn: '8h',
+    algorithm: 'HS256',
+  });
 
   await prisma.session.create({
     data: {
@@ -38,14 +38,8 @@ const signToken = async (payload) => {
 };
 
 const verifyToken = (token) => {
-  if (SKIP_VERIFY) {
-    // Desktop mode: trust cloud-issued JWTs without verifying signature.
-    // The sidecar runs on the user's own machine, so this is acceptable.
-    const decoded = jwt.decode(token);
-    if (!decoded) throw new Error('Malformed token');
-    return decoded;
-  }
-  return jwt.verify(token, SECRET);
+  // Always verify the signature — no bypass, no exceptions.
+  return jwt.verify(token, SECRET, { algorithms: ['HS256'] });
 };
 
 /**
@@ -59,24 +53,20 @@ const authenticateToken = async (req, res, next) => {
   try {
     const decoded = verifyToken(token);
 
-    if (!SKIP_VERIFY) {
-      // Cloud mode: verify session is still active in DB
-      const session = await prisma.session.findUnique({
-        where: { id: decoded.sessionId }
-      });
+    // Always verify session is still active in DB
+    const session = await prisma.session.findUnique({
+      where: { id: decoded.sessionId },
+    });
 
-      if (!session || session.expiresAt < new Date()) {
-        return res.status(401).json({ message: 'Session expired or invalidated' });
-      }
+    if (!session || session.expiresAt < new Date()) {
+      return res.status(401).json({ message: 'Session expired or invalidated' });
     }
 
-    // Attach dynamic permissions for COMPANY_USER role
     if (decoded.role === 'COMPANY_USER' && decoded.companyId) {
-      decoded.permissions = await resolvePermissions(decoded.userId, decoded.companyId)
+      decoded.permissions = await resolvePermissions(decoded.userId, decoded.companyId);
     }
 
-    // CLIENT_ADMIN and PLATFORM_ADMIN bypass all module checks
-    decoded.isClientAdmin = decoded.role === 'CLIENT_ADMIN' || decoded.role === 'PLATFORM_ADMIN'
+    decoded.isClientAdmin = decoded.role === 'CLIENT_ADMIN' || decoded.role === 'PLATFORM_ADMIN';
 
     req.user = decoded;
     next();

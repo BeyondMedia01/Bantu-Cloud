@@ -9,6 +9,7 @@
  */
 
 const express = require('express');
+const crypto  = require('crypto');
 const { runLeaveAccrual } = require('../jobs/leaveAccrual');
 const { runNotifications } = require('../jobs/notifications');
 
@@ -16,14 +17,30 @@ const router = express.Router();
 
 function verifyCronSecret(req, res, next) {
   const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    console.error('[Cron] CRON_SECRET is not set — endpoint disabled');
+  if (!secret || secret.length < 32) {
+    console.error('[Cron] CRON_SECRET is not set or shorter than 32 characters — endpoint disabled');
     return res.status(503).json({ message: 'Cron endpoint not configured' });
   }
-  const provided = req.headers['x-cron-secret'] || req.headers['authorization']?.replace('Bearer ', '');
-  if (!provided || provided !== secret) {
+
+  const provided = req.headers['x-cron-secret'];
+  if (!provided) {
+    console.warn(`[Cron] Missing x-cron-secret header from ${req.ip}`);
     return res.status(401).json({ message: 'Unauthorized' });
   }
+
+  // Constant-time comparison — prevents byte-by-byte timing attacks
+  let valid = false;
+  try {
+    const a = Buffer.from(provided);
+    const b = Buffer.from(secret);
+    valid = a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch { /* length mismatch handled by valid=false */ }
+
+  if (!valid) {
+    console.warn(`[Cron] Invalid cron secret from ${req.ip}`);
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
   next();
 }
 

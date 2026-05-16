@@ -1,6 +1,11 @@
 if (process.env.GOOGLE_CREDENTIALS_JSON) {
-  require('fs').writeFileSync('/tmp/gcp-credentials.json', process.env.GOOGLE_CREDENTIALS_JSON);
-  process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/gcp-credentials.json';
+  // Write to a process-private temp file (mode 0o600 = owner read/write only).
+  // Cleaned up on process exit so credentials are never left on disk.
+  const _gcpTmp = require('path').join(require('os').tmpdir(), `.gcp-${process.pid}`);
+  require('fs').writeFileSync(_gcpTmp, process.env.GOOGLE_CREDENTIALS_JSON, { mode: 0o600 });
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = _gcpTmp;
+  process.on('exit', () => { try { require('fs').unlinkSync(_gcpTmp); } catch {} });
+  process.on('SIGTERM', () => { try { require('fs').unlinkSync(_gcpTmp); } catch {} process.exit(0); });
 }
 
 require('esbuild-register/dist/node').register({ extensions: ['.jsx'] });
@@ -49,6 +54,7 @@ app.use(cors({
   origin: ['http://localhost:5173', process.env.FRONTEND_URL, 'http://tauri.localhost', 'https://tauri.localhost'].filter(Boolean),
   credentials: true,
 }));
+app.use(require('cookie-parser')());
 app.use(express.json());
 
 app.use((req, _res, next) => {

@@ -271,6 +271,12 @@ model User {
   image               String?
   passwordResetToken  String?     @unique
   passwordResetExpiry DateTime?
+  refreshToken        String?     @unique
+  refreshTokenExpiry  DateTime?
+  loginAttempts       Int         @default(0)
+  lockedUntil         DateTime?
+  totpEnabled         Boolean     @default(false)
+  totpSecret          String?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   preferences         Json?       @default("{}")

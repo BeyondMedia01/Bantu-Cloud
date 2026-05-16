@@ -1,4 +1,4 @@
-import { getToken, logout, getRefreshToken, getStoredUserId, saveAuthData } from '../lib/auth';
+import { getToken, logout, saveAuthData } from '../lib/auth';
 
 const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 const DESKTOP_CLOUD_URL = import.meta.env.VITE_DESKTOP_API_URL as string || 'https://api.payroll.thinkbantu.com/api';
@@ -52,35 +52,31 @@ async function request<T = any>(method: string, url: string, body?: any, options
   }
 
   if (response.status === 401) {
-    const refreshToken = getRefreshToken();
-    const userId = getStoredUserId();
-    if (refreshToken && userId) {
-      try {
-        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, refreshToken }),
-        });
-        if (refreshRes.ok) {
-          const data = await refreshRes.json();
-          saveAuthData(data.token, sessionStorage.getItem('activeCompanyId') ?? undefined, data.refreshToken, userId);
-          // Retry original request with new token
-          const retryHeaders = { ...reqHeaders, Authorization: `Bearer ${data.token}` };
-          const retryOpts: RequestInit = { ...fetchOpts, headers: retryHeaders };
-          response = await fetch(fullUrl, retryOpts);
-          if (response.ok) {
-            const retryHeaders: Record<string, string> = {};
-            response.headers.forEach((v, k) => { retryHeaders[k.toLowerCase()] = v; });
-            const retryJson = await response.json();
-            if (retryJson !== null && typeof retryJson === 'object' && !Array.isArray(retryJson) && 'data' in retryJson && !('total' in retryJson)) {
-              return { data: retryJson.data, headers: retryHeaders };
-            }
-            return { data: retryJson, headers: retryHeaders };
+    // The refresh token is an httpOnly cookie — send it automatically via credentials: 'include'.
+    try {
+      const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',   // sends the bantu_rt httpOnly cookie
+      });
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        saveAuthData(data.token, sessionStorage.getItem('activeCompanyId') ?? undefined, undefined, data.userId);
+        // Retry the original request with the new access token
+        const retryHeaders = { ...reqHeaders, Authorization: `Bearer ${data.token}` };
+        const retryOpts: RequestInit = { ...fetchOpts, headers: retryHeaders };
+        response = await fetch(fullUrl, retryOpts);
+        if (response.ok) {
+          const retryResHeaders: Record<string, string> = {};
+          response.headers.forEach((v, k) => { retryResHeaders[k.toLowerCase()] = v; });
+          const retryJson = await response.json();
+          if (retryJson !== null && typeof retryJson === 'object' && !Array.isArray(retryJson) && 'data' in retryJson && !('total' in retryJson)) {
+            return { data: retryJson.data, headers: retryResHeaders };
           }
+          return { data: retryJson, headers: retryResHeaders };
         }
-      } catch {
-        // fall through to logout
       }
+    } catch {
+      // fall through to logout
     }
     logout();
     if (!window.location.pathname.startsWith('/login')) {
