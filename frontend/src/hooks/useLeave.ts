@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { LeaveAPI } from '../api/leave.api';
 import type { LeaveRecord, LeaveRequest } from '../types/domain';
 
@@ -43,7 +43,7 @@ export function useApproveLeave() {
     },
     onError: (_err, _vars, context) => {
       if (!context) return;
-      const { previous } = context as { previous: [unknown, LeaveData | undefined][] };
+      const { previous } = context as { previous: [QueryKey, LeaveData | undefined][] };
       for (const [key, data] of previous) {
         qc.setQueryData(key, data);
       }
@@ -70,7 +70,7 @@ export function useRejectLeave() {
     },
     onError: (_err, _vars, context) => {
       if (!context) return;
-      const { previous } = context as { previous: [unknown, LeaveData | undefined][] };
+      const { previous } = context as { previous: [QueryKey, LeaveData | undefined][] };
       for (const [key, data] of previous) {
         qc.setQueryData(key, data);
       }
@@ -99,7 +99,7 @@ export function useDeleteLeave() {
     },
     onError: (_err, _id, context) => {
       if (!context) return;
-      const { previous } = context as { previous: [unknown, LeaveData | undefined][] };
+      const { previous } = context as { previous: [QueryKey, LeaveData | undefined][] };
       for (const [key, data] of previous) {
         qc.setQueryData(key, data);
       }

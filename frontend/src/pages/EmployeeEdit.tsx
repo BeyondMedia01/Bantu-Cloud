@@ -83,7 +83,8 @@ const EmployeeEdit: React.FC = () => {
   const loadingRef = useRef(false);
 
   const rhfForm = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(employeeSchema) as any,
     defaultValues: {
       // Personal
       employeeCode: '', title: '', firstName: '', lastName: '', maidenName: '',
@@ -178,8 +179,9 @@ const EmployeeEdit: React.FC = () => {
       }
 
       // Populate RHF fields
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const setVal = <K extends keyof EmployeeFormValues>(k: K, v: EmployeeFormValues[K] | undefined | null) => {
-        if (v !== undefined && v !== null) setValue(k, v);
+        if (v !== undefined && v !== null) setValue(k, v as any);
       };
 
       setVal('employeeCode',      e.employeeCode || '');
@@ -217,9 +219,9 @@ const EmployeeEdit: React.FC = () => {
       setVal('dischargeReason',   e.dischargeReason || '');
       setVal('paymentMethod',     e.paymentMethod || 'BANK');
       setVal('paymentBasis',      e.paymentBasis || 'MONTHLY');
-      setVal('rateSource',        e.rateSource || 'MANUAL');
+      setVal('rateSource',        (e.rateSource || 'MANUAL') as EmployeeFormValues['rateSource']);
       if (e.baseRate != null) setVal('baseRate', e.baseRate);
-      setVal('currency',          e.currency || 'USD');
+      setVal('currency',          (e.currency || 'USD') as EmployeeFormValues['currency']);
       if (e.hoursPerPeriod != null) setVal('hoursPerPeriod', e.hoursPerPeriod);
       if (e.daysPerPeriod != null) setVal('daysPerPeriod', e.daysPerPeriod);
       setVal('necGradeId',        e.necGradeId || '');
@@ -230,7 +232,7 @@ const EmployeeEdit: React.FC = () => {
       if (e.taxDirectiveAmt != null) setVal('taxDirectiveAmt', e.taxDirectiveAmt);
       setVal('taxMethod',         e.taxMethod || 'NON_FDS');
       setVal('taxTable',          resolvedTaxTable);
-      setVal('accumulativeSetting', e.accumulativeSetting || 'NO');
+      setVal('accumulativeSetting', (e.accumulativeSetting || 'NO') as EmployeeFormValues['accumulativeSetting']);
       if (e.taxCredits != null) setVal('taxCredits', e.taxCredits);
       setVal('tin',               e.tin || '');
       if (e.motorVehicleBenefit != null) setVal('motorVehicleBenefit', e.motorVehicleBenefit);
@@ -238,7 +240,8 @@ const EmployeeEdit: React.FC = () => {
       if (e.leaveBalance != null) setVal('annualLeaveAccrued', e.leaveBalance);
       if (e.leaveTaken != null) setVal('annualLeaveTaken', e.leaveTaken);
       if (e.bankAccounts?.length) {
-        setValue('bankAccounts', e.bankAccounts);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setValue('bankAccounts', e.bankAccounts as any);
       }
 
       if (br) setBranches(br.data);

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { LoanAPI } from '../api/loans.api';
 import type { Loan } from '../types/domain';
 
@@ -44,7 +44,7 @@ export function useUpdateLoan() {
     },
     onError: (_err, _vars, context) => {
       if (!context) return;
-      const { previous } = context as { previous: [unknown, Loan[] | undefined][] };
+      const { previous } = context as { previous: [QueryKey, Loan[] | undefined][] };
       for (const [key, data] of previous) {
         qc.setQueryData(key, data);
       }
@@ -73,7 +73,7 @@ export function useDeleteLoan() {
     },
     onError: (_err, _id, context) => {
       if (!context) return;
-      const { previous } = context as { previous: [unknown, Loan[] | undefined][] };
+      const { previous } = context as { previous: [QueryKey, Loan[] | undefined][] };
       for (const [key, data] of previous) {
         qc.setQueryData(key, data);
       }

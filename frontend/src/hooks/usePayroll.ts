@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { PayrollAPI } from '../api/payroll.api';
 import type { PayrollRun } from '../types/domain';
 
@@ -59,7 +59,7 @@ export function useProcessPayroll() {
     onError: (_err, runId, context) => {
       if (!context) return;
       const { previousList, previousDetail } = context as {
-        previousList: [unknown, PayrollRun[] | undefined][];
+        previousList: [QueryKey, PayrollRun[] | undefined][];
         previousDetail: PayrollRun | undefined;
       };
       for (const [key, data] of previousList) {

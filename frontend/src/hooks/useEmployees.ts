@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { EmployeeAPI } from '../api/employees.api';
 import type { PaginatedResponse } from '../types/common';
 import type { Employee } from '../types/employee';
@@ -63,7 +63,7 @@ export function useUpdateEmployee() {
     onError: (_err, { id }, context) => {
       if (!context) return;
       const { previousList, previousDetail } = context as {
-        previousList: [unknown, EmployeeList | undefined][];
+        previousList: [QueryKey, EmployeeList | undefined][];
         previousDetail: Employee | undefined;
       };
       for (const [key, data] of previousList) {
@@ -100,7 +100,7 @@ export function useDeleteEmployee() {
     onError: (_err, id, context) => {
       if (!context) return;
       const { previousList, previousDetail } = context as {
-        previousList: [unknown, EmployeeList | undefined][];
+        previousList: [QueryKey, EmployeeList | undefined][];
         previousDetail: Employee | undefined;
       };
       for (const [key, data] of previousList) {
