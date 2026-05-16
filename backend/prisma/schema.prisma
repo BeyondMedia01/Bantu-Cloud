@@ -1356,6 +1356,7 @@ model AuditLog {
   resourceId String?
   details    Json?
   ipAddress  String?
+  jobId      String?
   createdAt  DateTime @default(now())
 
   @@index([resource, resourceId])
