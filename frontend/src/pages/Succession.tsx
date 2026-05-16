@@ -54,11 +54,7 @@ const Succession: React.FC = () => {
 
   useEffect(() => { loadPlans(); }, []);
 
-  const _loadEmployees = async () => {
-    try { const res = await SuccessionAPI.getEmployees(); setEmployees(res.data.data || []); } catch { /* ignore */ }
-  };
-
-  const handleCreate = async (e: React.FormEvent) => {
+const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fTitle) return;
     setSubmitting(true);
