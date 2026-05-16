@@ -186,6 +186,7 @@ enum PayrollStatus {
   DRAFT
   PENDING_APPROVAL
   APPROVED
+  QUEUED
   PROCESSING
   COMPLETED
   ERROR
@@ -703,6 +704,11 @@ model PayrollRun {
   dualCurrency      Boolean        @default(false)
   status            PayrollStatus  @default(DRAFT)
   notes             String?
+  jobId              String?
+  errorMessage       String?
+  progress           Int     @default(0)
+  employeesProcessed Int     @default(0)
+  totalEmployees     Int     @default(0)
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   payrollCalendar   PayrollCalendar? @relation(fields: [payrollCalendarId], references: [id])
