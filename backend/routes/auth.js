@@ -1,7 +1,9 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
-const prisma = require('../lib/prisma');
+const express  = require('express');
+const bcrypt   = require('bcryptjs');
+const crypto   = require('crypto');
+const speakeasy = require('speakeasy');
+const QRCode   = require('qrcode');
+const prisma   = require('../lib/prisma');
 const { signToken, authenticateToken } = require('../lib/auth');
 const { validateLicense } = require('../lib/license');
 const { sendPasswordReset } = require('../lib/mailer');
@@ -214,7 +216,6 @@ router.post('/2fa/authenticate', async (req, res) => {
     if (!user) return res.status(401).json({ message: 'Invalid or expired 2FA session' });
 
     // Verify TOTP code
-    const speakeasy = require('speakeasy');
     const verified = speakeasy.totp.verify({
       secret:   user.totpSecret,
       encoding: 'base32',
@@ -248,6 +249,118 @@ router.post('/2fa/authenticate', async (req, res) => {
   } catch (error) {
     console.error('2FA error:', error);
     res.status(500).json({ message: '2FA verification failed' });
+  }
+});
+
+// ─── POST /api/auth/2fa/setup ────────────────────────────────────────────────
+// Generates a new TOTP secret for the authenticated user and returns the
+// otpauth:// URI so the frontend can render a QR code.
+// Does NOT enable 2FA yet — the user must call /2fa/verify first.
+
+router.post('/2fa/setup', authenticateToken, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where:  { id: req.user.userId },
+      select: { email: true, totpEnabled: true },
+    });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.totpEnabled) return res.status(400).json({ message: '2FA is already enabled' });
+
+    const secret = speakeasy.generateSecret({
+      name:   `Bantu (${user.email})`,
+      length: 20,
+    });
+
+    // Persist the secret immediately — it is harmless without totpEnabled=true
+    // and avoids needing a separate staging field in the schema.
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data:  { totpSecret: secret.base32 },
+    });
+
+    const qrDataUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+    res.json({ secret: secret.base32, uri: secret.otpauth_url, qr: qrDataUrl });
+  } catch (error) {
+    console.error('2FA setup error:', error);
+    res.status(500).json({ message: '2FA setup failed' });
+  }
+});
+
+// ─── POST /api/auth/2fa/verify ────────────────────────────────────────────────
+// Confirms the user's authenticator app is configured correctly, then enables
+// 2FA on the account.  Requires a valid code from the app.
+
+router.post('/2fa/verify', authenticateToken, async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ message: 'code is required' });
+
+  try {
+    const user = await prisma.user.findUnique({
+      where:  { id: req.user.userId },
+      select: { totpSecret: true, totpEnabled: true },
+    });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.totpEnabled) return res.status(400).json({ message: '2FA is already enabled' });
+    if (!user.totpSecret) return res.status(400).json({ message: 'Run /2fa/setup first' });
+
+    const verified = speakeasy.totp.verify({
+      secret:   user.totpSecret,
+      encoding: 'base32',
+      token:    String(code),
+      window:   1,
+    });
+
+    if (!verified) return res.status(401).json({ message: 'Invalid code — check your authenticator app and try again' });
+
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data:  { totpEnabled: true },
+    });
+
+    res.json({ message: '2FA enabled successfully' });
+  } catch (error) {
+    console.error('2FA verify error:', error);
+    res.status(500).json({ message: '2FA verification failed' });
+  }
+});
+
+// ─── POST /api/auth/2fa/disable ───────────────────────────────────────────────
+// Disables 2FA.  Requires the current password AND a valid TOTP code to prevent
+// an attacker with a stolen session from silently removing 2FA.
+
+router.post('/2fa/disable', authenticateToken, async (req, res) => {
+  const { password, code } = req.body;
+  if (!password || !code) return res.status(400).json({ message: 'password and code are required' });
+
+  try {
+    const user = await prisma.user.findUnique({
+      where:  { id: req.user.userId },
+      select: { password: true, totpSecret: true, totpEnabled: true },
+    });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user.totpEnabled) return res.status(400).json({ message: '2FA is not enabled' });
+
+    const passwordOk = await bcrypt.compare(password, user.password);
+    if (!passwordOk) return res.status(401).json({ message: 'Incorrect password' });
+
+    const codeOk = speakeasy.totp.verify({
+      secret:   user.totpSecret,
+      encoding: 'base32',
+      token:    String(code),
+      window:   1,
+    });
+    if (!codeOk) return res.status(401).json({ message: 'Invalid 2FA code' });
+
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data:  { totpEnabled: false, totpSecret: null },
+    });
+
+    res.json({ message: '2FA disabled' });
+  } catch (error) {
+    console.error('2FA disable error:', error);
+    res.status(500).json({ message: 'Failed to disable 2FA' });
   }
 });
 

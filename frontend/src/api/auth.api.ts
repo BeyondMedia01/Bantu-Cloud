@@ -20,7 +20,7 @@ export const AuthAPI = {
   twoFA: {
     authenticate: (tempToken: string, code: string) =>
       http.post<{ token: string; refreshToken: string; role: string; clientId: string | null; companyId: string | null; name: string }>('/auth/2fa/authenticate', { tempToken, code }),
-    setup: () => http.post<{ secret: string; uri: string }>('/auth/2fa/setup'),
+    setup: () => http.post<{ secret: string; uri: string; qr: string }>('/auth/2fa/setup'),
     verify: (code: string) => http.post('/auth/2fa/verify', { code }),
     disable: (password: string, code: string) => http.post('/auth/2fa/disable', { password, code }),
   },

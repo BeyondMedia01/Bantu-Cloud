@@ -28,6 +28,7 @@ const ProfileSettings: React.FC = () => {
   const [twoFASecret, setTwoFASecret] = useState('');
   const [twoFAUri, setTwoFAUri] = useState('');
   const [twoFACode, setTwoFACode] = useState('');
+  const [twoFAQr, setTwoFAQr] = useState('');
   const [twoFAPassword, setTwoFAPassword] = useState('');
   const [twoFALoading, setTwoFALoading] = useState(false);
   const [twoFAError, setTwoFAError] = useState('');
@@ -87,6 +88,7 @@ const ProfileSettings: React.FC = () => {
       const res = await AuthAPI.twoFA.setup();
       setTwoFASecret(res.data.secret);
       setTwoFAUri(res.data.uri);
+      setTwoFAQr((res.data as any).qr || '');
       setTwoFAStep('qr');
     } catch (err: any) {
       setTwoFAError(err.message || 'Failed to start 2FA setup');
@@ -275,10 +277,10 @@ const ProfileSettings: React.FC = () => {
               <p className="text-sm text-muted-foreground font-medium">
                 Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code to confirm.
               </p>
-              {/* QR code rendered via Google Charts API — no external library needed */}
+              {/* QR code is a data URL generated server-side — secret never leaves your network */}
               <div className="flex flex-col items-center gap-3">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(twoFAUri)}`}
+                  src={twoFAQr || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(twoFAUri)}`}
                   alt="2FA QR Code"
                   className="rounded-xl border border-border shadow-sm"
                   width={180}
