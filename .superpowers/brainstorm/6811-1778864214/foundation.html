@@ -1,0 +1,132 @@
+<h2>Bantu — Foundation Layer Design</h2>
+<p class="subtitle">This is what Prompt #1 to Lovable must establish. Everything else builds on this.</p>
+
+<div class="section">
+  <h3>1. Database Schema (Supabase Postgres)</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;">
+    <div style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label">Multi-Tenancy Tables</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li><strong>clients</strong> — top-level tenant (bureau/org)</li>
+        <li><strong>companies</strong> — belongs to client</li>
+        <li><strong>sub_companies</strong> — optional under company</li>
+        <li><strong>branches</strong> — under company</li>
+        <li><strong>departments</strong> — under company</li>
+      </ul>
+    </div>
+    <div style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label">Auth & Access Tables</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li><strong>users</strong> — extends Supabase auth.users</li>
+        <li><strong>roles</strong> — custom roles per company</li>
+        <li><strong>role_permissions</strong> — module × action matrix</li>
+        <li><strong>user_roles</strong> — user → role assignment</li>
+        <li><strong>licenses</strong> — subscription tier + enabled modules</li>
+      </ul>
+    </div>
+    <div style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label">People Tables</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li><strong>employees</strong> — master record</li>
+        <li><strong>grades</strong> — salary bands</li>
+        <li><strong>employee_documents</strong></li>
+        <li><strong>employment_history</strong></li>
+      </ul>
+    </div>
+    <div style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label">Payroll Tables</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li><strong>payroll_runs</strong></li>
+        <li><strong>payslips</strong></li>
+        <li><strong>transaction_codes</strong></li>
+        <li><strong>employee_transactions</strong></li>
+        <li><strong>loans</strong> + <strong>loan_repayments</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. Row Level Security (RLS) Strategy</h3>
+  <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:14px;font-size:13px;line-height:1.8;">
+    Every table with company data has RLS policies that enforce:<br/>
+    <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;">auth.uid() → user_companies → company_id = row.company_id</code><br/><br/>
+    Platform admins bypass via a <strong>service role key</strong> in Edge Functions only — never exposed to the client.
+    Client admins see all companies under their <strong>client_id</strong>.
+    Company users see only their assigned company.
+    Employees see only their own rows.
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. Navigation Shell (4 Role Modes)</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;">
+    <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label" style="color:#2e7d32;">Platform Admin</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li>Dashboard</li>
+        <li>Clients</li>
+        <li>Users</li>
+        <li>Licenses</li>
+        <li>Settings</li>
+      </ul>
+    </div>
+    <div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label" style="color:#1565c0;">Client Admin</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li>Companies (switcher)</li>
+        <li>Full module nav</li>
+        <li>+ Admin section: Roles, Team Members</li>
+      </ul>
+    </div>
+    <div style="background:#f3e5f5;border:1px solid #ce93d8;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label" style="color:#6a1b9a;">Company User</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li>Module nav filtered by permissions</li>
+        <li>No admin section</li>
+      </ul>
+    </div>
+    <div style="background:#fce4ec;border:1px solid #f48fb1;border-radius:8px;padding:14px;font-size:13px;">
+      <div class="label" style="color:#880e4f;">Employee</div>
+      <ul style="margin:8px 0 0 0;padding-left:18px;line-height:1.9;">
+        <li>Payslips</li>
+        <li>Leave</li>
+        <li>Attendance</li>
+        <li>Documents</li>
+        <li>Profile</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>4. The 15 Modules (Phase 1 = Tier 1 only)</h3>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+    <span style="background:#1a73e8;color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">PEOPLE</span>
+    <span style="background:#1a73e8;color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">TIME_LEAVE</span>
+    <span style="background:#1a73e8;color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">PAYROLL</span>
+    <span style="background:#1a73e8;color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">COMPLIANCE</span>
+    <span style="background:#1a73e8;color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">REPORTS</span>
+    <span style="background:#1a73e8;color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">SETTINGS</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">RECRUITMENT (Phase 2)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">PERFORMANCE (Phase 2)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">EXPENSES (Phase 2)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">ONBOARDING (Phase 3)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">TRAINING (Phase 3)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">ASSETS (Phase 3)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">SUCCESSION (Phase 4)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">SURVEYS (Phase 4)</span>
+    <span style="background:#e0e0e0;color:#666;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">ANALYTICS (Phase 4)</span>
+  </div>
+  <p style="font-size:12px;color:#666;margin-top:10px;">Each module has 7 actions: VIEW · EDIT · DELETE · APPROVE · EXPORT · RUN · CONFIGURE</p>
+</div>
+
+<div class="section">
+  <h3>5. Cloudflare Security Layer</h3>
+  <div style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:14px;font-size:13px;line-height:1.9;">
+    <strong>Cloudflare sits in front of Supabase:</strong><br/>
+    WAF rules → Rate limiting (auth: 5 req/15min, API: 200 req/15min) → DDoS protection → Custom domain routing → Supabase project URL hidden from public
+  </div>
+</div>
+
+<p style="margin-top:24px;font-size:13px;color:#444;">Does this foundation look right to you? Any section you'd like to change before we move to the module-by-module prompt structure?</p>

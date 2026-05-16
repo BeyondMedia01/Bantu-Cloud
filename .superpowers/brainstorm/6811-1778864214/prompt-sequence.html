@@ -1,0 +1,98 @@
+<h2>Lovable Prompt Sequence</h2>
+<p class="subtitle">8 focused prompts — each builds on the last. This is the full rebuild roadmap.</p>
+
+<div class="section">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+
+    <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#2e7d32;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">1</span>
+        <strong style="font-size:14px;">Foundation — Auth, Multi-tenancy, Shell</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        Supabase project setup · Full DB schema (all tables + RLS) · 4-role auth flow (login, invite, company switcher) · Navigation shell with role-based sidebar · Cloudflare proxy config
+        <div style="margin-top:6px;"><span style="background:#c8e6c9;color:#1b5e20;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: Working login + empty dashboard for all 4 roles</span></div>
+      </div>
+    </div>
+
+    <div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#1565c0;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">2</span>
+        <strong style="font-size:14px;">People Module — Employees & Org Structure</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        Employee CRUD (full lifecycle + termination) · Bulk CSV import · Org hierarchy (company → sub-company → branch → department) · Salary grades + NEC min/max · Document management
+        <div style="margin-top:6px;"><span style="background:#bbdefb;color:#0d47a1;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: Full employee database</span></div>
+      </div>
+    </div>
+
+    <div style="background:#f3e5f5;border:1px solid #ce93d8;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#6a1b9a;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">3</span>
+        <strong style="font-size:14px;">Time & Leave Module</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        Leave policy config · Leave request workflow (submit → approve → reject) · Leave balance tracking · Monthly accrual (Supabase cron) · Shift configuration · Manual attendance entry · Public holiday management
+        <div style="margin-top:6px;"><span style="background:#e1bee7;color:#4a148c;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: Full leave + attendance (no biometrics yet)</span></div>
+      </div>
+    </div>
+
+    <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#f57f17;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">4</span>
+        <strong style="font-size:14px;">Payroll Engine — Core Calculations</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        Transaction codes (EARNING/DEDUCTION/BENEFIT · FIXED/PERCENTAGE/FORMULA) · Payroll calendar · Run lifecycle (Preview → Submit → Approve → Process) · Dual-currency USD/ZiG split · PAYE + AIDS Levy + NSSA + NEC + SDF + WCIF via Edge Functions · Loan repayment auto-deduction
+        <div style="margin-top:6px;"><span style="background:#fff9c4;color:#f57f17;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: End-to-end payroll run with statutory deductions</span></div>
+      </div>
+    </div>
+
+    <div style="background:#fce4ec;border:1px solid #f48fb1;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#880e4f;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">5</span>
+        <strong style="font-size:14px;">Payslips & Loans</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        Dual-currency payslip PDF (HTML-rendered) · Print / download · Employee self-service payslip view · Loan management (create, repayment schedule, auto-deduction) · Back pay processing
+        <div style="margin-top:6px;"><span style="background:#fce4ec;color:#880e4f;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: Payslips employees can view and download</span></div>
+      </div>
+    </div>
+
+    <div style="background:#e0f2f1;border:1px solid #80cbc4;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#00695c;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">6</span>
+        <strong style="font-size:14px;">Compliance & Statutory Exports</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        ZIMRA IT7 (P16) annual certificates · ZIMRA P2 monthly returns · NSSA P4A returns · Tax table management · Bank EFT files (CBZ, Stanbic, Fidelity) · Motor vehicle benefit
+        <div style="margin-top:6px;"><span style="background:#b2dfdb;color:#004d40;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: Full statutory compliance exports</span></div>
+      </div>
+    </div>
+
+    <div style="background:#f1f8e9;border:1px solid #aed581;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#558b2f;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">7</span>
+        <strong style="font-size:14px;">Reports Module</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        20+ report types · CSV / PDF / XLSX export · Payroll variance · Leave reports · Loan reports · Headcount · Journal entries · Pension exports · Payroll trends
+        <div style="margin-top:6px;"><span style="background:#dcedc8;color:#33691e;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: Full reporting suite</span></div>
+      </div>
+    </div>
+
+    <div style="background:#f5f5f5;border:1px solid #bdbdbd;border-radius:10px;padding:16px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#424242;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">8</span>
+        <strong style="font-size:14px;">RBAC, Platform Admin & Settings</strong>
+      </div>
+      <div style="color:#555;line-height:1.7;padding-left:36px;">
+        Custom role builder (15 modules × 7 actions) · User invitation + management · License key management + seat tracking · Audit logging · System settings (currency rates, holidays, NSSA thresholds) · Platform admin: client lifecycle + global config
+        <div style="margin-top:6px;"><span style="background:#e0e0e0;color:#212121;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">DELIVERS: Full admin + platform control plane</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p style="font-size:13px;color:#444;margin-top:16px;">Does this sequence look right? We'll turn Prompt #1 (Foundation) into the exact text you paste into Lovable next.</p>
