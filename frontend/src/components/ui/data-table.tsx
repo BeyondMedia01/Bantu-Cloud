@@ -7,7 +7,7 @@ import {
   type ColumnDef,
   type SortingState,
   type Row,
-  type Table as TTable,
+
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronUp, ChevronDown, ChevronsUpDown, AlignJustify, AlignCenter } from 'lucide-react';

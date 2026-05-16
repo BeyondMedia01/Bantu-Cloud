@@ -69,11 +69,13 @@ async function request<T = any>(method: string, url: string, body?: any, options
           const retryOpts: RequestInit = { ...fetchOpts, headers: retryHeaders };
           response = await fetch(fullUrl, retryOpts);
           if (response.ok) {
+            const retryHeaders: Record<string, string> = {};
+            response.headers.forEach((v, k) => { retryHeaders[k.toLowerCase()] = v; });
             const retryJson = await response.json();
             if (retryJson !== null && typeof retryJson === 'object' && !Array.isArray(retryJson) && 'data' in retryJson && !('total' in retryJson)) {
-              return { data: retryJson.data, headers: resHeaders };
+              return { data: retryJson.data, headers: retryHeaders };
             }
-            return { data: retryJson, headers: resHeaders };
+            return { data: retryJson, headers: retryHeaders };
           }
         }
       } catch {
@@ -95,7 +97,7 @@ async function request<T = any>(method: string, url: string, body?: any, options
       const err = await response.text();
       throw Object.assign(new Error(err || response.statusText), { status: response.status });
     }
-    return { data: await response.blob(), headers: resHeaders };
+    return { data: await response.blob() as unknown as T, headers: resHeaders };
   }
 
   const json = await response.json();

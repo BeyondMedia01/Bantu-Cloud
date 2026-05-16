@@ -32,7 +32,7 @@ const CURRENCY_CONFIG: Record<Currency, { symbol: string; label: string; classNa
   },
 };
 
-function formatAmount(value: number, currency: Currency): string {
+function formatAmount(value: number): string {
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -123,7 +123,7 @@ export function CurrencyInput({
           convertedAmount.currency === 'USD' ? 'currency-usd' : 'currency-zig',
         )}>
           ≈ {CURRENCY_CONFIG[convertedAmount.currency].symbol}{' '}
-          {formatAmount(convertedAmount.amount, convertedAmount.currency)}
+          {formatAmount(convertedAmount.amount)}
           {conversionRate && (
             <span className="text-muted-foreground ml-1">
               @ {currency === 'USD' ? conversionRate.toFixed(4) : (1 / conversionRate).toFixed(4)} rate
