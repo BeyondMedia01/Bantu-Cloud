@@ -130,7 +130,7 @@ const PERMISSION_TO_RBAC = {
 
 // ─── Legacy flat-permission helpers (kept for backwards compatibility) ─────────
 
-const ROLE_PERMISSIONS = {
+const LEGACY_ROLE_PERMISSIONS = {
   PLATFORM_ADMIN: [
     'manage_clients', 'manage_licenses', 'manage_companies', 'manage_employees',
     'manage_payroll', 'approve_payroll', 'process_payroll', 'view_leave',
@@ -149,7 +149,7 @@ const ROLE_PERMISSIONS = {
 }
 
 const hasPermission = (role, permission) =>
-  (ROLE_PERMISSIONS[role] ?? []).includes(permission)
+  (LEGACY_ROLE_PERMISSIONS[role] ?? []).includes(permission)
 
 const hasAllPermissions = (role, permissions) =>
   permissions.every((p) => hasPermission(role, p))
@@ -157,7 +157,7 @@ const hasAllPermissions = (role, permissions) =>
 const hasAnyPermission = (role, permissions) =>
   permissions.some((p) => hasPermission(role, p))
 
-const getPermissionsForRole = (role) => ROLE_PERMISSIONS[role] || []
+const getPermissionsForRole = (role) => LEGACY_ROLE_PERMISSIONS[role] || []
 
 // Legacy middleware — checks flat role permissions (used by existing routes)
 // Also resolves COMPANY_USER RBAC permissions via PERMISSION_TO_RBAC mapping.
