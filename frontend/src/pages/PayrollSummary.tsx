@@ -4,10 +4,12 @@ import {
   ArrowLeft, Download, Users, TrendingUp, TrendingDown,
   DollarSign, Banknote, ChevronDown, FileText, Eye, X,
 } from 'lucide-react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { Dropdown } from '../components/ui/dropdown';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import { DataTable } from '@/components/ui/data-table';
 
 const fmt = (n: number | null | undefined) =>
   n != null ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -191,10 +193,183 @@ const PayrollSummary: React.FC = () => {
   const fmtZIG = (n: number) => `Z ${fmt(n)}`;
   const usdEquiv = (usd: number, zig: number) => usd + (xr > 1 ? zig / xr : zig);
 
+  // ── Payslip columns ──────────────────────────────────────────────────────────
+
+  const payslipColumns = useMemo<ColumnDef<any, any>[]>(() => {
+    const numCell = (val: number, className?: string) => (
+      <span className={`tabular-num ${className ?? ''}`}>{fmt(val)}</span>
+    );
+
+    return [
+      {
+        id: 'employee',
+        header: 'Employee',
+        size: 200,
+        enableSorting: true,
+        accessorFn: (p) => `${p.employee?.firstName} ${p.employee?.lastName}`,
+        cell: ({ row }) => {
+          const p = row.original;
+          return (
+            <div className="min-w-0">
+              <p className="font-semibold text-sm text-foreground truncate">
+                {p.employee?.firstName} {p.employee?.lastName}
+              </p>
+              <p className="text-xs text-muted-foreground font-mono-financial">{p.employee?.employeeCode}</p>
+            </div>
+          );
+        },
+      },
+      {
+        id: 'position',
+        header: 'Position',
+        size: 140,
+        enableSorting: true,
+        accessorFn: (p) => p.employee?.position ?? '',
+        cell: ({ getValue }) => <span className="text-foreground/70">{getValue() || '—'}</span>,
+      },
+      {
+        id: 'basic',
+        header: isDual ? 'Basic (USD)' : 'Basic',
+        size: 110,
+        enableSorting: true,
+        accessorFn: (p) => p.basicSalary ?? p.employee?.baseRate ?? 0,
+        cell: ({ getValue }) => numCell(getValue()),
+      },
+      {
+        id: 'gross',
+        header: isDual ? 'Gross (USD)' : 'Gross Pay',
+        size: 120,
+        enableSorting: true,
+        accessorFn: (p) => isDual ? (p.grossUSD ?? p.gross ?? 0) : (p.gross ?? 0),
+        cell: ({ getValue }) => numCell(getValue(), 'font-semibold'),
+      },
+      ...(isDual ? [{
+        id: 'grossZIG',
+        header: 'Gross (ZiG)',
+        size: 120,
+        enableSorting: true,
+        accessorFn: (p: any) => p.grossZIG ?? 0,
+        cell: ({ getValue }: any) => numCell(getValue(), 'currency-zig font-semibold'),
+      }] : []),
+      {
+        id: 'paye',
+        header: isDual ? 'PAYE (USD)' : 'PAYE',
+        size: 110,
+        enableSorting: true,
+        accessorFn: (p) => isDual ? (p.payeUSD ?? p.paye ?? 0) : (p.paye ?? 0),
+        cell: ({ getValue }) => numCell(getValue(), 'text-destructive'),
+      },
+      ...(isDual ? [{
+        id: 'payeZIG',
+        header: 'PAYE (ZiG)',
+        size: 110,
+        enableSorting: true,
+        accessorFn: (p: any) => p.payeZIG ?? 0,
+        cell: ({ getValue }: any) => numCell(getValue(), 'currency-zig opacity-80'),
+      }] : []),
+      {
+        id: 'aidsLevy',
+        header: isDual ? 'AIDS Levy (USD)' : 'AIDS Levy',
+        size: 130,
+        enableSorting: true,
+        accessorFn: (p) => isDual ? (p.aidsLevyUSD ?? p.aidsLevy ?? 0) : (p.aidsLevy ?? 0),
+        cell: ({ getValue }) => numCell(getValue(), 'text-destructive'),
+      },
+      ...(isDual ? [{
+        id: 'alZIG',
+        header: 'AIDS Levy (ZiG)',
+        size: 130,
+        enableSorting: true,
+        accessorFn: (p: any) => p.aidsLevyZIG ?? 0,
+        cell: ({ getValue }: any) => numCell(getValue(), 'currency-zig opacity-80'),
+      }] : []),
+      {
+        id: 'nssa',
+        header: isDual ? 'NSSA (USD)' : 'NSSA',
+        size: 110,
+        enableSorting: true,
+        accessorFn: (p) => isDual ? (p.nssaUSD ?? p.nssaEmployee ?? 0) : (p.nssaEmployee ?? 0),
+        cell: ({ getValue }) => numCell(getValue(), 'text-destructive'),
+      },
+      ...(isDual ? [{
+        id: 'nssaZIG',
+        header: 'NSSA (ZiG)',
+        size: 110,
+        enableSorting: true,
+        accessorFn: (p: any) => p.nssaZIG ?? 0,
+        cell: ({ getValue }: any) => numCell(getValue(), 'currency-zig opacity-80'),
+      }] : []),
+      ...(totals && totals.loans > 0 ? [{
+        id: 'loans',
+        header: 'Loans',
+        size: 100,
+        enableSorting: true,
+        accessorFn: (p: any) => p.loanDeductions ?? 0,
+        cell: ({ getValue }: any) => numCell(getValue(), 'text-destructive'),
+      }] : []),
+      {
+        id: 'net',
+        header: isDual ? 'Net Pay (USD)' : 'Net Pay',
+        size: 120,
+        enableSorting: true,
+        accessorFn: (p) => isDual ? (p.netPayUSD ?? p.netPay ?? 0) : (p.netPay ?? 0),
+        cell: ({ getValue }) => numCell(getValue(), 'text-success font-bold'),
+      },
+      ...(isDual ? [{
+        id: 'netZIG',
+        header: 'Net Pay (ZiG)',
+        size: 120,
+        enableSorting: true,
+        accessorFn: (p: any) => p.netPayZIG ?? 0,
+        cell: ({ getValue }: any) => numCell(getValue(), 'currency-zig font-bold'),
+      }] : []),
+      {
+        id: 'nssaEmpr',
+        header: 'NSSA Empr',
+        size: 100,
+        enableSorting: true,
+        accessorFn: (p) => p.nssaEmployer ?? 0,
+        cell: ({ getValue }) => numCell(getValue(), 'currency-usd opacity-70'),
+      },
+      {
+        id: 'wcif',
+        header: 'WCIF',
+        size: 90,
+        enableSorting: true,
+        accessorFn: (p) => p.wcifEmployer ?? 0,
+        cell: ({ getValue }) => numCell(getValue(), 'currency-usd opacity-70'),
+      },
+      {
+        id: 'sdf',
+        header: 'SDF',
+        size: 90,
+        enableSorting: true,
+        accessorFn: (p) => p.sdfContribution ?? 0,
+        cell: ({ getValue }) => numCell(getValue(), 'currency-usd opacity-70'),
+      },
+      {
+        id: 'zimdef',
+        header: 'ZIMDEF',
+        size: 90,
+        enableSorting: true,
+        accessorFn: (p) => p.zimdefEmployer ?? 0,
+        cell: ({ getValue }) => numCell(getValue(), 'currency-usd opacity-70'),
+      },
+      {
+        id: 'necEmpr',
+        header: 'NEC Empr',
+        size: 90,
+        enableSorting: true,
+        accessorFn: (p) => p.necEmployer ?? 0,
+        cell: ({ getValue }) => numCell(getValue(), 'currency-usd opacity-70'),
+      },
+    ];
+  }, [isDual, totals]);
+
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
 
       {/* ── Header ── */}
       <div className="flex items-center gap-3">
@@ -202,306 +377,246 @@ const PayrollSummary: React.FC = () => {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold">Payroll Summary</h1>
+          <h1 className="text-2xl font-bold">Payroll Run</h1>
           {run && (
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              <p className="text-muted-foreground text-sm font-medium">
+              <p className="text-muted-foreground text-sm">
                 {new Date(run.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
                 {' – '}
                 {new Date(run.endDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
-              <StatusBadge status={run.status} />
+              <StatusBadge status={run.status} context="payroll_run" />
               {isDual ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase currency-usd-badge border border-transparent">
                   USD + ZiG &nbsp;·&nbsp; 1 USD = {Number(xr).toFixed(4)} ZiG
                 </span>
               ) : (
-                <span className="text-muted-foreground text-xs font-bold">{ccy}</span>
+                <span className="text-muted-foreground text-xs font-semibold tabular-num">{ccy}</span>
               )}
             </div>
           )}
         </div>
       </div>
 
-      {/* ── Action buttons ── */}
-      {run?.status === 'COMPLETED' && (
-        <div className="flex items-center gap-2 flex-wrap">
-          {!run.payrollCalendar?.isClosed && (
-            <button
-              onClick={async () => {
-                setExporting('rerun');
-                setRerunSuccess(false);
-                try {
-                  await PayrollAPI.process(runId!);
-                  const [r, p] = await Promise.all([PayrollAPI.getById(runId!), PayrollAPI.getPayslips(runId!)]);
-                  setRun(r.data); setPayslips(p.data);
-                  setRerunSuccess(true);
-                  showToast('Payroll rerun completed successfully!', 'success');
-                } catch (err: any) {
-                  showToast(err.message || 'Rerun failed', 'error');
-                } finally { setExporting(''); }
-              }}
-              disabled={!!exporting}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-bold hover:bg-indigo-500 disabled:opacity-50 transition-colors"
-            >
-              <TrendingUp size={14} /> {exporting === 'rerun' ? 'Processing…' : 'Rerun Payroll'}
-            </button>
-          )}
-          <button onClick={handlePayslipSummaryPreview} disabled={!!exporting}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm font-bold hover:bg-red-100 disabled:opacity-50 transition-colors">
-            <Eye size={14} /> {exporting === 'summary-preview' ? 'Loading…' : 'Preview Summary'}
-          </button>
-          <button onClick={handlePayslipSummaryDownload} disabled={!!exporting}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-full text-sm font-bold hover:bg-red-500 disabled:opacity-50 transition-colors">
-            <FileText size={14} /> {exporting === 'summary-detailed' ? 'Generating…' : 'Payslip Summary'}
-          </button>
-          <button onClick={() => handleExport('csv')} disabled={!!exporting}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-full text-sm font-bold hover:bg-muted disabled:opacity-50 transition-colors">
-            <Download size={14} /> {exporting === 'csv' ? 'Exporting…' : 'Export CSV'}
-          </button>
-          <button onClick={() => handleExport('zimra')} disabled={!!exporting}
-            className="flex items-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-sm font-bold hover:bg-purple-100 disabled:opacity-50 transition-colors">
-            <FileText size={14} /> ZIMRA PAYE
-          </button>
-          <button onClick={() => handleExport('nssa')} disabled={!!exporting}
-            className="flex items-center gap-1.5 px-4 py-2 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-sm font-bold hover:bg-orange-100 disabled:opacity-50 transition-colors">
-            <FileText size={14} /> NSSA
-          </button>
-          <Dropdown
-            align="left"
-            disabled={!!exporting}
-            trigger={(isOpen) => (
-              <button disabled={!!exporting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-sm font-bold hover:bg-emerald-100 disabled:opacity-50 transition-colors">
-                <Banknote size={14} /> Bank <ChevronDown size={12} className={isOpen ? 'rotate-180' : ''} />
-              </button>
-            )}
-            sections={[{
-              items: (['cbz', 'stanbic', 'fidelity'] as const).map(f => ({ label: f, onClick: () => handleBankExport(f) })),
-            }]}
-          />
-        </div>
-      )}
-
       {/* ── Rerun success banner ── */}
       {rerunSuccess && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl animate-fade-in">
-          <div className="flex-shrink-0 w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-            <TrendingUp size={16} className="text-emerald-600" />
+        <div className="flex items-center gap-3 p-4 bg-success-bg border border-success-border rounded-2xl">
+          <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center shrink-0">
+            <TrendingUp size={16} className="text-success" />
           </div>
           <div>
-            <p className="font-bold text-emerald-800 text-sm">Payroll Rerun Complete</p>
-            <p className="text-xs text-emerald-600">All payslips have been recalculated. The summary below reflects the updated figures.</p>
+            <p className="font-semibold text-sm text-foreground">Payroll Rerun Complete</p>
+            <p className="text-xs text-muted-foreground">All payslips have been recalculated with the latest figures.</p>
           </div>
-          <button onClick={() => setRerunSuccess(false)} className="ml-auto text-emerald-400 hover:text-emerald-600 text-sm font-bold">✕</button>
+          <button onClick={() => setRerunSuccess(false)} className="ml-auto text-muted-foreground hover:text-foreground p-1">
+            <X size={16} />
+          </button>
         </div>
       )}
 
-      {/* ── Summary cards ── */}
-      {totals && (
-        <>
-          {/* Row 1 — headcount + gross + net */}
-          <div className={`grid gap-3 ${isDual ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'}`}>
-            {[
-              { label: 'Employees',     value: String(totals.employees), icon: Users,        color: 'text-foreground/80', bg: 'bg-muted' },
-              { label: isDual ? 'Gross (USD)' : 'Total Gross',
-                value: isDual ? fmtUSD(totals.grossUSD) : `${ccy} ${fmt(totals.gross)}`,
-                icon: TrendingUp, color: 'text-emerald-700', bg: 'bg-emerald-50' },
-              ...(isDual ? [{ label: 'Gross (ZiG)', value: fmtZIG(totals.grossZIG), icon: TrendingUp, color: 'text-blue-700', bg: 'bg-blue-50' }] : []),
-              { label: isDual ? 'Net Pay (USD)' : 'Total Net Pay',
-                value: isDual ? fmtUSD(totals.netUSD) : `${ccy} ${fmt(totals.net)}`,
-                icon: DollarSign, color: 'text-accent-green', bg: 'bg-emerald-50' },
-              ...(isDual ? [{ label: 'Net Pay (ZiG)', value: fmtZIG(totals.netZIG), icon: DollarSign, color: 'text-blue-700', bg: 'bg-blue-50' }] : []),
-              ...(!isDual ? [
-                { label: 'Total PAYE',  value: `${ccy} ${fmt(totals.paye)}`,  icon: TrendingDown, color: 'text-red-600',    bg: 'bg-red-50'    },
-                { label: 'Total NSSA',  value: `${ccy} ${fmt(totals.nssa)}`,  icon: TrendingDown, color: 'text-orange-600', bg: 'bg-orange-50' },
-              ] : []),
-            ].map(({ label, value, icon: Icon, color, bg }) => (
-              <div key={label} className="bg-primary border border-border rounded-2xl p-4 shadow-sm">
-                <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center mb-2`}>
-                  <Icon size={15} className={color} />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">{label}</p>
-                <p className="text-lg font-bold text-navy leading-tight">{value}</p>
-              </div>
-            ))}
-          </div>
+      {/* ── Two-column layout: sticky summary + scrollable employee table ── */}
+      <div className="flex gap-5 items-start">
 
-          {/* Row 2 — deduction cards (dual mode only) */}
-          {isDual && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {[
-                { label: 'PAYE (USD)',      value: fmtUSD(totals.payeUSD),  color: 'text-red-600',    bg: 'bg-red-50'    },
-                { label: 'PAYE (ZiG)',      value: fmtZIG(totals.payeZIG),  color: 'text-red-400',    bg: 'bg-red-50'    },
-                { label: 'AIDS Levy (USD)', value: fmtUSD(totals.alUSD),    color: 'text-rose-600',   bg: 'bg-rose-50'   },
-                { label: 'AIDS Levy (ZiG)', value: fmtZIG(totals.alZIG),    color: 'text-rose-400',   bg: 'bg-rose-50'   },
-                { label: 'NSSA (USD)',      value: fmtUSD(totals.nssaUSD),  color: 'text-orange-600', bg: 'bg-orange-50' },
-              ].map(({ label, value, color, bg }) => (
-                <div key={label} className="bg-primary border border-border rounded-2xl p-4 shadow-sm">
-                  <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center mb-2`}>
-                    <TrendingDown size={15} className={color} />
-                  </div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">{label}</p>
-                  <p className="text-lg font-bold text-navy leading-tight">{value}</p>
-                </div>
-              ))}
+        {/* ── LEFT: Sticky summary panel ── */}
+        <div className="hidden lg:flex flex-col gap-4 w-64 shrink-0 sticky top-4">
+
+          {/* Run totals */}
+          {totals ? (
+            <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-border">
+                <p className="sidebar-group-label !text-muted-foreground">Run Totals</p>
+              </div>
+              <div className="flex flex-col divide-y divide-border">
+                <SummaryRow icon={<Users size={14} />} label="Employees" value={String(totals.employees)} />
+                <SummaryRow
+                  icon={<TrendingUp size={14} />}
+                  label={isDual ? 'Gross (USD)' : 'Gross Pay'}
+                  value={isDual ? fmtUSD(totals.grossUSD) : `${ccy} ${fmt(totals.gross)}`}
+                  valueClass="text-success"
+                />
+                {isDual && (
+                  <SummaryRow icon={<TrendingUp size={14} />} label="Gross (ZiG)" value={fmtZIG(totals.grossZIG)} valueClass="currency-zig" />
+                )}
+                <SummaryRow
+                  icon={<TrendingDown size={14} />}
+                  label={isDual ? 'PAYE (USD)' : 'PAYE'}
+                  value={isDual ? fmtUSD(totals.payeUSD) : `${ccy} ${fmt(totals.paye)}`}
+                  valueClass="text-destructive"
+                />
+                <SummaryRow
+                  icon={<TrendingDown size={14} />}
+                  label={isDual ? 'NSSA (USD)' : 'NSSA'}
+                  value={isDual ? fmtUSD(totals.nssaUSD) : `${ccy} ${fmt(totals.nssa)}`}
+                  valueClass="text-destructive"
+                />
+                <SummaryRow
+                  icon={<DollarSign size={14} />}
+                  label={isDual ? 'Net Pay (USD)' : 'Net Pay'}
+                  value={isDual ? fmtUSD(totals.netUSD) : `${ccy} ${fmt(totals.net)}`}
+                  valueClass="text-success font-bold"
+                  large
+                />
+                {isDual && (
+                  <SummaryRow icon={<DollarSign size={14} />} label="Net Pay (ZiG)" value={fmtZIG(totals.netZIG)} valueClass="currency-zig font-bold" large />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-card border border-border rounded-2xl h-48 animate-pulse" />
+          )}
+
+          {/* Action buttons — inside summary panel for proximity to totals */}
+          {run?.status === 'COMPLETED' && (
+            <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-border">
+                <p className="sidebar-group-label !text-muted-foreground">Exports</p>
+              </div>
+              <div className="flex flex-col gap-1 p-2">
+                {!run.payrollCalendar?.isClosed && (
+                  <ActionButton
+                    label={exporting === 'rerun' ? 'Processing…' : 'Rerun Payroll'}
+                    icon={<TrendingUp size={13} />}
+                    onClick={async () => {
+                      setExporting('rerun'); setRerunSuccess(false);
+                      try {
+                        await PayrollAPI.process(runId!);
+                        const [r, p] = await Promise.all([PayrollAPI.getById(runId!), PayrollAPI.getPayslips(runId!)]);
+                        setRun(r.data); setPayslips(p.data);
+                        setRerunSuccess(true);
+                        showToast('Payroll rerun completed!', 'success');
+                      } catch (e: any) { showToast(e.message || 'Rerun failed', 'error'); }
+                      finally { setExporting(''); }
+                    }}
+                    disabled={!!exporting}
+                    className="bg-info text-white hover:bg-info/90"
+                  />
+                )}
+                <ActionButton label={exporting === 'summary-preview' ? 'Loading…' : 'Preview Summary'} icon={<Eye size={13} />} onClick={handlePayslipSummaryPreview} disabled={!!exporting} />
+                <ActionButton label={exporting === 'summary-detailed' ? 'Generating…' : 'Payslip Summary PDF'} icon={<FileText size={13} />} onClick={handlePayslipSummaryDownload} disabled={!!exporting} />
+                <ActionButton label={exporting === 'csv' ? 'Exporting…' : 'Export CSV'} icon={<Download size={13} />} onClick={() => handleExport('csv')} disabled={!!exporting} />
+                <ActionButton label="ZIMRA PAYE" icon={<FileText size={13} />} onClick={() => handleExport('zimra')} disabled={!!exporting} />
+                <ActionButton label="NSSA P4A" icon={<FileText size={13} />} onClick={() => handleExport('nssa')} disabled={!!exporting} />
+                <Dropdown
+                  align="right"
+                  disabled={!!exporting}
+                  trigger={(isOpen) => (
+                    <button disabled={!!exporting}
+                      className="w-full flex items-center justify-between gap-1.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                      <span className="flex items-center gap-1.5"><Banknote size={13} /> Bank EFT</span>
+                      <ChevronDown size={11} className={isOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                    </button>
+                  )}
+                  sections={[{
+                    items: (['cbz', 'stanbic', 'fidelity'] as const).map(f => ({ label: f.toUpperCase(), onClick: () => handleBankExport(f) })),
+                  }]}
+                />
+              </div>
             </div>
           )}
-        </>
-      )}
-
-      {/* ── Multi-currency breakdown panel (dual only) ── */}
-      {isDual && totals && (
-        <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Currency Breakdown</h2>
-            <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded-full">
-              1 USD = {Number(xr).toFixed(4)} ZiG
-            </span>
-          </div>
-          <div className="overflow-x-auto scroll-x-shadow">
-            <table className="w-full text-left min-w-[480px]">
-              <thead>
-                <tr className="border-b border-border bg-muted">
-                  <th className="px-6 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider w-48">Item</th>
-                  <th className="px-6 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">USD</th>
-                  <th className="px-6 py-3 text-xs font-bold text-blue-600 uppercase tracking-wider text-right">ZiG</th>
-                  <th className="px-6 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">USD Equiv</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {[
-                  { label: 'Gross Pay',          usd: totals.grossUSD, zig: totals.grossZIG, bold: true,  green: true  },
-                  { label: 'PAYE',               usd: totals.payeUSD,  zig: totals.payeZIG,  bold: false, red: true    },
-                  { label: 'AIDS Levy',           usd: totals.alUSD,    zig: totals.alZIG,    bold: false, red: true    },
-                  { label: 'NSSA (Employee)',     usd: totals.nssaUSD,  zig: totals.nssaZIG,  bold: false, red: true    },
-                  { label: 'Total Deductions',   usd: totals.totalDedUSD, zig: totals.totalDedZIG, bold: true, red: true },
-                  { label: 'Net Pay',            usd: totals.netUSD,   zig: totals.netZIG,   bold: true,  green: true  },
-                ].map(({ label, usd, zig, bold, red, green }) => {
-                  const equiv = usdEquiv(usd, zig);
-                  const cls = bold ? 'font-bold' : 'font-medium';
-                  const valCls = red ? 'text-red-500' : green ? 'text-emerald-600' : 'text-foreground';
-                  return (
-                    <tr key={label} className={bold ? 'bg-muted/40' : 'hover:bg-muted/20 transition-colors'}>
-                      <td className={`px-6 py-3 text-sm ${cls} text-foreground`}>{label}</td>
-                      <td className={`px-6 py-3 text-sm ${cls} ${valCls} text-right tabular-nums`}>{fmt(usd)}</td>
-                      <td className={`px-6 py-3 text-sm ${cls} text-blue-600 text-right tabular-nums`}>{fmt(zig)}</td>
-                      <td className={`px-6 py-3 text-sm ${cls} ${valCls} text-right tabular-nums`}>{fmt(equiv)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
         </div>
-      )}
 
-      {/* ── Employee detail table ── */}
-      {payslips.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground bg-primary border border-border rounded-2xl">
-          <p className="font-medium">No payslips found for this run.</p>
-        </div>
-      ) : (
-        <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-border">
-            <h2 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Employee Breakdown</h2>
-          </div>
-          <div className="overflow-x-auto scroll-x-shadow">
-            <table className="w-full text-left min-w-max">
-              <thead>
-                <tr className="border-b border-border bg-muted">
-                  {[
-                    'Employee', 'Position',
-                    isDual ? 'Basic (USD)' : 'Basic',
-                    isDual ? 'Gross (USD)' : 'Gross Pay',
-                    ...(isDual ? ['Gross (ZiG)'] : []),
-                    isDual ? 'PAYE (USD)' : 'PAYE',
-                    ...(isDual ? ['PAYE (ZiG)'] : []),
-                    isDual ? 'AIDS Levy (USD)' : 'AIDS Levy',
-                    ...(isDual ? ['AIDS Levy (ZiG)'] : []),
-                    isDual ? 'NSSA (USD)' : 'NSSA',
-                    ...(isDual ? ['NSSA (ZiG)'] : []),
-                    ...(totals && totals.loans > 0 ? ['Loans'] : []),
-                    isDual ? 'Net Pay (USD)' : 'Net Pay',
-                    ...(isDual ? ['Net Pay (ZiG)'] : []),
-                    'NSSA Empr', 'WCIF', 'SDF', 'ZIMDEF', 'NEC Empr',
-                  ].map(h => (
-                    <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {payslips.map((p: any) => {
-                  const grossUSD  = p.grossUSD  ?? p.gross  ?? 0;
-                  const netUSD    = p.netPayUSD ?? p.netPay ?? 0;
-                  const payeUSD   = p.payeUSD   ?? p.paye   ?? 0;
-                  const payeZIG   = p.payeZIG   ?? 0;
-                  const alUSD     = p.aidsLevyUSD ?? p.aidsLevy ?? 0;
-                  const alZIG     = p.aidsLevyZIG ?? 0;
-                  const nssaUSD   = p.nssaUSD   ?? p.nssaEmployee ?? 0;
-                  const nssaZIG   = p.nssaZIG   ?? 0;
-                  const showLoans = totals && totals.loans > 0;
+        {/* ── RIGHT: Employee breakdown table ── */}
+        <div className="flex-1 min-w-0 flex flex-col gap-4">
 
-                  return (
-                    <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <p className="font-bold text-sm">{p.employee?.firstName} {p.employee?.lastName}</p>
-                        <p className="text-[11px] text-muted-foreground">{p.employee?.employeeCode}</p>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-foreground/80">{p.employee?.position || '—'}</td>
-                      <td className="px-4 py-3 text-sm font-bold tabular-nums">{fmt(p.basicSalary ?? p.employee?.baseRate)}</td>
-                      <td className="px-4 py-3 text-sm font-bold tabular-nums">{fmt(isDual ? grossUSD : p.gross)}</td>
-                      {isDual && <td className="px-4 py-3 text-sm font-bold text-blue-600 tabular-nums">{fmt(p.grossZIG)}</td>}
-                      <td className="px-4 py-3 text-sm text-red-500 font-medium tabular-nums">{fmt(isDual ? payeUSD : p.paye)}</td>
-                      {isDual && <td className="px-4 py-3 text-sm text-red-400 font-medium tabular-nums">{fmt(payeZIG)}</td>}
-                      <td className="px-4 py-3 text-sm text-red-500 font-medium tabular-nums">{fmt(isDual ? alUSD : p.aidsLevy)}</td>
-                      {isDual && <td className="px-4 py-3 text-sm text-red-400 font-medium tabular-nums">{fmt(alZIG)}</td>}
-                      <td className="px-4 py-3 text-sm text-red-500 font-medium tabular-nums">{fmt(isDual ? nssaUSD : p.nssaEmployee)}</td>
-                      {isDual && <td className="px-4 py-3 text-sm text-red-400 font-medium tabular-nums">{fmt(nssaZIG)}</td>}
-                      {showLoans && <td className="px-4 py-3 text-sm text-red-500 font-medium tabular-nums">{fmt(p.loanDeductions)}</td>}
-                      <td className="px-4 py-3 text-sm font-bold text-emerald-600 tabular-nums">{fmt(isDual ? netUSD : p.netPay)}</td>
-                      {isDual && <td className="px-4 py-3 text-sm font-bold text-blue-600 tabular-nums">{fmt(p.netPayZIG)}</td>}
-                      <td className="px-4 py-3 text-sm text-blue-500 font-medium tabular-nums">{fmt(p.nssaEmployer)}</td>
-                      <td className="px-4 py-3 text-sm text-blue-500 font-medium tabular-nums">{fmt(p.wcifEmployer)}</td>
-                      <td className="px-4 py-3 text-sm text-blue-500 font-medium tabular-nums">{fmt(p.sdfContribution)}</td>
-                      <td className="px-4 py-3 text-sm text-blue-500 font-medium tabular-nums">{fmt(p.zimdefEmployer)}</td>
-                      <td className="px-4 py-3 text-sm text-blue-500 font-medium tabular-nums">{fmt(p.necEmployer)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
+          {/* Mobile action bar (only visible < lg) */}
+          {run?.status === 'COMPLETED' && (
+            <div className="flex lg:hidden items-center gap-2 flex-wrap">
+              <button onClick={handlePayslipSummaryPreview} disabled={!!exporting}
+                className="flex items-center gap-1.5 px-3 py-2 border border-border rounded-lg text-xs font-medium hover:bg-muted disabled:opacity-50 transition-colors">
+                <Eye size={13} /> Preview
+              </button>
+              <button onClick={() => handleExport('csv')} disabled={!!exporting}
+                className="flex items-center gap-1.5 px-3 py-2 border border-border rounded-lg text-xs font-medium hover:bg-muted disabled:opacity-50 transition-colors">
+                <Download size={13} /> CSV
+              </button>
+            </div>
+          )}
 
-              {/* ── Totals row ── */}
+          {/* Employee table */}
+          {payslips.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground bg-card border border-border rounded-2xl">
+              <p className="font-medium">No payslips found for this run.</p>
+            </div>
+          ) : (
+            <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-foreground">Employee Breakdown</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">{payslips.length} employees</p>
+                </div>
+              </div>
+              <DataTable
+                data={payslips}
+                columns={payslipColumns}
+                frozenColumns={1}
+                virtual={payslips.length > 50}
+                maxHeight={560}
+                showDensityToggle
+              />
+              {/* Totals footer */}
               {totals && (
-                <tfoot>
-                  <tr className="border-t-2 border-border bg-muted font-bold">
-                    <td className="px-4 py-3 text-sm" colSpan={2}>Totals</td>
-                    <td className="px-4 py-3 text-sm tabular-nums">—</td>
-                    <td className="px-4 py-3 text-sm tabular-nums">{fmt(isDual ? totals.grossUSD : totals.gross)}</td>
-                    {isDual && <td className="px-4 py-3 text-sm text-blue-600 tabular-nums">{fmt(totals.grossZIG)}</td>}
-                    <td className="px-4 py-3 text-sm text-red-500 tabular-nums">{fmt(isDual ? totals.payeUSD : totals.paye)}</td>
-                    {isDual && <td className="px-4 py-3 text-sm text-red-400 tabular-nums">{fmt(totals.payeZIG)}</td>}
-                    <td className="px-4 py-3 text-sm text-red-500 tabular-nums">{fmt(isDual ? totals.alUSD : totals.aidsLevy)}</td>
-                    {isDual && <td className="px-4 py-3 text-sm text-red-400 tabular-nums">{fmt(totals.alZIG)}</td>}
-                    <td className="px-4 py-3 text-sm text-red-500 tabular-nums">{fmt(isDual ? totals.nssaUSD : totals.nssa)}</td>
-                    {isDual && <td className="px-4 py-3 text-sm text-red-400 tabular-nums">{fmt(totals.nssaZIG)}</td>}
-                    {totals.loans > 0 && <td className="px-4 py-3 text-sm text-red-500 tabular-nums">{fmt(totals.loans)}</td>}
-                    <td className="px-4 py-3 text-sm text-emerald-600 tabular-nums">{fmt(isDual ? totals.netUSD : totals.net)}</td>
-                    {isDual && <td className="px-4 py-3 text-sm text-blue-600 tabular-nums">{fmt(totals.netZIG)}</td>}
-                    <td className="px-4 py-3 text-sm text-blue-500 tabular-nums">{fmt(totals.nssaR)}</td>
-                    <td className="px-4 py-3 text-sm text-blue-500 tabular-nums">{fmt(totals.wcif)}</td>
-                    <td className="px-4 py-3 text-sm text-blue-500 tabular-nums">{fmt(totals.sdf)}</td>
-                    <td className="px-4 py-3 text-sm text-blue-500 tabular-nums">{fmt(totals.zimdef)}</td>
-                    <td className="px-4 py-3 text-sm text-blue-500 tabular-nums">{fmt(totals.necR)}</td>
-                  </tr>
-                </tfoot>
+                <div className="border-t-2 border-border bg-muted/50 px-5 py-3 flex items-center gap-6 flex-wrap text-xs font-semibold">
+                  <span className="text-muted-foreground uppercase tracking-wider">Totals</span>
+                  <span className="tabular-num text-success">
+                    Gross: {isDual ? fmtUSD(totals.grossUSD) : `${ccy} ${fmt(totals.gross)}`}
+                  </span>
+                  {isDual && <span className="tabular-num currency-zig">Gross ZiG: {fmtZIG(totals.grossZIG)}</span>}
+                  <span className="tabular-num text-destructive">PAYE: {isDual ? fmtUSD(totals.payeUSD) : `${ccy} ${fmt(totals.paye)}`}</span>
+                  <span className="tabular-num text-success font-bold">
+                    Net: {isDual ? fmtUSD(totals.netUSD) : `${ccy} ${fmt(totals.net)}`}
+                  </span>
+                  {isDual && <span className="tabular-num currency-zig font-bold">Net ZiG: {fmtZIG(totals.netZIG)}</span>}
+                </div>
               )}
-            </table>
-          </div>
+            </div>
+          )}
+
+          {/* Multi-currency breakdown (dual only) */}
+          {isDual && totals && (
+            <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+                <h2 className="text-sm font-semibold">Currency Breakdown</h2>
+                <span className="text-xs font-semibold currency-usd-badge px-2 py-1 rounded-full">
+                  1 USD = {Number(xr).toFixed(4)} ZiG
+                </span>
+              </div>
+              <div className="overflow-x-auto scroll-x-shadow">
+                <table className="w-full text-left min-w-[480px]">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/60">
+                      <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-44">Item</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">USD</th>
+                      <th className="px-5 py-3 text-xs font-semibold currency-zig uppercase tracking-wider text-right">ZiG</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">USD Equiv</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {[
+                      { label: 'Gross Pay',        usd: totals.grossUSD,    zig: totals.grossZIG,    bold: true,  positive: true  },
+                      { label: 'PAYE',             usd: totals.payeUSD,     zig: totals.payeZIG,     bold: false, negative: true  },
+                      { label: 'AIDS Levy',         usd: totals.alUSD,       zig: totals.alZIG,       bold: false, negative: true  },
+                      { label: 'NSSA (Employee)',   usd: totals.nssaUSD,     zig: totals.nssaZIG,     bold: false, negative: true  },
+                      { label: 'Total Deductions', usd: totals.totalDedUSD, zig: totals.totalDedZIG, bold: true,  negative: true  },
+                      { label: 'Net Pay',          usd: totals.netUSD,      zig: totals.netZIG,      bold: true,  positive: true  },
+                    ].map(({ label, usd, zig, bold, positive, negative }) => {
+                      const equiv = usdEquiv(usd, zig);
+                      return (
+                        <tr key={label} className={bold ? 'bg-muted/40 font-semibold' : 'hover:bg-muted/20 transition-colors'}>
+                          <td className="px-5 py-3 text-sm text-foreground">{label}</td>
+                          <td className={`px-5 py-3 text-sm text-right tabular-num ${positive ? 'text-success' : negative ? 'text-destructive' : 'text-foreground'}`}>{fmt(usd)}</td>
+                          <td className={`px-5 py-3 text-sm text-right tabular-num currency-zig ${bold ? '' : 'opacity-80'}`}>{fmt(zig)}</td>
+                          <td className={`px-5 py-3 text-sm text-right tabular-num ${positive ? 'text-success' : negative ? 'text-destructive' : 'text-foreground'}`}>{fmt(equiv)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
+
       {/* ── PDF preview modal ── */}
       {previewUrl && (
         <div
@@ -514,11 +629,11 @@ const PayrollSummary: React.FC = () => {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-3 bg-navy text-white shrink-0">
-              <span className="font-bold text-sm truncate">Payroll Summary Preview</span>
+              <span className="font-semibold text-sm truncate">Payroll Summary Preview</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => { const win = window.open(previewUrl, '_blank'); win?.addEventListener('load', () => win.print()); }}
-                  className="flex items-center gap-1.5 bg-white/10 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-white/20"
+                  className="flex items-center gap-1.5 bg-white/10 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-white/20"
                 >
                   <FileText size={13} /> Save as PDF
                 </button>
@@ -534,5 +649,50 @@ const PayrollSummary: React.FC = () => {
     </div>
   );
 };
+
+// ── Small reusable layout components ─────────────────────────────────────────
+
+function SummaryRow({
+  icon, label, value, valueClass, large,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  valueClass?: string;
+  large?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-2.5 gap-2">
+      <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+        <span className="shrink-0">{icon}</span>
+        <span className="text-xs truncate">{label}</span>
+      </div>
+      <span className={`tabular-num text-right shrink-0 ${large ? 'text-base font-bold' : 'text-sm font-medium'} ${valueClass ?? 'text-foreground'}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function ActionButton({
+  label, icon, onClick, disabled, className,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 ${className ?? ''}`}
+    >
+      <span className="shrink-0">{icon}</span>
+      {label}
+    </button>
+  );
+}
 
 export default PayrollSummary;

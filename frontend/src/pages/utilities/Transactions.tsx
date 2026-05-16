@@ -8,6 +8,7 @@ import { TransactionCodeAPI } from '../../api/client';
 import { Dropdown } from '@/components/ui/dropdown';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { usePermissions } from '../../hooks/usePermissions';
+import { FormulaEditor } from '@/components/ui/formula-editor';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -413,19 +414,14 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
 
               {form.calculationType === 'formula' && (
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Formula Expression *</label>
-                  <textarea
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                    Formula Expression *
+                  </label>
+                  <FormulaEditor
                     value={form.formula}
-                    onChange={set('formula')}
-                    rows={3}
-                    placeholder="e.g. baseSalary * 0.05 + overtime * 1.5"
-                    className={`${fieldClass} font-mono resize-none`}
+                    onChange={(v) => setForm(p => ({ ...p, formula: v }))}
+                    error={step === 3 && !form.formula.trim() ? 'Formula is required' : undefined}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Variables: <code className="bg-muted px-1 rounded font-mono">baseSalary</code>{' '}
-                    <code className="bg-muted px-1 rounded font-mono">overtime</code>{' '}
-                    <code className="bg-muted px-1 rounded font-mono">hoursWorked</code>
-                  </p>
                 </div>
               )}
             </div>

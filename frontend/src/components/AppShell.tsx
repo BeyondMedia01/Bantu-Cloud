@@ -264,11 +264,13 @@ const AppShell: React.FC = () => {
       <Link
         to={link.to}
         title={collapsed ? link.label : undefined}
-        className={`flex items-center gap-3 rounded-xl text-sm font-bold transition-all
-          ${collapsed ? 'justify-center px-0 py-2.5 mx-2' : small ? 'pl-9 pr-3 py-2' : 'px-3 py-2.5'}
+        className={`flex items-center gap-3 text-sm transition-all rounded-r-xl
+          ${collapsed ? 'justify-center px-0 py-2.5 mx-2 rounded-xl' : small ? 'pl-9 pr-3 py-1.5' : 'px-3 py-2.5'}
           ${active
-            ? 'bg-brand text-navy shadow-sm'
-            : 'text-muted-foreground hover:bg-muted hover:text-navy'
+            ? collapsed
+              ? 'bg-brand text-navy shadow-sm'
+              : 'sidebar-nav-active'
+            : 'text-muted-foreground hover:bg-muted hover:text-navy font-medium'
           }`}
       >
         <span className="shrink-0">{link.icon}</span>
@@ -306,18 +308,18 @@ const AppShell: React.FC = () => {
       <div>
         <button
           onClick={() => toggleGroup(group.key)}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition-all
-            ${hasActive && !isOpen ? 'text-navy' : 'text-muted-foreground hover:text-navy hover:bg-muted'}`}
+          className={`w-full flex items-center justify-between px-3 py-1.5 text-xs transition-all group
+            ${hasActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
         >
-          <div className="flex items-center gap-3">
-            <span className={`shrink-0 ${hasActive ? 'text-brand' : ''}`}>{group.icon}</span>
-            <span>{group.label}</span>
+          <div className="flex items-center gap-2">
+            <span className={`shrink-0 ${hasActive ? 'text-brand' : 'group-hover:text-brand transition-colors'}`}>{group.icon}</span>
+            <span className="sidebar-group-label !text-current !padding-0 !margin-0">{group.label}</span>
           </div>
-          <ChevronDown size={14} className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
-          <div className="mt-0.5 flex flex-col gap-0.5">
+          <div className="mt-0.5 flex flex-col gap-0">
             {group.items.map(item => (
               <FlatLink key={item.to} link={item} small />
             ))}

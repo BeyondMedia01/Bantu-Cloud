@@ -1,12 +1,14 @@
 import React from 'react';
 import { Edit, Trash, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import type { ColumnDef } from '@tanstack/react-table';
 import type { Employee } from '../../types/employee';
 import { ReportsAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 import { StatusBadge } from '../common/StatusBadge';
 import { getAvatarGradient } from '@/lib/avatarGradient';
 import { usePermissions } from '../../hooks/usePermissions';
+import { DataTable } from '../ui/data-table';
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -34,118 +36,140 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) =>
     }
   };
 
-  return (
-    <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-border bg-muted/50">
-              {(['Employee', 'ID', 'Position', 'Department', 'Branch', 'Status', 'Actions'] as const).map((h) => (
-                <th
-                  key={h}
-                  scope="col"
-                  className={`px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider ${
-                    (h === 'Department' || h === 'Branch') ? 'hidden md:table-cell' : ''
-                  }`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {employees.length > 0 ? employees.map((emp) => (
-              <React.Fragment key={emp.id}>
-                <tr className={`hover:bg-muted/70 transition-colors ${emp.dischargeDate ? 'bg-muted/50' : ''}`}>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs uppercase text-white"
-                        style={getAvatarGradient(`${emp.firstName} ${emp.lastName}`)}
-                        aria-hidden="true"
-                      >
-                        {emp.firstName?.[0]}{emp.lastName?.[0]}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-navy">{emp.firstName} {emp.lastName}</p>
-                        <p className="text-xs text-muted-foreground font-semibold">{emp.employeeCode}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm font-medium text-foreground/80">
-                    {emp.employeeCode}
-                  </td>
-                  <td className="px-5 py-4 text-sm font-medium text-foreground/80">
-                    {emp.position || '—'}
-                  </td>
-                  <td className="px-5 py-4 text-sm font-medium text-foreground/80 hidden md:table-cell">
-                    {emp.department?.name || '—'}
-                  </td>
-                  <td className="px-5 py-4 text-sm font-medium text-foreground/80 hidden md:table-cell">
-                    {emp.branch?.name || '—'}
-                  </td>
-                  <td className="px-5 py-4">
-                    <StatusBadge status={emp.dischargeDate ? 'DISCHARGED' : 'ACTIVE'} />
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-1" role="group" aria-label={`Actions for ${emp.firstName} ${emp.lastName}`}>
-                      <button
-                        onClick={() => handleDownloadIT7(emp)}
-                        className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-blue-600 transition-colors"
-                        aria-label={`Download IT7 certificate for ${emp.firstName} ${emp.lastName}`}
-                        title="Download IT7 Certificate"
-                      >
-                        <FileText size={16} aria-hidden="true" />
-                      </button>
-                      {can('PEOPLE', 'EDIT') && (
-                        <button
-                          onClick={() => navigate(`/employees/${emp.id}/edit`)}
-                          className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"
-                          aria-label={`Edit ${emp.firstName} ${emp.lastName}`}
-                          title="Edit"
-                        >
-                          <Edit size={16} aria-hidden="true" />
-                        </button>
-                      )}
-                      {can('PEOPLE', 'DELETE') && (
-                        <button
-                          onClick={() => onDelete(emp.id, `${emp.firstName} ${emp.lastName}`)}
-                          className="p-2 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
-                          aria-label={`Delete ${emp.firstName} ${emp.lastName}`}
-                          title="Delete"
-                        >
-                          <Trash size={16} aria-hidden="true" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-                {/* Mobile-only row showing hidden columns */}
-                {(emp.department?.name || emp.branch?.name) && (
-                  <tr className="md:hidden border-t-0 bg-muted/20">
-                    <td colSpan={7} className="px-5 pb-3 pt-0">
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        {emp.department?.name && (
-                          <span><span className="font-semibold text-foreground/70">Dept:</span> {emp.department.name}</span>
-                        )}
-                        {emp.branch?.name && (
-                          <span><span className="font-semibold text-foreground/70">Branch:</span> {emp.branch.name}</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            )) : (
-              <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground font-medium font-inter">
-                  No employees found.
-                </td>
-              </tr>
+  const columns = React.useMemo<ColumnDef<Employee, any>[]>(() => [
+    {
+      id: 'employee',
+      accessorFn: row => `${row.firstName} ${row.lastName}`,
+      header: 'Employee',
+      size: 220,
+      enableSorting: true,
+      cell: ({ row }) => {
+        const emp = row.original;
+        return (
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase text-white shrink-0"
+              style={getAvatarGradient(`${emp.firstName} ${emp.lastName}`)}
+              aria-hidden="true"
+            >
+              {emp.firstName?.[0]}{emp.lastName?.[0]}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">{emp.firstName} {emp.lastName}</p>
+              <p className="text-xs text-muted-foreground font-mono-financial">{emp.employeeCode}</p>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'employeeCode',
+      header: 'ID',
+      size: 100,
+      enableSorting: true,
+      cell: ({ getValue }) => (
+        <span className="font-mono-financial text-foreground/70">{getValue()}</span>
+      ),
+    },
+    {
+      accessorKey: 'position',
+      header: 'Position',
+      size: 160,
+      enableSorting: true,
+      cell: ({ getValue }) => getValue() || '—',
+    },
+    {
+      id: 'department',
+      accessorFn: row => row.department?.name ?? '',
+      header: 'Department',
+      size: 140,
+      enableSorting: true,
+      cell: ({ getValue }) => getValue() || '—',
+    },
+    {
+      id: 'branch',
+      accessorFn: row => row.branch?.name ?? '',
+      header: 'Branch',
+      size: 120,
+      enableSorting: true,
+      cell: ({ getValue }) => getValue() || '—',
+    },
+    {
+      id: 'status',
+      accessorFn: row => (row.dischargeDate ? 'TERMINATED' : 'ACTIVE'),
+      header: 'Status',
+      size: 100,
+      enableSorting: true,
+      cell: ({ getValue }) => (
+        <StatusBadge status={getValue()} context="employee" />
+      ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      size: 100,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const emp = row.original;
+        return (
+          <div
+            className="flex items-center gap-1"
+            role="group"
+            aria-label={`Actions for ${emp.firstName} ${emp.lastName}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => handleDownloadIT7(emp)}
+              className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-info transition-colors"
+              aria-label={`Download IT7 for ${emp.firstName} ${emp.lastName}`}
+              title="Download IT7 Certificate"
+            >
+              <FileText size={15} aria-hidden="true" />
+            </button>
+            {can('PEOPLE', 'EDIT') && (
+              <button
+                onClick={() => navigate(`/employees/${emp.id}/edit`)}
+                className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={`Edit ${emp.firstName} ${emp.lastName}`}
+                title="Edit"
+              >
+                <Edit size={15} aria-hidden="true" />
+              </button>
             )}
-          </tbody>
-        </table>
-      </div>
+            {can('PEOPLE', 'DELETE') && (
+              <button
+                onClick={() => onDelete(emp.id, `${emp.firstName} ${emp.lastName}`)}
+                className="p-1.5 hover:bg-destructive-bg rounded-lg text-muted-foreground hover:text-destructive transition-colors"
+                aria-label={`Delete ${emp.firstName} ${emp.lastName}`}
+                title="Delete"
+              >
+                <Trash size={15} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
+  ], [can, navigate, onDelete]);
+
+  return (
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      <DataTable
+        data={employees}
+        columns={columns}
+        frozenColumns={1}
+        virtual={employees.length > 80}
+        maxHeight={600}
+        showDensityToggle
+        rowClassName={(emp) => emp.dischargeDate ? 'opacity-60' : undefined}
+        onRowClick={(emp) => navigate(`/employees/${emp.id}/edit`)}
+        emptyState={
+          <div className="flex flex-col items-center gap-2 py-4">
+            <p className="font-medium text-foreground">No employees found</p>
+            <p className="text-xs text-muted-foreground">Try adjusting your search or filters</p>
+          </div>
+        }
+      />
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { useToast } from '../../context/ToastContext';
 
 const MODULES = [
   { key: 'PEOPLE',     label: 'People',      desc: 'Employees, grades, departments, documents' },
-  { key: 'TIME_LEAVE', label: 'Time & Leave', desc: 'Attendance, shifts, roster, leave' },
+  { key: 'TIME_LEAVE', label: 'Time & Leave', desc: 'Attendance, shifts, roster, leave requests' },
   { key: 'PAYROLL',    label: 'Payroll',      desc: 'Payroll runs, payslips, transaction codes' },
   { key: 'COMPLIANCE', label: 'Compliance',   desc: 'ZIMRA, NSSA, NEC, statutory exports' },
   { key: 'REPORTS',    label: 'Reports',      desc: 'Payroll summary, audit logs, analytics' },
@@ -16,13 +16,27 @@ const MODULES = [
 
 type ModuleKey = typeof MODULES[number]['key'];
 
-const MODULE_ACTIONS: Record<ModuleKey, string[]> = {
+// All 7 actions — each module defines which ones apply
+const ALL_ACTIONS = ['VIEW', 'EDIT', 'DELETE', 'APPROVE', 'EXPORT', 'RUN', 'CONFIGURE'] as const;
+type Action = typeof ALL_ACTIONS[number];
+
+const MODULE_ACTIONS: Record<ModuleKey, Action[]> = {
   PEOPLE:     ['VIEW', 'EDIT', 'DELETE'],
   TIME_LEAVE: ['VIEW', 'EDIT', 'APPROVE'],
   PAYROLL:    ['VIEW', 'EDIT', 'RUN', 'EXPORT'],
   COMPLIANCE: ['VIEW', 'EXPORT', 'CONFIGURE'],
   REPORTS:    ['VIEW', 'EXPORT'],
   SETTINGS:   ['VIEW', 'CONFIGURE'],
+};
+
+const ACTION_DESCRIPTIONS: Record<Action, string> = {
+  VIEW:      'Read-only access',
+  EDIT:      'Create and update records',
+  DELETE:    'Remove records',
+  APPROVE:   'Approve requests and runs',
+  EXPORT:    'Download reports and files',
+  RUN:       'Execute payroll runs',
+  CONFIGURE: 'Change settings and config',
 };
 
 type PermissionMap = Partial<Record<ModuleKey, string[]>>;
@@ -53,6 +67,12 @@ const RoleForm: React.FC<RoleFormProps> = ({ initial, onSave, onCancel, saving }
       const updated = current.includes(action)
         ? current.filter((a) => a !== action)
         : [...current, action];
+      // Remove the module key entirely when no actions remain
+      if (updated.length === 0) {
+        const next = { ...prev };
+        delete next[mod];
+        return next;
+      }
       return { ...prev, [mod]: updated };
     });
   };
@@ -89,56 +109,110 @@ const RoleForm: React.FC<RoleFormProps> = ({ initial, onSave, onCancel, saving }
         </div>
       </div>
 
+      {/* ── Permission matrix ── */}
       <div>
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Module Access</p>
-        <div className="space-y-3">
-          {MODULES.map(({ key, label, desc }) => {
-            const enabled = !!permissions[key];
-            const availableActions = MODULE_ACTIONS[key];
-            return (
-              <div
-                key={key}
-                className={`rounded-xl border transition-colors ${enabled ? 'border-brand bg-brand/5' : 'border-border bg-background'}`}
-              >
-                <div className="flex items-start gap-3 p-4">
-                  <button
-                    type="button"
-                    onClick={() => toggleModule(key)}
-                    className={`w-5 h-5 mt-0.5 rounded flex items-center justify-center border-2 transition-colors shrink-0 ${
-                      enabled ? 'bg-navy border-navy text-white' : 'border-border'
-                    }`}
-                  >
-                    {enabled && <Check size={12} />}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-navy">{label}</p>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
-                    {enabled && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {availableActions.map((action) => {
-                          const active = permissions[key]?.includes(action);
-                          return (
-                            <button
-                              key={action}
-                              type="button"
-                              onClick={() => toggleAction(key, action)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors ${
-                                active
-                                  ? 'bg-navy text-white border-navy'
-                                  : 'bg-background text-muted-foreground border-border hover:border-navy hover:text-navy'
-                              }`}
-                            >
-                              {action}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Module Permissions</p>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[560px]">
+              {/* Sticky column headers */}
+              <thead>
+                <tr className="border-b border-border bg-muted/70">
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-48 sticky left-0 bg-muted/70 z-10">
+                    Module
+                  </th>
+                  {ALL_ACTIONS.map(action => (
+                    <th key={action} className="px-3 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <span title={ACTION_DESCRIPTIONS[action]}>{action}</span>
+                    </th>
+                  ))}
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                    All
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {MODULES.map(({ key, label, desc }) => {
+                  const available = MODULE_ACTIONS[key];
+                  const granted   = permissions[key] ?? [];
+                  const allOn     = available.every(a => granted.includes(a));
+
+                  return (
+                    <tr
+                      key={key}
+                      className={`transition-colors ${granted.length > 0 ? 'bg-brand/[0.03]' : 'hover:bg-muted/30'}`}
+                    >
+                      {/* Row label — sticky */}
+                      <td className={`px-4 py-3 sticky left-0 z-10 ${granted.length > 0 ? 'bg-brand/[0.04]' : 'bg-card'}`}>
+                        <p className="text-sm font-semibold text-foreground">{label}</p>
+                        <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{desc}</p>
+                      </td>
+
+                      {/* Action checkboxes */}
+                      {ALL_ACTIONS.map(action => {
+                        const applicable = available.includes(action as Action);
+                        const checked    = granted.includes(action);
+                        return (
+                          <td key={action} className="px-3 py-3 text-center">
+                            {applicable ? (
+                              <button
+                                type="button"
+                                role="checkbox"
+                                aria-checked={checked}
+                                aria-label={`${label} — ${action}`}
+                                onClick={() => toggleAction(key, action)}
+                                className={`w-5 h-5 mx-auto rounded flex items-center justify-center border-2 transition-all ${
+                                  checked
+                                    ? 'bg-brand border-brand text-navy shadow-sm'
+                                    : 'border-border hover:border-brand/60 bg-background'
+                                }`}
+                              >
+                                {checked && <Check size={11} strokeWidth={3} />}
+                              </button>
+                            ) : (
+                              <span className="block w-5 h-5 mx-auto rounded bg-muted/40" aria-hidden="true" />
+                            )}
+                          </td>
+                        );
+                      })}
+
+                      {/* Enable-all toggle */}
+                      <td className="px-3 py-3 text-center">
+                        <button
+                          type="button"
+                          title={allOn ? `Remove all ${label} permissions` : `Grant all ${label} permissions`}
+                          onClick={() => {
+                            setPermissions(prev => ({
+                              ...prev,
+                              [key]: allOn ? [] : [...available],
+                            }));
+                          }}
+                          className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-colors ${
+                            allOn
+                              ? 'bg-brand/10 text-brand border-brand/30 hover:bg-destructive-bg hover:text-destructive hover:border-destructive/30'
+                              : 'bg-muted text-muted-foreground border-border hover:bg-brand/10 hover:text-brand hover:border-brand/30'
+                          }`}
+                        >
+                          {allOn ? 'Clear' : 'All'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Legend */}
+          <div className="px-4 py-2.5 border-t border-border bg-muted/30 flex flex-wrap gap-x-4 gap-y-1">
+            {ALL_ACTIONS.map(action => (
+              <span key={action} className="text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground/70">{action}</span>
+                {' — '}
+                {ACTION_DESCRIPTIONS[action]}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
