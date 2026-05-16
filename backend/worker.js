@@ -1,114 +1,85 @@
+require('dotenv').config();
 const prisma = require('./lib/prisma');
-const { processJob } = require('./lib/jobProcessor');
+const { payrollQueue } = require('./queues/index');
+const { createPayrollWorker } = require('./queues/payrollWorker');
+const { createEmailWorker } = require('./queues/emailWorker');
+const { createNotifyWorker } = require('./queues/notifyWorker');
 
-const POLL_INTERVAL_MS = 1000; // 1 second
-const BATCH_SIZE = 5; // process up to 5 jobs at a time
+const STALE_PROCESSING_MINUTES = 5;
 
-let isShuttingDown = false;
+async function recoverStaleRuns() {
+  const staleThreshold = new Date(Date.now() - STALE_PROCESSING_MINUTES * 60 * 1000);
+  const staleRuns = await prisma.payrollRun.findMany({
+    where: { status: 'PROCESSING', updatedAt: { lt: staleThreshold } },
+    select: {
+      id: true,
+      companyId: true,
+      company: { select: { clientId: true } },
+    },
+  });
 
-/**
- * Main worker loop.
- */
-async function workerLoop() {
-  if (isShuttingDown) return;
+  if (staleRuns.length === 0) return;
 
-  try {
-    // 1. Fetch pending jobs ready to run
-    const jobs = await prisma.job.findMany({
-      where: {
-        status: 'PENDING',
-        runAt: { lte: new Date() },
-      },
-      orderBy: { createdAt: 'asc' },
-      take: BATCH_SIZE,
+  console.log(`[worker] Recovering ${staleRuns.length} stale PROCESSING run(s)`);
+
+  for (const run of staleRuns) {
+    await prisma.payrollTransaction.deleteMany({ where: { payrollRunId: run.id } });
+    await prisma.payslip.deleteMany({ where: { payrollRunId: run.id } });
+
+    await prisma.payrollRun.update({
+      where: { id: run.id },
+      data: { status: 'QUEUED', progress: 0, employeesProcessed: 0 },
     });
 
-    if (jobs.length > 0) {
-      console.log(`[worker] Found ${jobs.length} pending jobs`);
-    }
-
-    // 2. Process each job in parallel
-    await Promise.all(jobs.map(processOneJob));
-
-  } catch (error) {
-    console.error(`[worker] Loop Error:`, error);
-  }
-
-  // Schedule next iteration
-  if (!isShuttingDown) {
-    setTimeout(workerLoop, POLL_INTERVAL_MS);
-  }
-}
-
-/**
- * Processes a single job record.
- */
-async function processOneJob(job) {
-  try {
-    // Atomically mark job as PROCESSING
-    const updateResult = await prisma.job.updateMany({
-      where: { id: job.id, status: 'PENDING' },
-      data: { status: 'PROCESSING', updatedAt: new Date() },
+    await payrollQueue.add('process', {
+      runId: run.id,
+      companyId: run.companyId,
+      clientId: run.company.clientId,
+      userId: null,
+      adjustments: {},
+    }, {
+      jobId: `payroll-${run.id}`,
     });
 
-    if (updateResult.count === 0) {
-      // Job was picked up by another worker instance?
-      return;
-    }
-
-    // Process it
-    await processJob(job);
-
-    // Mark as COMPLETED
-    await prisma.job.update({
-      where: { id: job.id },
-      data: { status: 'COMPLETED', updatedAt: new Date() },
-    });
-
-  } catch (error) {
-    console.error(`[worker] Error processing job ${job.id}:`, error);
-
-    // Retry or Fail
-    const nextAttempts = job.attempts + 1;
-    if (nextAttempts >= job.maxAttempts) {
-      await prisma.job.update({
-        where: { id: job.id },
-        data: {
-          status: 'FAILED',
-          error: error.message,
-          attempts: nextAttempts,
-          updatedAt: new Date(),
-        },
-      });
-    } else {
-      // Exponential backoff for retries
-      const retryDelaySeconds = Math.pow(2, nextAttempts) * 30; // 60s, 120s...
-      const runAt = new Date();
-      runAt.setSeconds(runAt.getSeconds() + retryDelaySeconds);
-
-      await prisma.job.update({
-        where: { id: job.id },
-        data: {
-          status: 'PENDING', // Put back in queue
-          attempts: nextAttempts,
-          runAt,
-          updatedAt: new Date(),
-        },
-      });
-    }
+    console.log(`[worker] Re-enqueued stale run ${run.id}`);
   }
 }
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('[worker] Received SIGTERM. Shutting down...');
-  isShuttingDown = true;
-});
+async function main() {
+  console.log('[worker] Starting Bantu Job Worker (BullMQ)...');
 
-process.on('SIGINT', () => {
-  console.log('[worker] Received SIGINT. Shutting down...');
-  isShuttingDown = true;
-});
+  await recoverStaleRuns();
 
-console.log('[worker] Starting Bantu Job Worker...');
-workerLoop();
+  const payrollWorker = createPayrollWorker();
+  const emailWorker = createEmailWorker();
+  const notifyWorker = createNotifyWorker();
+
+  console.log('[worker] All workers started. Listening for jobs...');
+
+  async function shutdown(signal) {
+    console.log(`[worker] Received ${signal}. Shutting down gracefully...`);
+    const timeout = setTimeout(() => {
+      console.error('[worker] Graceful shutdown timed out. Forcing exit.');
+      process.exit(1);
+    }, 30000);
+
+    await Promise.all([
+      payrollWorker.close(),
+      emailWorker.close(),
+      notifyWorker.close(),
+    ]);
+
+    clearTimeout(timeout);
+    await prisma.$disconnect();
+    console.log('[worker] Shutdown complete.');
+    process.exit(0);
+  }
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
+main().catch((err) => {
+  console.error('[worker] Fatal startup error:', err);
+  process.exit(1);
+});
