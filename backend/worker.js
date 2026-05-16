@@ -1,3 +1,4 @@
+require('esbuild-register/dist/node').register({ extensions: ['.jsx'] });
 require('dotenv').config();
 const prisma = require('./lib/prisma');
 const { payrollQueue } = require('./queues/index');
