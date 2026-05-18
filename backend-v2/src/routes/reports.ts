@@ -31,12 +31,13 @@ router.get('/summary', requirePermission('view_reports'), async (c) => {
     if (clientId) employeeRelation.clientId = clientId;
     if (companyId) employeeRelation.companyId = companyId;
 
-    const [employeeCount, pendingLeave, activeLoans, noTinCount, noBankCount] = await Promise.all([
+    const nameSelect = { select: { id: true, firstName: true, lastName: true } };
+    const [employeeCount, pendingLeave, activeLoans, noTinEmployees, noBankEmployees] = await Promise.all([
       prisma.employee.count({ where: eWhere }),
       prisma.leaveRequest.count({ where: { employee: employeeRelation, status: 'PENDING' } }),
       prisma.loan.count({ where: { employee: employeeRelation, status: 'ACTIVE' } }),
-      prisma.employee.count({ where: { ...eWhere, tin: null } }),
-      prisma.employee.count({ where: { ...eWhere, accountNumber: null } }),
+      prisma.employee.findMany({ where: { ...eWhere, tin: null, dischargeDate: null }, ...nameSelect }),
+      prisma.employee.findMany({ where: { ...eWhere, accountNumber: null, paymentMethod: 'BANK', dischargeDate: null }, ...nameSelect }),
     ]);
 
     const currentRun = companyId ? await prisma.payrollRun.findFirst({
@@ -49,7 +50,13 @@ router.get('/summary', requirePermission('view_reports'), async (c) => {
       orderBy: { createdAt: 'desc' },
     }) : null;
 
-    return c.json({ employeeCount, pendingLeave, activeLoans, noTinCount, noBankCount, currentRun, lastRun });
+    return c.json({
+      employeeCount, pendingLeave, activeLoans, currentRun, lastRun,
+      noTinCount: noTinEmployees.length,
+      noBankCount: noBankEmployees.length,
+      noTinEmployees,
+      noBankEmployees,
+    });
   } catch (err: any) {
     console.error('[reports/summary]', err?.message);
     return c.json({ message: 'Internal server error' }, 500);

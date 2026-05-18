@@ -15,6 +15,8 @@ export interface DashboardSummary {
   activeLoans: number;
   noTinCount: number;
   noBankCount: number;
+  noTinEmployees: { id: string; firstName: string; lastName: string }[];
+  noBankEmployees: { id: string; firstName: string; lastName: string }[];
   currentRun: PayrollRunSummary | null;
   lastRun: PayrollRunSummary | null;
 }
