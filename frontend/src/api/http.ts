@@ -72,6 +72,9 @@ async function request<T = any>(method: string, url: string, body?: any, options
         if (response.ok) {
           const retryResHeaders: Record<string, string> = {};
           response.headers.forEach((v, k) => { retryResHeaders[k.toLowerCase()] = v; });
+          if (options?.responseType === 'blob') {
+            return { data: await response.blob() as unknown as T, headers: retryResHeaders };
+          }
           const retryJson = await response.json();
           if (retryJson !== null && typeof retryJson === 'object' && !Array.isArray(retryJson) && 'data' in retryJson && !('total' in retryJson)) {
             return { data: retryJson.data, headers: retryResHeaders };
