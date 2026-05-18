@@ -17,6 +17,7 @@ const TrialBanner: React.FC = () => {
     queryFn: () => TrialAPI.getStatus().then(r => r.data),
     staleTime: 5 * 60 * 1000,
     retry: false,
+    throwOnError: false,
   });
 
   // Listen for trial error events dispatched by the Axios interceptor
