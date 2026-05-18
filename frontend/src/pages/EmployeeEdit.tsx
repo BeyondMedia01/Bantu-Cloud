@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from '@/components/ui/form';
+import CardTypeBadge from '@/components/common/CardTypeBadge';
 import { EmployeeAPI, BranchAPI, DepartmentAPI, NecTableAPI, TaxTableAPI, SystemSettingsAPI, DocumentsAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { getActiveCompanyId } from '../lib/companyContext';
@@ -502,7 +503,7 @@ const EmployeeEdit: React.FC = () => {
                       National ID{nationality === 'Zimbabwean' && <span className="text-red-400 ml-1">*</span>}
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={nationality === 'Zimbabwean' ? 'e.g. 63-123456A78' : 'National ID'} />
+                      <Input {...field} placeholder={nationality === 'Zimbabwean' ? '63-1234567 A 12' : 'National ID'} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -951,6 +952,8 @@ const EmployeeEdit: React.FC = () => {
 
                   {bankAccountFields.map((accountField, index) => {
                     const splitType = watch(`bankAccounts.${index}.splitType`);
+                    const accountNum = watch(`bankAccounts.${index}.accountNumber`) || '';
+                    const hasAcctError = !!errors.bankAccounts?.[index]?.accountNumber;
                     return (
                       <div key={accountField.id} className="bg-muted/50 p-4 rounded-2xl border border-border relative group transition-all hover:bg-muted">
                         {bankAccountFields.length > 1 && (
@@ -976,14 +979,17 @@ const EmployeeEdit: React.FC = () => {
                             )}
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Number</label>
+                            <div className="flex items-center justify-between">
+                              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Number</label>
+                              <CardTypeBadge accountNumber={accountNum} />
+                            </div>
                             <input
                               {...register(`bankAccounts.${index}.accountNumber`)}
-                              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
-                              placeholder="000000000"
+                              className={`w-full px-3 py-2 bg-background border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 outline-none transition-all ${hasAcctError ? 'border-red-400 focus:border-red-400' : 'border-border focus:border-accent-green'}`}
+                              placeholder="e.g. 1234567890"
                             />
-                            {errors.bankAccounts?.[index]?.accountNumber && (
-                              <p className="text-xs text-destructive">{errors.bankAccounts[index]?.accountNumber?.message}</p>
+                            {hasAcctError && (
+                              <p className="text-xs text-destructive">{errors.bankAccounts![index]?.accountNumber?.message}</p>
                             )}
                           </div>
                           <div className="flex flex-col gap-1.5">

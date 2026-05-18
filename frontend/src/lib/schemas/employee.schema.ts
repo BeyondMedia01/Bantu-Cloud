@@ -1,8 +1,12 @@
 import { z } from 'zod';
+import { ZW_NATIONAL_ID_REGEX, isValidZwPhone, isValidAccountNumber } from '../validators/zw';
 
 export const bankAccountSchema = z.object({
   accountName: z.string().optional(),
-  accountNumber: z.string().regex(/^\d+$/, 'Must contain only digits').min(1, 'Required'),
+  accountNumber: z.string()
+    .min(1, 'Required')
+    .transform(v => v.replace(/[\s-]/g, ''))
+    .refine(isValidAccountNumber, 'Please enter a valid card or bank account number (8–20 digits)'),
   bankName: z.string().min(1, 'Required'),
   bankBranch: z.string().optional(),
   branchCode: z.string().optional(),
@@ -20,10 +24,14 @@ export const employeeSchema = z.object({
   lastName: z.string().min(1, 'Required'),
   maidenName: z.string().optional(),
   nationality: z.string().min(1, 'Required'),
-  nationalId: z.string().optional(),
+  nationalId: z.string()
+    .optional()
+    .refine(v => !v || ZW_NATIONAL_ID_REGEX.test(v), 'Please enter a valid Zimbabwe National ID (e.g. 63-1234567 A 12)'),
   passportNumber: z.string().optional(),
   email: z.string().email('Invalid email').or(z.literal('')).optional(),
-  phone: z.string().optional(),
+  phone: z.string()
+    .optional()
+    .refine(v => !v || isValidZwPhone(v), 'Please enter a valid Zimbabwe phone number'),
   dateOfBirth: z.date().optional(),
   gender: z.string().min(1, 'Required'),
   maritalStatus: z.string().min(1, 'Required'),
