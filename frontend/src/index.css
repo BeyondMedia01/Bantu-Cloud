@@ -298,7 +298,25 @@ body {
    tbl-td        → <td> — add font/color overrides as needed
 ────────────────────────────────────────────────────────────────────────── */
 .tbl-container { @apply bg-card rounded-2xl border border-border shadow-sm overflow-hidden; }
-.tbl-scroll    { @apply overflow-x-auto scroll-x-shadow; }
+.tbl-scroll {
+  overflow-x: auto;
+  background-image:
+    linear-gradient(to right, var(--color-background) 0%, transparent 100%),
+    linear-gradient(to left, var(--color-background) 0%, transparent 100%),
+    radial-gradient(ellipse 80% 50% at left, rgba(0, 0, 0, 0.07), transparent),
+    radial-gradient(ellipse 80% 50% at right, rgba(0, 0, 0, 0.07), transparent);
+  background-position: left, right, left, right;
+  background-repeat: no-repeat;
+  background-size: 24px 100%, 24px 100%, 16px 100%, 16px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+.dark .tbl-scroll {
+  background-image:
+    linear-gradient(to right, var(--color-background) 0%, transparent 100%),
+    linear-gradient(to left, var(--color-background) 0%, transparent 100%),
+    radial-gradient(ellipse 80% 50% at left, rgba(255, 255, 255, 0.06), transparent),
+    radial-gradient(ellipse 80% 50% at right, rgba(255, 255, 255, 0.06), transparent);
+}
 .tbl-head-row  { @apply border-b border-border bg-muted/60; }
 .tbl-th        { @apply px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground select-none; }
 .tbl-body      { @apply divide-y divide-border; }
