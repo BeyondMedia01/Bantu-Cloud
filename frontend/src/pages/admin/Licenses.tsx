@@ -143,7 +143,7 @@ const AdminLicenses: React.FC = () => {
                 {licenses.length === 0 ? (
                   <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">No licenses issued yet.</td></tr>
                 ) : licenses.map((lic: any) => {
-                  const isActive = lic.isActive && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
+                  const isActive = lic.active && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
                   return (
                     <tr key={lic.id} className="tbl-row">
                       <td className="px-5 py-3.5 font-bold text-navy">{lic.client?.name || lic.clientId}</td>

@@ -48,7 +48,7 @@ export const ClientAPI = {
 };
 
 export const LicenseAPI = {
-  getAll: () => http.get('/license'),
+  getAll: () => http.get('/admin/licenses'),
   issue: (clientId: string, expiryMonths?: number) =>
     http.post('/license/issue', { clientId, expiryMonths }),
   revoke: (clientId: string) => http.post('/license/revoke', { clientId }),
