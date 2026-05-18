@@ -45,6 +45,7 @@ const EMPTY_FORM = {
   taxable: true, pensionable: true, preTax: false,
   affectsPaye: true, affectsNssa: true, affectsAidsLevy: true,
   calculationType: 'fixed', defaultValue: '', formula: '',
+  employerRate: '',
   isActive: true,
   incomeCategory: null as string | null,
 };
@@ -92,6 +93,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
           calculationType: editData.calculationType || 'fixed',
           defaultValue: editData.defaultValue != null ? String(editData.defaultValue) : '',
           formula: editData.formula || '',
+          employerRate: editData.employerRate != null && editData.employerRate !== 0 ? String(editData.employerRate) : '',
           isActive: editData.isActive ?? true,
           incomeCategory: editData.incomeCategory || null,
         }
@@ -138,6 +140,7 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
         ...form,
         defaultValue: form.defaultValue !== '' ? parseFloat(form.defaultValue) : null,
         formula: form.formula || null,
+        employerRate: form.employerRate !== '' ? parseFloat(form.employerRate) : 0,
       };
       if (editData) {
         await TransactionCodeAPI.update(editData.id, payload);
@@ -406,9 +409,31 @@ const WizardModal: React.FC<WizardProps> = ({ editData, onClose, onSaved }) => {
               )}
 
               {form.calculationType === 'percentage' && (
-                <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Percentage of Basic (%)</label>
-                  <input type="number" min="0" max="100" step="0.01" value={form.defaultValue} onChange={set('defaultValue')} placeholder="e.g. 10" className={fieldClass} />
+                <div className="flex flex-col gap-4">
+                  <div className={form.type === 'DEDUCTION' ? 'grid grid-cols-2 gap-4' : undefined}>
+                    <div>
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                        {form.type === 'DEDUCTION' ? 'Employee Rate (%)' : 'Percentage of Basic (%)'}
+                      </label>
+                      <input type="number" min="0" max="100" step="0.01" value={form.defaultValue} onChange={set('defaultValue')} placeholder="e.g. 2" className={fieldClass} />
+                    </div>
+                    {form.type === 'DEDUCTION' && (
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">Employer Rate (%)</label>
+                        <input type="number" min="0" max="100" step="0.01" value={form.employerRate} onChange={set('employerRate')} placeholder="e.g. 2" className={fieldClass} />
+                        <p className="text-xs text-muted-foreground mt-1">Employer cost — shown on payslip separately</p>
+                      </div>
+                    )}
+                  </div>
+                  {form.type === 'DEDUCTION' && (
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-xl text-xs text-amber-800 dark:text-amber-300 font-medium">
+                      <span className="font-bold">{form.preTax ? 'Pre-tax deduction' : 'Post-tax deduction'}:</span>{' '}
+                      {form.preTax
+                        ? 'Employee contribution reduces taxable income before PAYE is calculated.'
+                        : 'PAYE is calculated first; this deduction is applied to net pay.'}
+                      {' '}Change via Tax Rules in Step 2.
+                    </div>
+                  )}
                 </div>
               )}
 

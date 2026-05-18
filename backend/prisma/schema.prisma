@@ -857,6 +857,8 @@ model TransactionCode {
   taxable          Boolean             @default(true)
   pensionable      Boolean             @default(true)
   preTax           Boolean             @default(false)
+  // Employer contribution (for dual-sided codes like NEC, Trade Union)
+  employerRate     Float               @default(0)         // employer contribution as % of basic salary
   // Calculation behaviour
   calculationType  String              @default("fixed")   // "fixed" | "percentage" | "formula"
   defaultValue     Float?                                   // used when calculationType = "fixed" or "percentage"

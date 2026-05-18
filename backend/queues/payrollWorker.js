@@ -273,7 +273,7 @@ async function processPayrollRun(job) {
         { payrollRunId: null, period: { lte: runPeriod }, processed: false },
       ],
     },
-    include: { transactionCode: { select: { type: true, taxable: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
+    include: { transactionCode: { select: { type: true, taxable: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true, employerRate: true } } },
   });
   const inputsByEmployee = {};
   for (const inp of allInputs) {
@@ -289,7 +289,7 @@ async function processPayrollRun(job) {
       effectiveFrom: { lte: run.endDate },
       OR: [{ effectiveTo: null }, { effectiveTo: { gte: run.startDate } }],
     },
-    include: { transactionCode: { select: { type: true, taxable: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true } } },
+    include: { transactionCode: { select: { type: true, taxable: true, preTax: true, affectsNssa: true, affectsPaye: true, name: true, code: true, incomeCategory: true, defaultValue: true, deemedBenefitPercent: true, employerRate: true } } },
   });
 
   const coveredKeys = new Set(allInputs.map((i) => `${i.employeeId}:${i.transactionCodeId}`));
@@ -960,6 +960,7 @@ async function processPayrollRun(job) {
     const allEmpItems = [];
 
     for (const i of empInputs) {
+      const erRate = i.transactionCode?.employerRate || 0;
       if (run.dualCurrency) {
         if ((i.employeeUSD || 0) !== 0) {
           allEmpItems.push({
@@ -967,6 +968,8 @@ async function processPayrollRun(job) {
             amount: i.employeeUSD,
             currency: 'USD',
             description: i.notes,
+            employerUSD: erRate > 0 ? round2(effectiveBaseRate * erRate / 100) : 0,
+            employerZiG: 0,
           });
         }
         if ((i.employeeZiG || 0) !== 0) {
@@ -975,6 +978,8 @@ async function processPayrollRun(job) {
             amount: i.employeeZiG,
             currency: 'ZiG',
             description: i.notes,
+            employerUSD: 0,
+            employerZiG: erRate > 0 ? round2(effectiveBaseRate * erRate / 100) : 0,
           });
         }
       } else {
@@ -985,12 +990,15 @@ async function processPayrollRun(job) {
             amount: amt,
             currency: run.currency,
             description: i.notes,
+            employerUSD: run.currency === 'USD' && erRate > 0 ? round2(baseRate * erRate / 100) : 0,
+            employerZiG: run.currency === 'ZiG' && erRate > 0 ? round2(baseRate * erRate / 100) : 0,
           });
         }
       }
     }
 
     for (const sd of empDefaults) {
+      const erRate = sd.transactionCode?.employerRate || 0;
       if (run.dualCurrency) {
         if (sd.currency === 'USD' && (sd.value || 0) !== 0) {
           allEmpItems.push({
@@ -998,6 +1006,8 @@ async function processPayrollRun(job) {
             amount: sd.value,
             currency: 'USD',
             description: sd.notes,
+            employerUSD: erRate > 0 ? round2(effectiveBaseRate * erRate / 100) : 0,
+            employerZiG: 0,
           });
         } else if (sd.currency === 'ZiG' && (sd.value || 0) !== 0) {
           allEmpItems.push({
@@ -1005,6 +1015,8 @@ async function processPayrollRun(job) {
             amount: sd.value,
             currency: 'ZiG',
             description: sd.notes,
+            employerUSD: 0,
+            employerZiG: erRate > 0 ? round2(effectiveBaseRate * erRate / 100) : 0,
           });
         }
       } else {
@@ -1015,6 +1027,8 @@ async function processPayrollRun(job) {
             amount: amt,
             currency: run.currency,
             description: sd.notes,
+            employerUSD: run.currency === 'USD' && erRate > 0 ? round2(baseRate * erRate / 100) : 0,
+            employerZiG: run.currency === 'ZiG' && erRate > 0 ? round2(baseRate * erRate / 100) : 0,
           });
         }
       }
@@ -1028,6 +1042,8 @@ async function processPayrollRun(job) {
         amount: item.amount,
         currency: item.currency,
         description: item.description,
+        employerUSD: item.employerUSD || 0,
+        employerZiG: item.employerZiG || 0,
       });
     }
 

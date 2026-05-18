@@ -36,6 +36,9 @@ function pickTcFields(body) {
     ...(body.deemedBenefitPercent !== undefined && {
       deemedBenefitPercent: body.deemedBenefitPercent !== '' ? parseFloat(body.deemedBenefitPercent) : undefined,
     }),
+    ...(body.employerRate !== undefined && {
+      employerRate: body.employerRate !== '' ? parseFloat(body.employerRate) : 0,
+    }),
   };
 }
 
