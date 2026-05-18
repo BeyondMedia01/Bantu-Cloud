@@ -194,14 +194,15 @@ function StepEmployee({ onDone }: { onDone: () => void }) {
     setError('');
     setLoading(true);
     try {
-      // salary is accepted by the backend but not yet typed on Employee
-      const employeePayload: Parameters<typeof EmployeeAPI.create>[0] = {
+      // jobTitle and salary are accepted by the backend but not yet on the Employee TS type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (EmployeeAPI.create as (d: any) => Promise<any>)({
         firstName: form.firstName,
         lastName: form.lastName,
         jobTitle: form.jobTitle,
         employmentType: form.employmentType,
-      };
-      await EmployeeAPI.create({ ...employeePayload, salary: form.salary ? parseFloat(form.salary) : undefined } as typeof employeePayload);
+        salary: form.salary ? parseFloat(form.salary) : undefined,
+      });
       await TrialAPI.advanceStep(2);
       onDone();
     } catch (err: any) {
