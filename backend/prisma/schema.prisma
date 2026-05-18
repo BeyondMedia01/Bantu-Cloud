@@ -257,6 +257,12 @@ enum SplitZigMode {
   PERCENTAGE
 }
 
+enum TrialStatus {
+  ACTIVE
+  EXPIRED
+  CONVERTED
+}
+
 // ─── Auth & Tenancy ───────────────────────────────────────────────────────────
 
 model User {
@@ -318,6 +324,7 @@ model Client {
   enabledModules  AppModule[]
   license         LicenseToken?
   subscription    Subscription?
+  trial           Trial?
   grades          Grade[]
   necTables       NecTable[]
 }
@@ -1896,4 +1903,16 @@ model SurveyAnswer {
 
   @@index([responseId])
   @@index([questionId])
+}
+
+model Trial {
+  id             String      @id @default(cuid())
+  clientId       String      @unique
+  client         Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  expiresAt      DateTime
+  employeeCap    Int         @default(10)
+  status         TrialStatus @default(ACTIVE)
+  onboardingStep Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
