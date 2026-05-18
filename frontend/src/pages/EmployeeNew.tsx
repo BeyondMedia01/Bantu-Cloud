@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useBlocker } from 'react-router-dom';
-import ConfirmModal from '../components/common/ConfirmModal';
+import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
@@ -139,12 +138,16 @@ const EmployeeNew: React.FC = () => {
 
   const isDirty = form.formState.isDirty;
 
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      isDirty &&
-      !form.formState.isSubmitSuccessful &&
-      currentLocation.pathname !== nextLocation.pathname
-  );
+  // Warn on browser tab/window close when form is dirty
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !form.formState.isSubmitSuccessful) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty, form.formState.isSubmitSuccessful]);
 
   // Set default tax table once system settings load
   useEffect(() => {
@@ -214,16 +217,6 @@ const EmployeeNew: React.FC = () => {
 
   return (
     <>
-    {blocker.state === 'blocked' && (
-      <ConfirmModal
-        title="Discard changes?"
-        message="You have unsaved changes. Leaving this page will discard them."
-        confirmLabel="Discard & Leave"
-        danger={true}
-        onConfirm={() => blocker.proceed()}
-        onCancel={() => blocker.reset()}
-      />
-    )}
     <div className="max-w-3xl">
       <div className="flex items-center gap-4 mb-8">
         <button onClick={() => navigate('/employees')} className="p-2 hover:bg-muted rounded-xl transition-colors">
