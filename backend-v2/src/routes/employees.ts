@@ -310,6 +310,7 @@ router.put('/:id', requirePermission('manage_employees'), async (c) => {
     if (!companyId && !clientId) return c.json({ message: 'Access denied' }, 403);
 
     const body = await c.req.json();
+    const { bankAccounts } = body;
     const employeeId = c.req.param('id');
     const empCompanyId = existing.companyId;
     const duplicates: string[] = [];
