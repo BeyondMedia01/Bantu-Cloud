@@ -559,6 +559,10 @@ router.post('/trial-signup', async (req, res) => {
     return res.status(400).json({ message: 'firstName, lastName, companyName, email, and password are required' });
   }
 
+  if (!companyName.trim()) {
+    return res.status(400).json({ message: 'companyName cannot be empty' });
+  }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ message: 'Invalid email format' });
@@ -575,13 +579,12 @@ router.post('/trial-signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-    let client, user;
-    await prisma.$transaction(async (tx) => {
-      client = await tx.client.create({ data: { name: companyName.trim() } });
+    const { client, user } = await prisma.$transaction(async (tx) => {
+      const c = await tx.client.create({ data: { name: companyName.trim() } });
       await tx.trial.create({
-        data: { clientId: client.id, expiresAt, employeeCap: 10, status: 'ACTIVE', onboardingStep: 0 },
+        data: { clientId: c.id, expiresAt, employeeCap: 10, status: 'ACTIVE', onboardingStep: 0 },
       });
-      user = await tx.user.create({
+      const u = await tx.user.create({
         data: {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
@@ -589,14 +592,20 @@ router.post('/trial-signup', async (req, res) => {
           email,
           password: hashedPassword,
           role: 'CLIENT_ADMIN',
-          clientAdmin: { create: { clientId: client.id } },
+          clientAdmin: { create: { clientId: c.id } },
         },
       });
+      return { client: c, user: u };
     });
 
-    const token = await signToken({ userId: user.id, clientId: client.id, role: user.role });
-    const refreshToken = await rotateRefreshToken(user.id);
-    setRefreshCookie(res, refreshToken);
+    const freshClient = await prisma.client.findUnique({
+      where: { id: client.id },
+      select: { enabledModules: true },
+    });
+    const enabledModules = freshClient?.enabledModules ?? null;
+    const token = await signToken({ userId: user.id, clientId: client.id, role: user.role, enabledModules });
+    const raw = await rotateRefreshToken(user.id);
+    setRefreshCookie(res, raw);
 
     return res.status(201).json({
       token,
