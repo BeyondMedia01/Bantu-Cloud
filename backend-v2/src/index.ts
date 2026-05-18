@@ -102,9 +102,11 @@ app.get('/api/public-holidays', async (c) => {
 app.route('/api', authDomain);
 
 // Auth-only routes (no company context required — used to bootstrap session)
+import trialRoutes from './routes/trial';
 const userApi = new Hono();
 userApi.use('*', authenticateToken);
 userApi.route('/', userDomain);
+userApi.route('/trial', trialRoutes);
 app.route('/api', userApi);
 
 // Protected API sub-app — auth & company context applied to all routes inside

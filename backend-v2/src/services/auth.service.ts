@@ -265,6 +265,14 @@ export async function trialSignup(data: {
     },
   });
 
+  // Create Trial record — company is already created above so start at step 1
+  await (prisma as any).$queryRawUnsafe(
+    `INSERT INTO "Trial" ("id","clientId","expiresAt","employeeCap","status","onboardingStep","updatedAt")
+     VALUES (gen_random_uuid()::text,$1,NOW() + INTERVAL '30 days',10,'ACTIVE',1,NOW())
+     ON CONFLICT ("clientId") DO NOTHING`,
+    client.id,
+  );
+
   const [jwt, refreshToken] = await Promise.all([
     signToken({ userId: user.id, email: user.email, role: user.role, clientId: client.id, companyId: company.id }),
     createRefreshToken(user.id),
