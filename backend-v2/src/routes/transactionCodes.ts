@@ -12,37 +12,39 @@ const createSchema = z.object({
   code: z.string().min(1),
   name: z.string().min(1),
   type: z.string().min(1),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   taxable: z.boolean().optional(),
   pensionable: z.boolean().optional(),
   preTax: z.boolean().optional(),
   calculationType: z.string().optional(),
-  defaultValue: z.number().optional(),
-  formula: z.string().optional(),
+  defaultValue: z.number().optional().nullable(),
+  formula: z.string().optional().nullable(),
   affectsPaye: z.boolean().optional(),
   affectsNssa: z.boolean().optional(),
   affectsAidsLevy: z.boolean().optional(),
-  incomeCategory: z.string().optional(),
+  incomeCategory: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
-  deemedBenefitPercent: z.number().optional(),
+  deemedBenefitPercent: z.number().optional().nullable(),
+  employerRate: z.number().optional(),
 });
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   type: z.string().optional(),
   taxable: z.boolean().optional(),
   pensionable: z.boolean().optional(),
   preTax: z.boolean().optional(),
   calculationType: z.string().optional(),
-  defaultValue: z.number().optional(),
-  formula: z.string().optional(),
+  defaultValue: z.number().optional().nullable(),
+  formula: z.string().optional().nullable(),
   affectsPaye: z.boolean().optional(),
   affectsNssa: z.boolean().optional(),
   affectsAidsLevy: z.boolean().optional(),
-  incomeCategory: z.string().optional(),
+  incomeCategory: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
-  deemedBenefitPercent: z.number().optional(),
+  deemedBenefitPercent: z.number().optional().nullable(),
+  employerRate: z.number().optional(),
 });
 
 function pickFields(body: any) {
@@ -62,6 +64,7 @@ function pickFields(body: any) {
   if (body.incomeCategory !== undefined) fields.incomeCategory = body.incomeCategory || null;
   if (body.isActive !== undefined) fields.isActive = Boolean(body.isActive);
   if (body.deemedBenefitPercent !== undefined) fields.deemedBenefitPercent = body.deemedBenefitPercent !== '' ? parseFloat(body.deemedBenefitPercent) : undefined;
+  if (body.employerRate !== undefined) fields.employerRate = body.employerRate !== null ? parseFloat(body.employerRate) : 0;
   return fields;
 }
 
