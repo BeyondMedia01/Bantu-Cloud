@@ -575,39 +575,31 @@ router.post('/trial-signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-    const client = await prisma.client.create({
-      data: { name: companyName.trim() },
+    let client, user;
+    await prisma.$transaction(async (tx) => {
+      client = await tx.client.create({ data: { name: companyName.trim() } });
+      await tx.trial.create({
+        data: { clientId: client.id, expiresAt, employeeCap: 10, status: 'ACTIVE', onboardingStep: 0 },
+      });
+      user = await tx.user.create({
+        data: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          name: `${firstName.trim()} ${lastName.trim()}`,
+          email,
+          password: hashedPassword,
+          role: 'CLIENT_ADMIN',
+          clientAdmin: { create: { clientId: client.id } },
+        },
+      });
     });
 
-    await prisma.trial.create({
-      data: {
-        clientId: client.id,
-        expiresAt,
-        employeeCap: 10,
-        status: 'ACTIVE',
-        onboardingStep: 0,
-      },
-    });
-
-    const user = await prisma.user.create({
-      data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        name: `${firstName.trim()} ${lastName.trim()}`,
-        email,
-        password: hashedPassword,
-        role: 'CLIENT_ADMIN',
-        clientAdmin: { create: { clientId: client.id } },
-      },
-    });
-
-    const token = signToken({ userId: user.id, clientId: client.id, role: user.role });
+    const token = await signToken({ userId: user.id, clientId: client.id, role: user.role });
     const refreshToken = await rotateRefreshToken(user.id);
     setRefreshCookie(res, refreshToken);
 
     return res.status(201).json({
       token,
-      refreshToken,
       role: user.role,
       clientId: client.id,
       companyId: null,
