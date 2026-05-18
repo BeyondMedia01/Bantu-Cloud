@@ -162,6 +162,7 @@ const Payslips: React.FC = () => {
   const ccy = run?.currency || 'USD';
 
   const thCls = 'tbl-th';
+  const tdCls = 'tbl-td';
 
   return (
     <div>
@@ -308,19 +309,19 @@ const Payslips: React.FC = () => {
                   const netUSD = p.netPayUSD ?? p.netPay;
 
                   return (
-                    <tr key={p.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-5 py-3.5">
+                    <tr key={p.id} className="tbl-row">
+                      <td className={tdCls}>
                         <p className="font-bold text-sm">{p.employee?.firstName} {p.employee?.lastName}</p>
                         <p className="text-xs text-muted-foreground">{p.employee?.employeeCode}</p>
                       </td>
-                      <td className="px-5 py-3.5 text-sm text-foreground/80">{p.employee?.position}</td>
+                      <td className={tdCls}>{p.employee?.position}</td>
 
                       {/* Basic from employee master */}
-                      <td className="px-5 py-3.5 text-sm font-bold">{fmt(p.basicSalary)}</td>
+                      <td className={`${tdCls} font-bold`}>{fmt(p.basicSalary)}</td>
 
                       {/* Earning TC columns — blank if employee doesn't have this TC */}
                       {allEarningTCs.map((tc) => (
-                        <td key={tc.tcId} className="px-5 py-3.5 text-sm font-medium">
+                        <td key={tc.tcId} className={`${tdCls} font-medium`}>
                           {earningMap[tc.tcId] ? earningMap[tc.tcId].join(' / ') : '—'}
                         </td>
                       ))}
@@ -328,34 +329,34 @@ const Payslips: React.FC = () => {
                       {/* Gross */}
                       {isDual ? (
                         <>
-                          <td className="px-5 py-3.5 text-sm font-bold">{fmt(grossUSD)}</td>
-                          <td className="px-5 py-3.5 text-sm font-bold">{fmt(p.grossZIG)}</td>
+                          <td className={`${tdCls} font-bold`}>{fmt(grossUSD)}</td>
+                          <td className={`${tdCls} font-bold`}>{fmt(p.grossZIG)}</td>
                         </>
                       ) : (
-                        <td className="px-5 py-3.5 text-sm font-bold">{fmt(p.gross)}</td>
+                        <td className={`${tdCls} font-bold`}>{fmt(p.gross)}</td>
                       )}
 
                       {/* Post-tax deduction TC columns */}
                       {allDeductionTCs.map((tc) => (
-                        <td key={tc.tcId} className="px-5 py-3.5 text-sm text-red-500 font-medium whitespace-nowrap">
+                        <td key={tc.tcId} className={`${tdCls} text-red-500 font-medium whitespace-nowrap`}>
                           {deductionMap[tc.tcId] ? deductionMap[tc.tcId].join(' / ') : '—'}
                         </td>
                       ))}
 
                       {/* Total deductions */}
-                      <td className="px-5 py-3.5 text-sm text-red-500 font-medium">{fmt(totalDeductions)}</td>
+                      <td className={`${tdCls} text-red-500 font-medium`}>{fmt(totalDeductions)}</td>
 
                       {/* Net Pay */}
                       {isDual ? (
                         <>
-                          <td className="px-5 py-3.5 text-sm font-bold text-emerald-600">{fmt(netUSD)}</td>
-                          <td className="px-5 py-3.5 text-sm font-bold text-emerald-600">{fmt(p.netPayZIG)}</td>
+                          <td className={`${tdCls} font-bold text-emerald-600`}>{fmt(netUSD)}</td>
+                          <td className={`${tdCls} font-bold text-emerald-600`}>{fmt(p.netPayZIG)}</td>
                         </>
                       ) : (
-                        <td className="px-5 py-3.5 text-sm font-bold text-emerald-600">{fmt(p.netPay)}</td>
+                        <td className={`${tdCls} font-bold text-emerald-600`}>{fmt(p.netPay)}</td>
                       )}
 
-                      <td className="px-5 py-3.5">
+                      <td className={tdCls}>
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => handlePreview(p.id, p.employee?.lastName || '', p.employee?.firstName || '')}
