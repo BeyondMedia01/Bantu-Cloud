@@ -97,6 +97,7 @@ router.post('/login', rateLimit(10, 15 * 60 * 1000), validateBody(loginSchema), 
     const result = await authService.login(email, password);
     return c.json(result);
   } catch (err: any) {
+    console.error('[login] error:', err?.message, err?.stack?.split('\n')[1]);
     const status = err.status || 500;
     return c.json({ message: err.message || 'Login failed' }, status);
   }
