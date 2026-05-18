@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { AuthAPI } from '../api/client';
 import { saveAuthData } from '../lib/auth';
+import { TrialAPI } from '../api/trial.api';
 
 const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
@@ -165,6 +166,17 @@ const Login: React.FC = () => {
       const { token, refreshToken, companyId, role } = data;
       const userId = (data as any).userId;
       saveAuthData(token, companyId ?? undefined, refreshToken, userId);
+
+      try {
+        const trialRes = await TrialAPI.getStatus();
+        const trial = trialRes.data?.trial;
+        if (trial !== null && trial !== undefined && trial.onboardingStep < 3) {
+          navigate('/trial-onboarding');
+          return;
+        }
+      } catch {
+        // non-blocking: continue with normal redirect
+      }
 
       if (IS_DESKTOP) {
         fetch('http://localhost:5005/api/auth/sync', {
