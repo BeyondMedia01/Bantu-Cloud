@@ -17,6 +17,19 @@ export class PageErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
+    // Chunk loading failure after a new deployment — stale HTML references old hashes.
+    // Auto-reload once to pick up the latest HTML and chunk manifest.
+    if (
+      error.message.includes('Failed to fetch') ||
+      error.message.includes('dynamically imported') ||
+      error.message.includes('Importing a module script failed')
+    ) {
+      const reloadKey = 'chunk_reload_attempted';
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, '1');
+        window.location.reload();
+      }
+    }
     return { hasError: true, error };
   }
 
