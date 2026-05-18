@@ -25,12 +25,11 @@ app.use('/api/auth', authRouter);
 
 describe('POST /api/auth/trial-signup', () => {
   let findUniqueSpy;
+  let transactionSpy;
 
   beforeEach(() => {
-    // Replace methods on the shared instance so the route picks up the spy
-    findUniqueSpy = vi.fn();
-    prisma.user.findUnique = findUniqueSpy;
-    prisma.$transaction = vi.fn();
+    findUniqueSpy = vi.spyOn(prisma.user, 'findUnique');
+    transactionSpy = vi.spyOn(prisma, '$transaction');
   });
 
   afterEach(() => {
@@ -63,6 +62,17 @@ describe('POST /api/auth/trial-signup', () => {
     const res = await request(app).post('/api/auth/trial-signup').send({
       firstName: 'John', lastName: 'Doe', companyName: 'Acme',
       email: 'existing@test.com', password: 'password123',
+    });
+    expect(res.status).toBe(409);
+  });
+
+  it('returns 409 when P2002 is thrown (race condition)', async () => {
+    findUniqueSpy.mockResolvedValue(null);
+    const p2002Error = Object.assign(new Error('Unique constraint failed'), { code: 'P2002' });
+    transactionSpy.mockRejectedValue(p2002Error);
+    const res = await request(app).post('/api/auth/trial-signup').send({
+      firstName: 'John', lastName: 'Doe', companyName: 'Acme',
+      email: 'new@test.com', password: 'password123',
     });
     expect(res.status).toBe(409);
   });
