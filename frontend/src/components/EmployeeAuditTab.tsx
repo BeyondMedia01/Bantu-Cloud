@@ -57,7 +57,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
             <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-muted text-muted-foreground mb-2 inline-block">
+                  <span className="label-section px-2 py-0.5 rounded-full bg-muted mb-2 inline-block">
                     {log.action.replace(/_/g, ' ')}
                   </span>
                   <h4 className="font-bold text-navy flex items-center gap-2">
@@ -65,12 +65,12 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
                   </h4>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center justify-end gap-1.5 text-muted-foreground text-[10px] font-bold uppercase tracking-wider mb-0.5">
-                    <Calendar size={10} />
+                  <div className="flex items-center justify-end gap-1.5 label-section mb-0.5">
+                    <Calendar size={11} />
                     {new Date(log.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                   </div>
-                  <div className="flex items-center justify-end gap-1.5 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
-                    <Clock size={10} />
+                  <div className="flex items-center justify-end gap-1.5 label-section">
+                    <Clock size={11} />
                     {new Date(log.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -82,7 +82,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
                     <UserIcon size={12} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-0.5">Performed By</p>
+                    <p className="label-section mb-0.5">Performed By</p>
                     <p className="truncate">{log.userEmail || 'System Process'}</p>
                   </div>
                 </div>
@@ -91,7 +91,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
                     <Info size={12} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-0.5">Source IP</p>
+                    <p className="label-section mb-0.5">Source IP</p>
                     <p className="truncate font-mono">{log.ipAddress || '—'}</p>
                   </div>
                 </div>
@@ -99,7 +99,7 @@ const EmployeeAuditTab: React.FC<Props> = ({ employeeId }) => {
 
               {log.details && Object.keys(log.details).length > 0 && (
                 <div className="mt-4 bg-muted/40 rounded-xl p-4 border border-border">
-                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-3">Change Details</p>
+                  <p className="label-section mb-3">Change Details</p>
                   <div className="grid grid-cols-1 gap-2">
                     {Object.entries(log.details as Record<string, any>).map(([key, value]) => {
                       if (key === 'id' || key === 'employeeId') return null;

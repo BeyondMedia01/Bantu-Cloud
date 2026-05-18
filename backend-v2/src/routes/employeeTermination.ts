@@ -5,9 +5,18 @@ import { requirePermission } from '../lib/permissions';
 const router = new Hono();
 
 router.get('/', requirePermission('manage_employees'), async (c) => {
+  const employeeId = c.req.param('id');
+
+  const annualLt = await prisma.leaveType.findFirst({
+    where: { companyId: c.get('companyId') || '', name: { equals: 'Annual', mode: 'insensitive' } },
+    select: { id: true },
+  });
+
   const employee = await prisma.employee.findUnique({
-    where: { id: c.req.param('id') },
-    include: { leaveBalances: { where: { leaveType: 'ANNUAL' }, orderBy: { year: 'desc' }, take: 1 } },
+    where: { id: employeeId },
+    include: {
+      leaveBalances: annualLt ? { where: { leaveTypeId: annualLt.id }, orderBy: { year: 'desc' }, take: 1 } : false,
+    },
   });
   if (!employee) return c.json({ message: 'Employee not found' }, 404);
   const companyId = c.get('companyId');
@@ -43,7 +52,8 @@ router.get('/', requirePermission('manage_employees'), async (c) => {
     }
   }
 
-  const leaveBalance = employee.leaveBalances?.[0]?.balance ?? employee.leaveBalance ?? 0;
+  const leaveBalancesData = employee.leaveBalances as any[];
+  const leaveBalance = leaveBalancesData?.[0]?.balance ?? 0;
   const dailyRate = monthlyPay / daysPerMonth;
   const leavePayment = Number(leaveBalance) * dailyRate;
   const yearsOfService = Math.max(0, (terminationDate.getTime() - new Date(employee.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));

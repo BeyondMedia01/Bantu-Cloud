@@ -75,9 +75,10 @@ export function calculatePAYE({
     }
   }
 
-  const aidsLevy = payeBeforeLevy * STATUTORY_RATES.AIDS_LEVY;
   const medicalAidCredit = medicalAid * STATUTORY_RATES.MEDICAL_AID_CREDIT_RATE;
-  const totalPaye = Math.max(0, payeBeforeLevy + aidsLevy - medicalAidCredit - taxCredits);
+  const payeAfterCredits = Math.max(0, payeBeforeLevy - medicalAidCredit - taxCredits);
+  const aidsLevy = payeAfterCredits * STATUTORY_RATES.AIDS_LEVY;
+  const totalPaye = payeAfterCredits + aidsLevy;
   const netSalary = cashEarnings - nssaEmployee - pensionContribution - medicalAid - totalPaye;
 
   return {

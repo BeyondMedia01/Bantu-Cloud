@@ -17,6 +17,49 @@ export interface TaxBand {
 
 // ─── Org Structure ────────────────────────────────────────────────────────────
 
+export interface Company {
+  id: string;
+  clientId: string;
+  name: string;
+  tradingAs?: string | null;
+  registrationNumber?: string | null;
+  taxId?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  currency?: string;
+  payrollFrequency?: string | null;
+  isActive?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Branch {
+  id: string;
+  clientId: string;
+  companyId: string;
+  name: string;
+  code?: string | null;
+  address?: string | null;
+  city?: string | null;
+  subCompanyId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Department {
+  id: string;
+  clientId: string;
+  companyId: string;
+  name: string;
+  code?: string | null;
+  branchId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SubCompany {
   id: string;
   name: string;
@@ -396,6 +439,42 @@ export interface CandidateEducation {
   startDate?: string | null;
   endDate?: string | null;
   gpa?: string | null;
+}
+
+// ─── Leave ──────────────────────────────────────────────────────────────────
+
+export type LeaveTxType = 'OPENING' | 'ALLOCATION' | 'ACCRUAL' | 'CARRY_FORWARD' | 'CONSUMED' | 'ADJUSTMENT' | 'ENCASHMENT' | 'EXPIRY';
+
+export interface LeaveTransaction {
+  id: string;
+  employeeId: string;
+  leaveTypeId: string;
+  transactionType: LeaveTxType;
+  amount: number;
+  balance: number;
+  transactionDate: string;
+  expiryDate?: string | null;
+  referenceDocType?: string | null;
+  referenceId?: string | null;
+  description?: string | null;
+  createdBy?: string | null;
+  createdAt: string;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+  leaveType?: { name?: string } | null;
+}
+
+export interface LeaveAllocation {
+  id: string;
+  employeeId: string;
+  leaveTypeId: string;
+  year: number;
+  entitlement: number;
+  used: number;
+  carriedForward: number;
+  createdAt: string;
+  updatedAt: string;
+  employee?: { firstName?: string; lastName?: string; employeeCode?: string } | null;
+  leaveType?: { name?: string } | null;
 }
 
 export interface JobApplication {
@@ -884,5 +963,20 @@ export interface EmployeeDocument {
   updatedAt: string;
 }
 
-// Alias for backwards compatibility
-export type Document = EmployeeDocument;
+// ─── Employee Financial ────────────────────────────────────────────────────────
+
+export interface BankAccount {
+  id: string;
+  employeeId: string;
+  accountName?: string | null;
+  accountNumber: string;
+  bankName: string;
+  bankBranch?: string | null;
+  branchCode?: string | null;
+  currency: string;
+  splitType: 'REMAINDER' | 'FIXED' | 'PERCENTAGE';
+  splitValue: number;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}

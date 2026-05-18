@@ -167,6 +167,17 @@ router.post('/', requirePermission('manage_employees'), async (req, res) => {
     const company = await prisma.company.findUnique({ where: { id: scopedCompanyId } });
     if (!company) return res.status(404).json({ message: 'Company not found' });
 
+    // Trial cap enforcement
+    if (req.trial && req.trial.status === 'ACTIVE') {
+      const count = await prisma.employee.count({ where: { clientId: req.clientId } });
+      if (count >= req.trial.employeeCap) {
+        return res.status(403).json({
+          trialCapReached: true,
+          message: `Trial limit of ${req.trial.employeeCap} employees reached. Upgrade to add more.`,
+        });
+      }
+    }
+
     const capCheck = await checkEmployeeCap(company.clientId);
     if (!capCheck.withinCap) {
       return res.status(403).json({

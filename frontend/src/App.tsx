@@ -17,6 +17,8 @@ import ResetPassword from './pages/ResetPassword';
 import DesktopOnboarding from './pages/DesktopOnboarding';
 import AcceptInvite from './pages/AcceptInvite';
 import TrialSignup from './pages/TrialSignup';
+const TrialOnboarding = React.lazy(() => import('./pages/TrialOnboarding'));
+const Upgrade = React.lazy(() => import('./pages/Upgrade'));
 
 // ─── Lazy-loaded pages ────────────────────────────────────────────────────────
 
@@ -210,6 +212,7 @@ const App: React.FC = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/trial-signup" element={<TrialSignup />} />
+              <Route path="/trial-onboarding" element={<React.Suspense fallback={null}><TrialOnboarding /></React.Suspense>} />
 
               {/* Protected — CLIENT_ADMIN + PLATFORM_ADMIN + COMPANY_USER */}
               <Route element={
@@ -218,6 +221,7 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               }>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/upgrade" element={<React.Suspense fallback={null}><Upgrade /></React.Suspense>} />
 
                 <Route path="/employees" element={<Employees />} />
                 <Route path="/employees/new" element={<EmployeeNew />} />

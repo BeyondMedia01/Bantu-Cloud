@@ -1,6 +1,7 @@
 import { http } from './http';
 import type {
   LeaveRecord, LeaveRequest, LeavePolicy, LeaveBalance, LeaveEncashment,
+  LeaveTransaction, LeaveAllocation,
 } from '../types/domain';
 
 export const LeaveAPI = {
@@ -36,4 +37,18 @@ export const LeaveEncashmentAPI = {
   approve: (id: string) => http.put(`/leave-encashments/${id}/approve`),
   reject: (id: string, reason?: string) => http.put(`/leave-encashments/${id}/reject`, { reason }),
   process: (id: string) => http.post(`/leave-encashments/${id}/process`),
+};
+
+export const LeaveTransactionAPI = {
+  getAll: (params?: Record<string, string>) => http.get<LeaveTransaction[]>('/leave-transactions', { params }),
+  create: (data: { employeeId: string; leaveTypeId: string; adjustment: number; note?: string; expiryDate?: string }) =>
+    http.post<LeaveTransaction>('/leave-transactions', data),
+};
+
+export const LeaveAllocationAPI = {
+  getAll: (params?: Record<string, string>) => http.get<LeaveAllocation[]>('/leave-allocations', { params }),
+  create: (data: { employeeIds: string[]; leaveTypeId: string; entitlement: number; year?: number; carryForward?: number }) =>
+    http.post<LeaveAllocation[]>('/leave-allocations', data),
+  delete: (employeeId: string, leaveTypeId: string, year: number) =>
+    http.delete(`/leave-allocations/${employeeId}/${leaveTypeId}/${year}`),
 };

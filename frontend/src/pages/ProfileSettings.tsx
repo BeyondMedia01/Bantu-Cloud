@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { User, Lock, Phone, CheckCircle2, AlertCircle, ShieldCheck, ShieldOff, QrCode } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Lock, Phone, CheckCircle2, AlertCircle, ShieldCheck, ShieldOff, QrCode, ArrowLeft } from 'lucide-react';
 import { UserAPI } from '../api/client';
 import { AuthAPI } from '../api/client';
 import { getUser } from '../lib/auth';
 
 const ProfileSettings: React.FC = () => {
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -28,6 +30,7 @@ const ProfileSettings: React.FC = () => {
   const [twoFASecret, setTwoFASecret] = useState('');
   const [twoFAUri, setTwoFAUri] = useState('');
   const [twoFACode, setTwoFACode] = useState('');
+  const [twoFAQr, setTwoFAQr] = useState('');
   const [twoFAPassword, setTwoFAPassword] = useState('');
   const [twoFALoading, setTwoFALoading] = useState(false);
   const [twoFAError, setTwoFAError] = useState('');
@@ -87,6 +90,7 @@ const ProfileSettings: React.FC = () => {
       const res = await AuthAPI.twoFA.setup();
       setTwoFASecret(res.data.secret);
       setTwoFAUri(res.data.uri);
+      setTwoFAQr((res.data as any).qr || '');
       setTwoFAStep('qr');
     } catch (err: any) {
       setTwoFAError(err.message || 'Failed to start 2FA setup');
@@ -132,10 +136,15 @@ const ProfileSettings: React.FC = () => {
   const inputCls = "w-full border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green";
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold text-navy">Profile Settings</h1>
-        <p className="text-sm text-muted-foreground font-medium mt-1">Manage your account information and password</p>
+    <div className="flex flex-col gap-6 max-w-3xl">
+      <div className="flex items-center gap-4 mb-8">
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold">Profile & Settings</h1>
+          <p className="text-muted-foreground font-medium text-sm">Manage your account details and password</p>
+        </div>
       </div>
 
       {/* Personal Info */}
@@ -275,10 +284,10 @@ const ProfileSettings: React.FC = () => {
               <p className="text-sm text-muted-foreground font-medium">
                 Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code to confirm.
               </p>
-              {/* QR code rendered via Google Charts API — no external library needed */}
+              {/* QR code is a data URL generated server-side — secret never leaves your network */}
               <div className="flex flex-col items-center gap-3">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(twoFAUri)}`}
+                  src={twoFAQr || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(twoFAUri)}`}
                   alt="2FA QR Code"
                   className="rounded-xl border border-border shadow-sm"
                   width={180}

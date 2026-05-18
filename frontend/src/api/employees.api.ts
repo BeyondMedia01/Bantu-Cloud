@@ -1,6 +1,6 @@
 import { http } from './http';
 import type { PaginatedResponse } from '../types/common';
-import type { SalaryStructure } from '../types/domain';
+import type { SalaryStructure, BankAccount } from '../types/domain';
 import type { Employee } from '../types/employee';
 
 export interface AuditLog {
@@ -45,4 +45,15 @@ export const EmployeeSalaryStructureAPI = {
     http.delete(`/employees/${empId}/salary-structure/${id}?endDate=true`),
   delete: (empId: string, id: string) =>
     http.delete(`/employees/${empId}/salary-structure/${id}`),
+};
+
+export const BankAccountAPI = {
+  getByEmployee: (employeeId: string) => http.get<BankAccount[]>(`/employee-bank-accounts/employee/${employeeId}`),
+  create: (data: {
+    employeeId: string; accountName?: string; accountNumber: string; bankName: string;
+    bankBranch?: string; branchCode?: string; currency?: string;
+    splitType?: 'REMAINDER' | 'FIXED' | 'PERCENTAGE'; splitValue?: number; priority?: number;
+  }) => http.post<BankAccount>('/employee-bank-accounts', data),
+  update: (id: string, data: Partial<BankAccount>) => http.put<BankAccount>(`/employee-bank-accounts/${id}`, data),
+  delete: (id: string) => http.delete(`/employee-bank-accounts/${id}`),
 };

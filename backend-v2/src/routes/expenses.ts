@@ -32,7 +32,7 @@ const updateExpenseSchema = z.object({
   notes: z.string().optional(),
 });
 
-router.get('/', async (c) => {
+router.get('/', requirePermission('view_expenses'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ data: [] });
   const employeeId = c.req.query('employeeId');
@@ -52,7 +52,7 @@ router.get('/', async (c) => {
   return c.json({ data: expenses });
 });
 
-router.get('/categories', async (c) => {
+router.get('/categories', requirePermission('view_expenses'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ data: [] });
   const categories = await prisma.expenseCategory.findMany({
@@ -62,7 +62,7 @@ router.get('/categories', async (c) => {
   return c.json({ data: categories });
 });
 
-router.get('/:id', async (c) => {
+router.get('/:id', requirePermission('view_expenses'), async (c) => {
   const { id } = c.req.param();
   const companyId = c.get('companyId');
   const expense = await prisma.expense.findUnique({
@@ -78,7 +78,7 @@ router.get('/:id', async (c) => {
   return c.json({ data: expense });
 });
 
-router.post('/', requirePermission('manage_employees'), validateBody(createExpenseSchema), async (c) => {
+router.post('/', requirePermission('manage_expenses'), validateBody(createExpenseSchema), async (c) => {
   const { employeeId, categoryId, amount, currency, description, receiptUrl, notes } = c.req.valid('json');
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
@@ -90,7 +90,7 @@ router.post('/', requirePermission('manage_employees'), validateBody(createExpen
   return c.json(expense, 201);
 });
 
-router.put('/:id', requirePermission('manage_employees'), validateBody(updateExpenseSchema), async (c) => {
+router.put('/:id', requirePermission('manage_expenses'), validateBody(updateExpenseSchema), async (c) => {
   const { id } = c.req.param();
   const data = c.req.valid('json');
   const companyId = c.get('companyId');
@@ -118,7 +118,7 @@ router.put('/:id', requirePermission('manage_employees'), validateBody(updateExp
   return c.json({ data: expense });
 });
 
-router.delete('/:id', requirePermission('manage_employees'), async (c) => {
+router.delete('/:id', requirePermission('manage_expenses'), async (c) => {
   const { id } = c.req.param();
   const companyId = c.get('companyId');
 
@@ -134,7 +134,7 @@ router.delete('/:id', requirePermission('manage_employees'), async (c) => {
   return c.json({ message: 'Expense deleted' });
 });
 
-router.put('/:id/approve', requirePermission('manage_employees'), async (c) => {
+router.put('/:id/approve', requirePermission('manage_expenses'), async (c) => {
   const { id } = c.req.param();
   const companyId = c.get('companyId');
   const user = c.get('user');
@@ -154,7 +154,7 @@ router.put('/:id/approve', requirePermission('manage_employees'), async (c) => {
   return c.json({ data: expense });
 });
 
-router.put('/:id/reject', requirePermission('manage_employees'), async (c) => {
+router.put('/:id/reject', requirePermission('manage_expenses'), async (c) => {
   const { id } = c.req.param();
   const companyId = c.get('companyId');
   const user = c.get('user');
@@ -174,7 +174,7 @@ router.put('/:id/reject', requirePermission('manage_employees'), async (c) => {
   return c.json({ data: expense });
 });
 
-router.post('/:id/process', requirePermission('manage_employees'), async (c) => {
+router.post('/:id/process', requirePermission('manage_expenses'), async (c) => {
   const { id } = c.req.param();
   const companyId = c.get('companyId');
   const user = c.get('user');

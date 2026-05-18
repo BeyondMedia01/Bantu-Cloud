@@ -257,6 +257,7 @@ async function sendBirthdayReminder(to, { companyName, birthdays }) {
 }
 
 module.exports = {
+  getTransporter,
   sendPasswordReset,
   sendEmployeeInvite,
   sendPayrollComplete,

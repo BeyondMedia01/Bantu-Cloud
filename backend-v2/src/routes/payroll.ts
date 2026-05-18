@@ -477,12 +477,12 @@ router.get('/:runId/payslips/:payslipId/pdf', async (c) => {
   // Fetch leave balance
   const leaveYear = new Date(run.startDate).getFullYear();
   const annualPolicy = await prisma.leavePolicy.findFirst({
-    where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { contains: 'ANNUAL', mode: 'insensitive' } },
+    where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { name: { contains: 'Annual', mode: 'insensitive' } } },
   });
   let leaveBalance: number | null = null, leaveTaken: number | null = null;
   if (annualPolicy) {
     const bal = await prisma.leaveBalance.findFirst({
-      where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveType: annualPolicy.leaveType },
+      where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveTypeId: annualPolicy.leaveTypeId },
     });
     if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
   }
@@ -547,12 +547,12 @@ router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payro
     // Fetch leave balance
     const leaveYear = new Date(run.startDate).getFullYear();
     const annualPolicy = await prisma.leavePolicy.findFirst({
-      where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { contains: 'ANNUAL', mode: 'insensitive' } },
+      where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { name: { contains: 'Annual', mode: 'insensitive' } } },
     });
     let leaveBalance: number | null = null, leaveTaken: number | null = null;
     if (annualPolicy) {
       const bal = await prisma.leaveBalance.findFirst({
-        where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveType: annualPolicy.leaveType },
+        where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveTypeId: annualPolicy.leaveTypeId },
       });
       if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
     }

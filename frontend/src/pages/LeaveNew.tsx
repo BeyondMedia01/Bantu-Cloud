@@ -41,7 +41,7 @@ const LeaveNew: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-8">
         <button onClick={() => navigate('/leave')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl"><ArrowLeft size={20} /></button>
         <div>

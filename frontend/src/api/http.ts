@@ -98,6 +98,13 @@ async function request<T = any>(method: string, url: string, body?: any, options
 
   const json = await response.json();
   if (!response.ok) {
+    if (response.status === 403) {
+      if (json?.trialExpired) {
+        window.dispatchEvent(new CustomEvent('trial-expired', { detail: json }));
+      } else if (json?.trialCapReached) {
+        window.dispatchEvent(new CustomEvent('trial-cap-reached', { detail: json }));
+      }
+    }
     throw Object.assign(new Error(json.error || json.message || response.statusText), { status: response.status });
   }
 

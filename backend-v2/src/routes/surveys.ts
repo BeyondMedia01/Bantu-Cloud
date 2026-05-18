@@ -57,7 +57,7 @@ router.get('/', async (c) => {
   return c.json(surveys);
 });
 
-router.post('/', requirePermission('manage_employees'), validateBody(createSurveySchema), async (c) => {
+router.post('/', requirePermission('manage_surveys'), validateBody(createSurveySchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -74,7 +74,7 @@ router.post('/', requirePermission('manage_employees'), validateBody(createSurve
   return c.json(survey, 201);
 });
 
-router.get('/:id', async (c) => {
+router.get('/:id', requirePermission('view_surveys'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -88,7 +88,7 @@ router.get('/:id', async (c) => {
   return c.json(survey);
 });
 
-router.put('/:id', requirePermission('manage_employees'), validateBody(updateSurveySchema), async (c) => {
+router.put('/:id', requirePermission('manage_surveys'), validateBody(updateSurveySchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -118,7 +118,7 @@ router.put('/:id', requirePermission('manage_employees'), validateBody(updateSur
   return c.json(survey);
 });
 
-router.delete('/:id', requirePermission('manage_employees'), async (c) => {
+router.delete('/:id', requirePermission('manage_surveys'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -166,7 +166,7 @@ router.post('/:id/respond', validateBody(respondSchema), async (c) => {
   return c.json({ id: response.id }, 201);
 });
 
-router.get('/:id/results', async (c) => {
+router.get('/:id/results', requirePermission('view_surveys'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 

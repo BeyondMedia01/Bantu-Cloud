@@ -119,6 +119,8 @@ app.use('/admin/queues', requirePlatformAdmin, bullBoardRouter);
 
 app.use(authenticateToken);
 app.use(companyContext);
+const trialGuard = require('./middleware/trialGuard');
+app.use(trialGuard);
 
 // Protected file serving — only authenticated users can access uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -149,6 +151,9 @@ app.get('/api/seed-settings', requirePermission('update_settings'), async (_req,
 // Web server: POST / and GET /initial receive inbound data from desktop.
 // Desktop local backend: GET /dry-run and POST /execute expose preview/execute for the frontend.
 app.use('/api/sync', require('./routes/sync'));
+
+// Trial
+app.use('/api/trial', require('./routes/trial'));
 
 // User info
 app.use('/api/user', require('./routes/user'));

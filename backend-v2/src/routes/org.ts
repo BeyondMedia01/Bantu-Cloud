@@ -22,7 +22,7 @@ const branchUpdateSchema = z.object({
 
 const branches = new Hono();
 
-branches.get('/', async (c) => {
+branches.get('/', requirePermission('view_employees'), async (c) => {
   try {
     const companyId = c.get('companyId');
     if (!companyId) return c.json([]);
@@ -35,7 +35,7 @@ branches.get('/', async (c) => {
   }
 });
 
-branches.get('/:id', async (c) => {
+branches.get('/:id', requirePermission('view_employees'), async (c) => {
   try {
     const companyId = c.get('companyId');
     const entity = await prisma.branch.findUnique({ where: { id: c.req.param('id') } });
@@ -101,7 +101,7 @@ const departmentUpdateSchema = z.object({
 
 const departments = new Hono();
 
-departments.get('/', async (c) => {
+departments.get('/', requirePermission('view_employees'), async (c) => {
   try {
     const companyId = c.get('companyId');
     if (!companyId) return c.json([]);
@@ -114,7 +114,7 @@ departments.get('/', async (c) => {
   }
 });
 
-departments.get('/:id', async (c) => {
+departments.get('/:id', requirePermission('view_employees'), async (c) => {
   try {
     const companyId = c.get('companyId');
     const entity = await prisma.department.findUnique({ where: { id: c.req.param('id') } });
@@ -184,7 +184,7 @@ const gradeUpdateSchema = z.object({
 
 const grades = new Hono();
 
-grades.get('/', async (c) => {
+grades.get('/', requirePermission('view_employees'), async (c) => {
   try {
     const clientId = c.get('clientId');
     if (!clientId) return c.json([]);
@@ -197,7 +197,7 @@ grades.get('/', async (c) => {
   }
 });
 
-grades.get('/:id', async (c) => {
+grades.get('/:id', requirePermission('view_employees'), async (c) => {
   try {
     const clientId = c.get('clientId');
     const entity = await prisma.grade.findUnique({ where: { id: c.req.param('id') } });
@@ -286,7 +286,7 @@ const shiftUpdateSchema = z.object({
 
 const shifts = new Hono();
 
-shifts.get('/', async (c) => {
+shifts.get('/', requirePermission('view_employees'), async (c) => {
   try {
     const companyId = c.get('companyId');
     if (!companyId) return c.json({ message: 'Company context required' }, 400);
@@ -300,7 +300,7 @@ shifts.get('/', async (c) => {
   }
 });
 
-shifts.get('/:id', async (c) => {
+shifts.get('/:id', requirePermission('view_employees'), async (c) => {
   try {
     const companyId = c.get('companyId');
     const entity = await prisma.shift.findUnique({ where: { id: c.req.param('id') } });

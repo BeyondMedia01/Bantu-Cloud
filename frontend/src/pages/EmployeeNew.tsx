@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useBlocker } from 'react-router-dom';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +12,7 @@ import { CalendarIcon } from 'lucide-react';
 
 import { EmployeeAPI, BranchAPI, DepartmentAPI, TaxTableAPI, SystemSettingsAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
+import { useToast } from '../context/ToastContext';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,32 +92,36 @@ function DatePicker({ value, onChange, placeholder }: { value?: Date; onChange: 
 const EmployeeNew: React.FC = () => {
   const navigate = useNavigate();
   const companyId = getActiveCompanyId();
+  const { showToast } = useToast();
 
-  const { data: branches = [] } = useQuery({
+  const { data: branches = [], isLoading: branchesLoading } = useQuery({
     queryKey: ['branches', companyId],
     queryFn: () => BranchAPI.getAll({ companyId: companyId! }).then(r => r.data),
     enabled: !!companyId,
   });
 
-  const { data: departments = [] } = useQuery({
+  const { data: departments = [], isLoading: departmentsLoading } = useQuery({
     queryKey: ['departments', companyId],
     queryFn: () => DepartmentAPI.getAll({ companyId: companyId! }).then(r => r.data),
     enabled: !!companyId,
   });
 
-  const { data: taxTables = [] } = useQuery({
+  const { data: taxTables = [], isLoading: taxTablesLoading } = useQuery({
     queryKey: ['taxTables'],
     queryFn: () => TaxTableAPI.getAll().then(r => r.data),
   });
 
-  const { data: systemSettings = [] } = useQuery({
+  const { data: systemSettings = [], isLoading: settingsLoading } = useQuery({
     queryKey: ['systemSettings'],
     queryFn: () => SystemSettingsAPI.getAll().then(r => r.data),
   });
 
+  const dependenciesLoading = branchesLoading || departmentsLoading || taxTablesLoading || settingsLoading;
+
   const form = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(employeeSchema) as any,
+    mode: 'onTouched',
     defaultValues: {
       employeeCode: '', title: '', firstName: '', lastName: '', maidenName: '',
       nationality: 'Zimbabwean', nationalId: '', passportNumber: '', email: '', phone: '',
@@ -130,6 +136,15 @@ const EmployeeNew: React.FC = () => {
       splitZigValue: 0,
     },
   });
+
+  const isDirty = form.formState.isDirty;
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty &&
+      !form.formState.isSubmitSuccessful &&
+      currentLocation.pathname !== nextLocation.pathname
+  );
 
   // Set default tax table once system settings load
   useEffect(() => {
@@ -157,6 +172,23 @@ const EmployeeNew: React.FC = () => {
     return tab.fields.some(f => f in errors);
   };
 
+  const onError = (errors: any) => {
+    // Find the first tab that has errors and switch to it
+    for (const tab of TABS) {
+      if (tab.fields.some(f => f in errors)) {
+        setActiveTab(tab.id);
+        break;
+      }
+    }
+    // Scroll to the top of the form after a brief delay (so tab switch renders first)
+    setTimeout(() => {
+      const firstError = document.querySelector('[aria-invalid="true"], .text-destructive');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
+
   const onSubmit = async (values: FormValues) => {
     setSubmitError('');
     try {
@@ -169,6 +201,7 @@ const EmployeeNew: React.FC = () => {
         bankAccounts: values.paymentMethod === 'BANK' ? values.bankAccounts : [],
       };
       await EmployeeAPI.create(payload as Parameters<typeof EmployeeAPI.create>[0]);
+      showToast(`${values.firstName} ${values.lastName} added successfully`, 'success');
       navigate('/employees');
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to create employee');
@@ -180,6 +213,17 @@ const EmployeeNew: React.FC = () => {
   const taxMethod = form.watch('taxMethod');
 
   return (
+    <>
+    {blocker.state === 'blocked' && (
+      <ConfirmModal
+        title="Discard changes?"
+        message="You have unsaved changes. Leaving this page will discard them."
+        confirmLabel="Discard & Leave"
+        danger={true}
+        onConfirm={() => blocker.proceed()}
+        onCancel={() => blocker.reset()}
+      />
+    )}
     <div className="max-w-3xl">
       <div className="flex items-center gap-4 mb-8">
         <button onClick={() => navigate('/employees')} className="p-2 hover:bg-muted rounded-xl transition-colors">
@@ -191,31 +235,53 @@ const EmployeeNew: React.FC = () => {
         </div>
       </div>
 
-      {submitError && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-300 font-medium">{submitError}</div>
+      {dependenciesLoading && (
+        <div className="flex flex-col gap-4 animate-pulse">
+          <div className="h-10 bg-muted rounded-2xl w-64" />
+          <div className="rounded-2xl border border-border overflow-hidden">
+            <div className="h-12 bg-muted border-b border-border" />
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-2">
+                  <div className="h-3 bg-muted rounded w-24" />
+                  <div className="h-10 bg-muted rounded-xl" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 bg-muted rounded-full w-32" />
+            <div className="h-10 bg-muted rounded-full w-24" />
+          </div>
+        </div>
       )}
+      {!dependenciesLoading && (
+        <>
+          {submitError && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-300 font-medium">{submitError}</div>
+          )}
 
-      {/* Tab bar */}
-      <div className="flex gap-2 p-1 tab-pill-track rounded-2xl mb-8 w-fit">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setActiveTab(t.id)}
-            className={`relative px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              activeTab === t.id ? 'tab-pill-active' : 'tab-pill-inactive'
-            }`}
-          >
-            {t.label}
-            {tabHasError(t.id) && (
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-400" />
-            )}
-          </button>
-        ))}
-      </div>
+          {/* Tab bar */}
+          <div className="flex gap-2 p-1 tab-pill-track rounded-2xl mb-8 w-fit">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveTab(t.id)}
+                className={`relative px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  activeTab === t.id ? 'tab-pill-active' : 'tab-pill-inactive'
+                }`}
+              >
+                {t.label}
+                {tabHasError(t.id) && (
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-400" />
+                )}
+              </button>
+            ))}
+          </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-8">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
 
           {/* ── Personal Details ── */}
           {activeTab === 'PERSONAL' && (
@@ -456,35 +522,56 @@ const EmployeeNew: React.FC = () => {
               </div>
 
               {/* ZiG Basic Salary Splitting */}
-              <div className="bg-emerald-50/30 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-800/40 p-6 rounded-2xl mb-6">
-                <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                  ZiG Basic Salary Splitting (ZIMRA Apportionment)
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <FF name="splitZigMode" label="ZiG Portion Mode" form={form}>
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="text-sm font-bold text-foreground">ZiG Salary Apportionment</h4>
+                  <span className="label-section bg-muted px-2 py-0.5 rounded-full">ZIMRA</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  How should the employee's basic salary be split between USD and ZiG?
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                  {[
+                    { value: 'NONE',       title: '100% USD',        desc: 'Paid entirely in USD. No ZiG component.' },
+                    { value: 'PERCENTAGE', title: 'ZiG Percentage',  desc: 'A % of USD basic is converted to ZiG.' },
+                    { value: 'FIXED',      title: 'Fixed ZiG Amount', desc: 'A fixed ZiG amount; remainder stays USD.' },
+                  ].map(opt => {
+                    const selected = form.watch('splitZigMode') === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => form.setValue('splitZigMode', opt.value as any, { shouldDirty: true })}
+                        className={`text-left p-4 rounded-xl border-2 transition-all ${
+                          selected
+                            ? 'border-accent-green bg-emerald-50/50 dark:bg-emerald-950/20'
+                            : 'border-border hover:border-accent-green/40 bg-card'
+                        }`}
+                      >
+                        <p className={`text-sm font-bold mb-1 ${selected ? 'text-accent-green' : 'text-foreground'}`}>{opt.title}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{opt.desc}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+                {form.watch('splitZigMode') !== 'NONE' && (
+                  <FF
+                    name="splitZigValue"
+                    label={form.watch('splitZigMode') === 'PERCENTAGE' ? 'ZiG Portion (%)' : 'ZiG Fixed Amount'}
+                    form={form}
+                    required
+                  >
                     {(field) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="bg-background border-emerald-200 dark:border-emerald-800"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="NONE">None (100% USD)</SelectItem>
-                          <SelectItem value="PERCENTAGE">Percentage of USD Basic</SelectItem>
-                          <SelectItem value="FIXED">Fixed ZiG Amount</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        {...field}
+                        type="number"
+                        step="0.01"
+                        className="max-w-xs border-accent-green/50 focus-visible:ring-accent-green/20"
+                        placeholder={form.watch('splitZigMode') === 'PERCENTAGE' ? 'e.g. 40' : 'e.g. 500.00'}
+                      />
                     )}
                   </FF>
-                  {form.watch('splitZigMode') !== 'NONE' && (
-                    <FF name="splitZigValue" label={form.watch('splitZigMode') === 'PERCENTAGE' ? 'ZiG Portion (%)' : 'ZiG Amount'} form={form} required>
-                      {(field) => <Input {...field} type="number" step="0.01" className="bg-background border-emerald-200 dark:border-emerald-800 font-bold text-emerald-700 dark:text-emerald-300" />}
-                    </FF>
-                  )}
-                </div>
-                <p className="mt-4 text-[10px] text-emerald-600/70 leading-relaxed font-medium">
-                  {form.watch('splitZigMode') === 'PERCENTAGE' && "The ZiG basic will be calculated as a percentage of the USD base rate. The remainder stays as USD basic."}
-                  {form.watch('splitZigMode') === 'FIXED' && "The ZiG basic is fixed. The USD basic will be the total USD base rate minus the USD-equivalent of this ZiG amount."}
-                  {form.watch('splitZigMode') === 'NONE' && "The employee is paid entirely in the primary currency selected above."}
-                </p>
+                )}
               </div>
 
               {paymentMethod === 'BANK' && (
@@ -509,31 +596,35 @@ const EmployeeNew: React.FC = () => {
                   {bankAccountFields.map((field, index) => {
                     const splitType = form.watch(`bankAccounts.${index}.splitType`);
                     return (
-                      <div key={field.id} className="bg-muted/50 p-4 rounded-2xl border border-border relative group transition-all hover:bg-muted">
-                        {bankAccountFields.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeAccount(index)}
-                            className="absolute -right-2 -top-2 bg-card border border-red-200 dark:border-red-800 shadow-sm rounded-full p-1 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
+                      <div key={field.id} className="bg-muted/50 p-4 rounded-2xl border border-border">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="label-section">Account {index + 1}</span>
+                          {bankAccountFields.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeAccount(index)}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                              <X size={12} /> Remove
+                            </button>
+                          )}
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Bank Name</label>
+                            <label className="label-section">Bank Name</label>
                             <input
                               list="zw-banks"
                               {...form.register(`bankAccounts.${index}.bankName`)}
                               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
-                              placeholder="Search or type bank name"
+                              placeholder="Type to search banks…"
                             />
+                            <p className="text-xs text-muted-foreground">Start typing to see suggestions</p>
                             {errors.bankAccounts?.[index]?.bankName && (
                               <p className="text-xs text-red-500">{errors.bankAccounts[index]?.bankName?.message}</p>
                             )}
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Number</label>
+                            <label className="label-section">Account Number</label>
                             <input
                               {...form.register(`bankAccounts.${index}.accountNumber`)}
                               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
@@ -544,7 +635,7 @@ const EmployeeNew: React.FC = () => {
                             )}
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Name</label>
+                            <label className="label-section">Account Name</label>
                             <input
                               {...form.register(`bankAccounts.${index}.accountName`)}
                               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-accent-green/10 focus:border-accent-green outline-none transition-all"
@@ -552,7 +643,7 @@ const EmployeeNew: React.FC = () => {
                             />
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Split Mode</label>
+                            <label className="label-section">Split Mode</label>
                             <Controller control={form.control} name={`bankAccounts.${index}.splitType`} render={({ field }) => (
                               <Dropdown className="w-full" trigger={(isOpen) => (
                                 <button type="button" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-bold text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
@@ -565,7 +656,7 @@ const EmployeeNew: React.FC = () => {
                                 { label: 'Percentage (%)', onClick: () => field.onChange('PERCENTAGE') },
                               ]}]} />
                             )} />
-                            <p className="text-[10px] text-muted-foreground leading-snug">
+                            <p className="text-xs text-muted-foreground leading-snug">
                               {splitType === 'REMAINDER' && 'Receives everything left after other splits.'}
                               {splitType === 'FIXED' && 'A fixed currency amount is paid to this account.'}
                               {splitType === 'PERCENTAGE' && 'A percentage of net pay is paid to this account.'}
@@ -573,7 +664,7 @@ const EmployeeNew: React.FC = () => {
                           </div>
                           {splitType !== 'REMAINDER' && (
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Split Value</label>
+                              <label className="label-section">Split Value</label>
                               <input
                                 type="number"
                                 step="0.01"
@@ -583,7 +674,7 @@ const EmployeeNew: React.FC = () => {
                             </div>
                           )}
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Account Currency</label>
+                            <label className="label-section">Account Currency</label>
                             <Controller control={form.control} name={`bankAccounts.${index}.currency`} render={({ field }) => (
                               <Dropdown className="w-full" trigger={(isOpen) => (
                                 <button type="button" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground flex items-center justify-between hover:border-accent-green transition-colors">
@@ -705,9 +796,12 @@ const EmployeeNew: React.FC = () => {
               Cancel
             </Button>
           </div>
-        </form>
-      </Form>
+            </form>
+          </Form>
+        </>
+      )}
     </div>
+    </>
   );
 };
 

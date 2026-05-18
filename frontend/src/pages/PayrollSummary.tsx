@@ -137,63 +137,8 @@ const PayrollSummary: React.FC = () => {
     finally { setExporting(''); }
   };
 
-  // ── Loading skeleton ─────────────────────────────────────────────────────────
-
-  if (loading) return (
-    <div className="flex flex-col gap-6 animate-pulse">
-      <div className="flex items-center gap-4">
-        <div className="w-9 h-9 rounded-xl bg-muted" />
-        <div className="space-y-2">
-          <div className="h-5 w-40 bg-muted rounded" />
-          <div className="h-3 w-56 bg-muted rounded" />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="bg-primary border border-border rounded-2xl p-4 space-y-3">
-            <div className="h-3 w-16 bg-muted rounded" />
-            <div className="h-6 w-20 bg-muted rounded" />
-          </div>
-        ))}
-      </div>
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto scroll-x-shadow">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-border bg-muted">
-                {['Employee', 'Basic', 'Gross', 'PAYE', 'NSSA', 'AIDS Levy', 'Net Pay'].map(h => (
-                  <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground/50 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i}>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
-                      <div className="space-y-2"><div className="h-3 w-24 bg-muted rounded" /><div className="h-2 w-14 bg-muted rounded" /></div>
-                    </div>
-                  </td>
-                  {Array.from({ length: 6 }).map((_, ci) => (
-                    <td key={ci} className="px-5 py-4"><div className="h-3 w-16 bg-muted rounded" /></td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-
-  // ── Derived helpers ──────────────────────────────────────────────────────────
-
-  const fmtUSD = (n: number) => `$${fmt(n)}`;
-  const fmtZIG = (n: number) => `Z ${fmt(n)}`;
-  const usdEquiv = (usd: number, zig: number) => usd + (xr > 1 ? zig / xr : zig);
-
   // ── Payslip columns ──────────────────────────────────────────────────────────
+  // Must be declared BEFORE any early return to satisfy the Rules of Hooks.
 
   const payslipColumns = useMemo<ColumnDef<any, any>[]>(() => {
     const numCell = (val: number, className?: string) => (
@@ -365,6 +310,62 @@ const PayrollSummary: React.FC = () => {
       },
     ];
   }, [isDual, totals]);
+
+  // ── Loading skeleton ─────────────────────────────────────────────────────────
+
+  if (loading) return (
+    <div className="flex flex-col gap-6 animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="w-9 h-9 rounded-xl bg-muted" />
+        <div className="space-y-2">
+          <div className="h-5 w-40 bg-muted rounded" />
+          <div className="h-3 w-56 bg-muted rounded" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="bg-primary border border-border rounded-2xl p-4 space-y-3">
+            <div className="h-3 w-16 bg-muted rounded" />
+            <div className="h-6 w-20 bg-muted rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="overflow-x-auto scroll-x-shadow">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border bg-muted">
+                {['Employee', 'Basic', 'Gross', 'PAYE', 'NSSA', 'AIDS Levy', 'Net Pay'].map(h => (
+                  <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground/50 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i}>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
+                      <div className="space-y-2"><div className="h-3 w-24 bg-muted rounded" /><div className="h-2 w-14 bg-muted rounded" /></div>
+                    </div>
+                  </td>
+                  {Array.from({ length: 6 }).map((_, ci) => (
+                    <td key={ci} className="px-5 py-4"><div className="h-3 w-16 bg-muted rounded" /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Derived helpers ──────────────────────────────────────────────────────────
+
+  const fmtUSD = (n: number) => `$${fmt(n)}`;
+  const fmtZIG = (n: number) => `Z ${fmt(n)}`;
+  const usdEquiv = (usd: number, zig: number) => usd + (xr > 1 ? zig / xr : zig);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 

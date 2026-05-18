@@ -9,7 +9,7 @@ export const AuthAPI = {
   register: (data: { firstName: string; lastName: string; phone?: string; email: string; password: string; licenseToken: string }) =>
     http.post<{ token: string; refreshToken: string; role: string; clientId: string }>('/auth/register', data),
   trialSignup: (data: { firstName: string; lastName: string; companyName: string; email: string; password: string }) =>
-    http.post<{ token: string; refreshToken: string; role: string; clientId: string; companyId: string; name: string }>('/auth/trial-signup', data),
+    http.post<{ token: string; refreshToken: string; role: string; clientId: string; companyId: string | null; name: string; requiresOnboarding: boolean }>('/auth/trial-signup', data),
   forgotPassword: (email: string) => http.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) =>
     http.post('/auth/reset-password', { token, password }),
@@ -20,7 +20,7 @@ export const AuthAPI = {
   twoFA: {
     authenticate: (tempToken: string, code: string) =>
       http.post<{ token: string; refreshToken: string; role: string; clientId: string | null; companyId: string | null; name: string }>('/auth/2fa/authenticate', { tempToken, code }),
-    setup: () => http.post<{ secret: string; uri: string }>('/auth/2fa/setup'),
+    setup: () => http.post<{ secret: string; uri: string; qr: string }>('/auth/2fa/setup'),
     verify: (code: string) => http.post('/auth/2fa/verify', { code }),
     disable: (password: string, code: string) => http.post('/auth/2fa/disable', { password, code }),
   },

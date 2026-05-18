@@ -91,52 +91,54 @@ model ClientAdmin {
 }
 
 model Company {
-  id                 String               @id @default(uuid())
-  clientId           String
-  name               String
-  registrationNumber String?
-  taxId              String?
-  address            String?
-  contactEmail       String?
-  contactPhone       String?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  sdfRate            Float?
-  wcifRate           Float?
-  zimdefRate         Float?
-  nssaNumber         String?
-  Asset              Asset[]
-  AssetCategory      AssetCategory[]
-  attendanceLogs     AttendanceLog[]
-  attendanceRecords  AttendanceRecord[]
-  biometricDevices   BiometricDevice[]
-  branches           Branch[]
-  client             Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  currencyRates      CurrencyRate[]
-  departments        Department[]
-  employees          Employee[]
-  Expense            Expense[]
-  ExpenseCategory    ExpenseCategory[]
-  Invite             Invite[]
-  JobPosting         JobPosting[]
-  leaveBalances      LeaveBalance[]
-  leaveEncashments   LeaveEncashment[]
-  leavePolicies      LeavePolicy[]
-  Onboarding         Onboarding[]
-  OnboardingTemplate OnboardingTemplate[]
-  payrollCores       PayrollCore[]
-  payrollRuns        PayrollRun[]
-  PerformanceGoal    PerformanceGoal[]
-  PerformanceReview  PerformanceReview[]
-  Role               Role[]
-  shifts             Shift[]
-  shiftAssignments   ShiftAssignment[]
-  SuccessionPlan     SuccessionPlan[]
-  Survey             Survey[]
-  TrainingCourse     TrainingCourse[]
-  UserCompanyRole    UserCompanyRole[]
-  payrollUsers       PayrollUser[]
-  payrollLogs        PayrollLog[]
+  id                     String                  @id @default(uuid())
+  clientId               String
+  name                   String
+  registrationNumber     String?
+  taxId                  String?
+  address                String?
+  contactEmail           String?
+  contactPhone           String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  sdfRate                Float?
+  wcifRate               Float?
+  zimdefRate             Float?
+  nssaNumber             String?
+  Asset                  Asset[]
+  AssetCategory          AssetCategory[]
+  attendanceLogs         AttendanceLog[]
+  attendanceRecords      AttendanceRecord[]
+  biometricDevices       BiometricDevice[]
+  branches               Branch[]
+  client                 Client                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  currencyRates          CurrencyRate[]
+  departments            Department[]
+  employees              Employee[]
+  Expense                Expense[]
+  ExpenseCategory        ExpenseCategory[]
+  Invite                 Invite[]
+  JobPosting             JobPosting[]
+  leaveBalances          LeaveBalance[]
+  leaveEncashments       LeaveEncashment[]
+  leavePolicies          LeavePolicy[]
+  leaveTypes             LeaveType[]
+  leavePolicyAssignments LeavePolicyAssignment[]
+  Onboarding             Onboarding[]
+  OnboardingTemplate     OnboardingTemplate[]
+  payrollCores           PayrollCore[]
+  payrollRuns            PayrollRun[]
+  PerformanceGoal        PerformanceGoal[]
+  PerformanceReview      PerformanceReview[]
+  Role                   Role[]
+  shifts                 Shift[]
+  shiftAssignments       ShiftAssignment[]
+  SuccessionPlan         SuccessionPlan[]
+  Survey                 Survey[]
+  TrainingCourse         TrainingCourse[]
+  UserCompanyRole        UserCompanyRole[]
+  payrollUsers           PayrollUser[]
+  payrollLogs            PayrollLog[]
 }
 
 model SubCompany {
@@ -175,105 +177,108 @@ model Department {
 }
 
 model Employee {
-  id                    String                @id @default(uuid())
-  clientId              String
-  companyId             String
-  branchId              String?
-  departmentId          String?
-  userId                String?               @unique
-  employeeCode          String?
-  firstName             String
-  lastName              String
-  maidenName            String?
-  dateOfBirth           DateTime?
-  gender                Gender?
-  maritalStatus         MaritalStatus?
-  nationality           String?
-  socialSecurityNum     String?
-  homeAddress           String?
-  postalAddress         String?
-  nextOfKin             String?
-  nextOfKinName         String?
-  nextOfKinContact      String?
-  title                 String?
-  occupation            String?
-  position              String
-  employmentType        EmploymentType        @default(PERMANENT)
-  startDate             DateTime
-  costCenter            String?
-  leaveEntitlement      Float?
-  dischargeDate         DateTime?
-  dischargeReason       String?
-  baseRate              Float
-  currency              String                @default("USD")
-  paymentMethod         PaymentMethod         @default(BANK)
-  paymentBasis          PaymentBasis          @default(MONTHLY)
-  hoursPerPeriod        Float?
-  daysPerPeriod         Float?
-  bankName              String?
-  bankBranch            String?
-  accountNumber         String?
-  rateSource            RateSource            @default(MANUAL)
-  gradeId               String?
-  taxMethod             TaxMethod             @default(NON_FDS)
-  taxTable              String?
-  taxDirective          String?
-  taxDirectivePerc      Float?
-  taxDirectiveAmt       Float?
-  accumulativeSetting   String?
-  taxCredits            Float?
-  tin                   String?
-  motorVehicleBenefit   Float                 @default(0)
-  motorVehicleType      String?
-  leaveBalance          Float                 @default(0)
-  leaveTaken            Float                 @default(0)
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  vehicleEngineCategory VehicleEngineCategory @default(NONE)
-  grossingUp            Boolean               @default(false)
-  email                 String?
-  nationalId            String?
-  necGradeId            String?
-  passportNumber        String?
-  pensionNumber         String?
-  phone                 String?
-  splitUsdPercent       Float?
-  splitZigMode          SplitZigMode          @default(NONE)
-  splitZigValue         Float?
-  taxDirectiveEffective DateTime?
-  taxDirectiveExpiry    DateTime?
-  taxDirectiveRef       String?
-  Asset                 Asset[]
-  attendanceLogs        AttendanceLog[]
-  attendanceRecords     AttendanceRecord[]
-  branch                Branch?               @relation(fields: [branchId], references: [id])
-  client                Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  department            Department?           @relation(fields: [departmentId], references: [id])
-  grade                 Grade?                @relation(fields: [gradeId], references: [id])
-  necGrade              NecGrade?             @relation(fields: [necGradeId], references: [id])
-  user                  User?                 @relation(fields: [userId], references: [id])
-  bankAccounts          EmployeeBankAccount[]
-  documents             EmployeeDocument[]
-  salaryStructure       EmployeeTransaction[]
-  Expense               Expense[]
-  leaveBalances         LeaveBalance[]
-  leaveEncashments      LeaveEncashment[]
-  leaveRecords          LeaveRecord[]
-  leaveRequests         LeaveRequest[]
-  loans                 Loan[]
-  Onboarding            Onboarding[]
-  payrollCores          PayrollCore[]
-  payrollInputs         PayrollInput[]
-  payrollTransactions   PayrollTransaction[]
-  payslips              Payslip[]
-  PerformanceGoal       PerformanceGoal[]
-  PerformanceReview     PerformanceReview[]
-  shiftAssignments      ShiftAssignment[]
-  SuccessionCandidate   SuccessionCandidate[]
-  SurveyResponse        SurveyResponse[]
-  TrainingCertificate   TrainingCertificate[]
-  TrainingEnrollment    TrainingEnrollment[]
+  id                     String                  @id @default(uuid())
+  clientId               String
+  companyId              String
+  branchId               String?
+  departmentId           String?
+  userId                 String?                 @unique
+  employeeCode           String?
+  firstName              String
+  lastName               String
+  maidenName             String?
+  dateOfBirth            DateTime?
+  gender                 Gender?
+  maritalStatus          MaritalStatus?
+  nationality            String?
+  socialSecurityNum      String?
+  homeAddress            String?
+  postalAddress          String?
+  nextOfKin              String?
+  nextOfKinName          String?
+  nextOfKinContact       String?
+  title                  String?
+  occupation             String?
+  position               String
+  employmentType         EmploymentType          @default(PERMANENT)
+  startDate              DateTime
+  costCenter             String?
+  leaveEntitlement       Float?
+  dischargeDate          DateTime?
+  dischargeReason        String?
+  baseRate               Float
+  currency               String                  @default("USD")
+  paymentMethod          PaymentMethod           @default(BANK)
+  paymentBasis           PaymentBasis            @default(MONTHLY)
+  hoursPerPeriod         Float?
+  daysPerPeriod          Float?
+  bankName               String?
+  bankBranch             String?
+  accountNumber          String?
+  rateSource             RateSource              @default(MANUAL)
+  gradeId                String?
+  taxMethod              TaxMethod               @default(NON_FDS)
+  taxTable               String?
+  taxDirective           String?
+  taxDirectivePerc       Float?
+  taxDirectiveAmt        Float?
+  accumulativeSetting    String?
+  taxCredits             Float?
+  tin                    String?
+  motorVehicleBenefit    Float                   @default(0)
+  motorVehicleType       String?
+  leaveBalance           Float                   @default(0)
+  leaveTaken             Float                   @default(0)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  vehicleEngineCategory  VehicleEngineCategory   @default(NONE)
+  grossingUp             Boolean                 @default(false)
+  email                  String?
+  nationalId             String?
+  necGradeId             String?
+  passportNumber         String?
+  pensionNumber          String?
+  phone                  String?
+  splitUsdPercent        Float?
+  splitZigMode           SplitZigMode            @default(NONE)
+  splitZigValue          Float?
+  taxDirectiveEffective  DateTime?
+  taxDirectiveExpiry     DateTime?
+  taxDirectiveRef        String?
+  Asset                  Asset[]
+  attendanceLogs         AttendanceLog[]
+  attendanceRecords      AttendanceRecord[]
+  branch                 Branch?                 @relation(fields: [branchId], references: [id])
+  client                 Client                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  company                Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  department             Department?             @relation(fields: [departmentId], references: [id])
+  grade                  Grade?                  @relation(fields: [gradeId], references: [id])
+  necGrade               NecGrade?               @relation(fields: [necGradeId], references: [id])
+  user                   User?                   @relation(fields: [userId], references: [id])
+  bankAccounts           EmployeeBankAccount[]
+  documents              EmployeeDocument[]
+  salaryStructure        EmployeeTransaction[]
+  Expense                Expense[]
+  leaveBalances          LeaveBalance[]
+  leaveEncashments       LeaveEncashment[]
+  leaveRecords           LeaveRecord[]
+  leaveRequests          LeaveRequest[]
+  loans                  Loan[]
+  Onboarding             Onboarding[]
+  payrollCores           PayrollCore[]
+  payrollInputs          PayrollInput[]
+  payrollTransactions    PayrollTransaction[]
+  payslips               Payslip[]
+  PerformanceGoal        PerformanceGoal[]
+  PerformanceReview      PerformanceReview[]
+  shiftAssignments       ShiftAssignment[]
+  SuccessionCandidate    SuccessionCandidate[]
+  SurveyResponse         SurveyResponse[]
+  TrainingCertificate    TrainingCertificate[]
+  TrainingEnrollment     TrainingEnrollment[]
+  leaveTransactions      LeaveTransaction[]
+  leaveAllocations       LeaveAllocation[]
+  leavePolicyAssignments LeavePolicyAssignment[]
 
   @@unique([clientId, employeeCode])
   @@index([companyId])
@@ -308,23 +313,23 @@ model EmployeeBankAccount {
 }
 
 model PayrollUser {
-  id                 String   @id @default(uuid())
-  companyId          String
-  fullName           String
-  email              String
-  role               String   @default("VIEWER")
-  isActive           Boolean  @default(true)
-  canProcessPayroll  Boolean  @default(false)
-  canEditEmployees   Boolean  @default(false)
-  canViewReports     Boolean  @default(false)
-  canExportData      Boolean  @default(false)
-  lastLogin          DateTime?
-  createdBy          String?
-  notes              String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                String    @id @default(uuid())
+  companyId         String
+  fullName          String
+  email             String
+  role              String    @default("VIEWER")
+  isActive          Boolean   @default(true)
+  canProcessPayroll Boolean   @default(false)
+  canEditEmployees  Boolean   @default(false)
+  canViewReports    Boolean   @default(false)
+  canExportData     Boolean   @default(false)
+  lastLogin         DateTime?
+  createdBy         String?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   logs    PayrollLog[]
 
   @@index([companyId])
@@ -785,21 +790,42 @@ model AttendanceRecord {
 }
 
 model LeavePolicy {
-  id              String         @id @default(uuid())
+  id              String                  @id @default(uuid())
   companyId       String
-  leaveType       String
-  accrualRate     Float          @default(2.5)
-  maxAccumulation Float          @default(0)
-  carryOverLimit  Float          @default(30)
-  encashable      Boolean        @default(true)
-  encashCap       Float          @default(0)
-  isActive        Boolean        @default(true)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  leaveTypeId     String
+  accrualRate     Float                   @default(2.5)
+  entitlementDays Float                   @default(0)
+  maxAccumulation Float                   @default(0)
+  carryOverLimit  Float                   @default(30)
+  encashable      Boolean                 @default(true)
+  encashCap       Float                   @default(0)
+  isActive        Boolean                 @default(true)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
   leaveBalances   LeaveBalance[]
-  company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  assignments     LeavePolicyAssignment[]
+  leaveType       LeaveType               @relation(fields: [leaveTypeId], references: [id])
+  company         Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@unique([companyId, leaveType])
+  @@unique([companyId, leaveTypeId])
+}
+
+model LeavePolicyAssignment {
+  id            String      @id @default(uuid())
+  employeeId    String
+  leavePolicyId String
+  companyId     String
+  effectiveFrom DateTime    @default(now())
+  effectiveTo   DateTime?
+  reason        String?
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leavePolicy   LeavePolicy @relation(fields: [leavePolicyId], references: [id])
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([employeeId, effectiveFrom])
 }
 
 model LeaveBalance {
@@ -807,7 +833,7 @@ model LeaveBalance {
   employeeId      String
   companyId       String
   leavePolicyId   String?
-  leaveType       String
+  leaveTypeId     String
   year            Int
   openingBalance  Float             @default(0)
   accrued         Float             @default(0)
@@ -821,19 +847,21 @@ model LeaveBalance {
   company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee        Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leavePolicy     LeavePolicy?      @relation(fields: [leavePolicyId], references: [id])
+  leaveType       LeaveType         @relation(fields: [leaveTypeId], references: [id])
   encashments     LeaveEncashment[]
 
-  @@unique([employeeId, leaveType, year])
+  @@unique([employeeId, leaveTypeId, year])
   @@index([companyId])
   @@index([leavePolicyId])
+  @@index([employeeId, year])
 }
 
 model LeaveEncashment {
   id             String       @id @default(uuid())
   employeeId     String
   leaveBalanceId String
+  leaveTypeId    String
   companyId      String
-  leaveType      String
   days           Float
   ratePerDay     Float        @default(0)
   totalAmount    Float        @default(0)
@@ -848,6 +876,7 @@ model LeaveEncashment {
   company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveBalance   LeaveBalance @relation(fields: [leaveBalanceId], references: [id])
+  leaveType      LeaveType    @relation(fields: [leaveTypeId], references: [id])
 
   @@index([employeeId])
   @@index([leaveBalanceId])
@@ -888,6 +917,86 @@ model LeaveRequest {
   @@index([employeeId])
   @@index([status])
   @@index([employeeId, status])
+}
+
+model LeaveType {
+  id               String             @id @default(uuid())
+  companyId        String
+  name             String
+  accrualType      LeaveAccrualType   @default(MONTHLY)
+  entitlementDays  Float
+  carryForwardDays Float?
+  maxAccumulation  Float?
+  allowNegative    Boolean            @default(false)
+  isPaid           Boolean            @default(true)
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  company          Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  transactions     LeaveTransaction[]
+  allocations      LeaveAllocation[]
+  leavePolicies    LeavePolicy[]
+  leaveBalances    LeaveBalance[]
+  leaveEncashments LeaveEncashment[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model LeaveTransaction {
+  id               String      @id @default(uuid())
+  employeeId       String
+  leaveTypeId      String
+  transactionType  LeaveTxType
+  amount           Float
+  balance          Float
+  transactionDate  DateTime    @default(now())
+  expiryDate       DateTime?
+  referenceDocType String?
+  referenceId      String?
+  description      String?
+  createdBy        String?
+  createdAt        DateTime    @default(now())
+  employee         Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType        LeaveType   @relation(fields: [leaveTypeId], references: [id])
+
+  @@index([employeeId])
+  @@index([employeeId, leaveTypeId])
+  @@index([transactionDate])
+}
+
+model LeaveAllocation {
+  id             String    @id @default(uuid())
+  employeeId     String
+  leaveTypeId    String
+  year           Int
+  entitlement    Float
+  used           Float     @default(0)
+  carriedForward Float     @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType      LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@index([employeeId, year])
+}
+
+enum LeaveAccrualType {
+  MONTHLY
+  YEARLY
+  ONE_TIME
+}
+
+enum LeaveTxType {
+  OPENING // Initial balance from migration
+  ALLOCATION // Annual/scheduled entitlement granted
+  ACCRUAL // Monthly accrual
+  CARRY_FORWARD // End of year rollover
+  CONSUMED // Leave taken
+  ADJUSTMENT // Manual admin adjustment
+  ENCASHMENT // Leave sold/paid out
+  EXPIRY // Lost balance at year end
 }
 
 model Loan {
@@ -1401,16 +1510,16 @@ model ReviewSkill {
 }
 
 model SuccessionPlan {
-  id            String              @id
+  id            String                @id
   companyId     String
   positionTitle String
   department    String?
   description   String?
-  status        SuccessionStatus    @default(ACTIVE)
+  status        SuccessionStatus      @default(ACTIVE)
   riskLevel     String?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  Company       Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  Company       Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
   candidates    SuccessionCandidate[]
 
   @@index([companyId])
@@ -1418,7 +1527,7 @@ model SuccessionPlan {
 }
 
 model SuccessionCandidate {
-  id             String          @id
+  id             String         @id
   planId         String
   employeeId     String
   readiness      String?
@@ -1426,27 +1535,27 @@ model SuccessionCandidate {
   notes          String?
   strengths      String?
   areasForGrowth String?
-  order          Int             @default(0)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  Employee       Employee        @relation(fields: [employeeId], references: [id])
-  SuccessionPlan SuccessionPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  order          Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  Employee       Employee       @relation(fields: [employeeId], references: [id])
+  SuccessionPlan SuccessionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@index([planId])
   @@index([employeeId])
 }
 
 model Survey {
-  id          String            @id
+  id          String           @id
   companyId   String
   title       String
   description String?
-  anonymous   Boolean           @default(false)
-  status      SurveyStatus      @default(DRAFT)
+  anonymous   Boolean          @default(false)
+  status      SurveyStatus     @default(DRAFT)
   dueDate     DateTime?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  Company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  Company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   questions   SurveyQuestion[]
   responses   SurveyResponse[]
 
@@ -1470,13 +1579,13 @@ model SurveyQuestion {
 }
 
 model SurveyResponse {
-  id          String          @id
+  id          String         @id
   surveyId    String
   employeeId  String?
-  submittedAt DateTime        @default(now())
-  createdAt   DateTime        @default(now())
-  Survey      Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  Employee    Employee?       @relation(fields: [employeeId], references: [id])
+  submittedAt DateTime       @default(now())
+  createdAt   DateTime       @default(now())
+  Survey      Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  Employee    Employee?      @relation(fields: [employeeId], references: [id])
   answers     SurveyAnswer[]
 
   @@index([surveyId])
@@ -1484,11 +1593,11 @@ model SurveyResponse {
 }
 
 model SurveyAnswer {
-  id             String          @id
+  id             String         @id
   responseId     String
   questionId     String
   value          String
-  createdAt      DateTime        @default(now())
+  createdAt      DateTime       @default(now())
   SurveyResponse SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
   SurveyQuestion SurveyQuestion @relation(fields: [questionId], references: [id])
 

@@ -4,6 +4,7 @@ import { Dropdown } from '@/components/ui/dropdown';
 import { useNavigate } from 'react-router-dom';
 import { PayrollInputAPI, EmployeeAPI, TransactionCodeAPI, PayrollAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const PayrollInputs: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const PayrollInputs: React.FC = () => {
   const [saving, setSaving]         = useState(false);
   const [error, setError]           = useState('');
   const [deleteId, setDeleteId]     = useState<string | null>(null);
+  const [loadError, setLoadError]   = useState('');
 
   // Filters
   const [filterEmployee, setFilterEmployee]   = useState('');
@@ -37,6 +39,7 @@ const PayrollInputs: React.FC = () => {
 
   const loadInputs = async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const params: Record<string, string> = {};
       if (filterEmployee) params.employeeId = filterEmployee;
@@ -45,7 +48,7 @@ const PayrollInputs: React.FC = () => {
       const res = await PayrollInputAPI.getAll(params);
       setInputs(res.data);
     } catch {
-      // silent
+      setLoadError('Failed to load payroll inputs.');
     } finally {
       setLoading(false);
     }
@@ -150,6 +153,15 @@ const PayrollInputs: React.FC = () => {
 
   return (
     <div>
+      {deleteId && (
+        <ConfirmModal
+          title="Delete Payroll Input"
+          message="Are you sure you want to delete this input? This cannot be undone."
+          confirmLabel="Delete Input"
+          onConfirm={() => handleDelete(deleteId)}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
@@ -359,6 +371,14 @@ const PayrollInputs: React.FC = () => {
       )}
 
       {/* Table */}
+      {loadError && (
+        <div className="flex items-center gap-3 p-4 bg-destructive/5 border border-destructive/20 rounded-xl text-sm text-destructive font-medium">
+          <span className="flex-1">{loadError}</span>
+          <button onClick={() => { setLoadError(''); loadInputs(); }} className="px-3 py-1.5 rounded-full border border-destructive/30 text-xs font-bold hover:bg-destructive/10 transition-colors">
+            Try again
+          </button>
+        </div>
+      )}
       {loading ? (
         <div className="text-center py-16 text-muted-foreground text-sm font-medium">Loading…</div>
       ) : inputs.length === 0 ? (
@@ -458,20 +478,13 @@ const PayrollInputs: React.FC = () => {
                         >
                           <Edit2 size={14} />
                         </button>
-                        {deleteId === inp.id ? (
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => handleDelete(inp.id)} className="px-2 py-0.5 bg-red-500 text-white rounded text-xs font-bold">Yes</button>
-                            <button onClick={() => setDeleteId(null)} className="px-2 py-0.5 bg-muted rounded text-xs font-bold">No</button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setDeleteId(inp.id)}
-                            className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => setDeleteId(inp.id)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>

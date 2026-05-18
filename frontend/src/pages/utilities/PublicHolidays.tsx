@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, Trash2, CalendarCheck, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, CalendarCheck, ChevronDown } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown';
 import { PublicHolidaysAPI } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
@@ -72,14 +72,14 @@ const PublicHolidays: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="max-w-3xl">
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
         <button
           onClick={() => navigate('/utilities')}
           className="p-2 hover:bg-muted rounded-xl transition-colors text-muted-foreground"
         >
-          <ChevronLeft size={20} />
+          <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-bold">Public Holidays</h1>
