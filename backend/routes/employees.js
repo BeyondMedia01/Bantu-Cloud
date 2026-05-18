@@ -251,8 +251,17 @@ router.post('/', requirePermission('manage_employees'), async (req, res) => {
 
     res.status(201).json(employee);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[employees POST]', error);
+    if (error.code === 'P2002') {
+      return res.status(409).json({ message: 'A record with that value already exists (duplicate).' });
+    }
+    if (error.code === 'P2003') {
+      return res.status(400).json({ message: `Invalid reference: ${error.meta?.field_name ?? 'unknown field'} does not exist.` });
+    }
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Related record not found.' });
+    }
+    res.status(500).json({ message: error.message || 'Internal server error' });
   }
 });
 
