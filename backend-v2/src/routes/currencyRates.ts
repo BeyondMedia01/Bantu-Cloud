@@ -52,12 +52,13 @@ router.get('/latest', async (c) => {
   const fromCurrency = c.req.query('fromCurrency') || 'USD';
   const toCurrency = c.req.query('toCurrency') || 'ZiG';
 
+  if (fromCurrency === toCurrency) return c.json({ rate: 1, fromCurrency, toCurrency, source: 'IMPLICIT' });
+
   const rate = await prisma.currencyRate.findFirst({
     where: { companyId, fromCurrency, toCurrency },
     orderBy: { effectiveDate: 'desc' },
   });
-  if (!rate) return c.json({ message: 'No rate found. Add a rate under Currency Rates settings.' }, 404);
-  return c.json(rate);
+  return c.json(rate ?? null);
 });
 
 router.post('/', requirePermission('update_settings'), validateBody(createRateSchema), async (c) => {
