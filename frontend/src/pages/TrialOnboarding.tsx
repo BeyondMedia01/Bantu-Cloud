@@ -16,7 +16,6 @@ interface EmployeeForm {
   firstName: string;
   lastName: string;
   jobTitle: string;
-  department: string;
   employmentType: 'PERMANENT' | 'CONTRACT' | 'TEMPORARY' | 'PART_TIME';
   salary: string;
 }
@@ -178,7 +177,7 @@ function StepEmployee({ onDone }: { onDone: () => void }) {
     firstName: '',
     lastName: '',
     jobTitle: '',
-    department: '',
+
     employmentType: 'PERMANENT',
     salary: '',
   });
@@ -200,7 +199,6 @@ function StepEmployee({ onDone }: { onDone: () => void }) {
         firstName: form.firstName,
         lastName: form.lastName,
         jobTitle: form.jobTitle,
-        department: form.department,
         employmentType: form.employmentType,
       };
       await EmployeeAPI.create({ ...employeePayload, salary: form.salary ? parseFloat(form.salary) : undefined } as typeof employeePayload);
@@ -254,16 +252,6 @@ function StepEmployee({ onDone }: { onDone: () => void }) {
           value={form.jobTitle}
           onChange={set('jobTitle')}
           placeholder="e.g. Accountant"
-          className="border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40"
-        />
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-semibold">Department</label>
-        <input
-          value={form.department}
-          onChange={set('department')}
-          placeholder="e.g. Finance"
           className="border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40"
         />
       </div>
