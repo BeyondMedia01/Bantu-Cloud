@@ -353,11 +353,12 @@ router.put('/:id', requirePermission('manage_employees'), async (c) => {
 
     // Sync bank accounts when provided
     if (Array.isArray(bankAccounts)) {
-      await prisma.employeeBankAccount.deleteMany({ where: { employeeId: c.req.param('id') } });
+      const empId = c.req.param('id') as string;
+      await prisma.employeeBankAccount.deleteMany({ where: { employeeId: empId } });
       if (bankAccounts.length > 0) {
         await prisma.employeeBankAccount.createMany({
           data: bankAccounts.map((a: any, i: number) => ({
-            employeeId: c.req.param('id'),
+            employeeId: empId,
             accountName: a.accountName || null,
             accountNumber: a.accountNumber,
             bankName: a.bankName,
