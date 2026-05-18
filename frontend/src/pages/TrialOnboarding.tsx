@@ -195,14 +195,15 @@ function StepEmployee({ onDone }: { onDone: () => void }) {
     setError('');
     setLoading(true);
     try {
-      await EmployeeAPI.create({
+      // salary is accepted by the backend but not yet typed on Employee
+      const employeePayload: Parameters<typeof EmployeeAPI.create>[0] = {
         firstName: form.firstName,
         lastName: form.lastName,
         jobTitle: form.jobTitle,
         department: form.department,
         employmentType: form.employmentType,
-        salary: form.salary ? parseFloat(form.salary) : undefined,
-      } as any);
+      };
+      await EmployeeAPI.create({ ...employeePayload, salary: form.salary ? parseFloat(form.salary) : undefined } as typeof employeePayload);
       await TrialAPI.advanceStep(2);
       onDone();
     } catch (err: any) {
