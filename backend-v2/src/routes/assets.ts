@@ -46,7 +46,7 @@ const assignAssetSchema = z.object({
 
 // ─── Categories ───────────────────────────────────────────────────────────────
 
-router.get('/categories', async (c) => {
+router.get('/categories', requirePermission('view_assets'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -58,7 +58,7 @@ router.get('/categories', async (c) => {
   return c.json(categories);
 });
 
-router.post('/categories', requirePermission('manage_employees'), validateBody(createCategorySchema), async (c) => {
+router.post('/categories', requirePermission('manage_assets'), validateBody(createCategorySchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -69,7 +69,7 @@ router.post('/categories', requirePermission('manage_employees'), validateBody(c
   return c.json(category, 201);
 });
 
-router.delete('/categories/:id', requirePermission('manage_employees'), async (c) => {
+router.delete('/categories/:id', requirePermission('manage_assets'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -84,7 +84,7 @@ router.delete('/categories/:id', requirePermission('manage_employees'), async (c
 
 // ─── Assets ────────────────────────────────────────────────────────────────────
 
-router.get('/', async (c) => {
+router.get('/', requirePermission('view_assets'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -105,7 +105,7 @@ router.get('/', async (c) => {
   return c.json(assets);
 });
 
-router.post('/', requirePermission('manage_employees'), validateBody(createAssetSchema), async (c) => {
+router.post('/', requirePermission('manage_assets'), validateBody(createAssetSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -123,7 +123,7 @@ router.post('/', requirePermission('manage_employees'), validateBody(createAsset
   return c.json(asset, 201);
 });
 
-router.get('/:id', async (c) => {
+router.get('/:id', requirePermission('view_assets'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -140,7 +140,7 @@ router.get('/:id', async (c) => {
   return c.json(asset);
 });
 
-router.put('/:id', requirePermission('manage_employees'), validateBody(updateAssetSchema), async (c) => {
+router.put('/:id', requirePermission('manage_assets'), validateBody(updateAssetSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -165,7 +165,7 @@ router.put('/:id', requirePermission('manage_employees'), validateBody(updateAss
   return c.json(asset);
 });
 
-router.delete('/:id', requirePermission('manage_employees'), async (c) => {
+router.delete('/:id', requirePermission('manage_assets'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -180,7 +180,7 @@ router.delete('/:id', requirePermission('manage_employees'), async (c) => {
 
 // ─── Assign / Return ──────────────────────────────────────────────────────────
 
-router.post('/:id/assign', requirePermission('manage_employees'), validateBody(assignAssetSchema), async (c) => {
+router.post('/:id/assign', requirePermission('manage_assets'), validateBody(assignAssetSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -204,7 +204,7 @@ router.post('/:id/assign', requirePermission('manage_employees'), validateBody(a
   return c.json(asset);
 });
 
-router.post('/:id/return', requirePermission('manage_employees'), async (c) => {
+router.post('/:id/return', requirePermission('manage_assets'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -225,7 +225,7 @@ router.post('/:id/return', requirePermission('manage_employees'), async (c) => {
 
 // ─── Employees for assignment ─────────────────────────────────────────────────
 
-router.get('/employees/list', async (c) => {
+router.get('/employees/list', requirePermission('view_assets'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 

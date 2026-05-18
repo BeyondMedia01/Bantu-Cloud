@@ -52,7 +52,7 @@ const updateReviewSchema = z.object({
 
 // ─── Goals ────────────────────────────────────────────────────────────────────
 
-router.get('/goals', async (c) => {
+router.get('/goals', requirePermission('view_performance'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -69,7 +69,7 @@ router.get('/goals', async (c) => {
   return c.json(goals);
 });
 
-router.post('/goals', requirePermission('manage_employees'), validateBody(createGoalSchema), async (c) => {
+router.post('/goals', requirePermission('manage_performance'), validateBody(createGoalSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -89,7 +89,7 @@ router.post('/goals', requirePermission('manage_employees'), validateBody(create
   return c.json(goal, 201);
 });
 
-router.put('/goals/:id', requirePermission('manage_employees'), validateBody(updateGoalSchema), async (c) => {
+router.put('/goals/:id', requirePermission('manage_performance'), validateBody(updateGoalSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -112,7 +112,7 @@ router.put('/goals/:id', requirePermission('manage_employees'), validateBody(upd
   return c.json(goal);
 });
 
-router.delete('/goals/:id', requirePermission('manage_employees'), async (c) => {
+router.delete('/goals/:id', requirePermission('manage_performance'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -127,7 +127,7 @@ router.delete('/goals/:id', requirePermission('manage_employees'), async (c) => 
 
 // ─── Reviews ──────────────────────────────────────────────────────────────────
 
-router.get('/reviews', async (c) => {
+router.get('/reviews', requirePermission('view_performance'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -147,7 +147,7 @@ router.get('/reviews', async (c) => {
   return c.json(reviews);
 });
 
-router.post('/reviews', requirePermission('manage_employees'), validateBody(createReviewSchema), async (c) => {
+router.post('/reviews', requirePermission('manage_performance'), validateBody(createReviewSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -168,7 +168,7 @@ router.post('/reviews', requirePermission('manage_employees'), validateBody(crea
   return c.json(review, 201);
 });
 
-router.get('/reviews/:id', async (c) => {
+router.get('/reviews/:id', requirePermission('view_performance'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -186,7 +186,7 @@ router.get('/reviews/:id', async (c) => {
   return c.json(review);
 });
 
-router.put('/reviews/:id', requirePermission('manage_employees'), validateBody(updateReviewSchema), async (c) => {
+router.put('/reviews/:id', requirePermission('manage_performance'), validateBody(updateReviewSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -225,7 +225,7 @@ router.put('/reviews/:id', requirePermission('manage_employees'), validateBody(u
   return c.json(review);
 });
 
-router.delete('/reviews/:id', requirePermission('manage_employees'), async (c) => {
+router.delete('/reviews/:id', requirePermission('manage_performance'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -240,7 +240,7 @@ router.delete('/reviews/:id', requirePermission('manage_employees'), async (c) =
 
 // ─── Employees + Reviewers ────────────────────────────────────────────────────
 
-router.get('/employees/list', async (c) => {
+router.get('/employees/list', requirePermission('view_performance'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -252,7 +252,7 @@ router.get('/employees/list', async (c) => {
   return c.json(employees);
 });
 
-router.get('/reviewers/list', async (c) => {
+router.get('/reviewers/list', requirePermission('view_performance'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 

@@ -22,7 +22,7 @@ const updateSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-router.get('/calendar', async (c) => {
+router.get('/calendar', requirePermission('view_employees'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
   const startDate = c.req.query('startDate');
@@ -88,7 +88,7 @@ router.get('/calendar', async (c) => {
   }
 });
 
-router.get('/', async (c) => {
+router.get('/', requirePermission('view_employees'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
   const { startDate, endDate, employeeId, shiftId } = c.req.query();

@@ -1030,8 +1030,11 @@ router.get('/leave-provision', requirePermission('view_reports'), async (c) => {
 
   const balances = await prisma.leaveBalance.findMany({
     where,
-    include: { employee: { select: { employeeCode: true, firstName: true, lastName: true, baseRate: true, currency: true } } },
-    orderBy: [{ employeeId: 'asc' }, { leaveType: 'asc' }],
+    include: {
+      employee: { select: { employeeCode: true, firstName: true, lastName: true, baseRate: true, currency: true } },
+      leaveType: { select: { name: true } },
+    },
+    orderBy: [{ employeeId: 'asc' }, { leaveTypeId: 'asc' }],
   });
 
   let cuerpo = `<div class="header"><div class="logo-row">${LOGO}<h1>Leave Provision Report</h1></div><p class="sub">As at ${new Date().toLocaleDateString()}</p></div>`;
@@ -1043,7 +1046,7 @@ router.get('/leave-provision', requirePermission('view_reports'), async (c) => {
     const dailyRate = monthlyRate > 0 ? monthlyRate / 30 : 0;
     const provision = days * dailyRate;
     totProvision += provision;
-    cuerpo += `<tr><td>${b.employee.employeeCode}</td><td>${b.employee.firstName} ${b.employee.lastName}</td><td>${b.leaveType || '—'}</td><td class="r">${days.toFixed(1)}</td><td class="r">${fmt2(dailyRate)}</td><td class="r">${fmt2(provision)}</td><td>${b.employee.currency || 'USD'}</td></tr>`;
+    cuerpo += `<tr><td>${b.employee?.employeeCode || '—'}</td><td>${b.employee?.firstName || ''} ${b.employee?.lastName || ''}</td><td>${b.leaveType?.name || '—'}</td><td class="r">${days.toFixed(1)}</td><td class="r">${fmt2(dailyRate)}</td><td class="r">${fmt2(provision)}</td><td>${b.employee.currency || 'USD'}</td></tr>`;
   }
   if (balances.length === 0) cuerpo += `<tr><td colspan="7" class="c">No leave balances on record</td></tr>`;
   cuerpo += `<tr class="total"><td>TOTAL</td><td></td><td></td><td></td><td></td><td class="r">${fmt2(totProvision)}</td><td></td></tr></table>`;

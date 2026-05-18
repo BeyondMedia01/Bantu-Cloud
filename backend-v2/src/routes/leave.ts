@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { audit } from '../lib/audit';
 import { denyUnlessCompany } from '../lib/ownership';
+import { addLedgerEntry, getBalance } from '../services/leaveLedger.service';
 
 const router = new Hono();
 const VALID_LEAVE_TYPES = ['ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'COMPASSIONATE', 'STUDY', 'OTHER'];
@@ -91,18 +92,23 @@ router.post('/', requirePermission('manage_leave'), validateBody(createLeaveSche
     return c.json(request, 201);
   }
 
-  if (!body.employeeId) return c.json({ error: 'Missing required field: employeeId' }, 400);
   const companyId = c.get('companyId');
-  if (companyId) {
-    const emp = await prisma.employee.findUnique({ where: { id: body.employeeId }, select: { companyId: true } });
-    if (!emp || emp.companyId !== companyId) return c.json({ message: 'Employee not found' }, 404);
-  }
+
+  if (!body.employeeId) return c.json({ error: 'Missing required field: employeeId' }, 400);
+  const emp = await prisma.employee.findUnique({ where: { id: body.employeeId }, select: { companyId: true } });
+  if (companyId && (!emp || emp.companyId !== companyId)) return c.json({ message: 'Employee not found' }, 404);
+  const effectiveCompanyId = emp!.companyId;
+  const typeName = body.type || 'ANNUAL';
+
+  const leaveType = await prisma.leaveType.findUnique({
+    where: { companyId_name: { companyId: effectiveCompanyId, name: typeName } },
+  });
 
   try {
     const record = await prisma.leaveRecord.create({
       data: {
         employeeId: body.employeeId,
-        type: body.type || 'ANNUAL',
+        type: typeName,
         startDate: new Date(body.startDate),
         endDate: new Date(body.endDate),
         totalDays: daysValue,
@@ -111,12 +117,25 @@ router.post('/', requirePermission('manage_leave'), validateBody(createLeaveSche
       include: { employee: { select: { firstName: true, lastName: true } } },
     });
 
-    await prisma.employee.update({
-      where: { id: body.employeeId },
-      data: { leaveTaken: { increment: daysValue }, leaveBalance: { decrement: daysValue } },
-    });
+    if (leaveType) {
+      await addLedgerEntry({
+        employeeId: body.employeeId,
+        leaveTypeId: leaveType.id,
+        transactionType: 'CONSUMED',
+        amount: -daysValue,
+        referenceDocType: 'LeaveRecord',
+        referenceId: record.id,
+        description: `${typeName} leave: ${new Date(body.startDate).toLocaleDateString()} – ${new Date(body.endDate).toLocaleDateString()}`,
+        createdBy: c.get('user')?.userId,
+      });
+    } else {
+      await prisma.employee.update({
+        where: { id: body.employeeId },
+        data: { leaveTaken: { increment: daysValue }, leaveBalance: { decrement: daysValue } },
+      });
+    }
 
-    await audit({ c, action: 'LEAVE_CREATED', resource: 'leave_record', resourceId: record.id, details: { employeeId: body.employeeId, type: body.type, days: daysValue } });
+    await audit({ c, action: 'LEAVE_CREATED', resource: 'leave_record', resourceId: record.id, details: { employeeId: body.employeeId, type: typeName, days: daysValue } });
     return c.json(record, 201);
   } catch (err) {
     console.error(err);
@@ -147,11 +166,38 @@ router.put('/:id', requirePermission('manage_leave'), validateBody(updateLeaveSc
 });
 
 router.delete('/:id', requirePermission('manage_leave'), async (c) => {
-  const existing = await prisma.leaveRecord.findUnique({ where: { id: c.req.param('id') }, include: { employee: { select: { companyId: true } } } });
+  const existing = await prisma.leaveRecord.findUnique({
+    where: { id: c.req.param('id') },
+    include: { employee: { select: { companyId: true } } },
+  });
   if (!existing) return c.json({ message: 'Leave record not found' }, 404);
   if (!denyUnlessCompany(c, { companyId: existing.employee.companyId })) return c.json({ message: 'Access denied' }, 403);
+
+  const leaveType = await prisma.leaveType.findUnique({
+    where: { companyId_name: { companyId: existing.employee.companyId, name: existing.type } },
+  });
+
   try {
     await prisma.leaveRecord.delete({ where: { id: c.req.param('id') } });
+
+    if (leaveType) {
+      await addLedgerEntry({
+        employeeId: existing.employeeId,
+        leaveTypeId: leaveType.id,
+        transactionType: 'ADJUSTMENT',
+        amount: existing.totalDays,
+        referenceDocType: 'LeaveRecord',
+        referenceId: existing.id,
+        description: `Reversal of deleted leave record`,
+        createdBy: c.get('user')?.userId,
+      });
+    } else {
+      await prisma.employee.update({
+        where: { id: existing.employeeId },
+        data: { leaveTaken: { decrement: existing.totalDays }, leaveBalance: { increment: existing.totalDays } },
+      });
+    }
+
     return c.body(null, 204);
   } catch (err: any) {
     if (err.code === 'P2025') return c.json({ message: 'Leave record not found' }, 404);
@@ -164,20 +210,39 @@ router.put('/request/:id/approve', requirePermission('approve_leave'), validateB
   const existing = await prisma.leaveRequest.findUnique({ where: { id: c.req.param('id') }, include: { employee: { select: { companyId: true } } } });
   if (!existing) return c.json({ message: 'Leave request not found' }, 404);
   if (!denyUnlessCompany(c, { companyId: existing.employee.companyId })) return c.json({ message: 'Access denied' }, 403);
+  const { note } = c.req.valid('json' as any);
+
+  const leaveType = await prisma.leaveType.findUnique({
+    where: { companyId_name: { companyId: existing.employee.companyId, name: existing.type } },
+  });
+
   try {
-    const { note } = c.req.valid('json' as any);
     await prisma.leaveRequest.update({
       where: { id: c.req.param('id') },
       data: { status: 'APPROVED', reviewedBy: c.get('user').userId, reviewNote: note },
     });
 
-    await prisma.leaveRecord.create({
+    const record = await prisma.leaveRecord.create({
       data: { employeeId: existing.employeeId, type: existing.type, startDate: existing.startDate, endDate: existing.endDate, totalDays: existing.days, reason: existing.reason, status: 'APPROVED', approvedBy: c.get('user').userId },
     });
-    await prisma.employee.update({
-      where: { id: existing.employeeId },
-      data: { leaveTaken: { increment: existing.days }, leaveBalance: { decrement: existing.days } },
-    });
+
+    if (leaveType) {
+      await addLedgerEntry({
+        employeeId: existing.employeeId,
+        leaveTypeId: leaveType.id,
+        transactionType: 'CONSUMED',
+        amount: -existing.days,
+        referenceDocType: 'LeaveRequest',
+        referenceId: existing.id,
+        description: `Approved leave: ${existing.startDate.toLocaleDateString()} – ${existing.endDate.toLocaleDateString()}`,
+        createdBy: c.get('user')?.userId,
+      });
+    } else {
+      await prisma.employee.update({
+        where: { id: existing.employeeId },
+        data: { leaveTaken: { increment: existing.days }, leaveBalance: { decrement: existing.days } },
+      });
+    }
 
     await audit({ c, action: 'LEAVE_APPROVED', resource: 'leave_request', resourceId: c.req.param('id') });
     return c.json({ message: 'Leave approved' });

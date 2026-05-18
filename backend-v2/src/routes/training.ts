@@ -55,7 +55,7 @@ const createCertificateSchema = z.object({
 
 // ─── Courses ──────────────────────────────────────────────────────────────────
 
-router.get('/courses', async (c) => {
+router.get('/courses', requirePermission('view_training'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -91,7 +91,7 @@ router.post('/courses', requirePermission('manage_employees'), validateBody(crea
   return c.json(course, 201);
 });
 
-router.put('/courses/:id', requirePermission('manage_employees'), validateBody(updateCourseSchema), async (c) => {
+router.put('/courses/:id', requirePermission('manage_training'), validateBody(updateCourseSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -115,7 +115,7 @@ router.put('/courses/:id', requirePermission('manage_employees'), validateBody(u
   return c.json(course);
 });
 
-router.delete('/courses/:id', requirePermission('manage_employees'), async (c) => {
+router.delete('/courses/:id', requirePermission('manage_training'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -130,7 +130,7 @@ router.delete('/courses/:id', requirePermission('manage_employees'), async (c) =
 
 // ─── Enrollments ──────────────────────────────────────────────────────────────
 
-router.get('/courses/:id/enrollments', async (c) => {
+router.get('/courses/:id/enrollments', requirePermission('view_training'), async (c) => {
   const { id } = c.req.param();
   const enrollments = await prisma.trainingEnrollment.findMany({
     where: { courseId: id },
@@ -140,7 +140,7 @@ router.get('/courses/:id/enrollments', async (c) => {
   return c.json(enrollments);
 });
 
-router.post('/courses/:id/enroll', requirePermission('manage_employees'), validateBody(enrollSchema), async (c) => {
+router.post('/courses/:id/enroll', requirePermission('manage_training'), validateBody(enrollSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -176,7 +176,7 @@ router.post('/courses/:id/enroll', requirePermission('manage_employees'), valida
   return c.json(created, 201);
 });
 
-router.put('/enrollments/:id', requirePermission('manage_employees'), validateBody(updateEnrollmentSchema), async (c) => {
+router.put('/enrollments/:id', requirePermission('manage_training'), validateBody(updateEnrollmentSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -207,7 +207,7 @@ router.put('/enrollments/:id', requirePermission('manage_employees'), validateBo
 
 // ─── Certificates ─────────────────────────────────────────────────────────────
 
-router.post('/courses/:id/certificate', requirePermission('manage_employees'), validateBody(createCertificateSchema), async (c) => {
+router.post('/courses/:id/certificate', requirePermission('manage_training'), validateBody(createCertificateSchema), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
@@ -239,7 +239,7 @@ router.post('/courses/:id/certificate', requirePermission('manage_employees'), v
   return c.json(certificate, 201);
 });
 
-router.get('/courses/:id/certificates', async (c) => {
+router.get('/courses/:id/certificates', requirePermission('view_training'), async (c) => {
   const { id } = c.req.param();
   const certs = await prisma.trainingCertificate.findMany({
     where: { courseId: id },
@@ -251,7 +251,7 @@ router.get('/courses/:id/certificates', async (c) => {
 
 // ─── Employees ────────────────────────────────────────────────────────────────
 
-router.get('/employees/list', async (c) => {
+router.get('/employees/list', requirePermission('view_training'), async (c) => {
   const companyId = c.get('companyId');
   if (!companyId) return c.json({ message: 'Company context required' }, 400);
 
