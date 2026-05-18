@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { PageErrorBoundary } from './common/PageErrorBoundary';
+import TrialBanner from './TrialBanner';
 import {
   LayoutDashboard, Users, DollarSign, FileText, Settings,
   Building2, User, ChevronDown, LogOut, Wrench,
@@ -540,6 +541,7 @@ const AppShell: React.FC = () => {
 
       {/* Main content */}
       <main className={`flex-1 min-w-0 ${mainML} min-h-screen transition-all duration-200`}>
+        <TrialBanner />
         <div className="pt-16 md:pt-8 px-4 sm:px-8 pb-8 max-w-[1400px] mx-auto">
           <PageErrorBoundary>
             <Outlet />
