@@ -8,6 +8,7 @@ import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const Payroll: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const Payroll: React.FC = () => {
   const [editingRate, setEditingRate] = useState<string | null>(null); // runId being edited
   const [rateInput, setRateInput] = useState('');
   const [rateSaving, setRateSaving] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ action: 'submit' | 'approve' | 'process'; runId: string; isRerun?: boolean } | null>(null);
 
   const loadRuns = () => {
     PayrollAPI.getAll()
@@ -100,6 +102,22 @@ const Payroll: React.FC = () => {
     }
   };
 
+
+  const confirmAction = async () => {
+    if (!pendingAction) return;
+    const fakeEvent = { stopPropagation: () => {} } as React.MouseEvent;
+    await handleAction(fakeEvent, pendingAction.action, pendingAction.runId);
+    setPendingAction(null);
+  };
+
+  const getConfirmModalProps = () => {
+    if (!pendingAction) return null;
+    const { action, isRerun } = pendingAction;
+    if (action === 'submit') return { title: 'Submit Payroll Run', message: 'This will submit the run for approval. Are you sure?', confirmLabel: 'Submit for Approval', danger: false };
+    if (action === 'approve') return { title: 'Approve Payroll Run', message: 'This will approve the run and allow it to be processed.', confirmLabel: 'Approve', danger: false };
+    if (isRerun) return { title: 'Rerun Payroll', message: 'This will recalculate all payslips, overwriting existing results.', confirmLabel: 'Rerun Payroll', danger: true };
+    return { title: 'Process Payroll Run', message: 'This will calculate all payslips. This may take a few minutes and cannot be interrupted.', confirmLabel: 'Process Payroll', danger: false };
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -218,7 +236,7 @@ const Payroll: React.FC = () => {
                     <div className="flex items-center gap-2">
                       {can('PAYROLL', 'RUN') && run.status === 'DRAFT' && (
                         <button
-                          onClick={(e) => handleAction(e, 'submit', run.id)}
+                          onClick={(e) => { e.stopPropagation(); setPendingAction({ action: 'submit', runId: run.id }); }}
                           disabled={actionLoading === run.id + 'submit'}
                           className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-amber-50 text-amber-700 rounded-full hover:bg-amber-100 disabled:opacity-50"
                           title="Submit for Approval"
@@ -228,7 +246,7 @@ const Payroll: React.FC = () => {
                       )}
                       {can('PAYROLL', 'APPROVE') && run.status === 'PENDING_APPROVAL' && (
                         <button
-                          onClick={(e) => handleAction(e, 'approve', run.id)}
+                          onClick={(e) => { e.stopPropagation(); setPendingAction({ action: 'approve', runId: run.id }); }}
                           disabled={actionLoading === run.id + 'approve'}
                           className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-teal-50 text-teal-700 rounded-full hover:bg-teal-100 disabled:opacity-50"
                           title="Approve"
@@ -238,7 +256,7 @@ const Payroll: React.FC = () => {
                       )}
                       {can('PAYROLL', 'RUN') && (run.status === 'DRAFT' || run.status === 'APPROVED' || run.status === 'ERROR') && (
                         <button
-                          onClick={(e) => handleAction(e, 'process', run.id)}
+                          onClick={(e) => { e.stopPropagation(); setPendingAction({ action: 'process', runId: run.id }); }}
                           disabled={actionLoading === run.id + 'process'}
                           className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 disabled:opacity-50"
                           title="Process Payroll"
@@ -248,7 +266,7 @@ const Payroll: React.FC = () => {
                       )}
                       {can('PAYROLL', 'RUN') && run.status === 'COMPLETED' && !run.payrollCalendar?.isClosed && (
                         <button
-                          onClick={(e) => handleAction(e, 'process', run.id)}
+                          onClick={(e) => { e.stopPropagation(); setPendingAction({ action: 'process', runId: run.id, isRerun: true }); }}
                           disabled={actionLoading === run.id + 'process'}
                           className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-indigo-50 text-indigo-700 rounded-full hover:bg-indigo-100 disabled:opacity-50"
                           title="Rerun Payroll"
@@ -313,6 +331,21 @@ const Payroll: React.FC = () => {
           </div>
         </div>
       )}
+
+      {pendingAction && (() => {
+        const props = getConfirmModalProps();
+        if (!props) return null;
+        return (
+          <ConfirmModal
+            title={props.title}
+            message={props.message}
+            confirmLabel={props.confirmLabel}
+            danger={props.danger}
+            onConfirm={confirmAction}
+            onCancel={() => setPendingAction(null)}
+          />
+        );
+      })()}
     </div>
   );
 };

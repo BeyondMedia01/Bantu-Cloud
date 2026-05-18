@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSync } from '../hooks/useSync';
 import type { SyncItem } from '../hooks/useSync';
+import { Button } from './ui/button';
 
 interface SyncTriggerProps {
   serverUrl: string;
@@ -27,59 +28,54 @@ export function SyncTrigger({ serverUrl, authToken }: SyncTriggerProps) {
 
   return (
     <>
-      <button
-        onClick={handleSyncClick}
-        disabled={loading}
-        style={{ padding: '8px 16px', cursor: loading ? 'wait' : 'pointer' }}
-      >
+      <Button onClick={handleSyncClick} disabled={loading} variant="outline" size="sm">
         {loading ? 'Checking...' : '↑ Sync to Cloud'}
-      </button>
+      </Button>
 
       {showModal && (
         <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-          }}
+          className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-[1000]"
+          onClick={(e) => e.target === e.currentTarget && handleClose()}
         >
-          <div style={{ background: 'white', borderRadius: 8, padding: 24, maxWidth: 600, width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
+          <div className="bg-card border border-border rounded-xl p-6 max-w-xl w-[90%] max-h-[80vh] overflow-auto shadow-2xl">
             {result ? (
               <>
-                <h2>Sync Complete</h2>
-                <p>&#x2705; {result.synced} operations synced successfully.</p>
+                <h2 className="text-lg font-bold text-foreground mb-3">Sync Complete</h2>
+                <p className="text-sm text-foreground mb-1">&#x2705; {result.synced} operations synced successfully.</p>
                 {result.failed > 0 && (
-                  <p style={{ color: 'red' }}>&#x274C; {result.failed} operations failed.</p>
+                  <p className="text-sm text-destructive mb-3">&#x274C; {result.failed} operations failed.</p>
                 )}
-                <button onClick={handleClose} style={{ marginTop: 16 }}>Close</button>
+                <Button onClick={handleClose} className="mt-2">Close</Button>
               </>
             ) : (
               <>
-                <h2>Sync Preview</h2>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
+                <h2 className="text-lg font-bold text-foreground mb-3">Sync Preview</h2>
+                {error && <p className="text-sm text-destructive mb-3">{error}</p>}
                 {pending.length === 0 ? (
-                  <p>Nothing to sync &mdash; you&apos;re up to date!</p>
+                  <p className="text-sm text-muted-foreground">Nothing to sync &mdash; you&apos;re up to date!</p>
                 ) : (
                   <>
-                    <p>{pending.length} operations pending:</p>
-                    <ul style={{ maxHeight: 300, overflow: 'auto', listStyle: 'none', padding: 0 }}>
+                    <p className="text-sm text-foreground mb-2">{pending.length} operations pending:</p>
+                    <ul className="max-h-[300px] overflow-auto list-none p-0 border border-border rounded-lg divide-y divide-border">
                       {pending.map((item: SyncItem) => (
-                        <li key={item.id} style={{ padding: '4px 0', borderBottom: '1px solid #eee' }}>
-                          <strong>{item.operation}</strong>
-                          {item.payload.id != null && <span style={{ color: '#666', marginLeft: 8 }}>id: {String(item.payload.id)}</span>}
+                        <li key={item.id} className="px-3 py-2 flex items-center gap-2">
+                          <strong className="text-sm font-semibold text-foreground">{item.operation}</strong>
+                          {item.payload.id != null && (
+                            <span className="text-xs text-muted-foreground font-mono">id: {String(item.payload.id)}</span>
+                          )}
                         </li>
                       ))}
                     </ul>
                   </>
                 )}
-                <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button onClick={handleClose} disabled={loading}>Cancel</button>
-                  <button
+                <div className="mt-4 flex gap-2 justify-end">
+                  <Button variant="outline" onClick={handleClose} disabled={loading}>Cancel</Button>
+                  <Button
                     onClick={handleConfirm}
                     disabled={loading || pending.length === 0}
-                    style={{ background: '#0066cc', color: 'white', padding: '8px 16px', border: 'none', borderRadius: 4 }}
                   >
                     {loading ? 'Syncing...' : 'Sync Now'}
-                  </button>
+                  </Button>
                 </div>
               </>
             )}

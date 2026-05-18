@@ -380,11 +380,20 @@ body {
   font-weight: 500;
 }
 
-/* Sidebar group headers — all-caps landmark style */
-.sidebar-group-label {
-  font-size: 0.65rem;
+/* Unified section label — use this instead of ad-hoc text-[9px]/text-[10px] + uppercase + tracking-widest */
+.label-section {
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Sidebar group headers */
+.sidebar-group-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-foreground);
   padding: 0.25rem 0.75rem;

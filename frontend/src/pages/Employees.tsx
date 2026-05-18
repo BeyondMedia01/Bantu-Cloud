@@ -125,7 +125,13 @@ const Employees: React.FC = () => {
       {fetchError && (
         <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm mb-2">
           <XCircle size={20} className="text-red-500 shrink-0" />
-          <p className="text-sm font-medium">{fetchError}</p>
+          <p className="text-sm font-medium flex-1">{fetchError}</p>
+          <button
+            onClick={() => { fetchDependencies(); fetchEmployees(); }}
+            className="px-3 py-1.5 rounded-full border border-red-200 text-xs font-bold hover:bg-red-100 transition-colors shrink-0"
+          >
+            Try again
+          </button>
         </div>
       )}
 

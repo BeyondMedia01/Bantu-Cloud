@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Button } from './ui/button';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL as string;
 
@@ -52,56 +53,53 @@ export function SyncPanel() {
     loadFailed();
   }, []);
 
-  if (loading) return <div>Loading failed sync items...</div>;
+  if (loading) return <div className="p-4 text-sm text-muted-foreground">Loading failed sync items...</div>;
 
   if (items.length === 0) {
     return (
-      <div style={{ padding: 16 }}>
-        <p>No sync conflicts — all operations are up to date.</p>
+      <div className="p-4">
+        <p className="text-sm text-muted-foreground">No sync conflicts — all operations are up to date.</p>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>Sync Conflicts ({items.length})</h2>
-      <p>These operations failed to sync. You can retry or dismiss them.</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div className="p-4">
+      <h2 className="text-base font-bold text-foreground mb-1">Sync Conflicts ({items.length})</h2>
+      <p className="text-sm text-muted-foreground mb-4">These operations failed to sync. You can retry or dismiss them.</p>
+      <div className="flex flex-col gap-2">
         {items.map(item => (
           <div
             key={item.id}
-            style={{
-              border: '1px solid #fca5a5',
-              borderRadius: 6,
-              padding: 12,
-              background: '#fef2f2',
-            }}
+            className="border border-destructive/30 rounded-lg p-3 bg-destructive/5"
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <strong>{item.operation}</strong>
-                <span style={{ marginLeft: 8, color: '#666', fontSize: 12 }}>
+            <div className="flex justify-between items-start gap-4">
+              <div className="min-w-0">
+                <strong className="text-sm font-semibold text-foreground">{item.operation}</strong>
+                <span className="ml-2 text-xs text-muted-foreground">
                   {item.attempts} attempt{item.attempts !== 1 ? 's' : ''}
                 </span>
                 {item.error && (
-                  <p style={{ color: '#dc2626', fontSize: 12, margin: '4px 0 0' }}>{item.error}</p>
+                  <p className="text-xs text-destructive mt-1">{item.error}</p>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
+              <div className="flex gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => retry(item.id)}
                   disabled={actionLoading === item.id}
-                  style={{ padding: '4px 12px', fontSize: 12 }}
                 >
                   Retry
-                </button>
-                <button
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => dismiss(item.id)}
                   disabled={actionLoading === item.id}
-                  style={{ padding: '4px 12px', fontSize: 12, color: '#666' }}
                 >
                   Dismiss
-                </button>
+                </Button>
               </div>
             </div>
           </div>
