@@ -442,9 +442,9 @@ export function processEmployee(params: {
   if (emp.taxMethod === 'FDS_AVERAGE') {
     const provisionalBaseZIG = (run.dualCurrency && emp.splitZigMode === 'FIXED' && (emp.splitZigValue || 0) > 0)
       ? (emp.splitZigValue || 0) : 0;
-    const currGross = run.dualCurrency
+    const currGross = round2(run.dualCurrency
       ? baseRate + inputEarningsUSD + (inputEarningsZIG / xr) + (provisionalBaseZIG / xr)
-      : baseRate + inputEarnings;
+      : baseRate + inputEarnings);
     fdsAvgPAYEBasis = round2((ytd.cumGross + currGross) / (ytd.uniqueMonths.size + 1));
   }
 
@@ -469,8 +469,8 @@ export function processEmployee(params: {
         const solved = grossUpNet({
           targetNet: grossUpTargetNet,
           currency: isZIG ? 'ZiG' : 'USD',
-          taxBrackets: run.taxBracketsUSD,
-          annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : run.annualBracketsUSD,
+          taxBrackets: isZIG ? run.taxBracketsZIG : run.taxBracketsUSD,
+          annualBrackets: emp.taxMethod === 'FDS_FORECASTING' ? true : (isZIG ? run.annualBracketsZIG : run.annualBracketsUSD),
           nssaCeiling: isZIG ? nssaCeilingZIG : nssaCeilingUSD,
           pensionContribution, pensionCap,
           medicalAid: medForGrossUp,

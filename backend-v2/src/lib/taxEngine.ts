@@ -158,8 +158,8 @@ function calculatePaye(params: CalculatePayeParams): PayeResult {
     - exemptBonus - exemptSeverance - payeExcludedEarnings;
 
   const nssaBasis = Math.max(0, Math.min(cashEarnings - nssaExcludedEarnings, ceiling));
-  const nssaEmployee = nssaBasis * nssaEmployeeRate;
-  const nssaEmployer = nssaBasis * nssaEmployerRate;
+  const nssaEmployee = r2(nssaBasis * nssaEmployeeRate);
+  const nssaEmployer = r2(nssaBasis * nssaEmployerRate);
 
   const wcifEmployer = cashEarnings * wcifRate;
   const sdfContribution = cashEarnings * sdfRate;
@@ -174,9 +174,10 @@ function calculatePaye(params: CalculatePayeParams): PayeResult {
 
   let annualPaye = 0;
   for (const band of bands) {
-    if (taxBase <= (band.lower - 1)) break;
-    const taxableInThisBand = Math.min(taxBase, band.upper) - (band.lower - 1);
-    annualPaye += taxableInThisBand * band.rate;
+    const offset = Math.max(0, band.lower - 1);
+    if (taxBase <= offset) break;
+    const taxableInThisBand = Math.min(taxBase, band.upper) - offset;
+    annualPaye = r2(annualPaye + r2(taxableInThisBand * band.rate));
   }
 
   const payeBeforeLevy = annualBrackets ? annualPaye / 12 : annualPaye;
@@ -186,16 +187,16 @@ function calculatePaye(params: CalculatePayeParams): PayeResult {
   const aidsLevy = payeAfterCredits * aidsLevyRate;
   const totalPaye = payeAfterCredits + aidsLevy;
 
-  let finalTotalPaye = totalPaye;
+  let finalPayeAfterCredits = payeAfterCredits;
   if (taxDirectivePerc > 0) {
-    finalTotalPaye = finalTotalPaye * (1 - Math.min(taxDirectivePerc, 100) / 100);
+    finalPayeAfterCredits = finalPayeAfterCredits * (1 - Math.min(taxDirectivePerc, 100) / 100);
   }
   if (taxDirectiveAmt > 0) {
-    finalTotalPaye = Math.max(0, finalTotalPaye - taxDirectiveAmt);
+    finalPayeAfterCredits = Math.max(0, finalPayeAfterCredits - taxDirectiveAmt);
   }
-
-  const finalAidsLevy = payeAfterCredits > 0 ? (finalTotalPaye * (aidsLevy / totalPaye)) : 0;
-  const finalPayeNet = finalTotalPaye - finalAidsLevy;
+  const finalAidsLevy = r2(finalPayeAfterCredits * aidsLevyRate);
+  const finalTotalPaye = r2(finalPayeAfterCredits + finalAidsLevy);
+  const finalPayeNet = r2(finalPayeAfterCredits);
 
   const totalDeductions = nssaEmployee + effectivePension + medicalAid + finalTotalPaye;
   const netSalary = cashEarnings - totalDeductions;
@@ -207,17 +208,17 @@ function calculatePaye(params: CalculatePayeParams): PayeResult {
     exemptSeverance: r2(exemptSeverance),
     pensionApplied: r2(effectivePension),
     nssaBasis: r2(nssaBasis),
-    nssaEmployee: r2(nssaEmployee),
-    nssaEmployer: r2(nssaEmployer),
+    nssaEmployee,
+    nssaEmployer,
     wcifEmployer: r2(wcifEmployer),
     zimdefEmployer: r2(zimdefEmployer),
     sdfContribution: r2(sdfContribution),
     taxableIncome: r2(taxableIncome),
-    payeBeforeLevy: r2(finalPayeNet),
+    payeBeforeLevy: finalPayeNet,
     medicalAidCredit: r2(medicalAidCredit),
-    aidsLevy: r2(finalAidsLevy),
-    taxCreditsApplied: r2(payeBeforeLevy > 0 ? (payeBeforeLevy + (payeBeforeLevy * aidsLevyRate) - finalTotalPaye) : (medicalAidCredit + taxCredits)),
-    totalPaye: r2(finalTotalPaye),
+    aidsLevy: finalAidsLevy,
+    taxCreditsApplied: r2(payeBeforeLevy > 0 ? (medicalAidCredit + taxCredits + (payeAfterCredits - finalPayeAfterCredits)) : (medicalAidCredit + taxCredits)),
+    totalPaye: finalTotalPaye,
     netSalary: r2(netSalary),
   };
 }

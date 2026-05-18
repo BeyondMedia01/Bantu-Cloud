@@ -7,9 +7,9 @@ import NewTaxTableModal from '../components/tax/NewTaxTableModal';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
 
-const EMPTY_ROW = { lowerBound: '', upperBound: '', rate: '', fixedAmount: '' };
+const EMPTY_ROW = { lowerBound: '', upperBound: '', rate: '' };
 
-type PendingRow = { lowerBound: string; upperBound: string; rate: string; fixedAmount: string; error: string };
+type PendingRow = { lowerBound: string; upperBound: string; rate: string; error: string };
 
 const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
   const navigate = useNavigate();
@@ -102,7 +102,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
   const [savingAll, setSavingAll] = useState(false);
 
   const addPendingRow = () => {
-    setPendingRows(prev => [...prev, { lowerBound: '', upperBound: '', rate: '', fixedAmount: '', error: '' }]);
+    setPendingRows(prev => [...prev, { lowerBound: '', upperBound: '', rate: '', error: '' }]);
     setEditingId(null);
   };
 
@@ -134,14 +134,14 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
         lowerBound:  parseFloat(row.lowerBound),
         upperBound:  row.upperBound !== '' ? parseFloat(row.upperBound) : null,
         rate:        parseFloat(row.rate) / 100,
-        fixedAmount: row.fixedAmount !== '' ? parseFloat(row.fixedAmount) : 0,
+        fixedAmount: 0,
       }));
       const res = await TaxTableAPI.replaceBrackets(activeTableId, [
         ...brackets.map(b => ({
           lowerBound: b.lowerBound,
           upperBound: b.upperBound,
           rate: b.rate,
-          fixedAmount: b.fixedAmount,
+          fixedAmount: 0,
         })),
         ...newBrackets,
       ]);
@@ -158,10 +158,9 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
   const startEdit = (bracket: any) => {
     setEditingId(bracket.id);
     setEditRow({
-      lowerBound:  String(bracket.lowerBound),
-      upperBound:  bracket.upperBound != null ? String(bracket.upperBound) : '',
-      rate:        String((bracket.rate * 100).toFixed(2)),
-      fixedAmount: String(bracket.fixedAmount),
+      lowerBound: String(bracket.lowerBound),
+      upperBound: bracket.upperBound != null ? String(bracket.upperBound) : '',
+      rate:       String((bracket.rate * 100).toFixed(2)),
     });
     setEditError('');
     setPendingRows([]);
@@ -179,7 +178,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
         lowerBound:  parseFloat(editRow.lowerBound),
         upperBound:  editRow.upperBound !== '' ? parseFloat(editRow.upperBound) : null,
         rate:        parseFloat(editRow.rate) / 100,
-        fixedAmount: editRow.fixedAmount !== '' ? parseFloat(editRow.fixedAmount) : 0,
+        fixedAmount: 0,
       });
       setBrackets(prev =>
         prev.map(b => b.id === editingId ? updated.data : b)
@@ -320,7 +319,6 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                     <th className="tbl-th">Lower Bound</th>
                     <th className="tbl-th">Upper Bound</th>
                     <th className="tbl-th">Rate %</th>
-                    <th className="tbl-th">Fixed Cumulative</th>
                     <th className="px-5 py-3.5 w-20" />
                   </tr>
                 </thead>
@@ -338,12 +336,6 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                           <div className="relative">
                             <input type="number" step="0.01" min="0" max="100" value={editRow.rate} onChange={e => setEditRow(p => ({ ...p, rate: e.target.value }))} placeholder="0.00" className={inputCls + ' pr-6'} />
                             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
-                            <input type="number" step="0.01" value={editRow.fixedAmount} onChange={e => setEditRow(p => ({ ...p, fixedAmount: e.target.value }))} placeholder="0.00" className={inputCls + ' pl-5'} />
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
@@ -368,7 +360,6 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                             <Percent size={11} /> {(bracket.rate * 100).toFixed(2)}%
                           </span>
                         </td>
-                        <td className="tbl-td font-bold font-mono text-navy">{bracket.fixedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="tbl-td">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => startEdit(bracket)} aria-label="Edit bracket" className="p-1.5 hover:bg-blue-50 rounded-lg text-muted-foreground hover:text-accent-green transition-colors">
@@ -386,7 +377,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                   {/* Edit error row */}
                   {editError && (
                     <tr>
-                      <td colSpan={5} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{editError}</td>
+                      <td colSpan={4} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{editError}</td>
                     </tr>
                   )}
 
@@ -407,12 +398,6 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
-                          <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
-                            <input type="number" step="0.01" value={row.fixedAmount} onChange={e => updatePending(idx, 'fixedAmount', e.target.value)} placeholder="0.00" className={inputCls + ' pl-5'} />
-                          </div>
-                        </td>
-                        <td className="px-3 py-2.5">
                           <button onClick={() => removePending(idx)} aria-label="Remove row" className="p-1.5 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors">
                             <X size={13} />
                           </button>
@@ -420,7 +405,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                       </tr>
                       {row.error && (
                         <tr>
-                          <td colSpan={5} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{row.error}</td>
+                          <td colSpan={4} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{row.error}</td>
                         </tr>
                       )}
                     </React.Fragment>
@@ -428,7 +413,7 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
 
                   {brackets.length === 0 && pendingRows.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic text-sm">
+                      <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground italic text-sm">
                         No brackets defined.{' '}
                         <button onClick={addPendingRow} className="text-accent-green font-bold not-italic hover:underline">Add the first bracket →</button>
                       </td>
