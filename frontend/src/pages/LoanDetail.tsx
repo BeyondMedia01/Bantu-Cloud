@@ -94,16 +94,16 @@ const LoanDetail: React.FC = () => {
       </div>
 
       {/* Repayment schedule */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 border-b border-border">
           <h3 className="font-bold">Repayment Schedule</h3>
         </div>
         <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-border bg-muted">
+            <tr className="tbl-head-row">
               {['#', 'Due Date', 'Amount', 'Status', 'Paid On', 'Action'].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                <th key={h} className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">{h}</th>
               ))}
             </tr>
           </thead>

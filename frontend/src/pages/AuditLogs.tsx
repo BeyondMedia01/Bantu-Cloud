@@ -215,7 +215,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
       )}
 
       {/* ── Table Card ──────────────────────────────────────────────────────── */}
-      <div className="bg-card rounded-3xl border border-border shadow-xl shadow-black/5 overflow-hidden">
+      <div className="tbl-container">
 
         {/* Toolbar */}
         <div className="p-5 border-b border-border flex flex-col gap-3">
@@ -328,9 +328,9 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[800px]">
             <thead>
-              <tr className="border-b border-border">
+              <tr className="tbl-head-row">
                 {['Timestamp', 'Actor', 'Action', 'Resource', 'Resource ID', 'IP'].map(h => (
-                  <th key={h} className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap bg-muted/50">
+                  <th key={h} className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground select-none whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -341,7 +341,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 6 }).map((_, j) => (
-                      <td key={j} className="px-6 py-5">
+                      <td key={j} className="px-5 py-3.5">
                         <div className={`h-3 bg-muted rounded-full animate-pulse ${j === 0 ? 'w-32' : j === 1 ? 'w-40' : 'w-24'}`} />
                       </td>
                     ))}
@@ -359,7 +359,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                       className="hover:bg-muted/50 cursor-pointer transition-colors group"
                     >
                       {/* Timestamp */}
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5">
                         <div className="flex flex-col gap-0.5">
                           <p className="text-xs font-bold text-navy leading-none">{date}</p>
                           <p className="text-[11px] font-mono text-muted-foreground leading-none mt-1">{time}</p>
@@ -368,7 +368,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                       </td>
 
                       {/* Actor */}
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                             <User size={13} className="text-muted-foreground" />
@@ -385,12 +385,12 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                       </td>
 
                       {/* Action */}
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5">
                         <ActionBadge action={log.action} />
                       </td>
 
                       {/* Resource */}
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5">
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 bg-muted px-2.5 py-1 rounded-lg">
                           <Database size={11} className="text-muted-foreground" />
                           {formatResource(log.resource)}
@@ -398,7 +398,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                       </td>
 
                       {/* Resource ID */}
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5">
                         {log.resourceId ? (
                           <p className="text-[11px] font-mono text-muted-foreground truncate max-w-[100px]" title={log.resourceId}>
                             {log.resourceId.slice(0, 8)}…
@@ -409,7 +409,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                       </td>
 
                       {/* IP */}
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5">
                         <p className="text-[11px] font-mono text-muted-foreground">
                           {log.ipAddress ?? <span className="text-muted-foreground">—</span>}
                         </p>
@@ -419,7 +419,7 @@ const AuditLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeCompan
                     {/* Expanded details row */}
                     {isExpanded && (
                       <tr className="bg-muted/40">
-                        <td colSpan={6} className="px-6 py-4">
+                        <td colSpan={6} className="px-5 py-3.5">
                           <div className="flex items-start gap-3">
                             <div className="w-5 h-5 rounded-md bg-navy/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <Database size={11} className="text-navy/40" />

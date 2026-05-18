@@ -204,25 +204,27 @@ const EmployeeImport: React.FC = () => {
           {result.failed.length > 0 && (
             <div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Failed Rows</p>
-              <div className="rounded-xl border border-border overflow-hidden">
+              <div className="tbl-container">
+                <div className="tbl-scroll">
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="bg-muted border-b border-border">
-                      <th className="px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Row</th>
-                      <th className="px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</th>
-                      <th className="px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Reason</th>
+                    <tr className="tbl-head-row">
+                      <th className="tbl-th">Row</th>
+                      <th className="tbl-th">Name</th>
+                      <th className="tbl-th">Reason</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {result.failed.map((f) => (
-                      <tr key={f.row}>
-                        <td className="px-4 py-2 text-muted-foreground font-medium">{f.row}</td>
-                        <td className="px-4 py-2 font-semibold">{f.name || '—'}</td>
-                        <td className="px-4 py-2 text-red-600 font-medium">{f.reason}</td>
+                      <tr key={f.row} className="tbl-row">
+                        <td className="tbl-td text-muted-foreground font-medium">{f.row}</td>
+                        <td className="tbl-td font-semibold">{f.name || '—'}</td>
+                        <td className="tbl-td text-red-600 font-medium">{f.reason}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           )}

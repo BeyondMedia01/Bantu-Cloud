@@ -237,39 +237,39 @@ const Leave: React.FC = () => {
           action={{ label: 'Record Leave', onClick: () => navigate('/leave/new') }}
         />
       ) : (
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto scroll-x-shadow">
+      <div className="tbl-container">
+          <div className="tbl-scroll">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-border bg-muted">
+                <tr className="tbl-head-row">
                   {['Employee', 'Leave Type', 'Dates', 'Days', 'Status', 'Actions'].map((h) => (
-                    <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                    <th key={h} scope="col" className="tbl-th">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.length > 0 ? filtered.map((item: any) => (
-                  <tr key={item.id} className="hover:bg-muted/70 transition-colors">
-                    <td className="px-5 py-4">
+                  <tr key={item.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-3.5">
                       <p className="text-sm font-bold">{item.employee?.firstName} {item.employee?.lastName}</p>
                       <p className="text-xs text-muted-foreground font-semibold">{item.employee?.employeeCode || '—'}</p>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <span className="text-sm font-medium capitalize">
                         {item.type?.charAt(0) + item.type?.slice(1).toLowerCase().replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <p className="text-sm font-medium">{fmtDate(item.startDate)}</p>
                       <p className="text-xs text-muted-foreground">to {fmtDate(item.endDate)}</p>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <span className="text-sm font-bold">{item.totalDays ?? item.days ?? '—'}</span>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1">
                         {can('TIME_LEAVE', 'EDIT') && (
                           <button

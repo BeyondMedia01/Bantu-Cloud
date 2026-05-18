@@ -392,28 +392,28 @@ const PayrollInputs: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Employee</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Transaction</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Type</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Amount</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Units</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Period</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Notes</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-5 py-3" />
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Employee</th>
+                <th className="tbl-th">Transaction</th>
+                <th className="tbl-th">Type</th>
+                <th className="tbl-th">Amount</th>
+                <th className="tbl-th">Units</th>
+                <th className="tbl-th">Period</th>
+                <th className="tbl-th">Notes</th>
+                <th className="tbl-th">Status</th>
+                <th className="px-5 py-3.5.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {inputs.map((inp) => {
                 const tc = txCodeMap[inp.transactionCodeId] || inp.transactionCode;
                 return (
-                  <tr key={inp.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-5 py-3">
+                  <tr key={inp.id} className="tbl-row">
+                    <td className="px-5 py-3.5">
                       <p className="font-bold text-navy text-sm">
                         {inp.employee
                           ? `${inp.employee.firstName} ${inp.employee.lastName}`
@@ -423,11 +423,11 @@ const PayrollInputs: React.FC = () => {
                         <p className="text-[11px] text-muted-foreground font-medium">{inp.employee.employeeCode}</p>
                       )}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3.5">
                       <p className="font-bold text-sm">{tc?.code ?? '—'}</p>
                       <p className="text-[11px] text-muted-foreground font-medium">{tc?.name}</p>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3.5">
                       {tc?.type && (
                         <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${
                           tc.type === 'EARNING'   ? 'bg-emerald-100 text-emerald-700' :
@@ -438,26 +438,26 @@ const PayrollInputs: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-3 font-bold text-navy">
+                    <td className="px-5 py-3.5 font-bold text-navy">
                       ${Number(inp.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="px-5 py-3 text-muted-foreground font-bold">
+                    <td className="px-5 py-3.5 text-muted-foreground font-bold">
                       {inp.units !== null && inp.units !== undefined ? (
                         <span>{Number(inp.units).toFixed(2)} <span className="text-[10px] text-muted-foreground font-medium">hrs</span></span>
                       ) : '—'}
                     </td>
-                    <td className="px-5 py-3 text-muted-foreground font-medium">{inp.period}</td>
-                    <td className="px-5 py-3 text-[11px] text-muted-foreground italic max-w-[150px] truncate" title={inp.notes}>
+                    <td className="px-5 py-3.5 text-muted-foreground font-medium">{inp.period}</td>
+                    <td className="px-5 py-3.5 text-[11px] text-muted-foreground italic max-w-[150px] truncate" title={inp.notes}>
                       {inp.notes || '—'}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3.5">
                       <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${
                         inp.processed ? 'bg-muted text-muted-foreground' : 'bg-amber-100 text-amber-700'
                       }`}>
                         {inp.processed ? 'Processed' : 'Pending'}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => {

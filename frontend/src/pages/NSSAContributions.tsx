@@ -143,7 +143,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
       </div>
 
       {/* Contribution Table */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30 flex items-center justify-between">
             <div className="relative flex-1 max-w-md">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -157,22 +157,22 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
               />
             </div>
         </div>
-        <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-scroll">
           <table className="w-full text-left font-sans">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee / Period</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Pensionable (USD)</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Contribution (EE/ER)</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Limit Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Submission</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Employee / Period</th>
+                <th className="tbl-th">Pensionable (USD)</th>
+                <th className="tbl-th">Contribution (EE/ER)</th>
+                <th className="tbl-th">Limit Status</th>
+                <th className="tbl-th">Submission</th>
+                <th className="tbl-th text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredContributions.length > 0 ? filteredContributions.map(c => (
-                <tr key={c.id} className="hover:bg-muted/30 transition-colors group">
-                  <td className="px-6 py-4">
+                <tr key={c.id} className="tbl-row group">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
                         <User size={18} />
@@ -183,10 +183,10 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <p className="text-sm font-bold font-mono text-navy">${c.pensionableEarningsUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-4">
                       <div>
                         <p className="text-[10px] text-muted-foreground font-bold uppercase mb-0.5">EE ({settings.employeeRate}%)</p>
@@ -199,7 +199,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     {c.isWithinLimit ? (
                       <span className="text-[10px] font-bold px-2 py-1 bg-emerald-50 text-accent-green rounded-md uppercase">Normal</span>
                     ) : (
@@ -209,8 +209,8 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <button 
+                  <td className="tbl-td">
+                    <button
                       onClick={() => handleToggleSubmission(c.id, c.submittedToNSSA)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all ${c.submittedToNSSA ? 'bg-emerald-500 text-white font-bold' : 'bg-muted text-muted-foreground font-bold hover:bg-muted'}`}
                     >
@@ -218,8 +218,8 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                       <span className="text-[10px] uppercase tracking-wider">{c.submittedToNSSA ? 'Submitted' : 'Pending'}</span>
                     </button>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <button 
+                  <td className="tbl-td text-right">
+                    <button
                       onClick={() => handleDelete(c.id)}
                       className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                     >
@@ -229,7 +229,7 @@ const NSSAContributions: React.FC<{ activeCompanyId?: string | null }> = ({ acti
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground font-medium">
+                  <td colSpan={6} className="tbl-td py-20 text-center text-muted-foreground font-medium">
                     <Hash size={48} className="mx-auto mb-4 opacity-10" />
                     <p className="italic">No pension contribution records found for this period.</p>
                   </td>

@@ -41,7 +41,7 @@ const EmployeePayslips: React.FC = () => {
         <p className="text-muted-foreground text-sm font-medium">View and download your payslips</p>
       </header>
 
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         {loading ? (
           <SkeletonTable headers={['Period', 'Currency', 'Gross', 'PAYE', 'Net Pay', 'Download']} />
         ) : payslips.length === 0 ? (
@@ -53,26 +53,26 @@ const EmployeePayslips: React.FC = () => {
           />
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-muted border-b border-border">
-              <tr>
+            <thead>
+              <tr className="tbl-head-row">
                 {['Period', 'Currency', 'Gross', 'PAYE', 'Net Pay', 'Download'].map((h) => (
-                  <th key={h} className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="tbl-th">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {payslips.map((p: any) => (
-                <tr key={p.id} className="hover:bg-muted/70 transition-colors">
-                  <td className="px-5 py-4 font-medium text-navy">
+                <tr key={p.id} className="tbl-row">
+                  <td className="px-5 py-3.5 font-medium text-navy">
                     {p.payrollRun && new Date(p.payrollRun.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     {' – '}
                     {p.payrollRun && new Date(p.payrollRun.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
-                  <td className="px-5 py-4 text-muted-foreground">{p.payrollRun?.currency}</td>
-                  <td className="px-5 py-4 font-bold text-navy">{fmt(p.gross)}</td>
-                  <td className="px-5 py-4 font-medium text-red-500">{fmt(p.paye)}</td>
-                  <td className="px-5 py-4 font-bold text-emerald-600">{fmt(p.netPay)}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5 text-muted-foreground">{p.payrollRun?.currency}</td>
+                  <td className="px-5 py-3.5 font-bold text-navy">{fmt(p.gross)}</td>
+                  <td className="px-5 py-3.5 font-medium text-red-500">{fmt(p.paye)}</td>
+                  <td className="px-5 py-3.5 font-bold text-emerald-600">{fmt(p.netPay)}</td>
+                  <td className="px-5 py-3.5">
                     <button
                       onClick={() => handlePdf(p.payrollRunId, p.id)}
                       className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"

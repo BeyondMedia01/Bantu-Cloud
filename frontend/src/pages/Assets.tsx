@@ -249,40 +249,40 @@ const Assets: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", "", "", ""]} rows={6} /> : filtered.length === 0 ? (
               <EmptyState variant="no-data" icon={Package} title="No assets found" description="Create your first asset to start tracking."
                 action={canManage ? { label: 'New Asset', onClick: () => setShowCreate(true) } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned To</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Serial</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Condition</th>
-                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                <thead>
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Name</th>
+                    <th className="tbl-th">Category</th>
+                    <th className="tbl-th">Status</th>
+                    <th className="tbl-th">Assigned To</th>
+                    <th className="tbl-th">Serial</th>
+                    <th className="tbl-th">Condition</th>
+                    <th className="tbl-th text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filtered.map(a => (
-                    <tr key={a.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4">
+                    <tr key={a.id} className="tbl-row">
+                      <td className="tbl-td">
                         <p className="font-medium text-navy">{a.name}</p>
                         {a.model && <p className="text-xs text-muted-foreground">{a.model}</p>}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{a.category?.name || '—'}</td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">{a.category?.name || '—'}</td>
+                      <td className="tbl-td">
                         <StatusBadge status={a.status} />
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">
+                      <td className="tbl-td">
                         {a.assignedTo ? `${a.assignedTo.firstName} ${a.assignedTo.lastName}` : '—'}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground text-xs">{a.serialNumber || '—'}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{a.condition || '—'}</td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="tbl-td text-xs">{a.serialNumber || '—'}</td>
+                      <td className="tbl-td">{a.condition || '—'}</td>
+                      <td className="tbl-td text-right">
                         <div className="flex items-center justify-end gap-1">
                           {canManage && a.status === 'AVAILABLE' && (
                             <button onClick={() => openAssign(a)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-blue-600 transition-colors" title="Assign">
@@ -312,25 +312,25 @@ const Assets: React.FC = () => {
 
       {/* Categories tab */}
       {tab === 'categories' && (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="tbl-container">
           {loading ? <SkeletonTable headers={["", "", ""]} rows={6} /> : categories.length === 0 ? (
             <EmptyState variant="no-data" icon={Package} title="No categories" description="Create categories to organize your assets."
               action={canManage ? { label: 'New Category', onClick: () => setShowCreateCat(true) } : undefined} />
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-muted border-b border-border">
-                <tr>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Assets</th>
+              <thead>
+                <tr className="tbl-head-row">
+                  <th className="tbl-th">Name</th>
+                  <th className="tbl-th">Description</th>
+                  <th className="tbl-th">Assets</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {categories.map(c => (
-                  <tr key={c.id} className="hover:bg-muted/70 transition-colors">
-                    <td className="px-5 py-4 font-medium text-navy">{c.name}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{c.description || '—'}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{c._count?.assets ?? '—'}</td>
+                  <tr key={c.id} className="tbl-row">
+                    <td className="tbl-td font-medium text-navy">{c.name}</td>
+                    <td className="tbl-td">{c.description || '—'}</td>
+                    <td className="tbl-td">{c._count?.assets ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>

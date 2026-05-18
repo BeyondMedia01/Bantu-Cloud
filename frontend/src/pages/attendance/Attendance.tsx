@@ -335,16 +335,16 @@ const Attendance: React.FC = () => {
         ))}
       </div>
 
-      <div className="bg-primary border border-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="tbl-container">
         {loading ? (
           <SkeletonTable headers={tab === 'records' ? ['Employee', 'Date', 'Status', 'In', 'Out', 'Break', 'Normal', 'OT ×1.0', 'OT ×1.5', 'OT ×2.0', ''] : ['Employee', 'Punch Time', 'Type', 'Device PIN', 'Source', 'Processed']} />
         ) : tab === 'records' ? (
-          <div className="overflow-x-auto">
+          <div className="tbl-scroll">
             <table className="w-full">
-              <thead className="bg-muted border-b border-border">
-                <tr>
+              <thead>
+                <tr className="tbl-head-row">
                   {['Employee', 'Date', 'Status', 'In', 'Out', 'Break', 'Normal', 'OT ×1.0', 'OT ×1.5', 'OT ×2.0', ''].map((h) => (
-                    <th key={h} className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">{h}</th>
+                    <th key={h} className="tbl-th">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -356,27 +356,27 @@ const Attendance: React.FC = () => {
                     </td>
                   </tr>
                 ) : records.map((r) => (
-                  <tr key={r.id} className="hover:bg-muted/70">
-                    <td className="px-5 py-4">
+                  <tr key={r.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-3.5">
                       <div className="font-bold text-sm text-navy">{r.employee?.firstName} {r.employee?.lastName}</div>
                       <div className="text-[10px] text-muted-foreground">{r.employee?.employeeCode}</div>
                     </td>
-                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">{fmtDate(r.date)}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5 text-sm font-medium text-foreground/80">{fmtDate(r.date)}</td>
+                    <td className="px-5 py-3.5">
                       <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${STATUS_COLORS[r.status] || 'bg-muted text-muted-foreground'}`}>
                         {r.status?.replace('_', ' ')}
                       </span>
                       {r.isManualOverride && <span className="ml-1 text-[10px] text-amber-500 font-bold">✎</span>}
                       {r.isPublicHoliday && <span className="ml-1 text-[10px] text-blue-500 font-bold">PH</span>}
                     </td>
-                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">{fmtTime(r.clockIn)}</td>
-                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">{fmtTime(r.clockOut)}</td>
-                    <td className="px-5 py-4 text-sm font-medium text-muted-foreground">{r.breakMinutes ?? 0}m</td>
-                    <td className="px-5 py-4 text-sm font-bold text-emerald-700">{fmtMins(r.normalMinutes ?? 0)}</td>
-                    <td className="px-5 py-4 text-sm font-bold text-blue-700">{fmtMins(r.ot0Minutes ?? 0)}</td>
-                    <td className="px-5 py-4 text-sm font-bold text-amber-700">{fmtMins(r.ot1Minutes ?? 0)}</td>
-                    <td className="px-5 py-4 text-sm font-bold text-red-700">{fmtMins(r.ot2Minutes ?? 0)}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5 text-sm font-medium text-foreground/80">{fmtTime(r.clockIn)}</td>
+                    <td className="px-5 py-3.5 text-sm font-medium text-foreground/80">{fmtTime(r.clockOut)}</td>
+                    <td className="px-5 py-3.5 text-sm font-medium text-muted-foreground">{r.breakMinutes ?? 0}m</td>
+                    <td className="px-5 py-3.5 text-sm font-bold text-emerald-700">{fmtMins(r.normalMinutes ?? 0)}</td>
+                    <td className="px-5 py-3.5 text-sm font-bold text-blue-700">{fmtMins(r.ot0Minutes ?? 0)}</td>
+                    <td className="px-5 py-3.5 text-sm font-bold text-amber-700">{fmtMins(r.ot1Minutes ?? 0)}</td>
+                    <td className="px-5 py-3.5 text-sm font-bold text-red-700">{fmtMins(r.ot2Minutes ?? 0)}</td>
+                    <td className="px-5 py-3.5">
                       <button className="text-muted-foreground hover:text-navy p-1 rounded-lg hover:bg-muted">
                         <Edit2 size={13} />
                       </button>
@@ -387,12 +387,12 @@ const Attendance: React.FC = () => {
             </table>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="tbl-scroll">
             <table className="w-full">
-              <thead className="bg-muted border-b border-border">
-                <tr>
+              <thead>
+                <tr className="tbl-head-row">
                   {['Employee', 'Punch Time', 'Type', 'Device PIN', 'Source', 'Processed'].map((h) => (
-                    <th key={h} className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">{h}</th>
+                    <th key={h} className="tbl-th">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -404,23 +404,23 @@ const Attendance: React.FC = () => {
                     </td>
                   </tr>
                 ) : logs.map((l) => (
-                  <tr key={l.id} className="hover:bg-muted">
-                    <td className="px-5 py-4">
+                  <tr key={l.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-3.5">
                       <div className="font-bold text-sm text-navy">{l.employee?.firstName} {l.employee?.lastName}</div>
                       <div className="text-[10px] text-muted-foreground">{l.employee?.employeeCode}</div>
                     </td>
-                    <td className="px-5 py-4 text-sm font-medium text-foreground/80">
+                    <td className="px-5 py-3.5 text-sm font-medium text-foreground/80">
                       <div>{fmtDate(l.punchTime)}</div>
                       <div className="text-xs text-muted-foreground">{fmtTime(l.punchTime)}</div>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${PUNCH_COLORS[l.punchType] || 'bg-muted text-muted-foreground'}`}>
                         {l.punchType?.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs font-mono text-muted-foreground">{l.deviceUserId}</td>
-                    <td className="px-5 py-4 text-xs font-semibold text-muted-foreground">{l.source}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5 text-xs font-mono text-muted-foreground">{l.deviceUserId}</td>
+                    <td className="px-5 py-3.5 text-xs font-semibold text-muted-foreground">{l.source}</td>
+                    <td className="px-5 py-3.5">
                       {l.processed
                         ? <CheckSquare size={13} className="text-emerald-500" />
                         : <Clock size={13} className="text-amber-400" />

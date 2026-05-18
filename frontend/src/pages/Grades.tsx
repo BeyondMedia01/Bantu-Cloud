@@ -229,36 +229,36 @@ const Grades: React.FC = () => {
           action={{ label: 'Create First Grade', onClick: () => setShowCreate(true) }}
         />
       ) : (
-        <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Grade</th>
-                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
-                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Min Salary</th>
-                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Max Salary</th>
-                <th className="text-left px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Employees</th>
-                <th className="px-5 py-4" />
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Grade</th>
+                <th className="tbl-th">Description</th>
+                <th className="tbl-th">Min Salary</th>
+                <th className="tbl-th">Max Salary</th>
+                <th className="tbl-th">Employees</th>
+                <th className="px-5 py-3.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {grades.map((g) => (
-                <tr key={g.id} className="hover:bg-muted/70 transition-colors">
-                  <td className="px-5 py-4 font-bold text-navy">{g.name}</td>
-                  <td className="px-5 py-4 text-muted-foreground font-medium">{g.description ?? '—'}</td>
-                  <td className="px-5 py-4 font-medium">
+                <tr key={g.id} className="hover:bg-muted/50 transition-colors">
+                  <td className="px-5 py-3.5 font-bold text-navy">{g.name}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground font-medium">{g.description ?? '—'}</td>
+                  <td className="px-5 py-3.5 font-medium">
                     {g.minSalary != null ? `$${g.minSalary.toLocaleString()}` : '—'}
                   </td>
-                  <td className="px-5 py-4 font-medium">
+                  <td className="px-5 py-3.5 font-medium">
                     {g.maxSalary != null ? `$${g.maxSalary.toLocaleString()}` : '—'}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     <span className="text-xs font-black text-muted-foreground bg-muted px-2 py-1 rounded-full">
                       {g._count?.employees ?? '—'}
                     </span>
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2 justify-end">
                       {can('PEOPLE', 'EDIT') && (
                         <button

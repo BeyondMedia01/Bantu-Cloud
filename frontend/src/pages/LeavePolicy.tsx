@@ -189,34 +189,34 @@ const LeavePolicy: React.FC = () => {
           <p className="text-sm text-muted-foreground">Add policies to enable monthly accruals and year-end carry-over</p>
         </div>
       ) : (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
+              <tr className="tbl-head-row">
                 {['Leave Type', 'Accrual Rate', 'Max Cap', 'Carry-Over', 'Encashable', 'Encash Cap', ''].map((h) => (
-                  <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="tbl-th">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {policies.map((p: any) => (
-                <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-5 py-4">
+                <tr key={p.id} className="tbl-row">
+                  <td className="tbl-td">
                     <span className="font-bold text-sm">{fmtType(p.leaveType)}</span>
                   </td>
-                  <td className="px-5 py-4 text-sm font-medium">{p.accrualRate} days/month</td>
-                  <td className="px-5 py-4 text-sm font-medium">{p.maxAccumulation} days</td>
-                  <td className="px-5 py-4 text-sm font-medium">{p.carryOverLimit > 0 ? `${p.carryOverLimit} days` : 'Forfeit all'}</td>
-                  <td className="px-5 py-4">
+                  <td className="tbl-td font-medium">{p.accrualRate} days/month</td>
+                  <td className="tbl-td font-medium">{p.maxAccumulation} days</td>
+                  <td className="tbl-td font-medium">{p.carryOverLimit > 0 ? `${p.carryOverLimit} days` : 'Forfeit all'}</td>
+                  <td className="tbl-td">
                     <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.encashable ? 'bg-emerald-50 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                       {p.encashable ? 'Yes' : 'No'}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-sm font-medium">
+                  <td className="tbl-td font-medium">
                     {p.encashCap > 0 ? `${p.encashCap} days/yr` : 'Unlimited'}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-1">
                       <button onClick={() => openEdit(p)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="Edit"><Edit size={16} /></button>
                       <button onClick={() => handleDelete(p.id)} className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors" title="Delete"><Trash size={16} /></button>

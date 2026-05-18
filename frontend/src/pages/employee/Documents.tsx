@@ -73,7 +73,7 @@ const EmployeeDocuments: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         {loading ? (
           <SkeletonTable headers={['Document Name', 'Type', 'Date Uploaded', 'Download']} rows={5} />
         ) : filtered.length === 0 ? (
@@ -85,31 +85,31 @@ const EmployeeDocuments: React.FC = () => {
           />
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-muted border-b border-border">
-              <tr>
+            <thead>
+              <tr className="tbl-head-row">
                 {['Document Name', 'Type', 'Date Uploaded', 'Download'].map((h) => (
-                  <th key={h} className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="tbl-th">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((doc: any) => (
-                <tr key={doc.id} className="hover:bg-muted/70 transition-colors">
-                  <td className="px-5 py-4">
+                <tr key={doc.id} className="hover:bg-muted/50 transition-colors">
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">
                       <FileText size={16} className="text-muted-foreground shrink-0" />
                       <span className="font-medium text-navy">{doc.name}</span>
                     </div>
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     {doc.type ? (
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold ${DOC_TYPE_COLORS[doc.type] || DOC_TYPE_COLORS.OTHER}`}>
                         {doc.type.charAt(0) + doc.type.slice(1).toLowerCase()}
                       </span>
                     ) : <span className="text-muted-foreground">—</span>}
                   </td>
-                  <td className="px-5 py-4 text-muted-foreground">{fmtDate(doc.uploadedAt)}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5 text-muted-foreground">{fmtDate(doc.uploadedAt)}</td>
+                  <td className="px-5 py-3.5">
                     <button
                       onClick={() => handleDownload(doc)}
                       className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors"

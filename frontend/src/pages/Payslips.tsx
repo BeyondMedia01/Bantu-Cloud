@@ -161,7 +161,7 @@ const Payslips: React.FC = () => {
   const isDual = run?.dualCurrency;
   const ccy = run?.currency || 'USD';
 
-  const thCls = 'px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap';
+  const thCls = 'px-5 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap select-none';
 
   return (
     <div>
@@ -243,10 +243,10 @@ const Payslips: React.FC = () => {
             );
           })()}
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-x-auto">
+          <div className="tbl-container tbl-scroll">
             <table className="w-full text-left min-w-max">
               <thead>
-                <tr className="border-b border-border bg-muted">
+                <tr className="tbl-head-row">
                   <th scope="col" className={thCls}>Employee</th>
                   <th scope="col" className={thCls}>Position</th>
 
@@ -308,19 +308,19 @@ const Payslips: React.FC = () => {
                   const netUSD = p.netPayUSD ?? p.netPay;
 
                   return (
-                    <tr key={p.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3">
+                    <tr key={p.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-5 py-3.5">
                         <p className="font-bold text-sm">{p.employee?.firstName} {p.employee?.lastName}</p>
                         <p className="text-xs text-muted-foreground">{p.employee?.employeeCode}</p>
                       </td>
-                      <td className="px-4 py-3 text-sm text-foreground/80">{p.employee?.position}</td>
+                      <td className="px-5 py-3.5 text-sm text-foreground/80">{p.employee?.position}</td>
 
                       {/* Basic from employee master */}
-                      <td className="px-4 py-3 text-sm font-bold">{fmt(p.basicSalary)}</td>
+                      <td className="px-5 py-3.5 text-sm font-bold">{fmt(p.basicSalary)}</td>
 
                       {/* Earning TC columns — blank if employee doesn't have this TC */}
                       {allEarningTCs.map((tc) => (
-                        <td key={tc.tcId} className="px-4 py-3 text-sm font-medium">
+                        <td key={tc.tcId} className="px-5 py-3.5 text-sm font-medium">
                           {earningMap[tc.tcId] ? earningMap[tc.tcId].join(' / ') : '—'}
                         </td>
                       ))}
@@ -328,34 +328,34 @@ const Payslips: React.FC = () => {
                       {/* Gross */}
                       {isDual ? (
                         <>
-                          <td className="px-4 py-3 text-sm font-bold">{fmt(grossUSD)}</td>
-                          <td className="px-4 py-3 text-sm font-bold">{fmt(p.grossZIG)}</td>
+                          <td className="px-5 py-3.5 text-sm font-bold">{fmt(grossUSD)}</td>
+                          <td className="px-5 py-3.5 text-sm font-bold">{fmt(p.grossZIG)}</td>
                         </>
                       ) : (
-                        <td className="px-4 py-3 text-sm font-bold">{fmt(p.gross)}</td>
+                        <td className="px-5 py-3.5 text-sm font-bold">{fmt(p.gross)}</td>
                       )}
 
                       {/* Post-tax deduction TC columns */}
                       {allDeductionTCs.map((tc) => (
-                        <td key={tc.tcId} className="px-4 py-3 text-sm text-red-500 font-medium whitespace-nowrap">
+                        <td key={tc.tcId} className="px-5 py-3.5 text-sm text-red-500 font-medium whitespace-nowrap">
                           {deductionMap[tc.tcId] ? deductionMap[tc.tcId].join(' / ') : '—'}
                         </td>
                       ))}
 
                       {/* Total deductions */}
-                      <td className="px-4 py-3 text-sm text-red-500 font-medium">{fmt(totalDeductions)}</td>
+                      <td className="px-5 py-3.5 text-sm text-red-500 font-medium">{fmt(totalDeductions)}</td>
 
                       {/* Net Pay */}
                       {isDual ? (
                         <>
-                          <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(netUSD)}</td>
-                          <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(p.netPayZIG)}</td>
+                          <td className="px-5 py-3.5 text-sm font-bold text-emerald-600">{fmt(netUSD)}</td>
+                          <td className="px-5 py-3.5 text-sm font-bold text-emerald-600">{fmt(p.netPayZIG)}</td>
                         </>
                       ) : (
-                        <td className="px-4 py-3 text-sm font-bold text-emerald-600">{fmt(p.netPay)}</td>
+                        <td className="px-5 py-3.5 text-sm font-bold text-emerald-600">{fmt(p.netPay)}</td>
                       )}
 
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => handlePreview(p.id, p.employee?.lastName || '', p.employee?.firstName || '')}

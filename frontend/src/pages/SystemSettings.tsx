@@ -124,7 +124,7 @@ const SystemSettings: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       )}
 
       {/* Settings List */}
-      <div className="bg-primary rounded-3xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30">
           <div className="relative max-w-md">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

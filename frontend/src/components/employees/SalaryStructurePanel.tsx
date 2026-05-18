@@ -260,18 +260,18 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
           </button>
         </div>
       ) : (
-        <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Code</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Type</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Value</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Effective From</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Effective To</th>
-                <th className="text-left px-5 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-5 py-3" />
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Code</th>
+                <th className="tbl-th">Type</th>
+                <th className="tbl-th">Value</th>
+                <th className="tbl-th hidden sm:table-cell">Effective From</th>
+                <th className="tbl-th hidden sm:table-cell">Effective To</th>
+                <th className="tbl-th">Status</th>
+                <th className="px-5 py-3.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -280,7 +280,7 @@ const SalaryStructurePanel: React.FC<Props> = ({ empId }) => {
                 const active = isActive(r);
                 const future = new Date(r.effectiveFrom) > new Date();
                 return (
-                  <tr key={r.id} className={`transition-colors ${active ? 'hover:bg-muted/30' : 'opacity-50 hover:bg-muted/20'}`}>
+                  <tr key={r.id} className={`transition-colors ${active ? 'hover:bg-muted/50' : 'opacity-50 hover:bg-muted/50'}`}>
                     <td className="px-5 py-3">
                       <p className="font-bold text-navy">{tc?.code ?? '—'}</p>
                       <p className="text-[11px] text-muted-foreground font-medium">{tc?.name}</p>

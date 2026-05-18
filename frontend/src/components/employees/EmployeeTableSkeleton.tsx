@@ -8,7 +8,7 @@ const EmployeeTableSkeleton: React.FC = () => {
           <thead>
             <tr className="border-b border-border bg-muted/50">
               {['Employee', 'ID', 'Position', 'Department', 'Branch', 'Status', 'Actions'].map((h) => (
-                <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground/40 uppercase tracking-wider">{h}</th>
+                <th key={h} className="px-5 py-3.5 text-xs font-semibold text-muted-foreground/40 uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>

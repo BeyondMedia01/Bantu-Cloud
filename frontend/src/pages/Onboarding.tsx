@@ -215,38 +215,38 @@ const Onboarding: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", ""]} rows={6} /> : records.length === 0 ? (
               <EmptyState variant="no-data" icon={ClipboardList} title="No onboarding records" description="Start an onboarding for a new employee."
                 action={canManage ? { label: 'Start Onboarding', onClick: () => { setShowCreate(true); loadEmployees(); loadTemplates(); } } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
+                <thead className="tbl-head-row">
                   <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Template</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Start Date</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Tasks</th>
-                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Employee</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Status</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Template</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Start Date</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Tasks</th>
+                    <th className="px-5 py-3.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {records.map(r => (
-                    <tr key={r.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4 font-medium text-navy">
+                    <tr key={r.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-5 py-3.5 font-medium text-navy">
                         {r.employee?.firstName} {r.employee?.lastName}
                         {r.employee?.employeeCode && <p className="text-xs text-muted-foreground">#{r.employee.employeeCode}</p>}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5">
                         <StatusBadge status={r.status} />
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{r.template?.name || '—'}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{fmtDate(r.startDate)}</td>
-                      <td className="px-5 py-4 text-muted-foreground">
+                      <td className="px-5 py-3.5 text-muted-foreground">{r.template?.name || '—'}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">{fmtDate(r.startDate)}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">
                         {r.completedTasks !== undefined && r._count ? `${r.completedTasks}/${r._count.tasks}` : '—'}
                       </td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-5 py-3.5 text-right">
                         <button onClick={() => openDetail(r.id)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="View tasks">
                           <Edit size={15} />
                         </button>
@@ -262,25 +262,25 @@ const Onboarding: React.FC = () => {
 
       {/* Templates tab */}
       {tab === 'templates' && (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="tbl-container">
           {loading ? <SkeletonTable headers={["", "", ""]} rows={6} /> : templates.length === 0 ? (
             <EmptyState variant="no-data" icon={ClipboardList} title="No templates" description="Create reusable onboarding templates."
               action={canManage ? { label: 'New Template', onClick: () => setShowCreateTemplate(true) } : undefined} />
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-muted border-b border-border">
+              <thead className="tbl-head-row">
                 <tr>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Tasks</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Name</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Description</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Tasks</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {templates.map(t => (
-                  <tr key={t.id} className="hover:bg-muted/70 transition-colors">
-                    <td className="px-5 py-4 font-medium text-navy">{t.name}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{t.description || '—'}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{t.tasks?.length ?? 0}</td>
+                  <tr key={t.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-3.5 font-medium text-navy">{t.name}</td>
+                    <td className="px-5 py-3.5 text-muted-foreground">{t.description || '—'}</td>
+                    <td className="px-5 py-3.5 text-muted-foreground">{t.tasks?.length ?? 0}</td>
                   </tr>
                 ))}
               </tbody>

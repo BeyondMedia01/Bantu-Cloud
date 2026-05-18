@@ -76,7 +76,7 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
       </div>
 
       {/* Table Section */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30 flex items-center justify-between">
             <div className="relative flex-1 max-w-md">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -89,21 +89,21 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
               />
             </div>
         </div>
-        <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Salary (ZiG)</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Currency Split</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Payments</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Employee</th>
+                <th className="tbl-th">Salary (ZiG)</th>
+                <th className="tbl-th">Currency Split</th>
+                <th className="tbl-th">Payments</th>
+                <th className="tbl-th text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredCores.length > 0 ? filteredCores.map(core => (
-                <tr key={core.id} className="hover:bg-muted/30 transition-colors group">
-                  <td className="px-6 py-4">
+                <tr key={core.id} className="tbl-row group">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs uppercase text-white"
                         style={getAvatarGradient(core.fullName)}>
@@ -115,11 +115,11 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <p className="text-sm font-bold">{core.basicSalaryZiG.toLocaleString()}</p>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Base ZiG</p>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <div className="flex gap-1">
                        {Object.entries(core.preferredCurrencySplit || {}).map(([curr, val]: any) => (
                          <span key={curr} className="px-2 py-0.5 rounded-lg bg-blue-50 text-accent-green text-[10px] font-bold border border-blue-100 italic">
@@ -128,11 +128,11 @@ const PayrollCore: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
                        ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                      <p className="text-xs font-bold text-navy">{core.paymentFrequency}</p>
                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Freq</p>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="tbl-td text-right">
                     <div className="flex items-center justify-end gap-2">
                        <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors">
                         <Edit size={16} />

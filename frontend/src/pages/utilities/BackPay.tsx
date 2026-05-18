@@ -478,16 +478,16 @@ const BackPay: React.FC = () => {
           )}
 
           {/* Per-employee table */}
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             <div className="px-5 py-3 border-b border-border bg-muted">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Per-Employee Shortfall</p>
             </div>
-            <div className="overflow-x-auto">
+            <div className="tbl-scroll">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-border">
+                  <tr className="tbl-head-row">
                     {['Employee', 'Old Rate', 'New Rate', 'Runs', 'Gross Back Pay', 'Tax (est.)', 'Net (est.)'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                      <th key={h} className="tbl-th">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -495,7 +495,7 @@ const BackPay: React.FC = () => {
                   {preview.results.map((r) => (
                     <React.Fragment key={r.employeeId}>
                       <tr
-                        className={`hover:bg-muted/30 transition-colors ${r.totalGross > 0 ? 'cursor-pointer' : ''}`}
+                        className={`tbl-row ${r.totalGross > 0 ? 'cursor-pointer' : ''}`}
                         onClick={() => r.totalGross > 0 && setExpandedEmp(expandedEmp === r.employeeId ? null : r.employeeId)}
                       >
                         <td className="px-4 py-3">
@@ -572,21 +572,21 @@ const BackPay: React.FC = () => {
           </div>
 
           {commit.inputs.length > 0 && (
-            <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="tbl-container">
               <div className="px-5 py-3 border-b border-border bg-muted">
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Created PayrollInputs</p>
               </div>
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-border">
+                  <tr className="tbl-head-row">
                     {['Employee', 'Runs', 'Back-Pay Amount', 'Period', 'Notes'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                      <th key={h} className="tbl-th">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {commit.inputs.map((inp) => (
-                    <tr key={inp.id} className="hover:bg-muted/30">
+                    <tr key={inp.id} className="tbl-row">
                       <td className="px-4 py-3">
                         <p className="text-sm font-bold">{inp.employeeName}</p>
                         <p className="text-xs text-muted-foreground">{inp.employeeCode}</p>

@@ -330,27 +330,27 @@ const PayrollSummary: React.FC = () => {
           </div>
         ))}
       </div>
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto scroll-x-shadow">
+      <div className="tbl-container">
+        <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
+              <tr className="tbl-head-row">
                 {['Employee', 'Basic', 'Gross', 'PAYE', 'NSSA', 'AIDS Levy', 'Net Pay'].map(h => (
-                  <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground/50 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} className="tbl-th whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
                       <div className="space-y-2"><div className="h-3 w-24 bg-muted rounded" /><div className="h-2 w-14 bg-muted rounded" /></div>
                     </div>
                   </td>
                   {Array.from({ length: 6 }).map((_, ci) => (
-                    <td key={ci} className="px-5 py-4"><div className="h-3 w-16 bg-muted rounded" /></td>
+                    <td key={ci} className="px-5 py-3.5"><div className="h-3 w-16 bg-muted rounded" /></td>
                   ))}
                 </tr>
               ))}
@@ -581,14 +581,14 @@ const PayrollSummary: React.FC = () => {
                   1 USD = {Number(xr).toFixed(4)} ZiG
                 </span>
               </div>
-              <div className="overflow-x-auto scroll-x-shadow">
+              <div className="tbl-scroll">
                 <table className="w-full text-left min-w-[480px]">
                   <thead>
-                    <tr className="border-b border-border bg-muted/60">
-                      <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-44">Item</th>
-                      <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">USD</th>
-                      <th className="px-5 py-3 text-xs font-semibold currency-zig uppercase tracking-wider text-right">ZiG</th>
-                      <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">USD Equiv</th>
+                    <tr className="tbl-head-row">
+                      <th className="tbl-th w-44">Item</th>
+                      <th className="tbl-th text-right">USD</th>
+                      <th className="tbl-th currency-zig text-right">ZiG</th>
+                      <th className="tbl-th text-right">USD Equiv</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">

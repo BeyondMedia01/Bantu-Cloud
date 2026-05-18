@@ -79,7 +79,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
       </div>
 
       {/* Ledger Table */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30 flex items-center justify-between">
             <div className="relative flex-1 max-w-md">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -93,22 +93,22 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
               />
             </div>
         </div>
-        <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee / Period</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Transaction Code</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Orig. Amount</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate (to USD)</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">USD Value</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Employee / Period</th>
+                <th className="tbl-th">Transaction Code</th>
+                <th className="tbl-th">Orig. Amount</th>
+                <th className="tbl-th">Rate (to USD)</th>
+                <th className="tbl-th">USD Value</th>
+                <th className="tbl-th text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredTransactions.length > 0 ? filteredTransactions.map(t => (
-                <tr key={t.id} className="hover:bg-muted/30 transition-colors group">
-                  <td className="px-6 py-4">
+                <tr key={t.id} className="tbl-row group">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                         <User size={18} />
@@ -122,7 +122,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <div className="flex flex-col">
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-md self-start ${t.transaction?.type === 'EARNING' ? 'bg-emerald-50 text-accent-green' : 'bg-red-50 text-red-500'}`}>
                         {t.transactionCode}
@@ -132,22 +132,22 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <p className="text-sm font-bold text-navy">
                       {t.currencyCode === 'ZiG' ? 'Z' : '$'}{t.amountOriginal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
                     <span className="text-[10px] text-muted-foreground font-bold uppercase">{t.currencyCode}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-muted-foreground tabular-nums">
+                  <td className="tbl-td text-sm font-medium text-muted-foreground tabular-nums">
                     {t.rateToUSD.toFixed(6)}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <p className="text-sm font-bold text-accent-green">
                       ${t.amountInUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
                     {t.isManual && <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground uppercase font-bold">Manual</span>}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="tbl-td text-right">
                     <button 
                       onClick={() => handleDelete(t.id)}
                       className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
@@ -158,7 +158,7 @@ const PayslipTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ ac
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-5 py-3.5 text-center text-muted-foreground">
                     <Hash size={48} className="mx-auto mb-4 opacity-20" />
                     <p className="italic font-medium">No transactions recorded in the ledger yet.</p>
                   </td>

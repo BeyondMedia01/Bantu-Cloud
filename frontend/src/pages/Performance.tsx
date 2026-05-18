@@ -221,39 +221,39 @@ const Performance: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", ""]} rows={6} /> : goals.length === 0 ? (
               <EmptyState variant="no-data" icon={Target} title="No goals yet" description="Create goals to track employee performance."
                 action={canManage ? { label: 'New Goal', onClick: () => { setShowGoal(true); loadEmployees(); } } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Goal</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Progress</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Due</th>
-                    {canManage && <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>}
+                <thead>
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Employee</th>
+                    <th className="tbl-th">Goal</th>
+                    <th className="tbl-th">Status</th>
+                    <th className="tbl-th">Progress</th>
+                    <th className="tbl-th">Due</th>
+                    {canManage && <th className="tbl-th text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {goals.map(g => (
-                    <tr key={g.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4 font-medium text-navy">
+                    <tr key={g.id} className="tbl-row">
+                      <td className="tbl-td font-medium text-navy">
                         {g.employee?.firstName} {g.employee?.lastName}
                         <p className="text-xs text-muted-foreground">{g.employee?.employeeCode}</p>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">
                         <p className="font-medium text-navy">{g.title}</p>
                         {g.category && <p className="text-xs text-muted-foreground">{g.category}</p>}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${GOAL_STATUS_COLORS[g.status]}`}>
                           {g.status?.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-muted rounded-full h-1.5 overflow-hidden">
                             <div className={`h-full rounded-full ${(g.progress || 0) >= 80 ? 'bg-emerald-500' : (g.progress || 0) >= 40 ? 'bg-blue-500' : 'bg-amber-500'}`}
@@ -262,9 +262,9 @@ const Performance: React.FC = () => {
                           <span className="text-xs text-muted-foreground">{g.progress || 0}%</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{g.targetDate ? fmtDate(g.targetDate) : '—'}</td>
+                      <td className="tbl-td">{g.targetDate ? fmtDate(g.targetDate) : '—'}</td>
                       {canManage && (
-                        <td className="px-5 py-4 text-right">
+                        <td className="tbl-td text-right">
                           <select className="text-xs border border-border rounded-lg px-2 py-1 bg-primary text-muted-foreground"
                             value="" onChange={e => { if (!e.target.value) return; const [p, s] = e.target.value.split('|'); handleGoalProgress(g.id, parseInt(p), s as GoalStatus | undefined); }}
                           >
@@ -307,43 +307,43 @@ const Performance: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", ""]} rows={6} /> : reviews.length === 0 ? (
               <EmptyState variant="no-data" icon={FileText} title="No reviews yet" description="Create performance reviews for employees."
                 action={canManage ? { label: 'New Review', onClick: () => { setShowReview(true); loadEmployees(); loadReviewers(); } } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Period</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Reviewer</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Rating</th>
-                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                <thead>
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Employee</th>
+                    <th className="tbl-th">Period</th>
+                    <th className="tbl-th">Reviewer</th>
+                    <th className="tbl-th">Status</th>
+                    <th className="tbl-th">Rating</th>
+                    <th className="tbl-th text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {reviews.map(r => (
-                    <tr key={r.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4 font-medium text-navy">
+                    <tr key={r.id} className="tbl-row">
+                      <td className="tbl-td font-medium text-navy">
                         {r.employee?.firstName} {r.employee?.lastName}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{r.period}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{r.reviewer?.name}</td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">{r.period}</td>
+                      <td className="tbl-td">{r.reviewer?.name}</td>
+                      <td className="tbl-td">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${REVIEW_STATUS_COLORS[r.status]}`}>
                           {r.status}
                         </span>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">
                         {r.rating ? (
                           <span className="flex items-center gap-0.5">
                             {Array.from({ length: r.rating }).map((_, i) => <Star key={i} size={12} className="fill-amber-400 text-amber-400" />)}
                           </span>
                         ) : <span className="text-muted-foreground">—</span>}
                       </td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="tbl-td text-right">
                         <div className="flex items-center justify-end gap-1">
                           {canManage && (r.status === 'DRAFT' || r.status === 'SUBMITTED') && (
                             <button onClick={() => openEditReview(r.id)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors">

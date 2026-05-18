@@ -114,22 +114,22 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
       </div>
 
       {/* Export Ledger Table */}
-      <div className="bg-primary rounded-3xl border border-border overflow-hidden shadow-sm">
-        <div className="overflow-x-auto scroll-x-shadow">
+      <div className="tbl-container">
+        <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-muted border-b border-border">
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Type / Details</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Employee</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-right">Net Totals</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Format & Status</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Audit Trail</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Type / Details</th>
+                <th className="tbl-th">Employee</th>
+                <th className="tbl-th text-right">Net Totals</th>
+                <th className="tbl-th">Format & Status</th>
+                <th className="tbl-th">Audit Trail</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredExports.length > 0 ? filteredExports.map(exp => (
-                <tr key={exp.id} className="hover:bg-muted/30 transition-colors group">
-                  <td className="px-6 py-5">
+                <tr key={exp.id} className="tbl-row group">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-4">
                        <div className={`p-2.5 rounded-xl border ${getStatusStyle(exp.exportStatus)}`}>
                           {getExportIcon(exp.exportType)}
@@ -140,19 +140,19 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
                        </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="tbl-td">
                     <div>
                       <p className="text-sm font-bold text-navy">{exp.employee?.fullName}</p>
                       <p className="text-[10px] text-muted-foreground font-bold">{exp.employee?.employeeID}</p>
                     </div>
                   </td>
-                  <td className="px-6 py-5 text-right">
+                  <td className="tbl-td text-right">
                     <div className="flex flex-col gap-0.5 tabular-nums">
                        {exp.netPayUSD > 0 && <span className="text-sm font-black text-navy">${exp.netPayUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>}
                        {exp.netPayZiG > 0 && <span className="text-xs text-muted-foreground font-bold">Z {exp.netPayZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>}
                     </div>
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="tbl-td">
                      <div className="flex flex-col gap-2">
                         <span className="px-2 py-0.5 bg-muted rounded-lg text-[10px] font-black text-muted-foreground uppercase self-start border border-border">{exp.exportFormat}</span>
                         <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase px-2 py-0.5 rounded-lg border self-start ${getStatusStyle(exp.exportStatus)}`}>
@@ -161,7 +161,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
                         </div>
                      </div>
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="tbl-td">
                     <div className="flex flex-col gap-1">
                        <p className="text-[10px] font-bold text-navy">By: {exp.exportedBy || 'System'}</p>
                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">On: {exp.exportDate ? new Date(exp.exportDate).toLocaleDateString() : 'Pending'}</p>
@@ -170,7 +170,7 @@ const PayslipExports: React.FC<{ activeCompanyId?: string | null }> = ({ activeC
                 </tr>
               )) : (
                 <tr>
-                   <td colSpan={5} className="px-6 py-24 text-center">
+                   <td colSpan={5} className="px-5 py-3.5 text-center">
                       <div className="flex flex-col items-center gap-4 text-muted-foreground/50">
                          <div className="p-4 bg-muted rounded-full border border-border border-dashed">
                             <ExternalLink size={48} className="opacity-20" />

@@ -109,7 +109,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
       )}
 
       {/* Table Section */}
-      <div className="bg-primary rounded-3xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -127,21 +127,21 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
             </div>
         </div>
         
-        <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-muted border-b border-border">
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest w-[250px]">Identity</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Role Level</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Granular Permissions</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Status / Last Login</th>
-                <th className="px-6 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-right">Actions</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th w-[250px]">Identity</th>
+                <th className="tbl-th">Role Level</th>
+                <th className="tbl-th">Granular Permissions</th>
+                <th className="tbl-th">Status / Last Login</th>
+                <th className="tbl-th text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredUsers.length > 0 ? filteredUsers.map(user => (
-                <tr key={user.id} className="hover:bg-muted/30 transition-colors group">
-                  <td className="px-6 py-5">
+                <tr key={user.id} className="tbl-row group">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full shadow-sm flex items-center justify-center font-bold text-xs uppercase text-white"
                         style={getAvatarGradient(user.fullName)}>
@@ -153,12 +153,12 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="tbl-td">
                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getRoleStyle(user.role)}`}>
                         {user.role.replace('_', ' ')}
                      </span>
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="tbl-td">
                     <div className="flex flex-wrap gap-1.5 max-w-[280px]">
                        <PermissionTag active={user.canProcessPayroll} label="Run Payroll" icon={Calculator} />
                        <PermissionTag active={user.canEditEmployees} label="Edit Staff" icon={UsersIcon} />
@@ -166,7 +166,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                       <PermissionTag active={user.canExportData} label="Export" icon={DownloadIcon} />
                     </div>
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="tbl-td">
                      <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-1.5">
                            <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`} />
@@ -179,7 +179,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                         </p>
                      </div>
                   </td>
-                  <td className="px-6 py-5 text-right">
+                  <td className="tbl-td text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => { showToast('Feature coming soon', 'success'); }}
@@ -200,7 +200,7 @@ const PayrollUsers: React.FC<{ activeCompanyId?: string | null }> = ({ activeCom
                 </tr>
               )) : (
                 <tr>
-                   <td colSpan={5} className="px-6 py-24 text-center">
+                   <td colSpan={5} className="px-5 py-3.5 text-center">
                       <div className="flex flex-col items-center gap-4 text-muted-foreground/50">
                          <div className="p-4 bg-muted rounded-full border border-border border-dashed">
                             <UsersIcon size={48} className="opacity-20" />

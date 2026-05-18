@@ -154,13 +154,13 @@ const Payroll: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
+              <tr className="tbl-head-row">
                 {['Period', 'Run Date', 'Currency', 'Rate', 'Employees', 'Status', ''].map((h) => (
-                  <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} scope="col" className="tbl-th">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -168,20 +168,20 @@ const Payroll: React.FC = () => {
               {runs.map((run: any) => (
                 <tr
                   key={run.id}
-                  className="hover:bg-muted/70 cursor-pointer transition-colors"
+                  className="hover:bg-muted/50 cursor-pointer transition-colors"
                   onClick={() => navigate(`/payroll/${run.id}/payslips`)}
                 >
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     <p className="font-bold text-sm">{new Date(run.startDate).toLocaleDateString()}</p>
                     <p className="text-xs text-muted-foreground">to {new Date(run.endDate).toLocaleDateString()}</p>
                   </td>
-                  <td className="px-5 py-4 text-sm">{new Date(run.runDate).toLocaleDateString()}</td>
-                  <td className="px-5 py-4 text-sm font-bold">
+                  <td className="px-5 py-3.5 text-sm">{new Date(run.runDate).toLocaleDateString()}</td>
+                  <td className="px-5 py-3.5 text-sm font-bold">
                     {run.dualCurrency ? (
                       <span className="text-blue-600">USD + ZiG</span>
                     ) : run.currency}
                   </td>
-                  <td className="px-5 py-4 text-sm" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-5 py-3.5 text-sm" onClick={(e) => e.stopPropagation()}>
                     {(run.dualCurrency || run.currency === 'ZiG') ? (
                       editingRate === run.id ? (
                         <div className="flex items-center gap-1">
@@ -224,15 +224,15 @@ const Payroll: React.FC = () => {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-sm">
+                  <td className="px-5 py-3.5 text-sm">
                     {run.status === 'COMPLETED'
                       ? (run._count?.payslips ?? run.payslipCount ?? '—')
                       : (run.employeeCount ?? run._count?.payslips ?? '—')}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     <StatusBadge status={run.status} />
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
                       {can('PAYROLL', 'RUN') && run.status === 'DRAFT' && (
                         <button

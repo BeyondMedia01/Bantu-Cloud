@@ -143,24 +143,24 @@ const AuditLogs: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">
+      <div className="tbl-container">
         {loading ? (
           <SkeletonTable headers={['Timestamp', 'Action', 'Resource', 'User', 'Details', 'IP']} />
         ) : logs.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-sm font-medium">No audit logs found.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="tbl-scroll">
             <table className="w-full text-sm">
-              <thead className="bg-muted border-b border-border">
-                <tr>
+              <thead>
+                <tr className="tbl-head-row">
                   {['Timestamp', 'Action', 'Resource', 'User', 'Details', 'IP'].map((h) => (
-                    <th key={h} className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                    <th key={h} className="tbl-th">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-muted/70 transition-colors">
+                  <tr key={log.id} className="tbl-row">
                     <td className="px-5 py-3 text-muted-foreground font-medium whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleString(undefined, {
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',

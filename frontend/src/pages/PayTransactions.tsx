@@ -126,7 +126,7 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
         </button>
       </header>
 
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30">
           <div className="relative max-w-md">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -140,22 +140,22 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
           </div>
         </div>
 
-        <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Code / Name</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Type</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Calculation</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Flags</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Code / Name</th>
+                <th className="tbl-th">Type</th>
+                <th className="tbl-th">Calculation</th>
+                <th className="tbl-th">Flags</th>
+                <th className="tbl-th">Status</th>
+                <th className="tbl-th text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.length > 0 ? filtered.map(tc => (
-                <tr key={tc.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-6 py-4">
+                <tr key={tc.id} className="tbl-row">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs ${typeColor(tc.type)}`}>
                         {tc.code?.slice(0, 4)}
@@ -166,31 +166,31 @@ const PayTransactions: React.FC<{ activeCompanyId?: string | null }> = ({ active
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${typeColor(tc.type)}`}>
                       {tc.type}
                     </span>
                     {tc.preTax && <span className="ml-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase bg-orange-100 text-orange-600">Pre-Tax</span>}
                   </td>
-                  <td className="px-6 py-4 text-sm text-foreground/90">
+                  <td className="tbl-td text-sm text-foreground/90">
                     <span className="font-medium capitalize">{tc.calculationType || 'fixed'}</span>
                     {tc.defaultValue != null && (
                       <span className="ml-1 text-muted-foreground text-xs">({tc.defaultValue})</span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <div className="flex gap-1 flex-wrap">
                       {tc.affectsPaye !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground">PAYE</span>}
                       {tc.affectsNssa !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground">NSSA</span>}
                       {tc.taxable !== false && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground">Taxable</span>}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${tc.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                       {tc.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="tbl-td text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => openEdit(tc)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="Edit">
                         <Edit2 size={16} />

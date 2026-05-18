@@ -128,19 +128,19 @@ const AdminUsers: React.FC = () => {
       {loading ? (
         <SkeletonTable headers={['Name', 'Email', 'Role', 'Created', 'Actions']} />
       ) : (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
+              <tr className="tbl-head-row">
                 {['Name', 'Email', 'Role', 'Created', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="tbl-th">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {users.map((u: any) => (
-                <tr key={u.id} className="hover:bg-muted/30">
+                <tr key={u.id} className="tbl-row">
                   <td className="px-4 py-3 font-bold text-sm">{u.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-3">

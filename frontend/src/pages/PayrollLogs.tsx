@@ -65,7 +65,7 @@ const PayrollLogs: React.FC<{ activeCompanyId?: string | null }> = ({ activeComp
       </div>
 
       {/* Filters */}
-      <div className="bg-primary rounded-3xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30 flex flex-col sm:flex-row gap-3 items-center">
           <div className="relative flex-1 min-w-0">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

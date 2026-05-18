@@ -148,22 +148,22 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
       </div>
 
       {/* Rates Table */}
-      <div className="bg-primary rounded-2xl border border-border overflow-hidden shadow-sm">
-        <div className="overflow-x-auto scroll-x-shadow">
+      <div className="tbl-container">
+        <div className="tbl-scroll">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-muted border-b border-border">
-              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Pair</th>
-              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Rate</th>
-              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Effective From</th>
-              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Source</th>
-              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+            <tr className="tbl-head-row">
+              <th className="tbl-th">Pair</th>
+              <th className="tbl-th">Rate</th>
+              <th className="tbl-th">Effective From</th>
+              <th className="tbl-th">Source</th>
+              <th className="tbl-th text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rates.length > 0 ? rates.map((rate) => (
-              <tr key={rate.id} className="hover:bg-muted/30 transition-colors group">
-                <td className="px-6 py-4">
+              <tr key={rate.id} className="tbl-row group">
+                <td className="tbl-td">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-navy font-bold text-xs">
                       {rate.toCurrency?.slice(0, 3)}
@@ -171,21 +171,21 @@ const CurrencyRates: React.FC<Props> = ({ activeCompanyId: _activeCompanyId }) =
                     <span className="text-sm font-bold">{rate.fromCurrency} → {rate.toCurrency}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="tbl-td">
                   <p className="text-sm font-bold text-navy font-mono">
                     {Number(rate.rate).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 10 })}
                   </p>
                 </td>
-                <td className="px-6 py-4">
+                <td className="tbl-td">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar size={14} />
                     <span className="text-sm">{new Date(rate.effectiveDate).toLocaleDateString()}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="tbl-td">
                   <span className="px-2 py-1 bg-muted rounded-lg text-[10px] font-bold text-muted-foreground uppercase">{rate.source || 'Manual'}</span>
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="tbl-td text-right">
                   <button
                     onClick={() => handleDelete(rate.id)}
                     className="p-2 hover:bg-red-50 rounded-lg text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"

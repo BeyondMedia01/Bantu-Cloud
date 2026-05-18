@@ -899,18 +899,18 @@ const Transactions: React.FC = () => {
         <div className="flex flex-col gap-5">
           {TX_TYPES.filter((t) => !filterType || t === filterType).map((type) => (
             grouped[type].length > 0 && (
-              <div key={type} className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div key={type} className="tbl-container">
                 <div className={`px-5 py-3 border-b border-border flex items-center gap-2 ${
                   type === 'EARNING' ? 'bg-emerald-50/50' : type === 'DEDUCTION' ? 'bg-red-50/50' : 'bg-blue-50/50'
                 }`}>
-                  <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${TYPE_COLOR[type]}`}>{type}</span>
+                  <span className={`text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${TYPE_COLOR[type]}`}>{type}</span>
                   <span className="text-xs text-muted-foreground font-medium">{grouped[type].length} code(s)</span>
                 </div>
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-border bg-muted/30">
+                    <tr className="tbl-head-row">
                       {['Code', 'Name', 'Calculation', 'Tax Flags', 'Rules', 'Active', ''].map((h) => (
-                        <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                        <th key={h} className="tbl-th">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -918,7 +918,7 @@ const Transactions: React.FC = () => {
                     {grouped[type].map((c: any) => (
                       <React.Fragment key={c.id}>
                         <tr
-                          className="hover:bg-muted/30 cursor-pointer"
+                          className="tbl-row cursor-pointer"
                           onClick={() => setExpanded(expanded === c.id ? null : c.id)}
                         >
                           <td className="px-4 py-3">

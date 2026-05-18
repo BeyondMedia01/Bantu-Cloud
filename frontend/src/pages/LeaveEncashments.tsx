@@ -277,31 +277,31 @@ const LeaveEncashments: React.FC = () => {
           description="Submit a request above to convert unused leave days into earnings."
         />
       ) : (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-border bg-muted">
+                <tr className="tbl-head-row">
                   {['Employee', 'Type', 'Days', 'Rate/Day', 'Total Amount', 'Status', 'Actions'].map((h) => (
-                    <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                    <th key={h} className="tbl-th">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {encashments.map((enc: any) => (
-                  <tr key={enc.id} className="hover:bg-muted/70 transition-colors">
-                    <td className="px-5 py-4">
+                  <tr key={enc.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-3.5">
                       <p className="text-sm font-bold">{enc.employee?.firstName} {enc.employee?.lastName}</p>
                       <p className="text-xs text-muted-foreground">{enc.employee?.employeeCode}</p>
                     </td>
-                    <td className="px-5 py-4 text-sm font-medium">{fmtType(enc.leaveType)}</td>
-                    <td className="px-5 py-4 text-sm font-bold">{enc.days}</td>
-                    <td className="px-5 py-4 text-sm">{enc.currency} {Number(enc.ratePerDay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td className="px-5 py-4 text-sm font-bold">{enc.currency} {Number(enc.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5 text-sm font-medium">{fmtType(enc.leaveType)}</td>
+                    <td className="px-5 py-3.5 text-sm font-bold">{enc.days}</td>
+                    <td className="px-5 py-3.5 text-sm">{enc.currency} {Number(enc.ratePerDay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-5 py-3.5 text-sm font-bold">{enc.currency} {Number(enc.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-5 py-3.5">
                       <StatusBadge status={enc.status} />
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1.5">
                         {can('TIME_LEAVE', 'APPROVE') && enc.status === 'PENDING' && (<>
                           <button

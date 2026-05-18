@@ -204,41 +204,41 @@ const Expenses: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", "", "", ""]} rows={6} /> : expenses.length === 0 ? (
               <EmptyState variant="no-data" icon={Receipt} title="No expenses found"
                 description={filter ? `No expenses with status "${STATUS_LABELS[filter]}".` : 'No expenses have been submitted yet.'}
                 action={can('EXPENSES', 'EDIT') ? { label: 'New Expense', onClick: () => setShowNew(true) } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Amount</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Date</th>
-                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                <thead>
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Employee</th>
+                    <th className="tbl-th">Category</th>
+                    <th className="tbl-th">Amount</th>
+                    <th className="tbl-th">Description</th>
+                    <th className="tbl-th">Status</th>
+                    <th className="tbl-th">Date</th>
+                    <th className="tbl-th text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {expenses.map((exp) => (
-                    <tr key={exp.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4 font-medium text-navy">
+                    <tr key={exp.id} className="tbl-row">
+                      <td className="tbl-td font-medium text-navy">
                         {exp.employee?.firstName} {exp.employee?.lastName}
                         {exp.employee?.employeeCode && <span className="text-xs text-muted-foreground ml-1">({exp.employee.employeeCode})</span>}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{exp.category?.name}</td>
-                      <td className="px-5 py-4 font-medium text-navy">{fmtCurrency(exp.amount, exp.currency)}</td>
-                      <td className="px-5 py-4 text-muted-foreground max-w-[200px] truncate">{exp.description}</td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">{exp.category?.name}</td>
+                      <td className="tbl-td font-medium text-navy">{fmtCurrency(exp.amount, exp.currency)}</td>
+                      <td className="tbl-td max-w-[200px] truncate">{exp.description}</td>
+                      <td className="tbl-td">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[exp.status]}`}>
                           {STATUS_LABELS[exp.status]}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{fmtDate(exp.createdAt)}</td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="tbl-td">{fmtDate(exp.createdAt)}</td>
+                      <td className="tbl-td text-right">
                         <div className="flex items-center justify-end gap-1">
                           {exp.receiptUrl && (
                             <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer"
@@ -271,23 +271,23 @@ const Expenses: React.FC = () => {
 
       {/* Categories tab */}
       {tab === 'categories' && (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="tbl-container">
           {loading ? <SkeletonTable headers={["", "", ""]} rows={6} /> : categories.length === 0 ? (
             <EmptyState variant="no-data" icon={Receipt} title="No categories" description="Create expense categories to organise claims."
               action={can('EXPENSES', 'EDIT') ? { label: 'New Category', onClick: () => setShowNewCat(true) } : undefined} />
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-muted border-b border-border">
-                <tr>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</th>
+              <thead>
+                <tr className="tbl-head-row">
+                  <th className="tbl-th">Name</th>
+                  <th className="tbl-th">Description</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {categories.map(c => (
-                  <tr key={c.id} className="hover:bg-muted/70 transition-colors">
-                    <td className="px-5 py-4 font-medium text-navy">{c.name}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{c.description || '—'}</td>
+                  <tr key={c.id} className="tbl-row">
+                    <td className="tbl-td font-medium text-navy">{c.name}</td>
+                    <td className="tbl-td">{c.description || '—'}</td>
                   </tr>
                 ))}
               </tbody>

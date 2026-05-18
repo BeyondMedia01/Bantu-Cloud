@@ -261,15 +261,15 @@ const Roster: React.FC = () => {
       </div>
 
       {/* Grid */}
-      <div className="bg-primary border border-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="tbl-container">
         {loading ? (
           <div className="text-center py-16 text-muted-foreground text-sm">Loading…</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="tbl-scroll">
             <table className="w-full min-w-[800px] border-collapse">
               <thead>
-                <tr className="bg-muted border-b border-border">
-                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-wider text-muted-foreground w-48">
+                <tr className="tbl-head-row">
+                  <th className="tbl-th w-48">
                     <div className="flex items-center gap-1.5"><Users size={12} /> Employee</div>
                   </th>
                   {dates.map((d) => {
@@ -278,7 +278,7 @@ const Roster: React.FC = () => {
                     const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                     return (
                       <th key={str} className={`px-2 py-3 text-center min-w-[90px] ${isToday ? 'bg-accent-green/5' : ''}`}>
-                        <div className={`text-[10px] font-black uppercase tracking-wider ${isWeekend ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
+                        <div className={`text-xs font-semibold uppercase tracking-wider ${isWeekend ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
                           {DAYS[d.getDay()]}
                         </div>
                         <div className={`text-sm font-bold mt-0.5 ${isToday ? 'text-accent-green' : isWeekend ? 'text-muted-foreground' : 'text-navy'}`}>

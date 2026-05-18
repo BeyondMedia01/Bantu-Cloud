@@ -159,7 +159,7 @@ const PublicHolidays: React.FC = () => {
       )}
 
       {/* Table */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         {loading ? (
           <div className="animate-pulse">
             <div className="border-b border-border px-5 py-4 bg-muted">
@@ -182,20 +182,20 @@ const PublicHolidays: React.FC = () => {
             <p className="text-sm text-muted-foreground mt-1">Click "Seed Zimbabwe Holidays" to populate this year's holidays.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">#</th>
-                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Holiday</th>
-                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Date</th>
-                <th className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Day</th>
-                <th className="px-5 py-4" />
+              <tr className="tbl-head-row">
+                <th className="tbl-th">#</th>
+                <th className="tbl-th">Holiday</th>
+                <th className="tbl-th">Date</th>
+                <th className="tbl-th">Day</th>
+                <th className="px-5 py-3.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {holidays.map((h, i) => (
-                <tr key={h.id} className="hover:bg-muted transition-colors">
+                <tr key={h.id} className="tbl-row">
                   <td className="px-5 py-3 text-sm text-muted-foreground font-bold">{i + 1}</td>
                   <td className="px-5 py-3 font-bold text-sm">{h.name}</td>
                   <td className="px-5 py-3 text-sm text-foreground/80">

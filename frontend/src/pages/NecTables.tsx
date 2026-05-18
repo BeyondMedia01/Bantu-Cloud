@@ -373,15 +373,15 @@ const NecTables: React.FC = () => {
               </div>
 
               {/* Grades table */}
-              <div className="overflow-x-auto scroll-x-shadow">
+              <div className="tbl-scroll">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-border bg-muted">
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Grade Code</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Description</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Min Rate</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">NEC Levy %</th>
-                    <th className="px-5 py-3 w-20" />
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Grade Code</th>
+                    <th className="tbl-th">Description</th>
+                    <th className="tbl-th">Min Rate</th>
+                    <th className="tbl-th">NEC Levy %</th>
+                    <th className="px-5 py-3.5 w-20" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -455,7 +455,7 @@ const NecTables: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      <tr key={grade.id} className="hover:bg-muted/30 transition-colors group">
+                      <tr key={grade.id} className="tbl-row group">
                         <td className="px-5 py-3.5">
                           <span className="font-black text-navy text-sm font-mono">{grade.gradeCode}</span>
                         </td>

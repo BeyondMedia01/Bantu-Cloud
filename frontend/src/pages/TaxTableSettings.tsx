@@ -313,15 +313,15 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto scroll-x-shadow">
+              <div className="tbl-scroll">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-border bg-muted">
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Lower Bound</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Upper Bound</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Rate %</th>
-                    <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider">Fixed Cumulative</th>
-                    <th className="px-5 py-3 w-20" />
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Lower Bound</th>
+                    <th className="tbl-th">Upper Bound</th>
+                    <th className="tbl-th">Rate %</th>
+                    <th className="tbl-th">Fixed Cumulative</th>
+                    <th className="px-5 py-3.5 w-20" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -358,18 +358,18 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
                         </td>
                       </tr>
                     ) : (
-                      <tr key={bracket.id} className="hover:bg-muted/30 transition-colors group">
-                        <td className="px-5 py-3.5 text-sm font-bold text-navy font-mono">{bracket.lowerBound.toLocaleString()}</td>
-                        <td className="px-5 py-3.5 text-sm font-mono text-muted-foreground">
+                      <tr key={bracket.id} className="tbl-row group">
+                        <td className="tbl-td font-bold text-navy font-mono">{bracket.lowerBound.toLocaleString()}</td>
+                        <td className="tbl-td font-mono">
                           {bracket.upperBound != null ? bracket.upperBound.toLocaleString() : <span className="text-[10px] font-black text-muted-foreground/50 uppercase italic tracking-widest">And Above</span>}
                         </td>
-                        <td className="px-5 py-3.5">
+                        <td className="tbl-td">
                           <span className="px-2.5 py-1 rounded-full bg-blue-50 text-accent-green text-xs font-bold flex items-center gap-1 w-fit">
                             <Percent size={11} /> {(bracket.rate * 100).toFixed(2)}%
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-sm font-bold font-mono text-navy">{bracket.fixedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td className="px-5 py-3.5">
+                        <td className="tbl-td font-bold font-mono text-navy">{bracket.fixedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td className="tbl-td">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => startEdit(bracket)} aria-label="Edit bracket" className="p-1.5 hover:bg-blue-50 rounded-lg text-muted-foreground hover:text-accent-green transition-colors">
                               <Pencil size={13} />

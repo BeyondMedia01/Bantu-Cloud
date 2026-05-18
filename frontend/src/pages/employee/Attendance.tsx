@@ -100,7 +100,7 @@ const EmployeeAttendance: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         {loading ? (
           <SkeletonTable headers={['Date', 'Status', 'Shift', 'Clock In', 'Clock Out', 'Hours Worked']} rows={8} />
         ) : filtered.length === 0 ? (
@@ -112,27 +112,27 @@ const EmployeeAttendance: React.FC = () => {
           />
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-muted border-b border-border">
-              <tr>
+            <thead>
+              <tr className="tbl-head-row">
                 {['Date', 'Status', 'Shift', 'Clock In', 'Clock Out', 'Hours Worked'].map((h) => (
-                  <th key={h} className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="tbl-th">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((r: any) => (
-                <tr key={r.id} className="hover:bg-muted/70 transition-colors">
-                  <td className="px-5 py-4 font-medium text-navy">{fmtDate(r.date)}</td>
-                  <td className="px-5 py-4">
+                <tr key={r.id} className="hover:bg-muted/50 transition-colors">
+                  <td className="px-5 py-3.5 font-medium text-navy">{fmtDate(r.date)}</td>
+                  <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLORS[r.status] || 'bg-muted text-muted-foreground'}`}>
                       {STATUS_ICONS[r.status]}
                       {r.status.charAt(0) + r.status.slice(1).toLowerCase().replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-muted-foreground">{r.shift?.name || '—'}</td>
-                  <td className="px-5 py-4 font-medium">{fmtTime(r.clockIn)}</td>
-                  <td className="px-5 py-4 font-medium">{fmtTime(r.clockOut)}</td>
-                  <td className="px-5 py-4 font-medium text-navy">{fmtMinutes(r.totalMinutes)}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">{r.shift?.name || '—'}</td>
+                  <td className="px-5 py-3.5 font-medium">{fmtTime(r.clockIn)}</td>
+                  <td className="px-5 py-3.5 font-medium">{fmtTime(r.clockOut)}</td>
+                  <td className="px-5 py-3.5 font-medium text-navy">{fmtMinutes(r.totalMinutes)}</td>
                 </tr>
               ))}
             </tbody>

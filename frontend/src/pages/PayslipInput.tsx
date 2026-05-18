@@ -529,13 +529,13 @@ const PayslipInput: React.FC = () => {
                   </button>
                 </div>
               ) : inputs.length > 0 && (
-                <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto scroll-x-shadow">
+                <div className="tbl-container">
+                  <div className="tbl-scroll">
                     <table className="w-full text-sm min-w-[1000px]">
                       <thead>
-                        <tr className="border-b border-border bg-muted/50">
+                        <tr className="tbl-head-row">
                           {COLS.map((c, i) => (
-                            <th key={i} className={`px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-wider ${c.right ? 'text-right' : 'text-left'}`}>
+                            <th key={i} className={`tbl-th ${c.right ? 'text-right' : ''}`}>
                               {c.label}
                             </th>
                           ))}
@@ -613,7 +613,7 @@ const PayslipInput: React.FC = () => {
                           // ── Read row ────────────────────────────────
                           const isDeduction = tc?.type === 'DEDUCTION';
                           return (
-                            <tr key={inp.id} className="hover:bg-muted/40 transition-colors group">
+                            <tr key={inp.id} className="hover:bg-muted/50 transition-colors group">
                               {/* Code */}
                               <td className="px-4 py-3.5">
                                 <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${TYPE_COLORS[tc?.type] ?? 'bg-muted text-muted-foreground'}`}>
@@ -795,8 +795,8 @@ const PayslipInput: React.FC = () => {
                       <table className="w-full text-left text-xs">
                         <thead className="sticky top-0 bg-muted border-b border-border">
                           <tr>
-                            <th className="px-4 py-2 font-bold text-muted-foreground uppercase">Row</th>
-                            <th className="px-4 py-2 font-bold text-muted-foreground uppercase">Error Reason</th>
+                            <th className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Row</th>
+                            <th className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Error Reason</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border">

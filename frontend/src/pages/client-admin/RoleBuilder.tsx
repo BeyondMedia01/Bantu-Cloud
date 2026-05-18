@@ -109,16 +109,16 @@ const toggleAction = (mod: ModuleKey, action: string) => {
             <table className="w-full text-left border-collapse min-w-[560px]">
               {/* Sticky column headers */}
               <thead>
-                <tr className="border-b border-border bg-muted/70">
-                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-48 sticky left-0 bg-muted/70 z-10">
+                <tr className="tbl-head-row">
+                  <th className="tbl-th w-48 sticky left-0 bg-muted/60 z-10">
                     Module
                   </th>
                   {ALL_ACTIONS.map(action => (
-                    <th key={action} className="px-3 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <th key={action} className="tbl-th text-center">
                       <span title={ACTION_DESCRIPTIONS[action]}>{action}</span>
                     </th>
                   ))}
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                  <th className="tbl-th text-center whitespace-nowrap">
                     All
                   </th>
                 </tr>
@@ -132,7 +132,7 @@ const toggleAction = (mod: ModuleKey, action: string) => {
                   return (
                     <tr
                       key={key}
-                      className={`transition-colors ${granted.length > 0 ? 'bg-brand/[0.03]' : 'hover:bg-muted/30'}`}
+                      className={`transition-colors ${granted.length > 0 ? 'bg-brand/[0.03]' : 'hover:bg-muted/50'}`}
                     >
                       {/* Row label — sticky */}
                       <td className={`px-4 py-3 sticky left-0 z-10 ${granted.length > 0 ? 'bg-brand/[0.04]' : 'bg-card'}`}>

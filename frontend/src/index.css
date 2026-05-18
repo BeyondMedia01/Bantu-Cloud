@@ -287,6 +287,24 @@ body {
 .surface-input     { @apply bg-background border border-border text-foreground; }
 .icon-container    { @apply p-2 bg-muted rounded-xl; }
 
+/* ── Standardized table design ──────────────────────────────────────────────
+   Use these classes on inline tables to match the DataTable component design.
+   tbl-container → outer card wrapper
+   tbl-scroll    → horizontal scroll container
+   tbl-head-row  → <tr> inside <thead>
+   tbl-th        → <th> — add text-right etc. for alignment overrides
+   tbl-body      → <tbody>
+   tbl-row       → <tr> inside <tbody>
+   tbl-td        → <td> — add font/color overrides as needed
+────────────────────────────────────────────────────────────────────────── */
+.tbl-container { @apply bg-card rounded-2xl border border-border shadow-sm overflow-hidden; }
+.tbl-scroll    { @apply overflow-x-auto scroll-x-shadow; }
+.tbl-head-row  { @apply border-b border-border bg-muted/60; }
+.tbl-th        { @apply px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground select-none; }
+.tbl-body      { @apply divide-y divide-border; }
+.tbl-row       { @apply hover:bg-muted/50 transition-colors; }
+.tbl-td        { @apply px-5 py-3.5 text-sm text-foreground/90; }
+
 /* Statistic display */
 .stat-value-large {
   font-family: 'DM Sans Variable', 'DM Sans', sans-serif;

@@ -500,13 +500,13 @@ const PayrollInputGrid: React.FC = () => {
       )}
 
       {/* Grid */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="overflow-x-auto" onPaste={handleGridPaste}>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-muted border-b-2 border-border">
                 {/* Sticky employee column */}
-                <th className="sticky left-0 z-10 bg-muted px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[180px] border-r border-border">
+                <th className="sticky left-0 z-10 bg-muted px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider min-w-[180px] border-r border-border select-none">
                   Employee
                 </th>
 
@@ -521,7 +521,7 @@ const PayrollInputGrid: React.FC = () => {
                             tc.type === 'DEDUCTION' ? 'bg-red-400' : 'bg-blue-400'
                           }`}
                         />
-                        <span className="text-xs font-black text-foreground/80 truncate">{tc.code}</span>
+                        <span className="text-xs font-semibold text-foreground/80 truncate">{tc.code}</span>
                       </div>
                       <button
                         onClick={() => removeColumn(tc.id)}
@@ -569,13 +569,13 @@ const PayrollInputGrid: React.FC = () => {
                 </th>
 
                 {/* Summary columns */}
-                <th className="px-3 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[90px] border-l-2 border-border text-right">
+                <th className="px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider min-w-[90px] border-l-2 border-border text-right select-none">
                   Gross
                 </th>
-                <th className="px-3 py-3 text-xs font-bold text-red-400 uppercase tracking-wider min-w-[90px] text-right">
+                <th className="px-3 py-3 text-xs font-semibold text-red-400 uppercase tracking-wider min-w-[90px] text-right select-none">
                   PAYE {serverPreviewActive ? '' : '(est.)'}
                 </th>
-                <th className="px-3 py-3 text-xs font-bold text-emerald-600 uppercase tracking-wider min-w-[90px] text-right">
+                <th className="px-3 py-3 text-xs font-semibold text-emerald-600 uppercase tracking-wider min-w-[90px] text-right select-none">
                   Net {serverPreviewActive ? '' : '(est.)'}
                 </th>
               </tr>
@@ -585,7 +585,7 @@ const PayrollInputGrid: React.FC = () => {
               {employees.map((emp, empIdx) => {
                 const sum = summaries[emp.id];
                 return (
-                  <tr key={emp.id} className="group hover:bg-muted/40">
+                  <tr key={emp.id} className="group hover:bg-muted/50 transition-colors">
                     {/* Sticky employee name */}
                     <td className="sticky left-0 z-10 bg-primary group-hover:bg-muted/40 px-4 py-2 border-r border-border">
                       <p className="text-sm font-bold text-navy leading-tight">
@@ -663,7 +663,7 @@ const PayrollInputGrid: React.FC = () => {
             {employees.length > 0 && (
               <tfoot>
                 <tr className="border-t-2 border-border bg-muted">
-                  <td className="sticky left-0 z-10 bg-muted px-4 py-3 text-xs font-black text-muted-foreground uppercase tracking-wider border-r border-border">
+                  <td className="sticky left-0 z-10 bg-muted px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-r border-border">
                     Totals
                   </td>
                   {activeCols.map((tc) => {

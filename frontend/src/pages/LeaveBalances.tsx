@@ -155,7 +155,7 @@ const LeaveBalances: React.FC = () => {
           {Object.entries(grouped).map(([empId, rows]) => {
             const emp = rows[0].employee;
             return (
-              <div key={empId} className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div key={empId} className="tbl-container">
                 <div className="px-5 py-3 bg-muted border-b border-border flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-accent-green text-white flex items-center justify-center text-xs font-bold">
                     {emp?.firstName?.[0]}{emp?.lastName?.[0]}
@@ -165,30 +165,30 @@ const LeaveBalances: React.FC = () => {
                     <p className="text-xs text-muted-foreground font-semibold">{emp?.employeeCode || '—'}</p>
                   </div>
                 </div>
-                <div className="overflow-x-auto scroll-x-shadow">
+                <div className="tbl-scroll">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b border-border">
+                      <tr className="tbl-head-row">
                         {['Type', 'Opening', 'Accrued', 'Taken', 'Encashed', 'Forfeited', 'Balance', ''].map((h) => (
-                          <th key={h} className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                          <th key={h} className="tbl-th">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {rows.map((b: any) => (
-                        <tr key={b.id} className="hover:bg-muted/70">
-                          <td className="px-5 py-4 text-sm font-medium">{fmtType(b.leaveType)}</td>
-                          <td className="px-5 py-4 text-sm">{b.openingBalance.toFixed(1)}</td>
-                          <td className="px-5 py-4 text-sm text-emerald-700 font-medium">+{b.accrued.toFixed(1)}</td>
-                          <td className="px-5 py-4 text-sm text-red-600">−{b.taken.toFixed(1)}</td>
-                          <td className="px-5 py-4 text-sm text-orange-600">−{b.encashed.toFixed(1)}</td>
-                          <td className="px-5 py-4 text-sm text-muted-foreground">−{b.forfeited.toFixed(1)}</td>
-                          <td className="px-5 py-4">
+                        <tr key={b.id} className="hover:bg-muted/50 transition-colors">
+                          <td className="px-5 py-3.5 text-sm font-medium">{fmtType(b.leaveType)}</td>
+                          <td className="px-5 py-3.5 text-sm">{b.openingBalance.toFixed(1)}</td>
+                          <td className="px-5 py-3.5 text-sm text-emerald-700 font-medium">+{b.accrued.toFixed(1)}</td>
+                          <td className="px-5 py-3.5 text-sm text-red-600">−{b.taken.toFixed(1)}</td>
+                          <td className="px-5 py-3.5 text-sm text-orange-600">−{b.encashed.toFixed(1)}</td>
+                          <td className="px-5 py-3.5 text-sm text-muted-foreground">−{b.forfeited.toFixed(1)}</td>
+                          <td className="px-5 py-3.5">
                             <span className={`font-bold text-sm ${b.balance <= 0 ? 'text-red-600' : b.balance < 5 ? 'text-amber-600' : 'text-emerald-700'}`}>
                               {b.balance.toFixed(1)} days
                             </span>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-5 py-3.5">
                             {showAdjust === b.id ? (
                               <div className="flex items-center gap-2">
                                 <input

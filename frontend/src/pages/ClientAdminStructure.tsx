@@ -302,23 +302,23 @@ const ClientAdminStructure: React.FC = () => {
             <p className="font-medium">No {TAB_LABELS[tab].toLowerCase()} found. Create one above.</p>
           </div>
         ) : (
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="overflow-x-auto scroll-x-shadow">
+          <div className="tbl-container">
+            <div className="tbl-scroll">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-border bg-muted">
+                <tr className="tbl-head-row">
                   {['Name', 'Description', 'Employees', ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                    <th key={h} className="tbl-th">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {items.map((item: any) => (
-                  <tr key={item.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 font-bold text-sm">{item.name}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{item.description || '—'}</td>
-                    <td className="px-4 py-3 text-sm">{item._count?.employees ?? '—'}</td>
-                    <td className="px-4 py-3">
+                  <tr key={item.id} className="tbl-row">
+                    <td className="tbl-td font-bold">{item.name}</td>
+                    <td className="tbl-td">{item.description || '—'}</td>
+                    <td className="tbl-td">{item._count?.employees ?? '—'}</td>
+                    <td className="tbl-td">
                       <button
                         onClick={() => handleDelete(tab, item.id, item.name)}
                         aria-label={`Delete ${item.name}`}

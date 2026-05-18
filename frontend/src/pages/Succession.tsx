@@ -109,39 +109,39 @@ const handleCreate = async (e: React.FormEvent) => {
       </header>
 
       {/* Table */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         {loading ? <SkeletonTable headers={["", "", "", "", ""]} rows={6} /> : plans.length === 0 ? (
           <EmptyState variant="no-data" icon={TrendingUp} title="No succession plans" description="Create a plan for key positions in your organization."
             action={canManage ? { label: 'New Plan', onClick: () => setShowCreate(true) } : undefined} />
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-muted border-b border-border">
-              <tr>
-                <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Position</th>
-                <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Department</th>
-                <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Risk</th>
-                <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Candidates</th>
-                <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+            <thead>
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Position</th>
+                <th className="tbl-th">Department</th>
+                <th className="tbl-th">Status</th>
+                <th className="tbl-th">Risk</th>
+                <th className="tbl-th">Candidates</th>
+                <th className="tbl-th text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {plans.map(p => (
-                <tr key={p.id} className="hover:bg-muted/70 transition-colors">
-                  <td className="px-5 py-4 font-medium text-navy">{p.positionTitle}</td>
-                  <td className="px-5 py-4 text-muted-foreground">{p.department || '—'}</td>
-                  <td className="px-5 py-4">
+                <tr key={p.id} className="tbl-row">
+                  <td className="tbl-td font-medium text-navy">{p.positionTitle}</td>
+                  <td className="tbl-td">{p.department || '—'}</td>
+                  <td className="tbl-td">
                     <StatusBadge status={p.status} />
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="tbl-td">
                     {p.riskLevel && (
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${RISK_COLORS[p.riskLevel]}`}>
                         {p.riskLevel}
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-muted-foreground">{p._count?.candidates ?? 0}</td>
-                  <td className="px-5 py-4 text-right">
+                  <td className="tbl-td">{p._count?.candidates ?? 0}</td>
+                  <td className="tbl-td text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => setDetailPlan(p)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="View candidates">
                         <Edit size={15} />

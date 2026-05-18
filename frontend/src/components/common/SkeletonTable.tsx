@@ -62,7 +62,7 @@ const SkeletonTable: React.FC<SkeletonTableProps> = ({ headers, rows = 6 }) => {
           <thead>
             <tr className="border-b border-border bg-muted/50">
               {headers.map((h, i) => (
-                <th key={i} scope="col" className="px-5 py-4 text-xs font-bold text-muted-foreground/50 uppercase tracking-wider whitespace-nowrap">
+                <th key={i} scope="col" className="px-5 py-3.5 text-xs font-semibold text-muted-foreground/50 uppercase tracking-wider whitespace-nowrap">
                   {h}
                 </th>
               ))}

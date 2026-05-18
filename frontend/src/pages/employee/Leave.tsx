@@ -291,19 +291,19 @@ const EmployeeLeave: React.FC = () => {
           <p className="font-medium">No leave history found</p>
         </div>
       ) : (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
+              <tr className="tbl-head-row">
                 {['Type', 'Start Date', 'End Date', 'Days', 'Status', 'Notes'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="tbl-th">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {allItems.map((r: any) => (
-                <tr key={r.id} className="hover:bg-muted/30">
+                <tr key={r.id} className="tbl-row">
                   <td className="px-4 py-3 text-sm font-medium capitalize">{fmtType(r.type || 'ANNUAL')}</td>
                   <td className="px-4 py-3 text-sm">{new Date(r.startDate).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-sm">{new Date(r.endDate).toLocaleDateString()}</td>

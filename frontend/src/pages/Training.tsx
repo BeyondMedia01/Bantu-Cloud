@@ -224,40 +224,40 @@ const Training: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", "", ""]} rows={6} /> : courses.length === 0 ? (
               <EmptyState variant="no-data" icon={GraduationCap} title="No courses yet" description="Create your first training course."
                 action={canManage ? { label: 'New Course', onClick: () => setShowCreate(true) } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Course</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Provider</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Enrolled</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Certified</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Cost</th>
-                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                <thead>
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Course</th>
+                    <th className="tbl-th">Provider</th>
+                    <th className="tbl-th">Status</th>
+                    <th className="tbl-th">Enrolled</th>
+                    <th className="tbl-th">Certified</th>
+                    <th className="tbl-th">Cost</th>
+                    <th className="tbl-th text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {courses.map(c => (
-                    <tr key={c.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4">
+                    <tr key={c.id} className="tbl-row">
+                      <td className="tbl-td">
                         <p className="font-medium text-navy">{c.title}</p>
                         {c.type && <p className="text-xs text-muted-foreground">{c.type}{c.duration ? ` · ${c.duration}` : ''}</p>}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{c.provider || '—'}</td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">{c.provider || '—'}</td>
+                      <td className="tbl-td">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${COURSE_STATUS_COLORS[c.status]}`}>
                           {c.status}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{c._count?.enrollments ?? 0}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{c._count?.certificates ?? 0}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{c.cost ? `$${c.cost}` : '—'}</td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="tbl-td">{c._count?.enrollments ?? 0}</td>
+                      <td className="tbl-td">{c._count?.certificates ?? 0}</td>
+                      <td className="tbl-td">{c.cost ? `$${c.cost}` : '—'}</td>
+                      <td className="tbl-td text-right">
                         <div className="flex items-center justify-end gap-1">
                           {canManage && c.status === 'DRAFT' && (
                             <button onClick={() => handlePublish(c.id)} disabled={!!actionLoading}
@@ -309,35 +309,35 @@ const Training: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", ""]} rows={6} /> : allEnrollments.length === 0 ? (
               <EmptyState variant="no-data" icon={Users} title="No enrollments" description="Enroll employees in courses to see them here." />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Course</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Score</th>
-                    {canManage && <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>}
+                <thead>
+                  <tr className="tbl-head-row">
+                    <th className="tbl-th">Employee</th>
+                    <th className="tbl-th">Course</th>
+                    <th className="tbl-th">Status</th>
+                    <th className="tbl-th">Score</th>
+                    {canManage && <th className="tbl-th text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {allEnrollments.map(e => (
-                    <tr key={e.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4 font-medium text-navy">
+                    <tr key={e.id} className="tbl-row">
+                      <td className="tbl-td font-medium text-navy">
                         {e.employee?.firstName} {e.employee?.lastName}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{e.course?.title || '—'}</td>
-                      <td className="px-5 py-4">
+                      <td className="tbl-td">{e.course?.title || '—'}</td>
+                      <td className="tbl-td">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${ENR_STATUS_COLORS[e.status]}`}>
                           {e.status}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{e.score !== null && e.score !== undefined ? e.score : '—'}</td>
+                      <td className="tbl-td">{e.score !== null && e.score !== undefined ? e.score : '—'}</td>
                       {canManage && (
-                        <td className="px-5 py-4 text-right">
+                        <td className="tbl-td text-right">
                           <select className="text-xs border border-border rounded-lg px-2 py-1 bg-primary text-muted-foreground"
                             value="" onChange={o => { const v = o.target.value as EnrollmentStatus; if (v) handleStatusChange(e.id, v); }}>
                             <option value="">Change status...</option>

@@ -80,7 +80,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
       </div>
 
       {/* Summary Table */}
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         <div className="p-4 px-6 border-b border-border bg-muted/30 flex items-center justify-between">
             <div className="relative flex-1 max-w-md">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -94,22 +94,22 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
               />
             </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Employee / Period</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Gross (USD/ZiG)</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Deductions</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-accent-green">Total Net (USD)</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th">Employee / Period</th>
+                <th className="tbl-th">Gross (USD/ZiG)</th>
+                <th className="tbl-th">Deductions</th>
+                <th className="tbl-th text-accent-green">Total Net (USD)</th>
+                <th className="tbl-th">Status</th>
+                <th className="tbl-th text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredSummaries.length > 0 ? filteredSummaries.map(s => (
-                <tr key={s.id} className="hover:bg-muted/30 transition-colors group">
-                  <td className="px-6 py-4">
+                <tr key={s.id} className="tbl-row group">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-bold group-hover:bg-blue-50 group-hover:text-accent-green transition-colors">
                         <User size={18} />
@@ -120,25 +120,25 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     <div className="flex flex-col gap-0.5 font-mono">
                        <span className="text-sm font-bold text-navy">${s.grossUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                        <span className="text-[10px] text-muted-foreground">Z {s.grossZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                      <div className="flex flex-col gap-0.5 font-mono">
                        <span className="text-sm font-bold text-red-500">-${s.deductionsUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                        <span className="text-[10px] text-muted-foreground">-Z {s.deductionsZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                      <div className="flex flex-col">
                         <span className="text-sm font-black text-accent-green">${s.totalNetPayInUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         <span className="text-[9px] text-muted-foreground font-bold uppercase">Rate: {s.exchangeRateUsed.toFixed(4)}</span>
                      </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="tbl-td">
                     {s.isFinalized ? (
                       <div className="flex items-center gap-1.5 text-accent-green">
                         <Lock size={16} />
@@ -151,7 +151,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="tbl-td text-right">
                     <div className="flex items-center justify-end gap-2">
                        <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors">
                         <FileText size={16} />
@@ -169,7 +169,7 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-5 py-3.5 text-center text-muted-foreground">
                     <Hash size={48} className="mx-auto mb-4 opacity-20" />
                     <p className="italic font-medium">No payroll summaries found for this company.</p>
                   </td>
@@ -185,22 +185,22 @@ const PayslipSummaries: React.FC<{ activeCompanyId?: string | null }> = ({ activ
               return (
                 <tfoot>
                   <tr className="border-t-2 border-border bg-muted font-bold">
-                    <td className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    <td className="px-5 py-3.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Total ({filteredSummaries.length} employee{filteredSummaries.length !== 1 ? 's' : ''})
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex flex-col gap-0.5 font-mono">
                         <span className="text-sm font-bold text-navy">${totalGrossUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         <span className="text-[10px] text-muted-foreground">Z {totalGrossZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex flex-col gap-0.5 font-mono">
                         <span className="text-sm font-bold text-red-500">-${totalDeductionsUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         <span className="text-[10px] text-muted-foreground">-Z {totalDeductionsZiG.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <span className="text-sm font-black text-accent-green">${totalNetUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </td>
                     <td colSpan={2} />

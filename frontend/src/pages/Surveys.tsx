@@ -135,36 +135,36 @@ const Surveys: React.FC = () => {
 
       {/* Surveys tab */}
       {tab === 'surveys' && (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="tbl-container">
           {loading ? <SkeletonTable headers={["", "", "", "", ""]} rows={6} /> : surveys.length === 0 ? (
             <EmptyState variant="no-data" icon={ClipboardCheck} title="No surveys yet" description="Create your first survey to collect feedback."
               action={canManage ? { label: 'New Survey', onClick: () => setShowCreate(true) } : undefined} />
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-muted border-b border-border">
-                <tr>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Title</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Questions</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Responses</th>
-                  <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Due</th>
-                  <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+              <thead>
+                <tr className="tbl-head-row">
+                  <th className="tbl-th">Title</th>
+                  <th className="tbl-th">Status</th>
+                  <th className="tbl-th">Questions</th>
+                  <th className="tbl-th">Responses</th>
+                  <th className="tbl-th">Due</th>
+                  <th className="tbl-th text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {surveys.map(s => (
-                  <tr key={s.id} className="hover:bg-muted/70 transition-colors">
-                    <td className="px-5 py-4">
+                  <tr key={s.id} className="tbl-row">
+                    <td className="tbl-td">
                       <p className="font-medium text-navy">{s.title}</p>
                       {s.anonymous && <p className="text-xs text-muted-foreground">Anonymous</p>}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="tbl-td">
                       <StatusBadge status={s.status} />
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">{s._count?.questions ?? 0}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{s._count?.responses ?? 0}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{s.dueDate ? fmtDate(s.dueDate) : '—'}</td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="tbl-td">{s._count?.questions ?? 0}</td>
+                    <td className="tbl-td">{s._count?.responses ?? 0}</td>
+                    <td className="tbl-td">{s.dueDate ? fmtDate(s.dueDate) : '—'}</td>
+                    <td className="tbl-td text-right">
                       <div className="flex items-center justify-end gap-1">
                         {canManage && s.status === 'DRAFT' && (
                           <button onClick={() => openEdit(s.id)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-navy transition-colors" title="Edit questions">

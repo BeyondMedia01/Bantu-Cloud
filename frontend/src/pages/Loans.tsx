@@ -79,32 +79,32 @@ const Loans: React.FC = () => {
           description=""
         />
       ) : (
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto scroll-x-shadow">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted">
+              <tr className="tbl-head-row">
                 {['Employee', 'Amount', 'Interest', 'Term', 'Monthly Inst.', 'Start Date', 'Status', ''].map((h) => (
-                  <th key={h} scope="col" className="px-5 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} scope="col" className="tbl-th whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((loan: any) => (
-                <tr key={loan.id} className="hover:bg-muted/70 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
-                  <td className="px-5 py-4">
+                <tr key={loan.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/loans/${loan.id}`)}>
+                  <td className="px-5 py-3.5">
                     <p className="font-bold text-sm">{loan.employee?.firstName} {loan.employee?.lastName}</p>
                     <p className="text-xs text-muted-foreground">{loan.employee?.employeeCode}</p>
                   </td>
-                  <td className="px-5 py-4 text-sm font-bold">{fmtAmt(loan.amount)}</td>
-                  <td className="px-5 py-4 text-sm">{loan.interestRate}%</td>
-                  <td className="px-5 py-4 text-sm">{loan.termMonths}mo</td>
-                  <td className="px-5 py-4 text-sm font-medium">{fmtAmt(loan.monthlyInstalment)}</td>
-                  <td className="px-5 py-4 text-sm">{fmtDate(loan.startDate)}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5 text-sm font-bold">{fmtAmt(loan.amount)}</td>
+                  <td className="px-5 py-3.5 text-sm">{loan.interestRate}%</td>
+                  <td className="px-5 py-3.5 text-sm">{loan.termMonths}mo</td>
+                  <td className="px-5 py-3.5 text-sm font-medium">{fmtAmt(loan.monthlyInstalment)}</td>
+                  <td className="px-5 py-3.5 text-sm">{fmtDate(loan.startDate)}</td>
+                  <td className="px-5 py-3.5">
                     <StatusBadge status={loan.status} />
                   </td>
-                  <td className="px-5 py-4 text-muted-foreground">
+                  <td className="px-5 py-3.5 text-muted-foreground">
                     <ChevronRight size={16} />
                   </td>
                 </tr>

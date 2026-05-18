@@ -320,36 +320,36 @@ const Recruitment: React.FC = () => {
           </div>
 
           {/* Table */}
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", ""]} rows={6} /> : postings.length === 0 ? (
               <EmptyState variant="no-data" icon={Briefcase} title="No job postings" description="Create your first posting to start recruiting."
                 action={can('RECRUITMENT', 'EDIT') ? { label: 'New Posting', onClick: () => setShowCreate(true) } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
+                <thead className="tbl-head-row">
                   <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Title</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Department</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Applications</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Closes</th>
-                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Title</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Department</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Status</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Applications</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Closes</th>
+                    <th className="px-5 py-3.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {postings.map(p => (
-                    <tr key={p.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4">
+                    <tr key={p.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-5 py-3.5">
                         <p className="font-medium text-navy">{p.title}</p>
                         {p.location && <p className="text-xs text-muted-foreground">{p.location}{p.type ? ` · ${p.type}` : ''}</p>}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{p.department || '—'}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5 text-muted-foreground">{p.department || '—'}</td>
+                      <td className="px-5 py-3.5">
                         <StatusBadge status={p.status} />
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{p._count?.applications ?? 0}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{p.closesAt ? fmtDate(p.closesAt) : '—'}</td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-5 py-3.5 text-muted-foreground">{p._count?.applications ?? 0}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">{p.closesAt ? fmtDate(p.closesAt) : '—'}</td>
+                      <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1">
                           {can('RECRUITMENT', 'EDIT') && p.status === 'DRAFT' && (
                             <button onClick={() => handlePublish(p.id)} disabled={!!actionLoading}
@@ -407,32 +407,32 @@ const Recruitment: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="tbl-container">
             {loading ? <SkeletonTable headers={["", "", "", "", "", ""]} rows={6} /> : allApplications.length === 0 ? (
               <EmptyState variant="no-data" icon={UserPlus} title="No applications" description="Add applications to job postings to see them here."
                 action={can('RECRUITMENT', 'EDIT') ? { label: 'Add Application', onClick: () => setShowAddApp(true) } : undefined} />
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-muted border-b border-border">
+                <thead className="tbl-head-row">
                   <tr>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Candidate</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Job</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Score</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Source</th>
-                    <th className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Date</th>
-                    <th className="px-5 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Candidate</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Job</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Status</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Score</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Source</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Date</th>
+                    <th className="px-5 py-3.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {allApplications.map(a => (
-                    <tr key={a.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4">
+                    <tr key={a.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-5 py-3.5">
                         <p className="font-medium text-navy">{a.candidateName}</p>
                         <p className="text-xs text-muted-foreground">{a.candidateEmail}{a.candidatePhone ? ` · ${a.candidatePhone}` : ''}</p>
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{a.jobPosting?.title || '—'}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5 text-muted-foreground">{a.jobPosting?.title || '—'}</td>
+                      <td className="px-5 py-3.5">
                         <StatusBadge status={a.status} />
                         {a.shortlisted && (
                           <span className="ml-1.5 inline-flex items-center gap-0.5 text-amber-600 text-[11px] font-bold">
@@ -440,7 +440,7 @@ const Recruitment: React.FC = () => {
                           </span>
                         )}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5">
                         {a.matchScore !== null && a.matchScore !== undefined ? (
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${
                             a.matchScore >= 80 ? 'bg-emerald-50 text-emerald-700' :
@@ -449,9 +449,9 @@ const Recruitment: React.FC = () => {
                           }`}>{a.matchScore}%</span>
                         ) : <span className="text-muted-foreground">—</span>}
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{a.source || '—'}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{fmtDate(a.createdAt)}</td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-5 py-3.5 text-muted-foreground">{a.source || '—'}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">{fmtDate(a.createdAt)}</td>
+                      <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1">
                           {a.resumeUrl && (
                             <a href={a.resumeUrl} target="_blank" rel="noopener noreferrer"

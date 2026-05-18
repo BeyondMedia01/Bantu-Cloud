@@ -57,13 +57,13 @@ const SystemSettings: React.FC = () => {
       {saved && <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">Settings saved successfully</div>}
 
       <form onSubmit={handleSave} className="flex flex-col gap-4">
-        <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="tbl-container">
+          <div className="tbl-scroll">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider w-1/3 text-left">Setting</th>
-                <th className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider text-left">Value</th>
+              <tr className="tbl-head-row">
+                <th className="tbl-th w-1/3">Setting</th>
+                <th className="tbl-th">Value</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

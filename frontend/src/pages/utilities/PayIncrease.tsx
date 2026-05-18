@@ -69,9 +69,9 @@ const PayIncrease: React.FC = () => {
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="px-4 py-2 text-left font-bold text-muted-foreground text-xs uppercase">Employee</th>
-                  <th className="px-4 py-2 text-left font-bold text-muted-foreground text-xs uppercase">New Rate</th>
+                <tr className="tbl-head-row">
+                  <th className="tbl-th">Employee</th>
+                  <th className="tbl-th">New Rate</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">

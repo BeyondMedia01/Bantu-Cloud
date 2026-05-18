@@ -126,16 +126,16 @@ const AdminLicenses: React.FC = () => {
         </form>
       )}
 
-      <div className="bg-primary rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="tbl-container">
         {loading ? (
           <SkeletonTable headers={['Client', 'Token', 'Issued', 'Expires', 'Status', 'Actions']} />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="tbl-scroll">
             <table className="w-full text-sm">
-              <thead className="bg-muted border-b border-border">
-                <tr>
+              <thead>
+                <tr className="tbl-head-row">
                   {['Client', 'Token', 'Issued', 'Expires', 'Status', 'Actions'].map((h) => (
-                    <th key={h} className="px-5 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                    <th key={h} className="tbl-th">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -145,18 +145,18 @@ const AdminLicenses: React.FC = () => {
                 ) : licenses.map((lic: any) => {
                   const isActive = lic.isActive && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
                   return (
-                    <tr key={lic.id} className="hover:bg-muted/70 transition-colors">
-                      <td className="px-5 py-4 font-bold text-navy">{lic.client?.name || lic.clientId}</td>
-                      <td className="px-5 py-4 font-mono text-xs text-muted-foreground">{lic.token?.slice(0, 16)}…</td>
-                      <td className="px-5 py-4 text-muted-foreground">{lic.createdAt ? new Date(lic.createdAt).toLocaleDateString() : '—'}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString() : 'Never'}</td>
-                      <td className="px-5 py-4">
+                    <tr key={lic.id} className="tbl-row">
+                      <td className="px-5 py-3.5 font-bold text-navy">{lic.client?.name || lic.clientId}</td>
+                      <td className="px-5 py-3.5 font-mono text-xs text-muted-foreground">{lic.token?.slice(0, 16)}…</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">{lic.createdAt ? new Date(lic.createdAt).toLocaleDateString() : '—'}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">{lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString() : 'Never'}</td>
+                      <td className="px-5 py-3.5">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                           {isActive ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                           {isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5">
                         {actionId === lic.clientId ? (
                           <span className="text-xs text-muted-foreground">…</span>
                         ) : isActive ? (
