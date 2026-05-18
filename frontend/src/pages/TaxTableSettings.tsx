@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, FileUp, Loader, ChevronRight, Hash, Percent, Calendar, Trash, Pencil, X, Check, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, FileUp, Loader, ChevronRight, Hash, Percent, Calendar, Trash, Pencil, X, Check, Zap, ArrowLeft } from 'lucide-react';
 import { TaxTableAPI } from '../api/client';
 import UploadTaxTableModal from '../components/tax/UploadTaxTableModal';
 import NewTaxTableModal from '../components/tax/NewTaxTableModal';
@@ -11,6 +12,7 @@ const EMPTY_ROW = { lowerBound: '', upperBound: '', rate: '', fixedAmount: '' };
 type PendingRow = { lowerBound: string; upperBound: string; rate: string; fixedAmount: string; error: string };
 
 const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [tables, setTables]               = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
@@ -209,9 +211,14 @@ const TaxTableSettings: React.FC<{ activeCompanyId?: string | null }> = () => {
         />
       )}
       <header className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-navy">Tax Tables</h1>
-          <p className="text-muted-foreground text-sm font-medium">Manage multi-currency progressive tax structures.</p>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold">Tax Tables</h1>
+            <p className="text-muted-foreground font-medium text-sm">Manage PAYE tax brackets and rate tables</p>
+          </div>
         </div>
         <button
           onClick={() => setIsNewModalOpen(true)}

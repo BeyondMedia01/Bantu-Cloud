@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus, Trash, ChevronRight, Calendar, Loader,
-  Check, X, Pencil, Percent, Hash, ChevronDown,
+  Check, X, Pencil, Percent, Hash, ChevronDown, ArrowLeft,
 } from 'lucide-react';
 import { NecTableAPI } from '../api/client';
 import { Dropdown } from '@/components/ui/dropdown';
@@ -12,6 +13,7 @@ const EMPTY_GRADE = { gradeCode: '', description: '', minRate: '', necLevyRate: 
 const EMPTY_TABLE = { name: '', sector: '', currency: 'USD', effectiveDate: '', expiryDate: '' };
 
 const NecTables: React.FC = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [tables, setTables]               = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
@@ -203,11 +205,14 @@ const NecTables: React.FC = () => {
         />
       )}
       <header className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-navy">NEC Tables</h1>
-          <p className="text-muted-foreground text-sm font-medium">
-            Manage National Employment Council minimum wage tables and levy rates per sector.
-          </p>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/utilities')} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold">NEC Tables</h1>
+            <p className="text-muted-foreground font-medium text-sm">Manage NEC grade salary tables</p>
+          </div>
         </div>
         <button
           onClick={() => { setAddingTable(true); setTableError(''); setNewTable({ ...EMPTY_TABLE }); }}

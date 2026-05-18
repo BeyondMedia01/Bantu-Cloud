@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Loader, Building2, Edit2, Save, X, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Trash2, Loader, Building2, Edit2, Save, X, Check, ArrowLeft } from 'lucide-react';
 import { BranchAPI, DepartmentAPI, SubCompanyAPI, CompanyAPI } from '../api/client';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { getActiveCompanyId } from '../lib/companyContext';
@@ -14,6 +15,7 @@ const TAB_LABELS: Record<Tab, string> = {
 };
 
 const ClientAdminStructure: React.FC = () => {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('branches');
   const [branches, setBranches] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -132,7 +134,7 @@ const ClientAdminStructure: React.FC = () => {
   const inputCls = "w-full px-4 py-2.5 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green";
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 max-w-3xl">
       {deleteTarget && (
         <ConfirmModal
           title={`Delete ${TAB_LABELS[deleteTarget.type].replace(/s$/, '')}`}
@@ -142,10 +144,15 @@ const ClientAdminStructure: React.FC = () => {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
-      <header>
-        <h1 className="text-2xl font-bold">Company Structure</h1>
-        <p className="text-muted-foreground text-sm font-medium">Company profile and organisational structure</p>
-      </header>
+      <div className="flex items-center gap-4 mb-8">
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="p-2 hover:bg-muted rounded-xl transition-colors">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold">Organisation Structure</h1>
+          <p className="text-muted-foreground font-medium text-sm">Manage branches, departments and sub-companies</p>
+        </div>
+      </div>
 
       {/* Company Profile Card */}
       <div className="bg-primary border border-border rounded-2xl shadow-sm overflow-hidden">

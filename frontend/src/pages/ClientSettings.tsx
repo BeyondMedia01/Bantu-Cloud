@@ -42,7 +42,7 @@ const ClientSettings: React.FC = () => {
   const { preferences, updatePreferences } = useSettings();
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl">
+    <div className="flex flex-col gap-8 max-w-3xl">
       <header>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-muted-foreground text-sm font-medium">Platform preferences and account management</p>
