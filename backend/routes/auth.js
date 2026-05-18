@@ -550,4 +550,77 @@ router.post('/sync', async (req, res) => {
   }
 });
 
+// ─── POST /api/auth/trial-signup ─────────────────────────────────────────────
+
+router.post('/trial-signup', async (req, res) => {
+  const { firstName, lastName, companyName, email, password } = req.body;
+
+  if (!firstName || !lastName || !companyName || !email || !password) {
+    return res.status(400).json({ message: 'firstName, lastName, companyName, email, and password are required' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) return res.status(409).json({ message: 'An account with this email already exists' });
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    const client = await prisma.client.create({
+      data: { name: companyName.trim() },
+    });
+
+    await prisma.trial.create({
+      data: {
+        clientId: client.id,
+        expiresAt,
+        employeeCap: 10,
+        status: 'ACTIVE',
+        onboardingStep: 0,
+      },
+    });
+
+    const user = await prisma.user.create({
+      data: {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        name: `${firstName.trim()} ${lastName.trim()}`,
+        email,
+        password: hashedPassword,
+        role: 'CLIENT_ADMIN',
+        clientAdmin: { create: { clientId: client.id } },
+      },
+    });
+
+    const token = signToken({ userId: user.id, clientId: client.id, role: user.role });
+    const refreshToken = await rotateRefreshToken(user.id);
+    setRefreshCookie(res, refreshToken);
+
+    return res.status(201).json({
+      token,
+      refreshToken,
+      role: user.role,
+      clientId: client.id,
+      companyId: null,
+      name: user.name,
+      requiresOnboarding: true,
+    });
+  } catch (err) {
+    if (err.code === 'P2002') {
+      return res.status(409).json({ message: 'An account with this email already exists' });
+    }
+    console.error('[trial-signup]', err);
+    return res.status(500).json({ message: 'Failed to create trial account' });
+  }
+});
+
 module.exports = router;
