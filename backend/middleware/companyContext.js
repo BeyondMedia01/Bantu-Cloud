@@ -29,10 +29,10 @@ const companyContext = async (req, res, next) => {
     return res.status(401).json({ message: 'Session expired, please log in again' });
   }
 
-  // PLATFORM_ADMIN must not access company-scoped client data (payroll, employees, leave, etc.)
-  // They manage the platform infrastructure only — client data privacy is enforced here.
-  if (role === 'PLATFORM_ADMIN' && companyId) {
-    return res.status(403).json({ message: 'Platform administrators cannot access client company data' });
+  // PLATFORM_ADMIN manages platform infrastructure only — ignore any x-company-id header.
+  if (role === 'PLATFORM_ADMIN') {
+    req.companyId = null;
+    return next();
   }
 
   try {
