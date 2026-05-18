@@ -35,6 +35,7 @@ const TrialSignup: React.FC = () => {
     try {
       const res = await AuthAPI.trialSignup(form);
       const { token, companyId } = res.data;
+      // refreshToken is not returned in the JSON body — the server sets it as an httpOnly cookie.
       saveAuthData(token, companyId ?? undefined);
       navigate('/trial-onboarding');
     } catch (err: any) {

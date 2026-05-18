@@ -167,15 +167,19 @@ const Login: React.FC = () => {
       const userId = (data as any).userId;
       saveAuthData(token, companyId ?? undefined, refreshToken, userId);
 
-      try {
-        const trialRes = await TrialAPI.getStatus();
-        const trial = trialRes.data?.trial;
-        if (trial !== null && trial !== undefined && trial.onboardingStep < 3) {
-          navigate('/trial-onboarding');
-          return;
+      // Only CLIENT_ADMIN users can be on a trial; skip the network call for all other roles.
+      if (role === 'CLIENT_ADMIN') {
+        try {
+          const trialRes = await TrialAPI.getStatus();
+          const trial = trialRes.data?.trial;
+          // onboardingStep 3 means onboarding complete
+          if (trial !== null && trial !== undefined && trial.onboardingStep < 3) {
+            navigate('/trial-onboarding');
+            return;
+          }
+        } catch {
+          // non-blocking: continue with normal redirect
         }
-      } catch {
-        // non-blocking: continue with normal redirect
       }
 
       if (IS_DESKTOP) {
