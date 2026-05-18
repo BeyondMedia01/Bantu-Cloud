@@ -31,7 +31,7 @@ async function main() {
     'BONUS_EXEMPTION_USD', 'BONUS_EXEMPTION_ZIG',
     'SEVERANCE_EXEMPTION_USD',
     'ELDERLY_TAX_CREDIT_USD', 'ELDERLY_TAX_CREDIT_ZIG',
-    'VEHICLE_BENEFIT_CC_1500_USD', 'VEHICLE_BENEFIT_CC_2000_USD', 'VEHICLE_BENEFIT_ABOVE_2000_USD',
+    'VEHICLE_BENEFIT_CC_1500_USD', 'VEHICLE_BENEFIT_CC_2000_USD', 'VEHICLE_BENEFIT_CC_3000_USD', 'VEHICLE_BENEFIT_ABOVE_3000_USD', 'VEHICLE_BENEFIT_ABOVE_2000_USD',
   ]);
   const s = (k) => parseFloat(settings[k] ?? 0);
 
@@ -120,7 +120,7 @@ async function main() {
         select: {
           firstName: true, lastName: true, employeeCode: true,
           baseRate: true, currency: true, taxMethod: true,
-          dateOfBirth: true, motorVehicleBenefit: true,
+          dateOfBirth: true, motorVehicleBenefit: true, vehicleEngineCategory: true, vehicleStartDate: true, vehicleEndDate: true,
           splitUsdPercent: true,
         },
       },
@@ -155,12 +155,33 @@ async function main() {
   const vehicleBenefitTable = {
     UP_TO_1500CC:    s('VEHICLE_BENEFIT_CC_1500_USD'),
     CC_1501_TO_2000: s('VEHICLE_BENEFIT_CC_2000_USD'),
-    ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_USD'),
+    CC_2001_TO_3000: s('VEHICLE_BENEFIT_CC_3000_USD'),
+    ABOVE_3000CC:    s('VEHICLE_BENEFIT_ABOVE_3000_USD'),
+    ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_USD'), // legacy
   };
   const resolveVehicle = (emp) => {
-    const cat = null; // vehicleEngineCategory not in schema — use fixed rate
-    if (!cat || cat === 'NONE') return emp.motorVehicleBenefit || 0;
-    return vehicleBenefitTable[cat] ?? emp.motorVehicleBenefit ?? 0;
+    const cat = emp.vehicleEngineCategory;
+    const fullBenefit = (!cat || cat === 'NONE')
+      ? (emp.motorVehicleBenefit || 0)
+      : (vehicleBenefitTable[cat] ?? emp.motorVehicleBenefit ?? 0);
+
+    if (!fullBenefit) return 0;
+
+    const periodStart = new Date(latestRun.startDate);
+    const periodEnd   = new Date(latestRun.endDate);
+    const daysInMonth = Math.round((periodEnd - periodStart) / 86400000) + 1;
+
+    const availFrom = emp.vehicleStartDate ? new Date(emp.vehicleStartDate) : null;
+    const availTo   = emp.vehicleEndDate   ? new Date(emp.vehicleEndDate)   : null;
+
+    const effectiveFrom = availFrom && availFrom > periodStart ? availFrom : periodStart;
+    const effectiveTo   = availTo   && availTo   < periodEnd   ? availTo   : periodEnd;
+
+    if (effectiveFrom > periodEnd || (availTo && effectiveTo < periodStart)) return 0;
+
+    const daysAvailable = Math.round((effectiveTo - effectiveFrom) / 86400000) + 1;
+    if (daysAvailable >= daysInMonth) return fullBenefit;
+    return Math.round((fullBenefit * daysAvailable / daysInMonth) * 100) / 100;
   };
 
   // ── 5. Per-employee step-by-step breakdown ────────────────────────────────

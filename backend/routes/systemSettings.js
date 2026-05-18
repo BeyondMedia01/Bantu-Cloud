@@ -93,6 +93,49 @@ router.patch('/:id', requirePermission('update_settings'), async (req, res) => {
   }
 });
 
+// GET /api/system-settings/trade-union
+router.get('/trade-union', async (req, res) => {
+  try {
+    const [empSetting, emprSetting] = await Promise.all([
+      prisma.systemSetting.findFirst({ where: { settingName: 'TRADE_UNION_EMPLOYEE_RATE' } }),
+      prisma.systemSetting.findFirst({ where: { settingName: 'TRADE_UNION_EMPLOYER_RATE' } }),
+    ]);
+    res.json({
+      employeeRate: parseFloat(empSetting?.settingValue ?? '1'),
+      employerRate: parseFloat(emprSetting?.settingValue ?? '1'),
+    });
+  } catch (error) {
+    console.error('Failed to fetch trade union settings:', error);
+    res.status(500).json({ error: 'Failed to fetch trade union settings' });
+  }
+});
+
+// PUT /api/system-settings/trade-union
+router.put('/trade-union', requirePermission('update_settings'), async (req, res) => {
+  const { employeeRate, employerRate } = req.body;
+  const lastUpdatedBy = req.user?.email || req.user?.userId || 'system';
+  try {
+    const [empSetting, emprSetting] = await Promise.all([
+      prisma.systemSetting.findFirst({ where: { settingName: 'TRADE_UNION_EMPLOYEE_RATE' } }),
+      prisma.systemSetting.findFirst({ where: { settingName: 'TRADE_UNION_EMPLOYER_RATE' } }),
+    ]);
+    const updates = [];
+    if (empSetting) {
+      updates.push(prisma.systemSetting.update({ where: { id: empSetting.id }, data: { settingValue: String(employeeRate), lastUpdatedBy } }));
+    }
+    if (emprSetting) {
+      updates.push(prisma.systemSetting.update({ where: { id: emprSetting.id }, data: { settingValue: String(employerRate), lastUpdatedBy } }));
+    }
+    await Promise.all(updates);
+    const { invalidateSettingsCache } = require('../lib/systemSettings');
+    invalidateSettingsCache();
+    res.json({ employeeRate, employerRate });
+  } catch (error) {
+    console.error('Failed to update trade union settings:', error);
+    res.status(500).json({ error: 'Failed to update trade union settings' });
+  }
+});
+
 // Delete a system setting
 router.delete('/:id', requirePermission('update_settings'), async (req, res) => {
   const { id } = req.params;

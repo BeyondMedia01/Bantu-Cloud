@@ -121,7 +121,7 @@ router.get('/:id/grades', async (req, res) => {
 
 // POST /api/nec-tables/:id/grades
 router.post('/:id/grades', requirePermission('update_settings'), async (req, res) => {
-  const { gradeCode, description, minRate, necLevyRate } = req.body;
+  const { gradeCode, description, minRate, necLevyRate, necEmployeeRate } = req.body;
   if (!gradeCode || minRate === undefined) {
     return res.status(400).json({ message: 'gradeCode and minRate are required' });
   }
@@ -134,6 +134,7 @@ router.post('/:id/grades', requirePermission('update_settings'), async (req, res
         description: description || null,
         minRate: parseFloat(minRate),
         necLevyRate: necLevyRate !== undefined ? parseFloat(necLevyRate) : 0,
+        necEmployeeRate: necEmployeeRate !== undefined ? parseFloat(necEmployeeRate) : 0,
       },
     });
     res.status(201).json(grade);
@@ -145,7 +146,7 @@ router.post('/:id/grades', requirePermission('update_settings'), async (req, res
 
 // PUT /api/nec-tables/:tableId/grades/:gradeId
 router.put('/:tableId/grades/:gradeId', requirePermission('update_settings'), async (req, res) => {
-  const { gradeCode, description, minRate, necLevyRate } = req.body;
+  const { gradeCode, description, minRate, necLevyRate, necEmployeeRate } = req.body;
   try {
     const grade = await prisma.necGrade.update({
       where: { id: req.params.gradeId },
@@ -154,6 +155,7 @@ router.put('/:tableId/grades/:gradeId', requirePermission('update_settings'), as
         ...(description !== undefined && { description: description || null }),
         ...(minRate !== undefined && { minRate: parseFloat(minRate) }),
         ...(necLevyRate !== undefined && { necLevyRate: parseFloat(necLevyRate) }),
+        ...(necEmployeeRate !== undefined && { necEmployeeRate: parseFloat(necEmployeeRate) }),
       },
     });
     res.json(grade);

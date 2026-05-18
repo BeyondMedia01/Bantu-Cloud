@@ -106,7 +106,7 @@ const EmployeeEdit: React.FC = () => {
       // Tax
       taxDirectivePerc: undefined, taxDirectiveAmt: undefined, taxMethod: 'NON_FDS',
       taxTable: '', accumulativeSetting: 'NO', taxCredits: undefined,
-      tin: '', motorVehicleBenefit: undefined, motorVehicleType: '',
+      tin: '', vehicleEngineCategory: 'NONE', motorVehicleBenefit: undefined, motorVehicleType: '', vehicleStartDate: undefined, vehicleEndDate: undefined,
       // Leave
       annualLeaveAccrued: undefined, annualLeaveTaken: undefined,
       // Split
@@ -126,6 +126,23 @@ const EmployeeEdit: React.FC = () => {
   const taxMethod = watch('taxMethod');
   const rateSource = watch('rateSource');
   const splitZigMode = watch('splitZigMode');
+  const vehicleEngineCategory = watch('vehicleEngineCategory');
+
+  const VEHICLE_BENEFIT_RATES: Record<string, number> = {
+    UP_TO_1500CC: 625,
+    CC_1501_TO_2000: 830,
+    CC_2001_TO_3000: 1250,
+    ABOVE_3000CC: 1660,
+    ABOVE_2000CC: 1250,
+  };
+
+  useEffect(() => {
+    if (vehicleEngineCategory && vehicleEngineCategory !== 'NONE') {
+      setValue('motorVehicleBenefit', VEHICLE_BENEFIT_RATES[vehicleEngineCategory], { shouldDirty: true });
+    } else if (vehicleEngineCategory === 'NONE') {
+      setValue('motorVehicleBenefit', undefined, { shouldDirty: true });
+    }
+  }, [vehicleEngineCategory]);
 
   const loadDocuments = async () => {
     try {
@@ -236,8 +253,11 @@ const EmployeeEdit: React.FC = () => {
       setVal('accumulativeSetting', (e.accumulativeSetting || 'NO') as EmployeeFormValues['accumulativeSetting']);
       if (e.taxCredits != null) setVal('taxCredits', e.taxCredits);
       setVal('tin',               e.tin || '');
+      setVal('vehicleEngineCategory', (e.vehicleEngineCategory || 'NONE') as EmployeeFormValues['vehicleEngineCategory']);
       if (e.motorVehicleBenefit != null) setVal('motorVehicleBenefit', e.motorVehicleBenefit);
       setVal('motorVehicleType',  e.motorVehicleType || '');
+      if (e.vehicleStartDate) setVal('vehicleStartDate', e.vehicleStartDate.slice(0, 10));
+      if (e.vehicleEndDate)   setVal('vehicleEndDate',   e.vehicleEndDate.slice(0, 10));
       if (e.leaveBalance != null) setVal('annualLeaveAccrued', e.leaveBalance);
       if (e.leaveTaken != null) setVal('annualLeaveTaken', e.leaveTaken);
       if (e.bankAccounts?.length) {
@@ -1144,9 +1164,25 @@ const EmployeeEdit: React.FC = () => {
                   </FormItem>
                 )} />
 
+                <FormField control={control} name="vehicleEngineCategory" render={({ field }) => (
+                  <FormItem className="flex flex-col gap-1.5">
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Vehicle Engine Category</FormLabel>
+                    <FormControl>
+                      <select {...field} value={field.value ?? 'NONE'} className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40">
+                        <option value="NONE">None</option>
+                        <option value="UP_TO_1500CC">Up to 1,500cc ($625/mo)</option>
+                        <option value="CC_1501_TO_2000">1,501–2,000cc ($830/mo)</option>
+                        <option value="CC_2001_TO_3000">2,001–3,000cc ($1,250/mo)</option>
+                        <option value="ABOVE_3000CC">Above 3,000cc ($1,660/mo)</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
                 <FormField control={control} name="motorVehicleBenefit" render={({ field }) => (
                   <FormItem className="flex flex-col gap-1.5">
-                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Motor Vehicle Benefit</FormLabel>
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Motor Vehicle Benefit (USD/mo)</FormLabel>
                     <FormControl><Input {...field} type="number" step="0.01" min="0" value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1156,6 +1192,22 @@ const EmployeeEdit: React.FC = () => {
                   <FormItem className="flex flex-col gap-1.5">
                     <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Motor Vehicle Type</FormLabel>
                     <FormControl><Input {...field} placeholder="e.g. Saloon" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={control} name="vehicleStartDate" render={({ field }) => (
+                  <FormItem className="flex flex-col gap-1.5">
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Vehicle Available From</FormLabel>
+                    <FormControl><Input {...field} type="date" value={field.value ?? ''} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={control} name="vehicleEndDate" render={({ field }) => (
+                  <FormItem className="flex flex-col gap-1.5">
+                    <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Vehicle Available To</FormLabel>
+                    <FormControl><Input {...field} type="date" value={field.value ?? ''} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />

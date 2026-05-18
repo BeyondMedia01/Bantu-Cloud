@@ -123,9 +123,10 @@ async function processPayrollRun(job) {
     'PENSION_CAP_USD', 'PENSION_CAP_ZIG',
     'LOAN_PRESCRIBED_RATE_USD', 'LOAN_PRESCRIBED_RATE_ZIG',
     'ELDERLY_TAX_CREDIT_USD', 'ELDERLY_TAX_CREDIT_ZIG',
-    'VEHICLE_BENEFIT_CC_1500_USD', 'VEHICLE_BENEFIT_CC_2000_USD', 'VEHICLE_BENEFIT_ABOVE_2000_USD',
-    'VEHICLE_BENEFIT_CC_1500_ZIG', 'VEHICLE_BENEFIT_CC_2000_ZIG', 'VEHICLE_BENEFIT_ABOVE_2000_ZIG',
+    'VEHICLE_BENEFIT_CC_1500_USD', 'VEHICLE_BENEFIT_CC_2000_USD', 'VEHICLE_BENEFIT_CC_3000_USD', 'VEHICLE_BENEFIT_ABOVE_3000_USD', 'VEHICLE_BENEFIT_ABOVE_2000_USD',
+    'VEHICLE_BENEFIT_CC_1500_ZIG', 'VEHICLE_BENEFIT_CC_2000_ZIG', 'VEHICLE_BENEFIT_CC_3000_ZIG', 'VEHICLE_BENEFIT_ABOVE_3000_ZIG', 'VEHICLE_BENEFIT_ABOVE_2000_ZIG',
     'ZIMDEF_RATE',
+    'TRADE_UNION_EMPLOYEE_RATE', 'TRADE_UNION_EMPLOYER_RATE',
     'WORKING_DAYS_PER_PERIOD', 'WORKING_DAYS_PER_MONTH',
   ]);
   const s = (key) => parseFloat(settings[key] ?? 0);
@@ -173,19 +174,43 @@ async function processPayrollRun(job) {
     USD: {
       UP_TO_1500CC:    s('VEHICLE_BENEFIT_CC_1500_USD'),
       CC_1501_TO_2000: s('VEHICLE_BENEFIT_CC_2000_USD'),
-      ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_USD'),
+      CC_2001_TO_3000: s('VEHICLE_BENEFIT_CC_3000_USD'),
+      ABOVE_3000CC:    s('VEHICLE_BENEFIT_ABOVE_3000_USD'),
+      ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_USD'), // legacy
     },
     ZiG: {
       UP_TO_1500CC:    s('VEHICLE_BENEFIT_CC_1500_ZIG'),
       CC_1501_TO_2000: s('VEHICLE_BENEFIT_CC_2000_ZIG'),
-      ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_ZIG'),
+      CC_2001_TO_3000: s('VEHICLE_BENEFIT_CC_3000_ZIG'),
+      ABOVE_3000CC:    s('VEHICLE_BENEFIT_ABOVE_3000_ZIG'),
+      ABOVE_2000CC:    s('VEHICLE_BENEFIT_ABOVE_2000_ZIG'), // legacy
     },
   };
   const resolveVehicleBenefit = (emp, runCurrency) => {
     const cat = emp.vehicleEngineCategory;
-    if (!cat || cat === 'NONE') return emp.motorVehicleBenefit || 0;
     const ccy = runCurrency === 'ZiG' ? 'ZiG' : 'USD';
-    return vehicleBenefitTable[ccy][cat] ?? emp.motorVehicleBenefit ?? 0;
+    const fullBenefit = (!cat || cat === 'NONE')
+      ? (emp.motorVehicleBenefit || 0)
+      : (vehicleBenefitTable[ccy][cat] ?? emp.motorVehicleBenefit ?? 0);
+
+    if (!fullBenefit) return 0;
+
+    // Prorate if the vehicle was not available for the entire payroll month
+    const periodStart = new Date(run.startDate);
+    const periodEnd   = new Date(run.endDate);
+    const daysInMonth = Math.round((periodEnd - periodStart) / 86400000) + 1;
+
+    const availFrom = emp.vehicleStartDate ? new Date(emp.vehicleStartDate) : null;
+    const availTo   = emp.vehicleEndDate   ? new Date(emp.vehicleEndDate)   : null;
+
+    const effectiveFrom = availFrom && availFrom > periodStart ? availFrom : periodStart;
+    const effectiveTo   = availTo   && availTo   < periodEnd   ? availTo   : periodEnd;
+
+    if (effectiveFrom > periodEnd || (availTo && effectiveTo < periodStart)) return 0;
+
+    const daysAvailable = Math.round((effectiveTo - effectiveFrom) / 86400000) + 1;
+    if (daysAvailable >= daysInMonth) return fullBenefit;
+    return Math.round((fullBenefit * daysAvailable / daysInMonth) * 100) / 100;
   };
 
   const globalZimdefRate = s('ZIMDEF_RATE') / 100;
@@ -207,10 +232,10 @@ async function processPayrollRun(job) {
       paymentBasis: true, rateSource: true,
       necGradeId: true, gradeId: true,
       splitUsdPercent: true, splitZigMode: true, splitZigValue: true, motorVehicleBenefit: true,
-      vehicleEngineCategory: true,
+      vehicleEngineCategory: true, vehicleStartDate: true, vehicleEndDate: true,
       grossingUp: true,
       leaveBalance: true, leaveTaken: true,
-      necGrade: { select: { id: true, minRate: true, necLevyRate: true } },
+      necGrade: { select: { id: true, minRate: true, necLevyRate: true, necEmployeeRate: true } },
     },
   });
 
@@ -644,9 +669,12 @@ async function processPayrollRun(job) {
     if (emp.rateSource === 'NEC_GRADE' && emp.necGrade) {
       const necMinRate = emp.necGrade.minRate;
       if (baseRate < necMinRate) baseRate = necMinRate;
-      necLevy = baseRate * (emp.necGrade.necLevyRate || 0);
-      necEmployer = necLevy;
+      necLevy    = baseRate * (emp.necGrade.necEmployeeRate ?? emp.necGrade.necLevyRate ?? 0);
+      necEmployer = baseRate * (emp.necGrade.necLevyRate || 0);
     }
+
+    const tradeUnionEmployeeRate = s('TRADE_UNION_EMPLOYEE_RATE') / 100;
+    const tradeUnionEmployerRate = s('TRADE_UNION_EMPLOYER_RATE') / 100;
 
     const ytd = fdsYtdByEmployee[emp.id] || {
       cumGross: 0,
@@ -890,6 +918,9 @@ async function processPayrollRun(job) {
       dualFields = {};
     }
 
+    const tradeUnionEmployee = round2(baseRate * tradeUnionEmployeeRate);
+    const tradeUnionEmployer = round2(baseRate * tradeUnionEmployerRate);
+
     payslipData.push({
       employeeId: emp.id,
       payrollRunId: run.id,
@@ -908,6 +939,8 @@ async function processPayrollRun(job) {
       zimdefEmployer: taxResult.zimdefEmployer,
       necLevy,
       necEmployer,
+      tradeUnionEmployee,
+      tradeUnionEmployer,
       loanDeductions,
       netPay: netPayAfterLoans,
       netPayUSD,

@@ -9,7 +9,7 @@ import { Dropdown } from '@/components/ui/dropdown';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { useToast } from '../context/ToastContext';
 
-const EMPTY_GRADE = { gradeCode: '', description: '', minRate: '', necLevyRate: '' };
+const EMPTY_GRADE = { gradeCode: '', description: '', minRate: '', necLevyRate: '', necEmployeeRate: '' };
 const EMPTY_TABLE = { name: '', sector: '', currency: 'USD', effectiveDate: '', expiryDate: '' };
 
 const NecTables: React.FC = () => {
@@ -118,10 +118,11 @@ const NecTables: React.FC = () => {
     setAddGradeSaving(true); setAddGradeError('');
     try {
       const res = await NecTableAPI.createGrade(activeTableId, {
-        gradeCode:    newGrade.gradeCode,
-        description:  newGrade.description || null,
-        minRate:      parseFloat(newGrade.minRate),
-        necLevyRate:  newGrade.necLevyRate !== '' ? parseFloat(newGrade.necLevyRate) / 100 : 0,
+        gradeCode:       newGrade.gradeCode,
+        description:     newGrade.description || null,
+        minRate:         parseFloat(newGrade.minRate),
+        necLevyRate:     newGrade.necLevyRate !== '' ? parseFloat(newGrade.necLevyRate) / 100 : 0,
+        necEmployeeRate: newGrade.necEmployeeRate !== '' ? parseFloat(newGrade.necEmployeeRate) / 100 : 0,
       });
       setGrades(prev => [...prev, res.data].sort((a, b) => a.gradeCode.localeCompare(b.gradeCode)));
       setNewGrade({ ...EMPTY_GRADE });
@@ -136,10 +137,11 @@ const NecTables: React.FC = () => {
   const startEditGrade = (grade: any) => {
     setEditingGradeId(grade.id);
     setEditGrade({
-      gradeCode:   grade.gradeCode,
-      description: grade.description || '',
-      minRate:     String(grade.minRate),
-      necLevyRate: String((grade.necLevyRate * 100).toFixed(4)),
+      gradeCode:      grade.gradeCode,
+      description:    grade.description || '',
+      minRate:        String(grade.minRate),
+      necLevyRate:    String((grade.necLevyRate * 100).toFixed(4)),
+      necEmployeeRate: String(((grade.necEmployeeRate ?? 0) * 100).toFixed(4)),
     });
     setEditGradeError('');
     setAddingGrade(false);
@@ -153,10 +155,11 @@ const NecTables: React.FC = () => {
     setEditGradeSaving(true); setEditGradeError('');
     try {
       const res = await NecTableAPI.updateGrade(activeTableId, editingGradeId, {
-        gradeCode:   editGrade.gradeCode,
-        description: editGrade.description || null,
-        minRate:     parseFloat(editGrade.minRate),
-        necLevyRate: editGrade.necLevyRate !== '' ? parseFloat(editGrade.necLevyRate) / 100 : 0,
+        gradeCode:       editGrade.gradeCode,
+        description:     editGrade.description || null,
+        minRate:         parseFloat(editGrade.minRate),
+        necLevyRate:     editGrade.necLevyRate !== '' ? parseFloat(editGrade.necLevyRate) / 100 : 0,
+        necEmployeeRate: editGrade.necEmployeeRate !== '' ? parseFloat(editGrade.necEmployeeRate) / 100 : 0,
       });
       setGrades(prev =>
         prev.map(g => g.id === editingGradeId ? res.data : g)
@@ -380,7 +383,8 @@ const NecTables: React.FC = () => {
                     <th className="tbl-th">Grade Code</th>
                     <th className="tbl-th">Description</th>
                     <th className="tbl-th">Min Rate</th>
-                    <th className="tbl-th">NEC Levy %</th>
+                    <th className="tbl-th">Employer Rate (%)</th>
+                    <th className="tbl-th">Employee Rate (%)</th>
                     <th className="px-5 py-3.5 w-20" />
                   </tr>
                 </thead>
@@ -437,6 +441,21 @@ const NecTables: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              className={inputCls + ' pr-6'}
+                              placeholder="0.00"
+                              value={editGrade.necEmployeeRate}
+                              onChange={e => setEditGrade(p => ({ ...p, necEmployeeRate: e.target.value }))}
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1">
                             <button
                               onClick={handleSaveGrade}
@@ -471,6 +490,11 @@ const NecTables: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
+                          <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold flex items-center gap-1 w-fit">
+                            <Percent size={11} /> {((grade.necEmployeeRate ?? 0) * 100).toFixed(3)}%
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => startEditGrade(grade)}
@@ -493,7 +517,7 @@ const NecTables: React.FC = () => {
                   {/* Edit error */}
                   {editGradeError && (
                     <tr>
-                      <td colSpan={5} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{editGradeError}</td>
+                      <td colSpan={6} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{editGradeError}</td>
                     </tr>
                   )}
 
@@ -550,6 +574,21 @@ const NecTables: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              className={inputCls + ' pr-6'}
+                              placeholder="0.00"
+                              value={newGrade.necEmployeeRate}
+                              onChange={e => setNewGrade(p => ({ ...p, necEmployeeRate: e.target.value }))}
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1">
                             <button
                               onClick={handleAddGrade}
@@ -569,7 +608,7 @@ const NecTables: React.FC = () => {
                       </tr>
                       {addGradeError && (
                         <tr>
-                          <td colSpan={5} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{addGradeError}</td>
+                          <td colSpan={6} className="px-5 py-2 bg-red-50 text-xs text-red-600 font-medium">{addGradeError}</td>
                         </tr>
                       )}
                     </>
@@ -577,7 +616,7 @@ const NecTables: React.FC = () => {
 
                   {grades.length === 0 && !addingGrade && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic text-sm">
+                      <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic text-sm">
                         No grades defined.{' '}
                         <button
                           onClick={() => setAddingGrade(true)}

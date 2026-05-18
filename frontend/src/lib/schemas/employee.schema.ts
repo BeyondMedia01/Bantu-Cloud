@@ -72,8 +72,11 @@ export const employeeSchema = z.object({
   accumulativeSetting: z.enum(['YES', 'NO']),
   taxCredits: z.coerce.number().min(0).optional(),
   tin: z.string().optional(),
+  vehicleEngineCategory: z.enum(['NONE', 'UP_TO_1500CC', 'CC_1501_TO_2000', 'CC_2001_TO_3000', 'ABOVE_3000CC', 'ABOVE_2000CC']).optional(),
   motorVehicleBenefit: z.coerce.number().min(0).optional(),
   motorVehicleType: z.string().optional(),
+  vehicleStartDate: z.string().optional(),
+  vehicleEndDate: z.string().optional(),
   // Leave
   annualLeaveAccrued: z.coerce.number().min(0).optional(),
   annualLeaveTaken: z.coerce.number().min(0).optional(),

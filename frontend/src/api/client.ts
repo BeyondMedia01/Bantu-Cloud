@@ -23,9 +23,9 @@ export { AttendanceAPI, ShiftAPI, RosterAPI, DeviceAPI } from './attendance.api'
 export {
   SystemSettingsAPI, TransactionCodeAPI, TaxTableAPI, CurrencyRateAPI,
   PublicHolidaysAPI, NSSASettingsAPI, StatutoryRatesAPI, NecTableAPI,
-  TaxBandAPI,
+  TaxBandAPI, TradeUnionSettingsAPI,
 } from './settings.api';
-export type { PublicHoliday, CurrencyRate, NSSASettings } from './settings.api';
+export type { PublicHoliday, CurrencyRate, NSSASettings, TradeUnionSettings } from './settings.api';
 
 export { ReportsAPI, AuditLogAPI } from './reports.api';
 

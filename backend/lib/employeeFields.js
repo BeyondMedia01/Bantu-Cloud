@@ -57,6 +57,8 @@ function pickEmployeeFields(body) {
     motorVehicleBenefit: body.motorVehicleBenefit !== undefined && body.motorVehicleBenefit !== '' ? parseFloat(body.motorVehicleBenefit) : undefined,
     motorVehicleType:  body.motorVehicleType,
     vehicleEngineCategory: body.vehicleEngineCategory || undefined,
+    vehicleStartDate:  body.vehicleStartDate ? new Date(body.vehicleStartDate) : undefined,
+    vehicleEndDate:    body.vehicleEndDate   ? new Date(body.vehicleEndDate)   : undefined,
     grossingUp:        body.grossingUp !== undefined ? Boolean(body.grossingUp) : undefined,
     leaveBalance:      body.annualLeaveAccrued !== undefined && body.annualLeaveAccrued !== '' ? parseFloat(body.annualLeaveAccrued) : undefined,
     leaveTaken:        body.annualLeaveTaken !== undefined && body.annualLeaveTaken !== '' ? parseFloat(body.annualLeaveTaken) : undefined,

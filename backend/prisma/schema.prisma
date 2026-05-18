@@ -179,7 +179,9 @@ enum VehicleEngineCategory {
   NONE
   UP_TO_1500CC
   CC_1501_TO_2000
-  ABOVE_2000CC
+  CC_2001_TO_3000
+  ABOVE_3000CC
+  ABOVE_2000CC  // legacy — treated as CC_2001_TO_3000
 }
 
 enum PayrollStatus {
@@ -561,6 +563,8 @@ model Employee {
   motorVehicleBenefit Float       @default(0)
   motorVehicleType      String?
   vehicleEngineCategory VehicleEngineCategory @default(NONE)
+  vehicleStartDate      DateTime?
+  vehicleEndDate        DateTime?
   grossingUp            Boolean               @default(false)
   // Split currency (e.g. 60 = receive 60% of net pay in USD, remainder in ZiG)
   splitUsdPercent  Float?
@@ -802,8 +806,10 @@ model Payslip {
   basicSalaryApplied Float      @default(0)
   wcifEmployer    Float      @default(0)
   sdfContribution Float      @default(0)
-  necLevy         Float      @default(0)
-  necEmployer     Float      @default(0)
+  necLevy              Float      @default(0)
+  necEmployer          Float      @default(0)
+  tradeUnionEmployee   Float      @default(0)
+  tradeUnionEmployer   Float      @default(0)
   zimdefEmployer  Float      @default(0)
   loanDeductions  Float      @default(0)
   netPay          Float
@@ -984,7 +990,8 @@ model NecGrade {
   gradeCode   String    // e.g. "A", "B", "1", "2", "Grade 3"
   description String?   // e.g. "General Hand", "Skilled Operator"
   minRate     Float     // minimum monthly rate
-  necLevyRate Float     @default(0) // NEC levy as a fraction of earnings (employer contribution)
+  necLevyRate     Float     @default(0) // NEC levy as a fraction of earnings (employer contribution)
+  necEmployeeRate Float     @default(0) // NEC levy as a fraction of earnings (employee contribution)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   necTable    NecTable  @relation(fields: [necTableId], references: [id], onDelete: Cascade)

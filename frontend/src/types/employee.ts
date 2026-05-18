@@ -68,6 +68,9 @@ export interface Employee {
   tin?: string | null;
   motorVehicleBenefit?: number | null;
   motorVehicleType?: string | null;
+  vehicleEngineCategory?: 'NONE' | 'UP_TO_1500CC' | 'CC_1501_TO_2000' | 'CC_2001_TO_3000' | 'ABOVE_3000CC' | 'ABOVE_2000CC' | null;
+  vehicleStartDate?: string | null;
+  vehicleEndDate?: string | null;
   bankAccounts?: EmployeeBankAccount[] | null;
 
   createdAt: string;

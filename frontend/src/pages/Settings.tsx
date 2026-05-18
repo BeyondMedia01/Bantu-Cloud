@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, DollarSign, Calculator, Percent, FileText, BarChart3, ShieldCheck, History, ChevronRight, Download, User } from 'lucide-react';
+import { Settings as SettingsIcon, DollarSign, Calculator, Percent, FileText, BarChart3, ShieldCheck, History, ChevronRight, Download, User, Users } from 'lucide-react';
 import CurrencyRates from './CurrencyRates';
 import TaxConfiguration from './TaxConfiguration';
 import PayTransactions from './PayTransactions';
@@ -13,12 +13,13 @@ import SystemSettings from './SystemSettings';
 import PayrollUsers from './PayrollUsers';
 import PayrollLogs from './PayrollLogs';
 import AccountSettings from './AccountSettings';
+import TradeUnionSettings from './TradeUnionSettings';
 
 interface SettingsProps {
   activeCompanyId?: string | null;
 }
 
-type SettingsSection = 'rates' | 'tax' | 'pay-codes' | 'ledger' | 'summaries' | 'nssa' | 'audit' | 'core' | 'exports' | 'globals' | 'users' | 'logs' | 'account';
+type SettingsSection = 'rates' | 'tax' | 'pay-codes' | 'ledger' | 'summaries' | 'nssa' | 'trade-union' | 'audit' | 'core' | 'exports' | 'globals' | 'users' | 'logs' | 'account';
 
 const Settings = ({ activeCompanyId }: SettingsProps) => {
   const [activeTab, setActiveTab] = useState<SettingsSection>('rates');
@@ -30,6 +31,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
     { id: 'ledger', label: 'Payroll Ledger', icon: FileText, group: 'Payroll Assets' },
     { id: 'summaries', label: 'Payroll Summaries', icon: BarChart3, group: 'Payroll Assets' },
     { id: 'nssa', label: 'NSSA Compliance', icon: ShieldCheck, group: 'Compliance' },
+    { id: 'trade-union', label: 'Trade Union', icon: Users, group: 'Compliance' },
     { id: 'audit', label: 'Forensic Audit', icon: History, group: 'Compliance' },
     { id: 'exports', label: 'Batch Exports', icon: Download, group: 'Compliance' },
     { id: 'logs', label: 'Payroll Logs', icon: FileText, group: 'Compliance' },
@@ -87,6 +89,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
           {activeTab === 'ledger' && <PayslipTransactions activeCompanyId={activeCompanyId} />}
           {activeTab === 'summaries' && <PayslipSummaries activeCompanyId={activeCompanyId} />}
           {activeTab === 'nssa' && <NSSAContributions activeCompanyId={activeCompanyId} />}
+          {activeTab === 'trade-union' && <TradeUnionSettings activeCompanyId={activeCompanyId} />}
           { activeTab === 'audit' && <AuditLogs activeCompanyId={activeCompanyId} />}
           { activeTab === 'core' && <PayrollCore activeCompanyId={activeCompanyId} />}
           { activeTab === 'exports' && <PayslipExports activeCompanyId={activeCompanyId} />}

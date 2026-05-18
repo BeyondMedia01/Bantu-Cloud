@@ -95,6 +95,16 @@ export const NSSASettingsAPI = {
   update: (data: NSSASettings) => http.put<{ message: string }>('/nssa-settings', data),
 };
 
+export interface TradeUnionSettings {
+  employeeRate: number;
+  employerRate: number;
+}
+
+export const TradeUnionSettingsAPI = {
+  get: () => http.get<TradeUnionSettings>('/system-settings/trade-union'),
+  update: (data: TradeUnionSettings) => http.put<TradeUnionSettings>('/system-settings/trade-union', data),
+};
+
 export const StatutoryRatesAPI = {
   get: () => http.get<{ sdfRate: number; zimdefRate: number }>('/statutory-rates'),
   update: (data: { sdfRate: number; zimdefRate: number }) => http.put<{ message: string }>('/statutory-rates', data),

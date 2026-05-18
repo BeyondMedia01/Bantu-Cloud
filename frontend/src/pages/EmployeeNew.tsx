@@ -53,7 +53,7 @@ const TABS = [
   { id: 'PERSONAL', label: 'Personal', fields: ['employeeCode','title','firstName','lastName','maidenName','nationality','nationalId','passportNumber','email','phone','dateOfBirth','gender','maritalStatus','homeAddress','postalAddress','nextOfKinName','nextOfKinContact','socialSecurityNum'] },
   { id: 'WORK',     label: 'Work',     fields: ['startDate','occupation','position','departmentId','branchId','costCenter','grade','employmentType','leaveEntitlement','dischargeDate','dischargeReason'] },
   { id: 'PAY',      label: 'Pay',      fields: ['paymentMethod','paymentBasis','rateSource','baseRate','currency','hoursPerPeriod','daysPerPeriod','bankAccounts'] },
-  { id: 'TAX',      label: 'Tax',      fields: ['taxDirectivePerc','taxDirectiveAmt','taxMethod','taxTable','accumulativeSetting','taxCredits','tin','motorVehicleBenefit','motorVehicleType'] },
+  { id: 'TAX',      label: 'Tax',      fields: ['taxDirectivePerc','taxDirectiveAmt','taxMethod','taxTable','accumulativeSetting','taxCredits','tin','vehicleEngineCategory','motorVehicleBenefit','motorVehicleType'] },
   { id: 'LEAVE',    label: 'Stats',    fields: ['annualLeaveAccrued','annualLeaveTaken'] },
 ] as const;
 
@@ -215,6 +215,23 @@ const EmployeeNew: React.FC = () => {
   const paymentMethod = form.watch('paymentMethod');
   const nationality = form.watch('nationality');
   const taxMethod = form.watch('taxMethod');
+  const vehicleEngineCategory = form.watch('vehicleEngineCategory');
+
+  const VEHICLE_BENEFIT_RATES: Record<string, number> = {
+    UP_TO_1500CC: 625,
+    CC_1501_TO_2000: 830,
+    CC_2001_TO_3000: 1250,
+    ABOVE_3000CC: 1660,
+    ABOVE_2000CC: 1250,
+  };
+
+  useEffect(() => {
+    if (vehicleEngineCategory && vehicleEngineCategory !== 'NONE') {
+      form.setValue('motorVehicleBenefit', VEHICLE_BENEFIT_RATES[vehicleEngineCategory], { shouldDirty: true });
+    } else if (vehicleEngineCategory === 'NONE') {
+      form.setValue('motorVehicleBenefit', undefined, { shouldDirty: true });
+    }
+  }, [vehicleEngineCategory]);
 
   return (
     <>
@@ -759,11 +776,28 @@ const EmployeeNew: React.FC = () => {
                 <FF name="tin" label="TIN (Tax Identification Number)" form={form}>
                   {(field) => <Input {...field} />}
                 </FF>
-                <FF name="motorVehicleBenefit" label="Motor Vehicle Benefit" form={form}>
+                <FF name="vehicleEngineCategory" label="Vehicle Engine Category" form={form}>
+                  {(field) => (
+                    <select {...field} value={field.value ?? 'NONE'} className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40">
+                      <option value="NONE">None</option>
+                      <option value="UP_TO_1500CC">Up to 1,500cc ($625/mo)</option>
+                      <option value="CC_1501_TO_2000">1,501–2,000cc ($830/mo)</option>
+                      <option value="CC_2001_TO_3000">2,001–3,000cc ($1,250/mo)</option>
+                      <option value="ABOVE_3000CC">Above 3,000cc ($1,660/mo)</option>
+                    </select>
+                  )}
+                </FF>
+                <FF name="motorVehicleBenefit" label="Motor Vehicle Benefit (USD/mo)" form={form}>
                   {(field) => <Input {...field} type="number" step="0.01" min="0" placeholder="0.00" />}
                 </FF>
                 <FF name="motorVehicleType" label="Motor Vehicle Type" form={form}>
                   {(field) => <Input {...field} placeholder="e.g. Saloon" />}
+                </FF>
+                <FF name="vehicleStartDate" label="Vehicle Available From" form={form}>
+                  {(field) => <Input {...field} type="date" />}
+                </FF>
+                <FF name="vehicleEndDate" label="Vehicle Available To" form={form}>
+                  {(field) => <Input {...field} type="date" />}
                 </FF>
               </div>
             </Section>

@@ -100,6 +100,9 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, ytdStat
   if (payslip.necLevy > 0) {
     lines.push({ name: 'NEC Employee', allowance: 0, allowanceZIG: null, deduction: payslip.necLevy, deductionZIG: null, employer: 0, ytd: ytdStat.necLevy, ytdZIG: null });
   }
+  if (payslip.tradeUnionEmployee > 0) {
+    lines.push({ name: 'Trade Union (EE)', allowance: 0, allowanceZIG: null, deduction: payslip.tradeUnionEmployee, deductionZIG: null, employer: 0, ytd: ytdStat.tradeUnionEmployee ?? 0, ytdZIG: null });
+  }
 
   // Voluntary/Other Deductions
   deductionGroups.forEach(g => {
@@ -152,6 +155,9 @@ function buildPayslipLineItems({ payslip, transactions, ytdStat, ytdMap, ytdStat
   }
   if (payslip.necEmployer > 0) {
     lines.push({ name: 'NEC Employer', allowance: 0, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: payslip.necEmployer, ytd: ytdStat.necEmployer });
+  }
+  if (payslip.tradeUnionEmployer > 0) {
+    lines.push({ name: 'Trade Union (ER)', allowance: 0, allowanceZIG: null, deduction: 0, deductionZIG: null, employer: payslip.tradeUnionEmployer, ytd: ytdStat.tradeUnionEmployer ?? 0, ytdZIG: null });
   }
 
   return lines;

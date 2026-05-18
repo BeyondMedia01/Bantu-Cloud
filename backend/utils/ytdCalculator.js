@@ -23,6 +23,8 @@ function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions,
     sdfContribution: currentPayslip.sdfContribution || 0,
     wcifEmployer: currentPayslip.wcifEmployer || 0,
     necEmployer: currentPayslip.necEmployer || 0,
+    tradeUnionEmployee: currentPayslip.tradeUnionEmployee || 0,
+    tradeUnionEmployer: currentPayslip.tradeUnionEmployer || 0,
     medicalAidCredit: currentPayslip.medicalAidCredit || 0,
   };
 
@@ -45,6 +47,8 @@ function calculateYTD({ currentPayslip, historicalPayslips, currentTransactions,
     ytdStat.sdfContribution += ps.sdfContribution || 0;
     ytdStat.wcifEmployer += ps.wcifEmployer || 0;
     ytdStat.necEmployer += ps.necEmployer || 0;
+    ytdStat.tradeUnionEmployee += ps.tradeUnionEmployee || 0;
+    ytdStat.tradeUnionEmployer += ps.tradeUnionEmployer || 0;
     ytdStat.medicalAidCredit += ps.medicalAidCredit || 0;
 
     ytdStatZIG.paye         += ps.payeZIG    || 0;
