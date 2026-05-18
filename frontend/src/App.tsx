@@ -17,6 +17,7 @@ import ResetPassword from './pages/ResetPassword';
 import DesktopOnboarding from './pages/DesktopOnboarding';
 import AcceptInvite from './pages/AcceptInvite';
 import TrialSignup from './pages/TrialSignup';
+const TrialOnboarding = React.lazy(() => import('./pages/TrialOnboarding'));
 
 // ─── Lazy-loaded pages ────────────────────────────────────────────────────────
 
@@ -210,6 +211,7 @@ const App: React.FC = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/trial-signup" element={<TrialSignup />} />
+              <Route path="/trial-onboarding" element={<React.Suspense fallback={null}><TrialOnboarding /></React.Suspense>} />
 
               {/* Protected — CLIENT_ADMIN + PLATFORM_ADMIN + COMPANY_USER */}
               <Route element={
