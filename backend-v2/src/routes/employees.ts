@@ -116,35 +116,73 @@ const updateSalaryStructureSchema = z.object({
   notes: z.string().optional(),
 });
 
+// Coerce empty string to null/undefined for optional FK and string fields
+const optStr = z.string().optional().transform(v => v === '' ? undefined : v);
+const optFk = z.string().optional().transform(v => v === '' ? null : v);
+
 const createEmployeeSchema = z.object({
+  // Required
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   position: z.string().min(1),
   startDate: z.string().min(1),
   baseRate: z.number().min(0),
+  // Enums
   employmentType: z.enum(['PERMANENT', 'CONTRACT', 'TEMPORARY', 'PART_TIME']).optional(),
   currency: z.enum(['USD', 'ZiG']).optional(),
   paymentMethod: z.enum(['BANK', 'CASH']).optional(),
   paymentBasis: z.enum(['MONTHLY', 'DAILY', 'HOURLY']).optional(),
   taxMethod: z.enum(['FDS_AVERAGE', 'FDS_FORECASTING', 'NON_FDS']).optional(),
-  companyId: z.string().optional(),
-  branchId: z.string().optional(),
-  departmentId: z.string().optional(),
-  employeeCode: z.string().optional(),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
-  maritalStatus: z.enum(['SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED']).optional(),
-  dateOfBirth: z.string().optional(),
-  nationalId: z.string().optional(),
-  tin: z.string().optional(),
-  bankName: z.string().optional(),
-  bankBranch: z.string().optional(),
-  accountNumber: z.string().optional(),
-  gradeId: z.string().optional(),
-  title: z.string().optional(),
-  costCenter: z.string().optional(),
-});
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  maritalStatus: z.enum(['SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED']).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  accumulativeSetting: z.enum(['YES', 'NO']).optional(),
+  rateSource: z.enum(['MANUAL', 'NEC_GRADE']).optional(),
+  splitZigMode: z.enum(['NONE', 'FIXED', 'PERCENTAGE']).optional(),
+  // FK fields — empty string → null
+  companyId: optFk,
+  branchId: optFk,
+  departmentId: optFk,
+  gradeId: optFk,
+  necGradeId: optFk,
+  // Optional strings
+  employeeCode: optStr,
+  email: z.string().email().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  phone: optStr,
+  dateOfBirth: optStr,
+  nationalId: optStr,
+  tin: optStr,
+  bankName: optStr,
+  bankBranch: optStr,
+  accountNumber: optStr,
+  title: optStr,
+  costCenter: optStr,
+  grade: optStr,
+  occupation: optStr,
+  homeAddress: optStr,
+  postalAddress: optStr,
+  nextOfKinName: optStr,
+  nextOfKinContact: optStr,
+  socialSecurityNum: optStr,
+  pensionNumber: optStr,
+  passportNumber: optStr,
+  maidenName: optStr,
+  nationality: optStr,
+  dischargeReason: optStr,
+  taxTable: optStr,
+  motorVehicleType: optStr,
+  // Numbers
+  hoursPerPeriod: z.number().optional(),
+  daysPerPeriod: z.number().optional(),
+  leaveEntitlement: z.number().optional(),
+  splitZigValue: z.number().optional(),
+  splitUsdPercent: z.number().optional(),
+  taxDirectivePerc: z.number().optional(),
+  taxDirectiveAmt: z.number().optional(),
+  taxCredits: z.number().optional(),
+  motorVehicleBenefit: z.number().optional(),
+  // Dates
+  dischargeDate: z.string().optional().transform(v => v === '' ? undefined : v),
+}).passthrough();
 
 router.post('/', requirePermission('manage_employees'), validateBody(createEmployeeSchema), async (c) => {
   const body = c.req.valid('json');
@@ -188,14 +226,19 @@ router.post('/', requirePermission('manage_employees'), validateBody(createEmplo
   }
 
   try {
+    // Strip fields that don't exist on the Employee model (e.g. bankAccounts array, grade string)
+    const { bankAccounts, grade, splitZigMode, splitZigValue, splitUsdPercent, ...employeeFields } = body as any;
     const employee = await prisma.employee.create({
       data: {
-        ...body,
+        ...employeeFields,
         clientId,
         companyId: body.companyId || c.get('companyId') || '',
         startDate: new Date(body.startDate),
         dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
         baseRate: body.baseRate,
+        ...(splitZigMode !== undefined && { splitZigMode }),
+        ...(splitZigValue !== undefined && { splitZigValue }),
+        ...(splitUsdPercent !== undefined && { splitUsdPercent }),
       },
       select: EMPLOYEE_SELECT,
     });
