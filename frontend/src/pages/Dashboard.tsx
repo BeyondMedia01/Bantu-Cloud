@@ -10,7 +10,6 @@ import MiniCalendar from '../components/dashboard/MiniCalendar';
 import RemindersCard from '../components/dashboard/RemindersCard';
 import FilingDeadlinesCard from '../components/dashboard/FilingDeadlinesCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
