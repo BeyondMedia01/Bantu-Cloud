@@ -209,7 +209,7 @@ function calculatePaye({
   const totalDeductions = nssaEmployee + effectivePension + medicalAid + finalTotalPaye;
   const netSalary       = cashEarnings - totalDeductions;
 
-  return {
+return {
     grossSalary:      r2(cashEarnings),
     taxableBenefits:  r2(taxableBenefits),
     exemptBonus:      r2(exemptBonus),
@@ -220,12 +220,11 @@ function calculatePaye({
     nssaEmployer:     r2(nssaEmployer),
     wcifEmployer:     r2(wcifEmployer),
     zimdefEmployer:   r2(zimdefEmployer),
-    sdfContribution:  r2(sdfContribution),
     taxableIncome:    r2(taxableIncome),
-    payeBeforeLevy:   r2(finalPayeNet),
+    payeBeforeLevy:   r2(payeBeforeLevy),
     medicalAidCredit: r2(medicalAidCredit),
+    taxCreditsApplied: r2(payeBeforeLevy > 0 ? (medicalAidCredit + taxCredits) : 0),
     aidsLevy:         r2(finalAidsLevy),
-    taxCreditsApplied: r2(payeBeforeLevy > 0 ? (payeBeforeLevy + (payeBeforeLevy * aidsLevyRate) - finalTotalPaye) : (medicalAidCredit + taxCredits)),
     totalPaye:        r2(finalTotalPaye),
     netSalary:        r2(netSalary),
   };
