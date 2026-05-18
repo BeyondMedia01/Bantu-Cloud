@@ -113,7 +113,7 @@ export function useDashboardData(): DashboardData {
     reminders: remindersQuery.data ?? { birthdays: [], anniversaries: [] },
     trend: trendQuery.data ?? [],
     holidays: holidaysQuery.data ?? [],
-    exchangeRate: exchangeRateQuery.data,
+    exchangeRate: exchangeRateQuery.data ?? undefined,
     exchangeRateLoading: exchangeRateQuery.isLoading,
     loading,
     hasCompany,
