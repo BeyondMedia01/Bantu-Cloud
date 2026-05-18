@@ -1,4 +1,4 @@
-import { getToken, logout, saveAuthData } from '../lib/auth';
+import { getToken, logout, saveAuthData, getRefreshToken, getStoredUserId } from '../lib/auth';
 
 const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 const DESKTOP_CLOUD_URL = import.meta.env.VITE_DESKTOP_API_URL as string || 'https://api.payroll.thinkbantu.com/api';
@@ -54,13 +54,17 @@ async function request<T = any>(method: string, url: string, body?: any, options
   if (response.status === 401) {
     // The refresh token is an httpOnly cookie — send it automatically via credentials: 'include'.
     try {
+      const storedRefreshToken = getRefreshToken();
+      const storedUserId = getStoredUserId();
+      if (!storedRefreshToken || !storedUserId) throw new Error('No refresh token');
       const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
         method: 'POST',
-        credentials: 'include',   // sends the bantu_rt httpOnly cookie
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: storedUserId, refreshToken: storedRefreshToken }),
       });
       if (refreshRes.ok) {
         const data = await refreshRes.json();
-        saveAuthData(data.token, sessionStorage.getItem('activeCompanyId') ?? undefined, undefined, data.userId);
+        saveAuthData(data.token, sessionStorage.getItem('activeCompanyId') ?? undefined, data.refreshToken, data.userId);
         // Retry the original request with the new access token
         const retryHeaders = { ...reqHeaders, Authorization: `Bearer ${data.token}` };
         const retryOpts: RequestInit = { ...fetchOpts, headers: retryHeaders };

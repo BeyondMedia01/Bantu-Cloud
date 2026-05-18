@@ -161,7 +161,7 @@ const Payslips: React.FC = () => {
   const isDual = run?.dualCurrency;
   const ccy = run?.currency || 'USD';
 
-  const thCls = 'px-5 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap select-none';
+  const thCls = 'tbl-th';
 
   return (
     <div>
@@ -289,7 +289,7 @@ const Payslips: React.FC = () => {
                   <th scope="col" className={thCls}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="tbl-body">
                 {payslips.map((p: any) => {
                   // Build lookup maps for quick access
                   const earningMap: Record<string, string[]> = {};

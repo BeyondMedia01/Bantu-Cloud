@@ -3,7 +3,7 @@ const IS_DESKTOP = typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__
 let _token: string | null = null;
 const STORAGE_KEY = 'bantu_auth_token';
 const USER_ID_KEY = 'bantu_user_id';
-// Refresh token is stored as an httpOnly cookie by the server — never in JS storage.
+const REFRESH_TOKEN_KEY = 'bantu_rt';
 
 export type AppModule = 'PEOPLE' | 'TIME_LEAVE' | 'PAYROLL' | 'COMPLIANCE' | 'REPORTS' | 'SETTINGS' | 'RECRUITMENT' | 'PERFORMANCE' | 'EXPENSES' | 'ONBOARDING' | 'TRAINING' | 'ASSETS' | 'SUCCESSION' | 'SURVEYS' | 'ANALYTICS';
 export type ModuleAction = 'VIEW' | 'EDIT' | 'DELETE' | 'APPROVE' | 'EXPORT' | 'RUN' | 'CONFIGURE';
@@ -70,12 +70,13 @@ export function getStoredUserId(): string | null {
 export async function logout(): Promise<void> {
   // Tell the server to revoke the session and clear the httpOnly refresh cookie.
   const token = getToken();
-  if (token && !IS_DESKTOP) {
+  const refreshToken = getRefreshToken();
+  if (token && refreshToken && !IS_DESKTOP) {
     try {
       await fetch(`${(import.meta.env.VITE_API_URL ?? 'http://localhost:5005').replace(/\/api\/?$/, '').replace(/\/+$/, '')}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ refreshToken }),
       });
     } catch { /* best-effort */ }
   }
@@ -86,12 +87,17 @@ export async function logout(): Promise<void> {
   if (!IS_DESKTOP) {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(USER_ID_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   } else {
     import('@tauri-apps/api/core').then(m => m.invoke('clear_license_token')).catch(() => {});
   }
 }
 
-export function saveAuthData(token: string, companyId?: string, _refreshToken?: string, userId?: string): void {
+export function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function saveAuthData(token: string, companyId?: string, refreshToken?: string, userId?: string): void {
   _token = token;
   if (companyId) {
     sessionStorage.setItem('activeCompanyId', companyId);
@@ -100,7 +106,7 @@ export function saveAuthData(token: string, companyId?: string, _refreshToken?: 
   }
   if (!IS_DESKTOP) {
     localStorage.setItem(STORAGE_KEY, token);
-    // refreshToken is now an httpOnly cookie set by the server — not stored in JS.
+    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     if (userId) localStorage.setItem(USER_ID_KEY, userId);
   } else {
     sessionStorage.setItem('token', token);

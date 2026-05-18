@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, DollarSign, Calculator, Percent, FileText, BarChart3, ShieldCheck, History, ChevronRight, Download } from 'lucide-react';
+import { Settings as SettingsIcon, DollarSign, Calculator, Percent, FileText, BarChart3, ShieldCheck, History, ChevronRight, Download, User } from 'lucide-react';
 import CurrencyRates from './CurrencyRates';
 import TaxConfiguration from './TaxConfiguration';
 import PayTransactions from './PayTransactions';
@@ -12,12 +12,13 @@ import PayslipExports from './PayslipExports';
 import SystemSettings from './SystemSettings';
 import PayrollUsers from './PayrollUsers';
 import PayrollLogs from './PayrollLogs';
+import AccountSettings from './AccountSettings';
 
 interface SettingsProps {
   activeCompanyId?: string | null;
 }
 
-type SettingsSection = 'rates' | 'tax' | 'pay-codes' | 'ledger' | 'summaries' | 'nssa' | 'audit' | 'core' | 'exports' | 'globals' | 'users' | 'logs';
+type SettingsSection = 'rates' | 'tax' | 'pay-codes' | 'ledger' | 'summaries' | 'nssa' | 'audit' | 'core' | 'exports' | 'globals' | 'users' | 'logs' | 'account';
 
 const Settings = ({ activeCompanyId }: SettingsProps) => {
   const [activeTab, setActiveTab] = useState<SettingsSection>('rates');
@@ -34,6 +35,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
     { id: 'logs', label: 'Payroll Logs', icon: FileText, group: 'Compliance' },
     { id: 'users', label: 'Access Control', icon: ShieldCheck, group: 'Configuration' },
     { id: 'globals', label: 'Global Configurations', icon: SettingsIcon, group: 'Configuration' },
+    { id: 'account', label: 'My Account', icon: User, group: 'Account' },
   ];
 
   return (
@@ -50,7 +52,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
         </div>
         
         <div className="p-4 space-y-6">
-          {['Configuration', 'Payroll Assets', 'Compliance'].map(group => (
+          {['Configuration', 'Payroll Assets', 'Compliance', 'Account'].map(group => (
             <div key={group}>
               <h3 className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">{group}</h3>
               <div className="space-y-1">
@@ -91,6 +93,7 @@ const Settings = ({ activeCompanyId }: SettingsProps) => {
           { activeTab === 'globals' && <SystemSettings activeCompanyId={activeCompanyId} />}
           { activeTab === 'users' && <PayrollUsers activeCompanyId={activeCompanyId} />}
           { activeTab === 'logs' && <PayrollLogs activeCompanyId={activeCompanyId} />}
+          { activeTab === 'account' && <AccountSettings />}
         </div>
       </main>
     </div>
