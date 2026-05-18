@@ -96,7 +96,15 @@ async function request<T = any>(method: string, url: string, body?: any, options
     return { data: await response.blob() as unknown as T, headers: resHeaders };
   }
 
-  const json = await response.json();
+  let json: any;
+  try {
+    json = await response.json();
+  } catch {
+    throw Object.assign(
+      new Error(`Server error (${response.status} ${response.statusText})`),
+      { status: response.status },
+    );
+  }
   if (!response.ok) {
     if (response.status === 403) {
       if (json?.trialExpired) {
