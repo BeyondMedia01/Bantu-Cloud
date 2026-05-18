@@ -77,7 +77,7 @@ export const TaxTableAPI = {
 
 export const CurrencyRateAPI = {
   getAll: (params?: Record<string, string>) => http.get<any[]>('/currency-rates', { params }),
-  getLatest: () => http.get<CurrencyRate>('/currency-rates/latest'),
+  getLatest: () => http.get<CurrencyRate | null>('/currency-rates/latest'),
   create: (data: any) => http.post('/currency-rates', data),
   update: (id: string, data: any) => http.put(`/currency-rates/${id}`, data),
   delete: (id: string) => http.delete(`/currency-rates/${id}`),

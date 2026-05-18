@@ -27,18 +27,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/currency-rates/latest — most recent rate for USD→ZiG (used by payroll engine)
+// GET /api/currency-rates/latest — most recent rate for a currency pair (used by payroll engine)
+// Returns { rate: null } (200) when no rate exists — single-currency companies never set one.
 router.get('/latest', async (req, res) => {
   if (!req.companyId) return res.status(400).json({ message: 'Company context missing' });
   const fromCurrency = req.query.fromCurrency || 'USD';
   const toCurrency   = req.query.toCurrency   || 'ZiG';
+  if (fromCurrency === toCurrency) return res.json({ rate: 1, fromCurrency, toCurrency, source: 'IMPLICIT' });
   try {
     const rate = await prisma.currencyRate.findFirst({
       where: { companyId: req.companyId, fromCurrency, toCurrency },
       orderBy: { effectiveDate: 'desc' },
     });
-    if (!rate) return res.status(404).json({ message: 'No rate found. Add a rate under Currency Rates settings.' });
-    res.json(rate);
+    res.json(rate ?? null);
   } catch (error) {
     console.error('Currency rates latest error:', error);
     res.status(500).json({ message: 'Internal server error' });
