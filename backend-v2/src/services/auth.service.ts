@@ -4,7 +4,7 @@ import { UserRole } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { signToken, createRefreshToken } from '../lib/auth';
 import { validateLicense } from '../lib/license';
-import { sendPasswordReset } from '../lib/mailer';
+import { sendPasswordReset, sendTrialSignupWelcome } from '../lib/mailer';
 import { generateSecret, verifyTOTP, totpUri } from '../lib/totp';
 
 const MAX_LOGIN_ATTEMPTS = 3;
@@ -99,8 +99,13 @@ export async function login(email: string, password: string) {
   `;
 
   const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
-  const companyId = user.employee?.companyId ?? null;
+  let companyId = user.employee?.companyId ?? null;
   const employeeId = user.employee?.id ?? null;
+
+  if (!companyId && clientId) {
+    const firstCompany = await prisma.company.findFirst({ where: { clientId }, select: { id: true } });
+    companyId = firstCompany?.id ?? null;
+  }
 
   if (user.totpEnabled && user.totpSecret) {
     const tempToken = await signToken(
@@ -134,8 +139,13 @@ export async function completeTwoFactorLogin(userId: string, code: string) {
   if (!valid) throw Object.assign(new Error('Invalid authenticator code'), { status: 401 });
 
   const clientId = user.clientAdmin?.clientId ?? user.employee?.clientId ?? null;
-  const companyId = user.employee?.companyId ?? null;
+  let companyId = user.employee?.companyId ?? null;
   const employeeId = user.employee?.id ?? null;
+
+  if (!companyId && clientId) {
+    const firstCompany = await prisma.company.findFirst({ where: { clientId }, select: { id: true } });
+    companyId = firstCompany?.id ?? null;
+  }
 
   const [token, refreshToken] = await Promise.all([
     signToken({ userId: user.id, email: user.email, role: user.role, clientId: clientId ?? undefined, companyId: companyId ?? undefined, employeeId: employeeId ?? undefined }),
@@ -277,6 +287,8 @@ export async function trialSignup(data: {
     signToken({ userId: user.id, email: user.email, role: user.role, clientId: client.id, companyId: company.id }),
     createRefreshToken(user.id),
   ]);
+
+  sendTrialSignupWelcome(email, fullName, companyName.trim()).catch(console.error);
 
   return { token: jwt, refreshToken, role: user.role, clientId: client.id, companyId: company.id, name: fullName };
 }
