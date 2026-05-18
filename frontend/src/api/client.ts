@@ -8,7 +8,7 @@ export { UserAPI, EmployeeSelfAPI } from './user.api';
 
 export { CompanyAPI, BranchAPI, DepartmentAPI, SubCompanyAPI, GradeAPI } from './org.api';
 
-export { EmployeeAPI, EmployeeSalaryStructureAPI } from './employees.api';
+export { EmployeeAPI, EmployeeSalaryStructureAPI, BankAccountAPI } from './employees.api';
 
 export {
   PayrollAPI, PayrollCalendarAPI, PayrollInputAPI, PayrollCoreAPI,
@@ -16,7 +16,7 @@ export {
   PayslipAPI, UtilitiesAPI,
 } from './payroll.api';
 
-export { LeaveAPI, LeavePolicyAPI, LeaveBalanceAPI, LeaveEncashmentAPI } from './leave.api';
+export { LeaveAPI, LeavePolicyAPI, LeaveBalanceAPI, LeaveEncashmentAPI, LeaveTransactionAPI, LeaveAllocationAPI } from './leave.api';
 export { LoanAPI } from './loans.api';
 export { AttendanceAPI, ShiftAPI, RosterAPI, DeviceAPI } from './attendance.api';
 
@@ -41,3 +41,6 @@ export {
 } from './advanced.api';
 
 export { IntelligenceAPI } from './platform.api';
+
+export { TrialAPI } from './trial.api';
+export type { TrialStatus, TrialStatusResponse } from './trial.api';

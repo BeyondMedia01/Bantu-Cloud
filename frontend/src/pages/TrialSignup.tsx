@@ -35,7 +35,7 @@ const TrialSignup: React.FC = () => {
     try {
       const res = await AuthAPI.trialSignup(form);
       const { token, companyId, role } = res.data;
-      saveAuthData(token, companyId);
+      saveAuthData(token, companyId ?? undefined);
       if (role === 'PLATFORM_ADMIN') navigate('/admin');
       else navigate('/dashboard');
     } catch (err: any) {
