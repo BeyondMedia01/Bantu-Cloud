@@ -284,7 +284,7 @@ const Login: React.FC = () => {
             {!IS_DESKTOP && (
               <div className="text-center mt-4 pt-4 border-t border-border">
                 <Link to="/trial-signup" className="text-sm font-bold text-accent-green hover:underline">
-                  Start a free 14-day trial
+                  Start a free 30-day trial
                 </Link>
               </div>
             )}

@@ -131,7 +131,13 @@ router.delete('/courses/:id', requirePermission('manage_training'), async (c) =>
 // ─── Enrollments ──────────────────────────────────────────────────────────────
 
 router.get('/courses/:id/enrollments', requirePermission('view_training'), async (c) => {
+  const companyId = c.get('companyId');
+  if (!companyId) return c.json({ message: 'Company context required' }, 400);
+
   const { id } = c.req.param();
+  const course = await prisma.trainingCourse.findUnique({ where: { id }, select: { companyId: true } });
+  if (!course || course.companyId !== companyId) return c.json({ message: 'Not found' }, 404);
+
   const enrollments = await prisma.trainingEnrollment.findMany({
     where: { courseId: id },
     include: { Employee: { select: { firstName: true, lastName: true, employeeCode: true } } },
@@ -240,7 +246,13 @@ router.post('/courses/:id/certificate', requirePermission('manage_training'), va
 });
 
 router.get('/courses/:id/certificates', requirePermission('view_training'), async (c) => {
+  const companyId = c.get('companyId');
+  if (!companyId) return c.json({ message: 'Company context required' }, 400);
+
   const { id } = c.req.param();
+  const course = await prisma.trainingCourse.findUnique({ where: { id }, select: { companyId: true } });
+  if (!course || course.companyId !== companyId) return c.json({ message: 'Not found' }, 404);
+
   const certs = await prisma.trainingCertificate.findMany({
     where: { courseId: id },
     include: { Employee: { select: { firstName: true, lastName: true, employeeCode: true } } },

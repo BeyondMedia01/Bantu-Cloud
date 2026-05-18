@@ -9,6 +9,7 @@ import { initAuth, authenticateToken } from './lib/auth';
 import { initMailer } from './lib/mailer';
 import { initStorage } from './lib/storage';
 import { companyContext } from './middleware/companyContext';
+import { trialGuard } from './middleware/trialGuard';
 
 import authDomain from './domains/auth.domain';
 import userDomain from './domains/user.domain';
@@ -53,7 +54,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use('*', async (c, next) => {
   initPrisma(c.env.DATABASE_URL);
   initAuth(c.env.JWT_SECRET);
-  initMailer(c.env.RESEND_API_KEY, c.env.FROM_EMAIL || 'Bantu Payroll <no-reply@payroll.thinkbantu.com>', c.env.FRONTEND_URL || 'https://payroll.thinkbantu.com');
+  initMailer(c.env.RESEND_API_KEY, c.env.FROM_EMAIL || 'Bantu Payroll <no-reply@thinkbantu.com>', c.env.FRONTEND_URL || 'https://payroll.thinkbantu.com');
   initStorage(c.env.R2_ACCOUNT_ID, c.env.R2_ACCESS_KEY_ID, c.env.R2_SECRET_ACCESS_KEY, c.env.R2_BUCKET_NAME || 'bantu-production');
   await next();
 });
@@ -113,6 +114,7 @@ app.route('/api', userApi);
 const api = new Hono();
 api.use('*', authenticateToken);
 api.use('*', companyContext);
+api.use('*', trialGuard);
 api.route('/', employeesDomain);
 api.route('/', payrollDomain);
 api.route('/', leaveDomain);

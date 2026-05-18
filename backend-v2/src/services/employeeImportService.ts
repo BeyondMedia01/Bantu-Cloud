@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { checkEmployeeCap } from '../lib/license';
 
 function isValidTin(tin: string): boolean {
   if (!tin) return true;
@@ -151,6 +152,30 @@ export async function processEmployeeImport(fileText: string, companyId: string,
       const deptName = get(row, 'Department Name');
       if (branchName) body.branchId = branchMap[branchName.toLowerCase()] || undefined;
       if (deptName) body.departmentId = deptMap[deptName.toLowerCase()] || undefined;
+
+      const nationalId = body.nationalId as string;
+      const accountNumber = body.accountNumber as string;
+      const bankName = body.bankName as string;
+
+      const duplicates: string[] = [];
+      if (nationalId) {
+        const existing = await prisma.employee.findFirst({ where: { companyId, nationalId }, select: { id: true } });
+        if (existing) duplicates.push('National ID');
+      }
+      if (tin) {
+        const existing = await prisma.employee.findFirst({ where: { companyId, tin }, select: { id: true } });
+        if (existing) duplicates.push('TIN');
+      }
+      if (accountNumber && bankName) {
+        const existing = await prisma.employee.findFirst({ where: { companyId, accountNumber, bankName }, select: { id: true } });
+        if (existing) duplicates.push('Bank Account');
+      }
+      if (duplicates.length > 0) throw new Error(`Duplicate detected: ${duplicates.join(', ')} already exists`);
+
+      const capCheck = await checkEmployeeCap(clientId);
+      if (!capCheck.withinCap) {
+        throw new Error(capCheck.reason || `Employee cap reached (${capCheck.cap}). Upgrade your plan to add more employees.`);
+      }
 
       const data = pickEmployeeFields(body);
       Object.keys(data).forEach(k => (data as any)[k] === undefined && delete (data as any)[k]);

@@ -157,12 +157,7 @@ router.get('/nssa-p4a-excel', requirePermission('export_reports'), async (c) => 
     tot.basic   += basic;   tot.actual  += n2(ps.gross);
   }
 
-  const totalsRow = [
-    'TOTALS', '', '', '', '', '', '', '', '', '',
-    n2(tot.pobsIns), n2(tot.pobsCon), n2(tot.basic), n2(tot.actual),
-  ];
-
-  const aoa = [HEADERS, ...dataRows, totalsRow];
+  const aoa = [HEADERS, ...dataRows];
   const ws = XLSX.utils.aoa_to_sheet(aoa, { cellDates: true, dateNF: 'DD/MM/YYYY' });
 
   // Column widths
@@ -178,11 +173,8 @@ router.get('/nssa-p4a-excel', requirePermission('export_reports'), async (c) => 
   }
 
   styleHeaders(ws, HEADERS.length);
-  styleTotalsRow(ws, dataRows.length + 1, HEADERS.length);
 
-  // Freeze header row + auto-filter (matches v1)
   ws['!freeze'] = { ySplit: 1 };
-  ws['!autofilter'] = { ref: `A1:${XLSX.utils.encode_col(HEADERS.length - 1)}1` };
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'NSSA P4A');
@@ -402,8 +394,7 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (c) =
       for (let i = 0; i < numVals.length; i++) totals[i] += numVals[i];
     }
 
-    const totalsRow: (string | number)[] = ['TOTALS', '', '', '', ...totals.map(v => n2(v))];
-    const aoa = [HEADERS, ...dataRows, totalsRow];
+    const aoa = [HEADERS, ...dataRows];
     const ws = XLSX.utils.aoa_to_sheet(aoa);
 
     // Column widths: first 4 wider, rest standard
@@ -418,13 +409,10 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (c) =
     }
 
     styleHeaders(ws, HEADERS.length);
-    styleTotalsRow(ws, dataRows.length + 1, HEADERS.length);
 
     // Freeze first 3 columns + header row (matches v1 ExcelJS xSplit:3 ySplit:1)
     ws['!freeze'] = { xSplit: 3, ySplit: 1 };
 
-    // Auto-filter on header row
-    ws['!autofilter'] = { ref: `A1:${XLSX.utils.encode_col(HEADERS.length - 1)}1` };
 
     return ws;
   }

@@ -34,9 +34,9 @@ const TrialSignup: React.FC = () => {
     setLoading(true);
     try {
       const res = await AuthAPI.trialSignup(form);
-      const { token, companyId } = res.data;
+      const { token, companyId, userId } = res.data;
       // refreshToken is not returned in the JSON body — the server sets it as an httpOnly cookie.
-      saveAuthData(token, companyId ?? undefined);
+      saveAuthData(token, companyId ?? undefined, undefined, userId);
       navigate('/trial-onboarding');
     } catch (err: any) {
       setError(err.message || 'Trial signup failed');
@@ -55,7 +55,7 @@ const TrialSignup: React.FC = () => {
       <div className="w-full max-w-[480px] bg-primary rounded-2xl border border-border shadow-sm p-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-2">Start your free trial</h1>
-          <p className="text-muted-foreground font-medium">14-day free trial, no credit card required</p>
+          <p className="text-muted-foreground font-medium">30-day free trial, no credit card required</p>
         </div>
 
         {error && (

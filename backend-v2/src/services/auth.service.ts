@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma';
 import { signToken, createRefreshToken } from '../lib/auth';
 import { validateLicense } from '../lib/license';
 import { sendPasswordReset, sendTrialSignupWelcome } from '../lib/mailer';
+import { seedClientDefaults } from './seed.service';
 import { generateSecret, verifyTOTP, totpUri } from '../lib/totp';
 
 const MAX_LOGIN_ATTEMPTS = 3;
@@ -263,25 +264,27 @@ export async function trialSignup(data: {
 
   const { randomBytes } = await import('node:crypto');
   const token = randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await prisma.licenseToken.create({
     data: {
       clientId: client.id,
       token,
       expiresAt,
-      employeeCap: 5,
+      employeeCap: 10,
       active: true,
     },
   });
 
-  // Create Trial record — company is already created above so start at step 1
+  // Create Trial record — onboarding wizard starts at step 0 (company setup)
   await (prisma as any).$queryRawUnsafe(
     `INSERT INTO "Trial" ("id","clientId","expiresAt","employeeCap","status","onboardingStep","updatedAt")
-     VALUES (gen_random_uuid()::text,$1,NOW() + INTERVAL '30 days',10,'ACTIVE',1,NOW())
+     VALUES (gen_random_uuid()::text,$1,NOW() + INTERVAL '30 days',10,'ACTIVE',0,NOW())
      ON CONFLICT ("clientId") DO NOTHING`,
     client.id,
   );
+
+  try { await seedClientDefaults(client.id); } catch (e: any) { console.error('[seedClientDefaults]', e?.message); }
 
   const [jwt, refreshToken] = await Promise.all([
     signToken({ userId: user.id, email: user.email, role: user.role, clientId: client.id, companyId: company.id }),
@@ -290,7 +293,7 @@ export async function trialSignup(data: {
 
   sendTrialSignupWelcome(email, fullName, companyName.trim()).catch(console.error);
 
-  return { token: jwt, refreshToken, role: user.role, clientId: client.id, companyId: company.id, name: fullName };
+  return { token: jwt, refreshToken, role: user.role, clientId: client.id, companyId: company.id, name: fullName, userId: user.id };
 }
 
 export async function syncCredentials(data: {

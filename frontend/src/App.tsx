@@ -86,6 +86,7 @@ const PublicHolidays = React.lazy(() => import('./pages/utilities/PublicHolidays
 const BackupRestore = React.lazy(() => import('./pages/utilities/BackupRestore'));
 const TaxTableSettings = React.lazy(() => import('./pages/TaxTableSettings'));
 const NecTables = React.lazy(() => import('./pages/NecTables'));
+const TradeUnionRates = React.lazy(() => import('./pages/utilities/TradeUnionRates'));
 
 // Shifts, Roster & Attendance
 const Shifts = React.lazy(() => import('./pages/shifts/Shifts'));
@@ -271,6 +272,7 @@ const App: React.FC = () => {
                 <Route path="/utilities/statutory-rates" element={<StatutoryRates />} />
                 <Route path="/utilities/work-period" element={<WorkPeriodSettings />} />
                 <Route path="/utilities/nec-tables" element={<NecTables />} />
+                <Route path="/utilities/trade-union-rates" element={<TradeUnionRates />} />
                 <Route path="/utilities/nssa" element={<NSSASettings />} />
                 <Route path="/utilities/payroll-calendar" element={<PayrollCalendar />} />
                 <Route path="/utilities/public-holidays" element={<PublicHolidays />} />

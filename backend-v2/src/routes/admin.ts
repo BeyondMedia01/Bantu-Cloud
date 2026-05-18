@@ -144,13 +144,15 @@ router.put('/settings', adminOnly, validateBody(updateSettingSchema), async (c) 
 });
 
 router.get('/stats', adminOnly, async (c) => {
-  const [clients, users, employees] = await Promise.all([
+  const [clientCount, userCount, employeeCount, activeLicenseCount, settingCount] = await Promise.all([
     prisma.client.count(),
     prisma.user.count(),
     prisma.employee.count(),
+    prisma.licenseToken.count({ where: { active: true } }),
+    prisma.systemSetting.count(),
   ]);
   const aidsLevyRate = await getSettingAsString('AIDS_LEVY_RATE');
-  return c.json({ clients, users, employees, aidsLevyRate });
+  return c.json({ clientCount, userCount, employeeCount, activeLicenseCount, settingCount, aidsLevyRate });
 });
 
 router.get('/logs', adminOnly, async (c) => {
@@ -180,6 +182,22 @@ router.get('/logs', adminOnly, async (c) => {
     prisma.auditLog.count({ where }),
   ]);
   return c.json({ logs, total, page, limit });
+});
+
+router.get('/clients', adminOnly, async (c) => {
+  const clients = await prisma.client.findMany({
+    include: { licenseTokens: true, _count: { select: { companies: true, users: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
+  return c.json(clients);
+});
+
+router.get('/licenses', adminOnly, async (c) => {
+  const licenses = await prisma.licenseToken.findMany({
+    include: { client: { select: { name: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
+  return c.json(licenses);
 });
 
 export default router;

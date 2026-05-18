@@ -6,6 +6,7 @@ import { prisma, getSql } from '../lib/prisma';
 import { requirePermission } from '../lib/permissions';
 import { audit } from '../lib/audit';
 import { denyUnlessCompany, denyUnlessClient } from '../lib/ownership';
+import { checkEmployeeCap } from '../lib/license';
 
 const router = new Hono();
 
@@ -127,6 +128,14 @@ router.post('/', requirePermission('manage_payroll'), validateBody(createRunSche
   const companyId = c.get('companyId');
   const clientId = c.get('clientId');
   if (!companyId) return c.json({ message: 'x-company-id header required' }, 400);
+
+  if (clientId) {
+    const capCheck = await checkEmployeeCap(clientId);
+    if (!capCheck.withinCap) {
+      const msg = capCheck.reason || `Employee cap reached (${capCheck.cap}). Upgrade your plan to run payroll.`;
+      return c.json({ message: msg }, 403);
+    }
+  }
 
   const body = c.req.valid('json');
   const startDate = new Date(body.startDate);
@@ -474,18 +483,20 @@ router.get('/:runId/payslips/:payslipId/pdf', async (c) => {
     historicalTransactions,
   });
 
-  // Fetch leave balance
+  // Fetch leave balance (gracefully skip if tables not yet migrated)
   const leaveYear = new Date(run.startDate).getFullYear();
-  const annualPolicy = await prisma.leavePolicy.findFirst({
-    where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { name: { contains: 'Annual', mode: 'insensitive' } } },
-  });
   let leaveBalance: number | null = null, leaveTaken: number | null = null;
-  if (annualPolicy) {
-    const bal = await prisma.leaveBalance.findFirst({
-      where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveTypeId: annualPolicy.leaveTypeId },
+  try {
+    const annualPolicy = await prisma.leavePolicy.findFirst({
+      where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { name: { contains: 'Annual', mode: 'insensitive' } } },
     });
-    if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
-  }
+    if (annualPolicy) {
+      const bal = await prisma.leaveBalance.findFirst({
+        where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveTypeId: annualPolicy.leaveTypeId },
+      });
+      if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
+    }
+  } catch { /* leave balance unavailable */ }
 
   const { generatePayslipHtml } = await import('../lib/payslipFormatter');
   let html = generatePayslipHtml({ payslip, transactions, ytd, run, emp, leaveBalance, leaveTaken });
@@ -496,6 +507,7 @@ router.get('/:runId/payslips/:payslipId/pdf', async (c) => {
 });
 
 router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payroll'), async (c) => {
+  try {
   const payslip = await prisma.payslip.findUnique({
     where: { id: c.req.param('payslipId') },
     include: {
@@ -544,18 +556,20 @@ router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payro
       historicalTransactions,
     });
 
-    // Fetch leave balance
+    // Fetch leave balance (gracefully skip if tables not yet migrated)
     const leaveYear = new Date(run.startDate).getFullYear();
-    const annualPolicy = await prisma.leavePolicy.findFirst({
-      where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { name: { contains: 'Annual', mode: 'insensitive' } } },
-    });
     let leaveBalance: number | null = null, leaveTaken: number | null = null;
-    if (annualPolicy) {
-      const bal = await prisma.leaveBalance.findFirst({
-        where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveTypeId: annualPolicy.leaveTypeId },
+    try {
+      const annualPolicy = await prisma.leavePolicy.findFirst({
+        where: { companyId: run.companyId, isActive: true, accrualRate: { gt: 0 }, leaveType: { name: { contains: 'Annual', mode: 'insensitive' } } },
       });
-      if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
-    }
+      if (annualPolicy) {
+        const bal = await prisma.leaveBalance.findFirst({
+          where: { employeeId: payslip.employeeId, companyId: run.companyId, year: leaveYear, leaveTypeId: annualPolicy.leaveTypeId },
+        });
+        if (bal) { leaveBalance = bal.balance; leaveTaken = bal.taken; }
+      }
+    } catch { /* leave balance unavailable */ }
 
     const { generatePayslipHtml, generatePayslipEmailHtml } = await import('../lib/payslipFormatter');
     const html = generatePayslipHtml({ payslip, transactions, ytd, run, emp, leaveBalance, leaveTaken });
@@ -575,6 +589,10 @@ router.post('/:runId/payslips/:payslipId/send', requirePermission('process_payro
   });
 
   return c.json({ message: 'Payslip sent', to: payslip.employee.email });
+  } catch (err: any) {
+    console.error('[payslip send]', err?.message, err?.stack?.split('\n')[0]);
+    return c.json({ message: err?.message || 'Failed to send payslip' }, 500);
+  }
 });
 
 router.get('/payroll-inputs', requirePermission('view_payroll'), async (c) => {

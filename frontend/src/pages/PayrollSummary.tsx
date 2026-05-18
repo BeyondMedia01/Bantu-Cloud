@@ -2,12 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Download, Users, TrendingUp, TrendingDown,
-  DollarSign, Banknote, ChevronDown, FileText, Eye, X,
+  DollarSign, FileText, Eye, X,
 } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
+import { PayrollAPI, StatutoryExportAPI } from '../api/client';
 import { useToast } from '../context/ToastContext';
-import { Dropdown } from '../components/ui/dropdown';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { DataTable } from '@/components/ui/data-table';
 
@@ -121,19 +120,6 @@ const PayrollSummary: React.FC = () => {
       const url = URL.createObjectURL(new Blob([res.data], { type: contentType }));
       setPreviewUrl(url);
     } catch { showToast('Failed to preview Payroll Summary', 'error'); }
-    finally { setExporting(''); }
-  };
-
-  const handleBankExport = async (format: 'cbz' | 'stanbic' | 'fidelity') => {
-    if (!runId) return;
-    setExporting(format);
-    try {
-      const res = await BankFileAPI.download(format, runId);
-      const url = URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement('a');
-      a.href = url; a.download = `${format.toUpperCase()}-Payments-${runId}.csv`; a.click();
-      URL.revokeObjectURL(url);
-    } catch { showToast('Failed to generate bank file', 'error'); }
     finally { setExporting(''); }
   };
 
@@ -497,20 +483,6 @@ const PayrollSummary: React.FC = () => {
                 <ActionButton label={exporting === 'csv' ? 'Exporting…' : 'Export CSV'} icon={<Download size={13} />} onClick={() => handleExport('csv')} disabled={!!exporting} />
                 <ActionButton label="ZIMRA PAYE" icon={<FileText size={13} />} onClick={() => handleExport('zimra')} disabled={!!exporting} />
                 <ActionButton label="NSSA P4A" icon={<FileText size={13} />} onClick={() => handleExport('nssa')} disabled={!!exporting} />
-                <Dropdown
-                  align="right"
-                  disabled={!!exporting}
-                  trigger={(isOpen) => (
-                    <button disabled={!!exporting}
-                      className="w-full flex items-center justify-between gap-1.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
-                      <span className="flex items-center gap-1.5"><Banknote size={13} /> Bank EFT</span>
-                      <ChevronDown size={11} className={isOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
-                    </button>
-                  )}
-                  sections={[{
-                    items: (['cbz', 'stanbic', 'fidelity'] as const).map(f => ({ label: f.toUpperCase(), onClick: () => handleBankExport(f) })),
-                  }]}
-                />
               </div>
             </div>
           )}

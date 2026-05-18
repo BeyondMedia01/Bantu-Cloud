@@ -136,11 +136,13 @@ router.post('/', requirePermission('update_settings'), validateBody(createSchema
 
 router.get('/:id', async (c) => {
   try {
+    const clientId = c.get('clientId');
     const tc = await prisma.transactionCode.findUnique({
       where: { id: c.req.param('id') },
       include: INCLUDE_RULES,
     });
     if (!tc) return c.json({ message: 'Transaction code not found' }, 404);
+    if (clientId && tc.clientId !== clientId) return c.json({ message: 'Access denied' }, 403);
     return c.json(tc);
   } catch (err: any) {
     console.error('[transactionCodes GET /:id]', err?.message);
@@ -177,6 +179,10 @@ router.delete('/:id', requirePermission('update_settings'), async (c) => {
 
 router.get('/:id/rules', async (c) => {
   try {
+    const clientId = c.get('clientId');
+    const tc = await prisma.transactionCode.findUnique({ where: { id: c.req.param('id') }, select: { clientId: true } });
+    if (!tc) return c.json({ message: 'Transaction code not found' }, 404);
+    if (clientId && tc.clientId !== clientId) return c.json({ message: 'Access denied' }, 403);
     const rules = await prisma.transactionCodeRule.findMany({
       where: { transactionCodeId: c.req.param('id') },
       orderBy: { priority: 'asc' },

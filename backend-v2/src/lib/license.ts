@@ -50,8 +50,31 @@ export async function reactivateLicense(clientId: string, expiryMonths = 12) {
 export async function checkEmployeeCap(clientId: string) {
   const license = await prisma.licenseToken.findUnique({ where: { clientId } });
   const subscription = await prisma.subscription.findUnique({ where: { clientId } });
-  const cap = license?.employeeCap ?? subscription?.employeeCap ?? 10;
+
+  let cap = license?.employeeCap ?? subscription?.employeeCap ?? 10;
+  let isTrial = false;
+  let isExpired = false;
+
+  const trial = await prisma.$queryRaw`
+    SELECT "expiresAt", "employeeCap" FROM "Trial" WHERE "clientId" = ${clientId} LIMIT 1
+  ` as any[];
+
+  if (trial.length) {
+    const t = trial[0];
+    isTrial = true;
+    if (new Date(t.expiresAt) < new Date()) {
+      isExpired = true;
+    } else {
+      cap = Math.min(cap, Number(t.employeeCap));
+      isTrial = true;
+    }
+  }
+
   const count = await prisma.employee.count({ where: { clientId } });
+
+  if (isTrial && isExpired) {
+    return { withinCap: false, cap, count, reason: 'Trial expired. Please upgrade to continue.' };
+  }
 
   return { withinCap: count < cap, cap, count };
 }

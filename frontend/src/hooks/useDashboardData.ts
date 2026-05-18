@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import {
-  ReportsAPI, DashboardAPI, PublicHolidaysAPI, CurrencyRateAPI,
+  ReportsAPI, DashboardAPI, PublicHolidaysAPI, CurrencyRateAPI, UserAPI,
   type DashboardSummary, type CurrencyRate, type ReminderItem, type PublicHoliday,
 } from '../api/client';
-import { getActiveCompanyId } from '../lib/companyContext';
+import { getActiveCompanyId, setActiveCompanyId } from '../lib/companyContext';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
 
@@ -96,7 +97,22 @@ export function useDashboardData(): DashboardData {
   const holidaysQuery = usePublicHolidays();
   const exchangeRateQuery = useExchangeRate();
 
-  const hasCompany = !!getActiveCompanyId();
+  const storedCompanyId = getActiveCompanyId();
+
+  // Auto-load first company if none stored (handles new users after signup)
+  const companiesQuery = useQuery({
+    queryKey: ['userCompanies'],
+    queryFn: () => UserAPI.companies().then((r) => r.data),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (!storedCompanyId && companiesQuery.data?.length) {
+      setActiveCompanyId(companiesQuery.data[0].id);
+    }
+  }, [storedCompanyId, companiesQuery.data]);
+
+  const hasCompany = !!getActiveCompanyId() || !!companiesQuery.data?.length;
 
   // Show skeleton until we have data OR all retries are exhausted.
   // isLoading is false during retries in TanStack Query v5 (status=error, fetchStatus=fetching),

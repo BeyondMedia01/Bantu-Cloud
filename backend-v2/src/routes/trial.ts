@@ -10,7 +10,7 @@ const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 // ─── GET /api/trial/status ────────────────────────────────────────────────────
 
 router.get('/status', async (c) => {
-  const clientId = c.get('clientId');
+  const clientId = c.get('clientId') ?? (c.get('user') as any)?.clientId;
   if (!clientId) return c.json({ trial: null });
 
   const row: any[] = await (prisma as any).$queryRawUnsafe(
@@ -39,7 +39,7 @@ router.get('/status', async (c) => {
 // ─── PATCH /api/trial/onboarding-step ────────────────────────────────────────
 
 router.patch('/onboarding-step', validateBody(z.object({ step: z.number() })), async (c) => {
-  const clientId = c.get('clientId');
+  const clientId = c.get('clientId') ?? (c.get('user') as any)?.clientId;
   if (!clientId) return c.json({ message: 'Client context missing' }, 400);
 
   const { step } = c.req.valid('json');
@@ -76,7 +76,7 @@ router.post('/upgrade-request', validateBody(z.object({ name: z.string().min(1),
     const env = (c as any).env as Record<string, string>;
     const resend = new Resend(env.RESEND_API_KEY);
     await resend.emails.send({
-      from: 'Bantu Payroll <no-reply@payroll.thinkbantu.com>',
+      from: 'Bantu Payroll <no-reply@thinkbantu.com>',
       to,
       subject: `Trial Upgrade Request from ${name}`,
       text: `Name: ${name}\nUser: ${user?.email}\n\n${message}`,

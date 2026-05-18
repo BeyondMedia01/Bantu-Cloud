@@ -264,7 +264,8 @@ export function processEmployee(params: {
     const cat = e.vehicleEngineCategory;
     if (!cat || cat === 'NONE') return e.motorVehicleBenefit || 0;
     const ccy = currency === 'ZiG' ? 'ZiG' : 'USD';
-    return vehicleBenefitTable[ccy]?.[cat] ?? e.motorVehicleBenefit ?? 0;
+    const tableVal = vehicleBenefitTable[ccy]?.[cat];
+    return tableVal || e.motorVehicleBenefit || 0;
   };
 
   // ---- Loan benefits ----
