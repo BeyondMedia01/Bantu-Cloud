@@ -92,6 +92,7 @@ export interface NecGrade {
   minWage?: number | null;
   minRate?: number | null;
   necLevyRate?: number | null;
+  necEmployeeRate?: number | null;
   createdAt: string;
   updatedAt: string;
   tableName?: string; // injected client-side when flattening tables
