@@ -156,6 +156,37 @@ router.post('/', requirePermission('manage_employees'), validateBody(createEmplo
     return c.json({ message: `Employee cap reached (${capCheck.cap}). Upgrade your plan to add more employees.` }, 403);
   }
 
+  const companyId = body.companyId || c.get('companyId') || '';
+  const duplicates: string[] = [];
+
+  if (body.nationalId) {
+    const existingNationalId = await prisma.employee.findFirst({
+      where: { companyId, nationalId: body.nationalId },
+      select: { id: true },
+    });
+    if (existingNationalId) duplicates.push('National ID');
+  }
+
+  if (body.tin) {
+    const existingTin = await prisma.employee.findFirst({
+      where: { companyId, tin: body.tin },
+      select: { id: true },
+    });
+    if (existingTin) duplicates.push('TIN');
+  }
+
+  if (body.accountNumber && body.bankName) {
+    const existingBank = await prisma.employee.findFirst({
+      where: { companyId, accountNumber: body.accountNumber, bankName: body.bankName },
+      select: { id: true },
+    });
+    if (existingBank) duplicates.push('Bank Account');
+  }
+
+  if (duplicates.length > 0) {
+    return c.json({ message: `Duplicate detected: ${duplicates.join(', ')} already exists for another employee in this company` }, 409);
+  }
+
   try {
     const employee = await prisma.employee.create({
       data: {
@@ -234,6 +265,26 @@ router.put('/:id', requirePermission('manage_employees'), async (c) => {
     if (!companyId && !clientId) return c.json({ message: 'Access denied' }, 403);
 
     const body = await c.req.json();
+    const employeeId = c.req.param('id');
+    const empCompanyId = existing.companyId;
+    const duplicates: string[] = [];
+
+    if (body.nationalId) {
+      const found = await prisma.employee.findFirst({ where: { companyId: empCompanyId, nationalId: body.nationalId, NOT: { id: employeeId } }, select: { id: true } });
+      if (found) duplicates.push('National ID');
+    }
+    if (body.tin) {
+      const found = await prisma.employee.findFirst({ where: { companyId: empCompanyId, tin: body.tin, NOT: { id: employeeId } }, select: { id: true } });
+      if (found) duplicates.push('TIN');
+    }
+    if (body.accountNumber && body.bankName) {
+      const found = await prisma.employee.findFirst({ where: { companyId: empCompanyId, accountNumber: body.accountNumber, bankName: body.bankName, NOT: { id: employeeId } }, select: { id: true } });
+      if (found) duplicates.push('Bank Account');
+    }
+    if (duplicates.length > 0) {
+      return c.json({ message: `Duplicate detected: ${duplicates.join(', ')} already exists for another employee in this company` }, 409);
+    }
+
     const data: Record<string, unknown> = {};
     const NUMERIC_FIELDS = new Set(['baseRate','hoursPerPeriod','daysPerPeriod','leaveEntitlement','taxCredits','motorVehicleBenefit','taxDirectivePerc','taxDirectiveAmt','splitUsdPercent','splitZigValue']);
     const DATE_FIELDS = new Set(['startDate','dateOfBirth','dischargeDate','taxDirectiveEffective','taxDirectiveExpiry']);
