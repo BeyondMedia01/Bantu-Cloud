@@ -1,21 +1,12 @@
 const express = require('express');
+const prisma = require('../lib/prisma');
+const { getTransporter } = require('../lib/mailer');
 
 const router = express.Router();
-
-async function getPrisma() {
-  const m = await import('../lib/prisma');
-  return m.default ?? m;
-}
-
-async function resolveGetTransporter() {
-  const m = await import('../lib/mailer');
-  return m.getTransporter ?? m.default?.getTransporter;
-}
 
 // ─── GET /api/trial/status ────────────────────────────────────────────────────
 
 router.get('/status', async (req, res) => {
-  const prisma = await getPrisma();
   try {
     const trial = await prisma.trial.findUnique({ where: { clientId: req.clientId } });
     if (!trial) return res.json({ trial: null });
@@ -48,7 +39,6 @@ router.patch('/onboarding-step', async (req, res) => {
     return res.status(400).json({ message: 'step must be a number' });
   }
 
-  const prisma = await getPrisma();
   try {
     const trial = await prisma.trial.findUnique({ where: { clientId: req.clientId } });
     if (!trial) return res.status(404).json({ message: 'No trial found' });
@@ -80,7 +70,6 @@ router.post('/upgrade-request', async (req, res) => {
   const to = process.env.UPGRADE_CONTACT_EMAIL || 'bechanibeyond@gmail.com';
 
   try {
-    const getTransporter = await resolveGetTransporter();
     const transporter = getTransporter();
     await transporter.sendMail({
       from: process.env.EMAIL_FROM || 'Bantu Payroll <no-reply@bantu.io>',
