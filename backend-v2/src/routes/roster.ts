@@ -156,7 +156,7 @@ router.put('/:id', requirePermission('manage_employees'), validateBody(updateSch
 
   try {
     const existing = await prisma.shiftAssignment.findUnique({ where: { id } });
-    if (!existing || (companyId && existing.companyId !== companyId)) {
+    if (!existing || existing.companyId !== companyId) {
       return c.json({ message: 'Not found' }, 404);
     }
 
@@ -188,7 +188,7 @@ router.delete('/:id', requirePermission('manage_employees'), async (c) => {
 
   try {
     const existing = await prisma.shiftAssignment.findUnique({ where: { id } });
-    if (!existing || (companyId && existing.companyId !== companyId)) {
+    if (!existing || existing.companyId !== companyId) {
       return c.json({ message: 'Not found' }, 404);
     }
     await prisma.shiftAssignment.delete({ where: { id } });

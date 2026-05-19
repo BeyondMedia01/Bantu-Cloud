@@ -136,6 +136,36 @@ async function autoSeedTransactionCodes() {
         affectsNssa: true,
         affectsAidsLevy: true,
       },
+      {
+        code: 'NEC',
+        name: 'NEC Contribution',
+        description: 'National Employment Council employee & employer levy (% of basic salary)',
+        type: 'DEDUCTION',
+        calculationType: 'percentage',
+        defaultValue: 2,
+        employerRate: 2,
+        preTax: true,
+        taxable: true,
+        pensionable: false,
+        affectsPaye: true,
+        affectsNssa: false,
+        affectsAidsLevy: false,
+      },
+      {
+        code: 'TU',
+        name: 'Trade Union Contribution',
+        description: 'Trade union employee & employer contribution (% of basic salary)',
+        type: 'DEDUCTION',
+        calculationType: 'percentage',
+        defaultValue: 1,
+        employerRate: 1,
+        preTax: false,
+        taxable: true,
+        pensionable: false,
+        affectsPaye: false,
+        affectsNssa: false,
+        affectsAidsLevy: false,
+      },
     ];
 
     // Batch all upserts into a single transaction to avoid O(clients × codes) round-trips
@@ -148,11 +178,13 @@ async function autoSeedTransactionCodes() {
             where: { clientId_code: { clientId: client.id, code: tc.code } },
             update: {
               name: tc.name,
-              incomeCategory: tc.incomeCategory,
+              description: tc.description ?? undefined,
+              incomeCategory: tc.incomeCategory ?? null,
               defaultValue: tc.defaultValue ?? null,
-              // Tax flags (taxable, affectsPaye, affectsNssa, affectsAidsLevy, preTax)
-              // are intentionally NOT updated so client customisations are preserved
-              // across deployments. Only structural/display fields are refreshed.
+              calculationType: tc.calculationType ?? 'fixed',
+              employerRate: tc.employerRate ?? 0,
+              // Tax flags are intentionally NOT updated so client customisations
+              // are preserved across deployments.
             },
             create: { ...tc, clientId: client.id },
           })

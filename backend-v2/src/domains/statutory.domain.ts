@@ -8,6 +8,7 @@ import statutoryRatesRoutes from '../routes/statutoryRates';
 import nssaContributionsRoutes from '../routes/nssaContributions';
 import statutoryExportsRoutes from '../routes/statutoryExports';
 import bankFilesRoutes from '../routes/bankFiles';
+import tradeUnionRatesRoutes from '../routes/tradeUnionRates';
 
 const app = new Hono();
 app.route('/', statutoryRoutes);
@@ -19,5 +20,6 @@ app.route('/statutory-rates', statutoryRatesRoutes);
 app.route('/nssa-contributions', nssaContributionsRoutes);
 app.route('/statutory-exports', statutoryExportsRoutes);
 app.route('/bank-files', bankFilesRoutes);
+app.route('/trade-union-rates', tradeUnionRatesRoutes);
 
 export default app;

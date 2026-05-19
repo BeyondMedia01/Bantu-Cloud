@@ -60,6 +60,9 @@ model Client {
   id               String            @id @default(uuid())
   name             String
   taxId            String?
+  email            String?
+  phone            String?
+  address          String?
   isActive         Boolean           @default(true)
   defaultCurrency  String            @default("USD")
   createdAt        DateTime          @default(now())

@@ -3,14 +3,13 @@ import {
   AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie,
 } from 'recharts';
-import { Plus, ArrowUpRight, Clock, CheckCircle2, UserX, TrendingUp } from 'lucide-react';
+import { Plus, ArrowUpRight, Clock, CheckCircle2, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import IntelligenceWidget from '../components/IntelligenceWidget';
 import MiniCalendar from '../components/dashboard/MiniCalendar';
 import RemindersCard from '../components/dashboard/RemindersCard';
 import FilingDeadlinesCard from '../components/dashboard/FilingDeadlinesCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -47,10 +46,6 @@ const Dashboard: React.FC = () => {
     : [{ name: 'N/A', value: 1, fill: 'var(--border)' }];
 
   const currentRun = summary?.currentRun ?? null;
-  const noTinEmployees = summary?.noTinEmployees ?? [];
-  const noBankEmployees = summary?.noBankEmployees ?? [];
-  const noTinCount = noTinEmployees.length;
-  const noBankCount = noBankEmployees.length;
   const trendCurrency = summary?.lastRun?.currency ?? 'USD';
   const currencySymbol = trendCurrency === 'USD' ? '$' : trendCurrency + ' ';
 
@@ -71,43 +66,6 @@ const Dashboard: React.FC = () => {
             </p>
           </CardContent>
         </Card>
-      )}
-
-      {/* Compliance alerts */}
-      {!loading && noTinCount > 0 && (
-        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
-          <UserX size={18} className="text-warning shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-warning">
-              {noTinCount === 1
-                ? `${noTinEmployees[0].firstName} ${noTinEmployees[0].lastName} is missing a ZIMRA TIN`
-                : `${noTinEmployees.slice(0, 3).map(e => `${e.firstName} ${e.lastName}`).join(', ')}${noTinCount > 3 ? ` +${noTinCount - 3} more` : ''} — missing ZIMRA TIN`}
-            </p>
-            <p className="text-xs text-warning/80 font-medium">PAYE submissions require a TIN for every active employee.</p>
-          </div>
-          <Button size="sm" onClick={() => navigate('/employees')}
-            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
-            Review
-          </Button>
-        </div>
-      )}
-
-      {!loading && noBankCount > 0 && (
-        <div className="flex items-center gap-3 bg-warning-bg border border-warning-border rounded-2xl p-4">
-          <UserX size={18} className="text-warning shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-warning">
-              {noBankCount === 1
-                ? `${noBankEmployees[0].firstName} ${noBankEmployees[0].lastName} has no bank account details`
-                : `${noBankEmployees.slice(0, 3).map(e => `${e.firstName} ${e.lastName}`).join(', ')}${noBankCount > 3 ? ` +${noBankCount - 3} more` : ''} — missing bank details`}
-            </p>
-            <p className="text-xs text-warning/80 font-medium">Account numbers are required to process EFT payroll runs.</p>
-          </div>
-          <Button size="sm" onClick={() => navigate('/employees')}
-            className="shrink-0 bg-warning text-white hover:bg-warning/90 rounded-full text-xs font-bold">
-            Update Profiles
-          </Button>
-        </div>
       )}
 
       {/* Main grid */}

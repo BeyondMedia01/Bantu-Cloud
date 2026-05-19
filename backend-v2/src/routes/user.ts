@@ -98,6 +98,10 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(8),
 });
 
+const deleteAccountSchema = z.object({
+  password: z.string().min(1),
+});
+
 router.put('/change-password', validateBody(changePasswordSchema), async (c) => {
   const user: TokenPayload = c.get('user');
   try {
@@ -112,6 +116,29 @@ router.put('/change-password', validateBody(changePasswordSchema), async (c) => 
     await prisma.user.update({ where: { id: user.userId }, data: { password: hashedPassword } });
     await prisma.session.deleteMany({ where: { userId: user.userId } });
     return c.json({ message: 'Password updated successfully. All other sessions have been logged out.' });
+  } catch (err) {
+    console.error(err);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
+router.delete('/account', validateBody(deleteAccountSchema), async (c) => {
+  const user: TokenPayload = c.get('user');
+  try {
+    const { password } = c.req.valid('json');
+
+    const dbUser = await prisma.user.findUnique({ where: { id: user.userId } });
+    if (!dbUser) return c.json({ message: 'User not found' }, 404);
+
+    const valid = await bcrypt.compare(password, dbUser.password);
+    if (!valid) return c.json({ message: 'Password is incorrect' }, 400);
+
+    await prisma.session.deleteMany({ where: { userId: user.userId } });
+    await prisma.refreshToken.deleteMany({ where: { userId: user.userId } });
+
+    await prisma.user.delete({ where: { id: user.userId } });
+
+    return c.json({ message: 'Account deleted successfully' });
   } catch (err) {
     console.error(err);
     return c.json({ message: 'Internal server error' }, 500);

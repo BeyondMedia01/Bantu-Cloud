@@ -45,9 +45,11 @@ const AdminUsers: React.FC = () => {
       await AdminAPI.createUser(form);
       setShowForm(false);
       setForm({ name: '', email: '', password: '', role: 'CLIENT_ADMIN' });
+      showToast('User created', 'success');
       load();
     } catch (err: any) {
-      setError(err.message || 'Failed to create user');
+      const status = err?.response?.status;
+      setError(status === 409 ? 'Email already registered' : err.message || 'Failed to create user');
     } finally {
       setSaving(false);
     }
@@ -139,6 +141,9 @@ const AdminUsers: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
+              {users.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">No users found.</td></tr>
+              )}
               {users.map((u: any) => (
                 <tr key={u.id} className="tbl-row">
                   <td className="px-4 py-3 font-bold text-sm">{u.name}</td>

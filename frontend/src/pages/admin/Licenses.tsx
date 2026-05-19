@@ -48,15 +48,15 @@ const AdminLicenses: React.FC = () => {
   const confirmRevoke = async () => {
     if (!revokeTarget) return;
     setActionId(revokeTarget);
+    setRevokeTarget(null);
     try {
       await LicenseAPI.revoke(revokeTarget);
       showToast('License revoked', 'success');
       load();
-    } catch {
-      showToast('Failed to revoke license', 'error');
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to revoke license', 'error');
     } finally {
       setActionId('');
-      setRevokeTarget(null);
     }
   };
 
@@ -66,8 +66,8 @@ const AdminLicenses: React.FC = () => {
       await LicenseAPI.reactivate(clientId, 12);
       showToast('License reactivated', 'success');
       load();
-    } catch {
-      showToast('Failed to reactivate license', 'error');
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to reactivate license', 'error');
     } finally {
       setActionId('');
     }
@@ -143,7 +143,7 @@ const AdminLicenses: React.FC = () => {
                 {licenses.length === 0 ? (
                   <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">No licenses issued yet.</td></tr>
                 ) : licenses.map((lic: any) => {
-                  const isActive = lic.isActive && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
+                  const isActive = lic.active && (!lic.expiresAt || new Date(lic.expiresAt) > new Date());
                   return (
                     <tr key={lic.id} className="tbl-row">
                       <td className="px-5 py-3.5 font-bold text-navy">{lic.client?.name || lic.clientId}</td>

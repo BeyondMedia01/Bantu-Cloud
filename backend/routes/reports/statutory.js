@@ -1015,35 +1015,6 @@ router.get('/tarms-paye-excel', requirePermission('export_reports'), async (req,
         row.height = 18;
       });
 
-      // Totals row
-      const dataStart = 2;
-      const dataEnd   = sheetPayslips.length + 1;
-      const totalsRow = ws.addRow({});
-      totalsRow.height = 22;
-
-      // Label in col 3 (Employee Name)
-      totalsRow.getCell(3).value = 'TOTALS';
-      totalsRow.getCell(3).font  = { bold: true, size: 10, name: 'Calibri' };
-
-      // SUBTOTAL formulas for cols 5–52
-      COL_DEF.forEach(([, key, ccyType], i) => {
-        if (!ccyType) return;
-        const colLetter = ws.getColumn(i + 1).letter;
-        const cell = totalsRow.getCell(i + 1);
-        cell.value  = { formula: `SUBTOTAL(9,${colLetter}${dataStart}:${colLetter}${dataEnd})` };
-        cell.numFmt = NUM_FMT;
-        cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
-        cell.font   = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
-        cell.alignment = { horizontal: 'right', vertical: 'middle' };
-      });
-      // Style the label cells
-      for (let i = 1; i <= 4; i++) {
-        const cell = totalsRow.getCell(i);
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: DARK_BLUE } };
-        cell.font = { bold: true, color: { argb: WHITE_FONT }, size: 10, name: 'Calibri' };
-        cell.alignment = { vertical: 'middle' };
-      }
-
       // Freeze first 3 columns + header
       ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 1, topLeftCell: 'D2' }];
 
@@ -1226,36 +1197,6 @@ router.get('/nssa-p4a-excel', requirePermission('export_reports'), async (req, r
     // ── Totals row ─────────────────────────────────────────────────────────────
     const dataRowStart = 2;
     const dataRowEnd   = payslips.length + 1;
-
-    const totalsRow = ws.addRow({
-      ssrNumber:               'TOTALS',
-      worksNumber:             '',
-      ssnNumber:               '',
-      nationalIdNumber:        '',
-      period:                  '',
-      birthDate:               null,
-      surname:                 '',
-      firstname:               '',
-      startDate:               null,
-      endDate:                 null,
-      pobsInsurableEarnings:   { formula: `SUM(K${dataRowStart}:K${dataRowEnd})` },
-      pobsContributions:       { formula: `SUM(L${dataRowStart}:L${dataRowEnd})` },
-      basicAPWCS:              { formula: `SUM(M${dataRowStart}:M${dataRowEnd})` },
-      actualInsurableEarnings: { formula: `SUM(N${dataRowStart}:N${dataRowEnd})` },
-    });
-
-    totalsRow.eachCell(cell => {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A2E4A' } };
-      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10, name: 'Calibri' };
-      cell.alignment = { vertical: 'middle' };
-    });
-    // Format financial cells in totals row
-    ['K', 'L', 'M', 'N'].forEach(col => {
-      const cell = totalsRow.getCell(col);
-      cell.numFmt = '#,##0.00';
-      cell.alignment = { vertical: 'middle', horizontal: 'right' };
-    });
-    totalsRow.height = 22;
 
     // ── Freeze header ─────────────────────────────────────────────────────────
     ws.views = [{ state: 'frozen', ySplit: 1 }];

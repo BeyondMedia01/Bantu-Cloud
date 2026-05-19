@@ -51,12 +51,12 @@ const PayrollNew: React.FC = () => {
       if (form.currencyMode === 'DUAL') {
         payload.dualCurrency = true;
         payload.currency = 'USD';
-        payload.exchangeRate = form.exchangeRate;
+        payload.exchangeRate = parseFloat(form.exchangeRate);
       } else {
         payload.currency = form.currencyMode;
         // ZiG runs use ZiG tax brackets directly — no exchange rate involved.
         // USD runs default to 1.
-        payload.exchangeRate = '1';
+        payload.exchangeRate = 1;
       }
       await PayrollAPI.create(payload);
       navigate('/payroll');

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, FileText, ChevronRight, Play, Check, SendHorizonal, Download, Banknote, ChevronDown, Pencil, X } from 'lucide-react';
+import { Plus, FileText, ChevronRight, Play, Check, SendHorizonal, Pencil, X } from 'lucide-react';
 import SkeletonTable from '../components/common/SkeletonTable';
-import { Dropdown } from '../components/ui/dropdown';
 import { useNavigate } from 'react-router-dom';
-import { PayrollAPI, StatutoryExportAPI, BankFileAPI } from '../api/client';
+import { PayrollAPI } from '../api/client';
 import { getActiveCompanyId } from '../lib/companyContext';
 import { useToast } from '../context/ToastContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -49,37 +48,6 @@ const Payroll: React.FC = () => {
     } catch (err: any) {
       setActionError(err.message || `Failed to ${action} payroll run`);
     } finally { setActionLoading(null); }
-  };
-
-  const handleExport = async (e: React.MouseEvent, type: 'zimra' | 'nssa', runId: string) => {
-    e.stopPropagation();
-    try {
-      const res = type === 'zimra'
-        ? await StatutoryExportAPI.downloadZimraPaye(runId)
-        : await StatutoryExportAPI.downloadNssa(runId);
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = type === 'zimra' ? `ZIMRA-PAYE-${runId}.csv` : `NSSA-${runId}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      setActionError(`Failed to download ${type.toUpperCase()} export`);
-    }
-  };
-
-  const handleBankExport = async (format: 'cbz' | 'stanbic' | 'fidelity', runId: string) => {
-    try {
-      const res = await BankFileAPI.download(format, runId);
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${format.toUpperCase()}-Payments-${runId}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err: any) {
-      setActionError(err.message || `Failed to download ${format.toUpperCase()} bank file`);
-    }
   };
 
   const handleSaveRate = async (e: React.MouseEvent, runId: string) => {
@@ -282,44 +250,13 @@ const Payroll: React.FC = () => {
                         >
                           <FileText size={12} /> Summary
                         </button>
-                        {can('PAYROLL', 'EXPORT') && (
-                          <button
-                            onClick={(e) => handleExport(e, 'zimra', run.id)}
-                            className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-purple-50 text-purple-700 rounded-full hover:bg-purple-100"
-                            title="Download ZIMRA PAYE P2 CSV"
-                          >
-                            <Download size={11} /> ZIMRA
-                          </button>
-                        )}
-                        {can('PAYROLL', 'EXPORT') && (
-                          <button
-                            onClick={(e) => handleExport(e, 'nssa', run.id)}
-                            className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-orange-50 text-orange-700 rounded-full hover:bg-orange-100"
-                            title="Download NSSA Contribution CSV"
-                          >
-                            <Download size={11} /> NSSA
-                          </button>
-                        )}
-                        {can('PAYROLL', 'EXPORT') && (
-                          <Dropdown
-                            stopPropagation
-                            align="right"
-                            trigger={(isOpen) => (
-                              <button
-                                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100"
-                                title="Download Bank Payment File"
-                              >
-                                <Banknote size={12} /> Bank <ChevronDown size={10} className={isOpen ? 'rotate-180' : ''} />
-                              </button>
-                            )}
-                            sections={[{
-                              items: (['cbz', 'stanbic', 'fidelity'] as const).map((fmt) => ({
-                                label: fmt,
-                                onClick: () => handleBankExport(fmt, run.id),
-                              })),
-                            }]}
-                          />
-                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate(`/payroll/${run.id}/payslips`); }}
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-muted text-foreground/90 rounded-full hover:bg-muted"
+                          title="View Payslips"
+                        >
+                          <FileText size={12} /> View Payslips
+                        </button>
                       </>)}
                       <ChevronRight size={16} className="text-muted-foreground ml-1" />
                     </div>

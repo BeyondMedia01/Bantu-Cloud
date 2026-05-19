@@ -32,6 +32,31 @@ const updateSettingSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
+router.get('/my-role', async (c) => {
+  const user = c.get('user') as any;
+  return c.json({ userId: user?.userId, role: user?.role });
+});
+
+router.get('/debug-role', async (c) => {
+  const email = c.req.query('email');
+  if (!email) return c.json({ error: 'email required' }, 400);
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, name: true, email: true, role: true },
+  });
+  return c.json(user || { notFound: true });
+});
+
+router.post('/check-email', async (c) => {
+  const { email } = await c.req.json();
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, name: true, email: true, role: true },
+  });
+  return c.json(user || { notFound: true });
+});
+
+
 router.get('/users', adminOnly, async (c) => {
   const users = await prisma.user.findMany({
     select: { id: true, name: true, email: true, role: true, createdAt: true },
@@ -144,13 +169,15 @@ router.put('/settings', adminOnly, validateBody(updateSettingSchema), async (c) 
 });
 
 router.get('/stats', adminOnly, async (c) => {
-  const [clients, users, employees] = await Promise.all([
+  const [clientCount, userCount, employeeCount, activeLicenseCount, settingCount] = await Promise.all([
     prisma.client.count(),
     prisma.user.count(),
     prisma.employee.count(),
+    prisma.licenseToken.count({ where: { active: true } }),
+    prisma.systemSetting.count(),
   ]);
   const aidsLevyRate = await getSettingAsString('AIDS_LEVY_RATE');
-  return c.json({ clients, users, employees, aidsLevyRate });
+  return c.json({ clientCount, userCount, employeeCount, activeLicenseCount, settingCount, aidsLevyRate });
 });
 
 router.get('/logs', adminOnly, async (c) => {
@@ -180,6 +207,15 @@ router.get('/logs', adminOnly, async (c) => {
     prisma.auditLog.count({ where }),
   ]);
   return c.json({ logs, total, page, limit });
+});
+
+
+router.get('/licenses', adminOnly, async (c) => {
+  const licenses = await prisma.licenseToken.findMany({
+    include: { client: { select: { name: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
+  return c.json(licenses);
 });
 
 export default router;

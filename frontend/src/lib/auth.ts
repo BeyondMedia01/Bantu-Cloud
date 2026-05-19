@@ -42,16 +42,8 @@ export function getUser(): AuthUser | null {
   if (!token) return null;
   const user = parseJwt(token);
   if (!user) return null;
-  if (user.exp && user.exp * 1000 < Date.now()) {
-    // Local-only clear — don't fire the async backend call from a sync getter
-    _token = null;
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('activeCompanyId');
-    sessionStorage.removeItem('activeClientId');
-    localStorage.removeItem('bantu_auth_token');
-    localStorage.removeItem('bantu_user_id');
-    return null;
-  }
+  // Don't clear the token here — the API layer handles refresh on 401.
+  // Clearing _token synchronously causes ProtectedRoute to redirect before refresh can run.
   return user;
 }
 

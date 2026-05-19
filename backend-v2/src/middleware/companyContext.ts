@@ -26,9 +26,8 @@ export const companyContext = createMiddleware(async (c: Context, next: Next) =>
     return c.json({ message: 'Session expired, please log in again' }, 401);
   }
 
-  // PLATFORM_ADMIN operates without a company context
+  // PLATFORM_ADMIN operates without a company context — ignore any x-company-id header
   if (role === 'PLATFORM_ADMIN') {
-    if (companyId) return c.json({ message: 'Platform administrators cannot access client company data' }, 403);
     c.set('companyId', null);
     c.set('clientId', null);
     c.set('employeeId', null);

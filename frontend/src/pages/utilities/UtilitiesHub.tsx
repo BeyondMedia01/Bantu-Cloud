@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, RefreshCw, Calendar, FileText, Percent, CalendarDays, Globe, GraduationCap, Clock } from 'lucide-react';
+import { TrendingUp, RefreshCw, Calendar, FileText, Percent, CalendarDays, Globe, GraduationCap, Clock, Users } from 'lucide-react';
 
 const UTILITIES = [
   {
@@ -98,6 +98,22 @@ const UTILITIES = [
     description: 'Define salary bands and pay grades for job classifications',
     color: 'text-purple-500',
     bg: 'bg-purple-50',
+  },
+  {
+    path: '/utilities/nec-tables',
+    icon: <FileText size={24} />,
+    title: 'NEC Tables',
+    description: 'Configure National Employment Council minimum wage tables by grade and sector',
+    color: 'text-sky-600',
+    bg: 'bg-sky-50',
+  },
+  {
+    path: '/utilities/trade-union-rates',
+    icon: <Users size={24} />,
+    title: 'Trade Union Rates',
+    description: 'Configure trade union subscription deduction rates and fixed amounts',
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
   },
   {
     path: '/utilities/backup',

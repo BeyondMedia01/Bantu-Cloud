@@ -123,7 +123,7 @@ const Payslips: React.FC = () => {
       setSentIds((prev) => new Set(prev).add(payslipId));
       showToast(`Payslip sent to ${res.data.to}`, 'success');
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to send payslip';
+      const msg = err?.message || 'Failed to send payslip';
       showToast(msg, 'error');
     } finally {
       setSendingIds((prev) => { const s = new Set(prev); s.delete(payslipId); return s; });
@@ -138,7 +138,7 @@ const Payslips: React.FC = () => {
       const res = await PayrollAPI.sendAllPayslips(runId);
       showToast(res.data.message, 'success');
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to queue payslip emails';
+      const msg = err?.message || 'Failed to queue payslip emails';
       showToast(msg, 'error');
     } finally {
       setSendingAll(false);

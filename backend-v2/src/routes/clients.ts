@@ -6,12 +6,18 @@ import { validateBody } from '../lib/validate';
 const CreateClientSchema = z.object({
   name: z.string().min(1),
   taxId: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  address: z.string().optional(),
   defaultCurrency: z.enum(['USD', 'ZiG']).default('USD'),
 });
 
 const UpdateClientSchema = z.object({
   name: z.string().min(1).optional(),
   taxId: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  address: z.string().optional(),
   defaultCurrency: z.enum(['USD', 'ZiG']).optional(),
   isActive: z.boolean().optional(),
 });
@@ -38,13 +44,14 @@ router.get('/', requirePlatformAdmin(), async (c) => {
     },
     orderBy: { name: 'asc' },
   });
-  return c.json(clients);
+  // Include enabledModules in response (stored on the model directly)
+  return c.json(clients.map((c) => ({ ...c, enabledModules: c.enabledModules ?? [] })));
 });
 
 router.post('/', requirePlatformAdmin(), validateBody(CreateClientSchema), async (c) => {
-  const { name, taxId, defaultCurrency } = c.req.valid('json' as any);
+  const { name, taxId, email, phone, address, defaultCurrency } = c.req.valid('json' as any);
   const client = await prisma.client.create({
-    data: { name, taxId, defaultCurrency },
+    data: { name, taxId, email: email || null, phone: phone || null, address: address || null, defaultCurrency },
   });
   return c.json(client, 201);
 });
@@ -59,11 +66,11 @@ router.get('/:id', requirePlatformAdmin(), async (c) => {
 });
 
 router.put('/:id', requirePlatformAdmin(), validateBody(UpdateClientSchema), async (c) => {
-  const { name, taxId, defaultCurrency, isActive } = c.req.valid('json' as any);
+  const { name, taxId, email, phone, address, defaultCurrency, isActive } = c.req.valid('json' as any);
   try {
     const client = await prisma.client.update({
       where: { id: c.req.param('id') },
-      data: { name, taxId, defaultCurrency, isActive },
+      data: { name, taxId, email: email !== undefined ? (email || null) : undefined, phone, address, defaultCurrency, isActive },
     });
     return c.json(client);
   } catch (err: any) {

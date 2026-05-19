@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 let RESEND_API_KEY = '';
-let FROM = 'Bantu Payroll <no-reply@payroll.thinkbantu.com>';
+let FROM = 'Bantu Payroll <no-reply@thinkbantu.com>';
 let FRONTEND_URL = 'https://payroll.thinkbantu.com';
 export function initMailer(apiKey: string, fromEmail?: string, frontendUrl?: string): void {
   RESEND_API_KEY = apiKey;
@@ -23,7 +23,34 @@ function getClient(): Resend {
 }
 
 function buildHtml(body: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">${body}</body></html>`;
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <tr>
+          <td style="background:#0f172a;padding:24px 32px;text-align:center;">
+            <img src="https://payroll.thinkbantu.com/logo.svg" alt="Bantu Payroll" width="40" height="40" style="display:inline-block;vertical-align:middle;margin-right:10px;">
+            <span style="color:#ffffff;font-size:18px;font-weight:bold;vertical-align:middle;letter-spacing:0.02em;">Bantu Payroll</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            ${body}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+            <p style="margin:0;color:#94a3b8;font-size:12px;">© ${new Date().getFullYear()} Bantu Payroll · <a href="https://payroll.thinkbantu.com" style="color:#94a3b8;">payroll.thinkbantu.com</a></p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 }
 
 async function sendEmail(opts: any): Promise<void> {
@@ -85,6 +112,22 @@ export async function sendNotification(to: string, opts: { subject: string; body
     html: buildHtml(`
       <h2 style="color:#0f172a;">Notification</h2>
       <p>${opts.body}</p>
+    `),
+  });
+}
+
+export async function sendTrialSignupWelcome(to: string, name: string, companyName: string): Promise<void> {
+  await sendEmail({
+    from: FROM,
+    to,
+    subject: `Welcome to Bantu Payroll, ${name.split(' ')[0]}! Complete your setup`,
+    html: buildHtml(`
+      <h2 style="color:#0f172a;">Welcome to Bantu Payroll!</h2>
+      <p>Hi <strong>${name}</strong>,</p>
+      <p>Your account for <strong>${companyName}</strong> has been created. You're almost ready to start managing payroll!</p>
+      <p>Click the button below to complete your onboarding and set up your first employee.</p>
+      <a href="${FRONTEND_URL}/trial-onboarding" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#0f172a;color:#fff;border-radius:9999px;text-decoration:none;font-weight:bold;">Complete Setup</a>
+      <p style="color:#64748b;font-size:13px;">Your 30-day free trial starts now. Complete onboarding to get the most out of your trial.</p>
     `),
   });
 }

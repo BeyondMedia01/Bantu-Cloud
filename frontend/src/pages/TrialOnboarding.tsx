@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CompanyAPI, TrialAPI } from '../api/client';
-import { EmployeeAPI } from '../api/employees.api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,17 +11,9 @@ interface CompanyForm {
   currency: string;
 }
 
-interface EmployeeForm {
-  firstName: string;
-  lastName: string;
-  jobTitle: string;
-  employmentType: 'PERMANENT' | 'CONTRACT' | 'TEMPORARY' | 'PART_TIME';
-  salary: string;
-}
-
 // ─── Progress Indicator ───────────────────────────────────────────────────────
 
-const STEPS = ['Company Setup', 'First Employee', "You're all set"];
+const STEPS = ['Company Setup', "You're all set"];
 
 function ProgressBar({ current }: { current: number }) {
   return (
@@ -91,11 +82,15 @@ function StepCompany({ onDone }: { onDone: () => void }) {
     setError('');
     setLoading(true);
     try {
-      await CompanyAPI.create(form);
+      const companyId = sessionStorage.getItem('activeCompanyId');
+      if (!companyId) throw new Error('No active company found. Please log in again.');
+      // Update the company created during signup with the details collected here.
+      // industry and country are not yet in the DB schema; only name is sent for now.
+      await CompanyAPI.update(companyId, { name: form.name });
       await TrialAPI.advanceStep(1);
       onDone();
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to create company');
+      setError(err?.response?.data?.message || err?.message || 'Failed to update company');
     } finally {
       setLoading(false);
     }
@@ -170,135 +165,7 @@ function StepCompany({ onDone }: { onDone: () => void }) {
   );
 }
 
-// ─── Step 2: First Employee ───────────────────────────────────────────────────
-
-function StepEmployee({ onDone }: { onDone: () => void }) {
-  const [form, setForm] = useState<EmployeeForm>({
-    firstName: '',
-    lastName: '',
-    jobTitle: '',
-
-    employmentType: 'PERMANENT',
-    salary: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const set =
-    (field: keyof EmployeeForm) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setForm((f) => ({ ...f, [field]: e.target.value }));
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      // jobTitle and salary are accepted by the backend but not yet on the Employee TS type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (EmployeeAPI.create as (d: any) => Promise<any>)({
-        firstName: form.firstName,
-        lastName: form.lastName,
-        jobTitle: form.jobTitle,
-        employmentType: form.employmentType,
-        salary: form.salary ? parseFloat(form.salary) : undefined,
-      });
-      await TrialAPI.advanceStep(2);
-      onDone();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to create employee');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <p className="text-muted-foreground text-sm font-medium">
-        Add your first employee so you can run payroll straight away.
-      </p>
-
-      {error && (
-        <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">
-          {error}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold">First Name <span className="text-red-500">*</span></label>
-          <input
-            required
-            value={form.firstName}
-            onChange={set('firstName')}
-            placeholder="e.g. Tendai"
-            className="border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40"
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold">Last Name <span className="text-red-500">*</span></label>
-          <input
-            required
-            value={form.lastName}
-            onChange={set('lastName')}
-            placeholder="e.g. Moyo"
-            className="border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-semibold">Job Title</label>
-        <input
-          value={form.jobTitle}
-          onChange={set('jobTitle')}
-          placeholder="e.g. Accountant"
-          className="border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold">Employment Type</label>
-          <select
-            value={form.employmentType}
-            onChange={set('employmentType')}
-            className="border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40"
-          >
-            <option value="PERMANENT">Permanent</option>
-            <option value="CONTRACT">Contract</option>
-            <option value="TEMPORARY">Temporary</option>
-            <option value="PART_TIME">Part-Time</option>
-          </select>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold">Salary (USD)</label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.salary}
-            onChange={set('salary')}
-            placeholder="e.g. 800"
-            className="border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-brand/40"
-          />
-        </div>
-      </div>
-
-      <div className="pt-2">
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-brand text-navy px-6 py-2.5 rounded-full font-bold shadow hover:opacity-90 disabled:opacity-60 text-sm"
-        >
-          {loading ? 'Adding employee…' : 'Continue →'}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-// ─── Step 3: All Set ──────────────────────────────────────────────────────────
+// ─── Step 2: All Set ─────────────────────────────────────────────────────────
 
 function StepDone() {
   const navigate = useNavigate();
@@ -307,7 +174,7 @@ function StepDone() {
   const handleGo = async () => {
     setLoading(true);
     try {
-      await TrialAPI.advanceStep(3);
+      await TrialAPI.advanceStep(2);
     } catch {
       // non-critical; proceed regardless
     }
@@ -318,7 +185,7 @@ function StepDone() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
         <p className="text-muted-foreground text-sm font-medium leading-relaxed">
-          Your company and first employee are set up. Here's what you can do next with Bantu:
+          Your company is set up. Here's what you can do next with Bantu:
         </p>
         <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 pl-1">
           <li>Run monthly payroll and generate payslips in seconds</li>
@@ -355,7 +222,7 @@ const TrialOnboarding: React.FC = () => {
     TrialAPI.getStatus()
       .then((res) => {
         const onboardingStep = res.data?.trial?.onboardingStep ?? 0;
-        if (onboardingStep >= 3) {
+        if (onboardingStep >= 2) {
           navigate('/dashboard', { replace: true });
         } else {
           setStep(onboardingStep);
@@ -399,8 +266,7 @@ const TrialOnboarding: React.FC = () => {
               <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
                 <h2 className="text-lg font-bold mb-5">{STEPS[step]}</h2>
                 {step === 0 && <StepCompany onDone={() => setStep(1)} />}
-                {step === 1 && <StepEmployee onDone={() => setStep(2)} />}
-                {step === 2 && <StepDone />}
+                {step === 1 && <StepDone />}
               </div>
             </>
           )}

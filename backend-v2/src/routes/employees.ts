@@ -40,6 +40,7 @@ const EMPLOYEE_SELECT = {
   branch: { select: { name: true } },
   department: { select: { name: true } },
   grade: { select: { name: true, minRate: true, maxRate: true } },
+  bankAccounts: { orderBy: { priority: 'asc' as const } },
 } as const;
 
 router.get('/', async (c) => {
@@ -191,7 +192,8 @@ router.post('/', requirePermission('manage_employees'), validateBody(createEmplo
 
   const capCheck = await checkEmployeeCap(clientId);
   if (!capCheck.withinCap) {
-    return c.json({ message: `Employee cap reached (${capCheck.cap}). Upgrade your plan to add more employees.` }, 403);
+    const msg = capCheck.reason || `Employee cap reached (${capCheck.cap}). Upgrade your plan to add more employees.`;
+    return c.json({ message: msg }, 403);
   }
 
   const companyId = body.companyId || c.get('companyId') || '';
@@ -308,6 +310,7 @@ router.put('/:id', requirePermission('manage_employees'), async (c) => {
     if (!companyId && !clientId) return c.json({ message: 'Access denied' }, 403);
 
     const body = await c.req.json();
+    const { bankAccounts } = body;
     const employeeId = c.req.param('id');
     const empCompanyId = existing.companyId;
     const duplicates: string[] = [];
@@ -347,6 +350,29 @@ router.put('/:id', requirePermission('manage_employees'), async (c) => {
     }
 
     await prisma.employee.update({ where: { id: c.req.param('id') }, data });
+
+    // Sync bank accounts when provided
+    if (Array.isArray(bankAccounts)) {
+      const empId = c.req.param('id') as string;
+      await prisma.employeeBankAccount.deleteMany({ where: { employeeId: empId } });
+      if (bankAccounts.length > 0) {
+        await prisma.employeeBankAccount.createMany({
+          data: bankAccounts.map((a: any, i: number) => ({
+            employeeId: empId,
+            accountName: a.accountName || null,
+            accountNumber: a.accountNumber,
+            bankName: a.bankName,
+            bankBranch: a.bankBranch || null,
+            branchCode: a.branchCode || null,
+            currency: a.currency || 'USD',
+            splitType: a.splitType || 'REMAINDER',
+            splitValue: Number(a.splitValue) || 0,
+            priority: i,
+          })),
+        });
+      }
+    }
+
     const employee = await prisma.employee.findUnique({ where: { id: c.req.param('id') }, select: EMPLOYEE_SELECT });
     return c.json(employee);
   } catch (err: any) {
