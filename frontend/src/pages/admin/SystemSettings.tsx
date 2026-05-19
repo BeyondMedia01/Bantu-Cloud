@@ -82,7 +82,8 @@ const SystemSettings: React.FC = () => {
                       <input
                         value={values[s.settingName] ?? ''}
                         onChange={(e) => setValues((v) => ({ ...v, [s.settingName]: e.target.value }))}
-                        className="w-full px-3 py-2 bg-muted border border-border rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green"
+                        disabled={saving}
+                        className="w-full px-3 py-2 bg-muted border border-border rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-green/20 focus:border-accent-green disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </td>
                   </tr>

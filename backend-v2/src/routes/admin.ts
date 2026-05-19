@@ -56,23 +56,6 @@ router.post('/check-email', async (c) => {
   return c.json(user || { notFound: true });
 });
 
-router.post('/promote', async (c) => {
-  const body = await c.req.json();
-  const secretKey = body.secret;
-  if (secretKey !== 'promote-to-admin') {
-    return c.json({ message: 'Invalid secret' }, 403);
-  }
-  
-  const targetUserId = body.userId;
-  const newRole = body.role || 'PLATFORM_ADMIN';
-  
-  await prisma.user.update({
-    where: { id: targetUserId },
-    data: { role: newRole },
-  });
-  
-  return c.json({ success: true, message: `User promoted to ${newRole}` });
-});
 
 router.get('/users', adminOnly, async (c) => {
   const users = await prisma.user.findMany({
@@ -226,13 +209,6 @@ router.get('/logs', adminOnly, async (c) => {
   return c.json({ logs, total, page, limit });
 });
 
-router.get('/clients', adminOnly, async (c) => {
-  const clients = await prisma.client.findMany({
-    include: { licenseTokens: true, _count: { select: { companies: true } } },
-    orderBy: { createdAt: 'desc' },
-  });
-  return c.json(clients);
-});
 
 router.get('/licenses', adminOnly, async (c) => {
   const licenses = await prisma.licenseToken.findMany({

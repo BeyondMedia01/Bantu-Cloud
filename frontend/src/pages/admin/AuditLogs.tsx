@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import SkeletonTable from '../../components/common/SkeletonTable';
 import { AdminAPI, type AuditLog } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 const ACTION_COLORS: Record<string, string> = {
   EMPLOYEE_CREATED:   'bg-emerald-50 text-emerald-700',
@@ -23,6 +24,7 @@ function actionColor(action: string): string {
 const LIMIT = 50;
 
 const AuditLogs: React.FC = () => {
+  const { showToast } = useToast();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -53,7 +55,7 @@ const AuditLogs: React.FC = () => {
       setTotal(res.data.total);
       setPage(pg);
     } catch {
-      // silently fail — user can retry
+      showToast('Failed to load audit logs', 'error');
     } finally {
       setLoading(false);
     }
@@ -125,9 +127,10 @@ const AuditLogs: React.FC = () => {
         <div className="flex gap-3 mt-3">
           <button
             onClick={() => fetchLogs(1)}
-            className="flex items-center gap-2 bg-brand text-navy px-5 py-2 rounded-full text-sm font-bold hover:opacity-90"
+            disabled={loading}
+            className="flex items-center gap-2 bg-brand text-navy px-5 py-2 rounded-full text-sm font-bold hover:opacity-90 disabled:opacity-60"
           >
-            <Search size={14} /> Search
+            <Search size={14} /> {loading ? 'Searching…' : 'Search'}
           </button>
           <button
             onClick={() => {

@@ -44,7 +44,8 @@ router.get('/', requirePlatformAdmin(), async (c) => {
     },
     orderBy: { name: 'asc' },
   });
-  return c.json(clients);
+  // Include enabledModules in response (stored on the model directly)
+  return c.json(clients.map((c) => ({ ...c, enabledModules: c.enabledModules ?? [] })));
 });
 
 router.post('/', requirePlatformAdmin(), validateBody(CreateClientSchema), async (c) => {

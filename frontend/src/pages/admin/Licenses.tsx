@@ -48,15 +48,15 @@ const AdminLicenses: React.FC = () => {
   const confirmRevoke = async () => {
     if (!revokeTarget) return;
     setActionId(revokeTarget);
+    setRevokeTarget(null);
     try {
       await LicenseAPI.revoke(revokeTarget);
       showToast('License revoked', 'success');
       load();
-    } catch {
-      showToast('Failed to revoke license', 'error');
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to revoke license', 'error');
     } finally {
       setActionId('');
-      setRevokeTarget(null);
     }
   };
 
@@ -66,8 +66,8 @@ const AdminLicenses: React.FC = () => {
       await LicenseAPI.reactivate(clientId, 12);
       showToast('License reactivated', 'success');
       load();
-    } catch {
-      showToast('Failed to reactivate license', 'error');
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to reactivate license', 'error');
     } finally {
       setActionId('');
     }
